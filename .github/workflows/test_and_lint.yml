@@ -18,9 +18,25 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.26.1'
+      - name: Cache golangci-lint binary
+        uses: actions/cache@v4
+        with:
+          path: ~/go/bin/golangci-lint
+          key: golangci-lint-v1.64.8
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-lint-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-lint-
       - name: Install golangci-lint
         run: |
-          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+          if [ ! -f ~/go/bin/golangci-lint ]; then
+            go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.8
+          fi
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
       - name: Run golangci-lint
         run: golangci-lint run --out-format=colored-line-number --fast --timeout=5m
