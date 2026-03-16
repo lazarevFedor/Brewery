@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS reviews(
 
 
 
-CREATE TABLE IF NOT EXISTS categories(
+CREATE TABLE IF NOT EXISTS product_categories(
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     parent_id INT REFERENCES categories (id)
