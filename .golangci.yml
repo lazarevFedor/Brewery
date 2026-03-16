@@ -1,0 +1,11 @@
+run:
+
+  fast: true
+
+  skip-dirs:
+    - configs
+    - deployments
+    - build
+    - migrator
+
+  skip-dirs-use-default: true
