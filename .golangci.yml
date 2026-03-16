@@ -1,11 +1,13 @@
-run:
+version: "2"
 
-  fast: true
+linters:
+  default: fast
+  disable:
+    - depguard
 
-  skip-dirs:
+  exclusions:
+    paths:
     - configs
     - deployments
     - build
     - migrator
-
-  skip-dirs-use-default: true
