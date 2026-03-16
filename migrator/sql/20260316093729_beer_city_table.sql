@@ -7,8 +7,10 @@ CREATE TABLE IF NOT EXISTS beer (
     abv float4 NOT NULL,
     ibu SMALLINT NOT NULL,
     features TEXT[],
-    city_id SMALLINT NOT NULL REFERENCES city.id,
-    category_id SMALLINT NOT NULL REFERENCES category.id
+    city_id SMALLINT NOT NULL,
+    category_id SMALLINT NOT NULL,
+    CONSTRAINT fk_city FOREIGN KEY (city_id) REFERENCES city (id),
+    CONSTRAINT fk_category FOREIGN KEY (category_id) REFERENCES category (id)
 );
 
 -- +goose Down
