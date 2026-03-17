@@ -2,14 +2,15 @@
 package entities
 
 type Beer struct {
-	ID          uint
-	Name        string
-	Rating      float32
-	Description string
-	ABV         float32
-	IBU         uint8
-	City        string
-	BeerType    string
-	Category    string
-	Features    []string
+    ID          uint     `json:"id" info:"ID записи в бд"`
+    Name        string   `json:"name" info:"Название напитка"`
+    Rating      float32  `json:"rating" info:"Средний рейтинг"`
+    Description string   `json:"description,omitempty" info:"Описание продукта"`
+    ABV         float32  `json:"abv" info:"Крепость в %"`
+    IBU         uint8    `json:"ibu" info:"Индекс горечи"`
+    City        string   `json:"city" info:"Город производства"`
+    Country     string   `json:"country" info:"Страна производства"`
+    Type        string   `json:"type" info:"Тип напитка"`
+    Category    string   `json:"category" info:"Категория товара"`
+    Features    []string `json:"features,omitempty" info:"Список особенностей"`
 }
