@@ -1,10 +1,13 @@
 package main
 
 import (
-	"time"
+	"context"
+	"errors"
+	"os/signal"
+	"syscall"
 
+	"github.com/gin-contrib/graceful"
 	"github.com/gin-gonic/gin"
-	"github.com/joaziz/go-gin-graceful-shutdown/graceful"
 )
 
 func RequestContextMiddleware() gin.HandlerFunc {
@@ -14,8 +17,18 @@ func RequestContextMiddleware() gin.HandlerFunc {
 }
 
 func main() {
-	router := gin.New()
-	router.Use(gin.Recovery())
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	router, err := graceful.Default()
+	if err != nil {
+		panic(err)
+	}
+	defer router.Close()
+
 	router.Use(RequestContextMiddleware())
-	graceful.New(router, 30*time.Second).ListenAndServe(":8080")
+
+	if err = router.RunWithContext(ctx); err != nil && !errors.Is(err, context.Canceled) {
+		panic(err)
+	}
 }
