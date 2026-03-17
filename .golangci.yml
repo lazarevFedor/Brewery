@@ -3,16 +3,6 @@ version: "2"
 issues:
   max-same-issues: 50
 
-formatters:
-  enable:
-    - gofmt # checks if the code is formatted according to 'gofmt' command
-    - swaggo # formats swaggo comments
-    - golines # checks if code is formatted, and fixes long lines
-
-  golines:
-    # Target maximum line length.
-    max-len: 120
-
 linters:
   enable:
     - wsl_v5
