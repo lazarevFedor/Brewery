@@ -51,6 +51,7 @@ CREATE TABLE IF NOT EXISTS features (
     CONSTRAINT features_name_unique UNIQUE (name)
 );
 
+
 CREATE TABLE IF NOT EXISTS beer_features (
     beer_id INT,
     feature_id INT,
