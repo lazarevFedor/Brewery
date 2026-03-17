@@ -1,20 +1,31 @@
 -- +goose Up
+CREATE TABLE IF NOT EXISTS product_categories(
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    parent_id INT REFERENCES product_categories (id)
+);
+
+
 CREATE TABLE IF NOT EXISTS types(
     id SERIAL PRIMARY KEY,
-    name TEXT UNIQUE
+    name TEXT UNIQUE,
+    CONSTRAINT types_name_unique UNIQUE (name)
 );
 
 
 CREATE TABLE IF NOT EXISTS countries(
     id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL
+    name TEXT NOT NULL,
+    CONSTRAINT countries_name_unique UNIQUE (name)
 );
+
 
 CREATE TABLE IF NOT EXISTS cities(
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     country_id SMALLINT,
-    CONSTRAINT fk_country FOREIGN KEY (country_id) REFERENCES countries (id)
+    CONSTRAINT fk_country FOREIGN KEY (country_id) REFERENCES countries (id),
+    CONSTRAINT cities_name_country_id_unique UNIQUE (name, country_id)
 );
 
 
@@ -30,19 +41,20 @@ CREATE TABLE IF NOT EXISTS beers (
     category_id INT NOT NULL,
     CONSTRAINT fk_city FOREIGN KEY (city_id) REFERENCES cities (id),
     CONSTRAINT fk_type FOREIGN KEY (type_id) REFERENCES types (id),
-    CONSTRAINT fk_category FOREIGN KEY (category_id) REFERENCES category (id)
+    CONSTRAINT fk_category FOREIGN KEY (category_id) REFERENCES product_categories (id)
 );
 CREATE INDEX idx_beer_name ON beers(name);
 
 CREATE TABLE IF NOT EXISTS features (
     id SERIAL PRIMARY KEY,
-    name TEXT
+    name TEXT, 
+    CONSTRAINT features_name_unique UNIQUE (name)
 );
 
 CREATE TABLE IF NOT EXISTS beer_features (
     beer_id INT,
     feature_id INT,
-    PRIMARY KEY (beer_id, feture_id)
+    PRIMARY KEY (beer_id, feature_id)
 );
 
 
@@ -53,14 +65,6 @@ CREATE TABLE IF NOT EXISTS reviews(
     beer_id INT,
     CONSTRAINT fk_review_beer FOREIGN KEY (beer_id) REFERENCES beers (id)
 );
-
-
-
-CREATE TABLE IF NOT EXISTS product_categories(
-    id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL,
-    parent_id INT REFERENCES categories (id)
-)
 
 
 
