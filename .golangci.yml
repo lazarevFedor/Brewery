@@ -85,22 +85,22 @@ linters:
       # Checks that sync.Mutex and sync.RWMutex are not used as embedded fields.
       forbid-mutex: true
 
-      errcheck:
+    errcheck:
         # Report about not checking of errors in type assertions: `a := b.(MyStruct)`.
         # Such cases aren't reported by default.
         check-type-assertions: true
 
-      exhaustive:
+    exhaustive:
         # Program elements to check for exhaustiveness.
         check:
           - switch
           - map
 
-      funcorder:
+    funcorder:
         # Checks if the exported methods of a structure are placed before the non-exported ones.
         struct-method: false
 
-      funlen:
+    funlen:
         # Checks the number of lines in a function.
         # If lower than 0, disable the check.
         lines: 100
@@ -108,17 +108,17 @@ linters:
         # If lower than 0, disable the check.
         statements: 50
 
-      gochecksumtype:
+    gochecksumtype:
         # Presence of `default` case in switch statements satisfies exhaustiveness, if all members are not listed.
         # Default: true
         default-signifies-exhaustive: false
 
-      gocognit:
+    gocognit:
         # Minimal code complexity to report.
         # Default: 30 (but we recommend 10-20)
         min-complexity: 20
 
-      gocritic:
+    gocritic:
         # Settings passed to gocritic.
         # The settings key is the name of a supported gocritic checker.
         # The list of supported checkers can be found at https://go-critic.com/overview.
@@ -132,7 +132,7 @@ linters:
             # Default: true
             skipRecvDeref: false
 
-      govet:
+    govet:
         # Enable all analyzers.
         # Default: false
         enable-all: true
@@ -146,7 +146,7 @@ linters:
             # Whether to be strict about shadowing; can be noisy.
             strict: true
 
-      mnd:
+    mnd:
         # List of function patterns to exclude from analysis.
         # Values always ignored: `time.Date`,
         # `strconv.FormatInt`, `strconv.FormatUint`, `strconv.FormatFloat`,
@@ -165,11 +165,11 @@ linters:
           - prometheus.ExponentialBuckets.*
           - prometheus.LinearBuckets
 
-      nakedret:
+    nakedret:
         # Make an issue if func has more lines of code than this setting, and it has naked returns.
         max-func-lines: 0
 
-      nolintlint:
+    nolintlint:
         # Exclude following linters from requiring an explanation.
         allow-no-explanation: [ funlen, gocognit, golines ]
         # Enable to require an explanation of nonzero length after each nolint directive.
@@ -177,21 +177,21 @@ linters:
         # Enable to require nolint directives to mention the specific linter being suppressed.
         require-specific: true
 
-      perfsprint:
+    perfsprint:
         # Optimizes into strings concatenation.
         strconcat: false
 
-      reassign:
+    reassign:
         # Patterns for global variable names that are checked for reassignment.
         patterns:
           - ".*"
 
-      rowserrcheck:
+    rowserrcheck:
         # database/sql is always checked.
         packages:
           - github.com/jmoiron/sqlx
 
-      usetesting:
+    usetesting:
         # Enable/disable `os.TempDir()` detections.
         os-temp-dir: true
 
