@@ -36,15 +36,19 @@ var(
 	getBeersQuery string
 )
 
-
+// Repository хранит в себе пул подлючений к БД
 type Repository struct {
 	pool *pgxpool.Pool
 }
 
+
+// NewRepository создает новый репозиторий БД
 func NewRepository(pgPool *pgxpool.Pool) *Repository {
 	return &Repository{pool: pgPool}
 }
 
+
+// InsertBeer - метод Repository для вставки объекта Beer в БД
 func (r *Repository) InsertBeer(ctx context.Context, beer entities.Beer) error {
 
 	tx, err := r.pool.Begin(ctx)
@@ -101,6 +105,8 @@ func (r *Repository) InsertBeer(ctx context.Context, beer entities.Beer) error {
 }
 
 // TODO: Добавить ошибки приложения
+
+// GetBeers - метод Repository для получения всех позиций пива из БД
 func (r *Repository) GetBeers(ctx context.Context) ([]entities.Beer, error){
 	rows, err := r.pool.Query(ctx, getBeersQuery)
 	if err != nil{
