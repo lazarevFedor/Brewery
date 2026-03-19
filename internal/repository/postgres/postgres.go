@@ -1,4 +1,4 @@
-package postgres
+package repository
 
 import (
 	"Brewery/internal/entities"
@@ -37,19 +37,19 @@ var(
 )
 
 // Repository хранит в себе пул подлючений к БД
-type Repository struct {
+type Postgres struct {
 	pool *pgxpool.Pool
 }
 
 
 // NewRepository создает новый репозиторий БД
-func NewRepository(pgPool *pgxpool.Pool) *Repository {
-	return &Repository{pool: pgPool}
+func NewPostgres(pgPool *pgxpool.Pool) *Postgres {
+	return &Postgres{pool: pgPool}
 }
 
 
 // InsertBeer - метод Repository для вставки объекта Beer в БД
-func (r *Repository) InsertBeer(ctx context.Context, beer entities.Beer) error {
+func (r *Postgres) InsertBeer(ctx context.Context, beer entities.Beer) error {
 
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
@@ -107,7 +107,7 @@ func (r *Repository) InsertBeer(ctx context.Context, beer entities.Beer) error {
 // TODO: Добавить ошибки приложения
 
 // GetBeers - метод Repository для получения всех позиций пива из БД
-func (r *Repository) GetBeers(ctx context.Context) ([]entities.Beer, error){
+func (r *Postgres) GetBeers(ctx context.Context) ([]entities.Beer, error){
 	rows, err := r.pool.Query(ctx, getBeersQuery)
 	if err != nil{
 		return nil, fmt.Errorf("Query: %w", err)
