@@ -1,16 +1,19 @@
-FROM golang:1.26 AS builder
+FROM golang:1.26.1-alpine AS builder
 
 WORKDIR /app
 
-COPY go.mod go.sum ./
-RUN go mod download
+COPY ../../go.mod ../go.sum ./
+RUN --mount=type=cache,target=/go/pkg/mod \
+    go mod download
 
 COPY . .
 
-RUN go build -o server ./cmd/main.go
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    go build -o server ./cmd/main.go
 
-FROM debian:bookworm-slim
+FROM alpine:latest
 
-COPY --from=builder /app/server .
+COPY --from=builder /app/server ./
 
-CMD ["./app"]
+CMD ["./server"]
