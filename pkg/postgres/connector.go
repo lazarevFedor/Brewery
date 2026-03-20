@@ -7,6 +7,7 @@ import(
 	"context"
 )
 
+// Config описывает переменные и данные, необходимые для работы базой
 type Config struct{
 	Host     string `env:"HOST"`
 	Port     int    `env:"PORT"`
@@ -17,6 +18,7 @@ type Config struct{
 	MinConns int    `env:"MINCONNS"`
 }
 
+// NewPool создает пул подлючений в бд
 func NewPool(ctx context.Context, cfg Config)(*pgxpool.Pool, error){
 	// urlExample := "postgres://username:password@localhost:5432/database_name?sslmode=disable&pool_min_conns=%d&pool_max_conns=%d"
 	connstring := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable&pool_min_conns=%d&pool_max_conns=%d",

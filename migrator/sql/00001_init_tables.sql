@@ -77,4 +77,4 @@ DROP TABLE IF EXISTS beers;
 DROP TABLE IF EXISTS features;
 DROP TABLE IF EXISTS beer_features;
 DROP TABLE IF EXISTS reviews;
-DROP TABLE IF EXISTS categories;
+DROP TABLE IF EXISTS product_categories;

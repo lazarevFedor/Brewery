@@ -2,8 +2,9 @@ package main
 
 import (
 	"Brewery/internal/entities"
-	"Brewery/internal/postgres"
+	repository "Brewery/internal/repository/postgres"
 	"Brewery/migrator"
+	"Brewery/pkg/postgres"
 	"context"
 	"encoding/csv"
 	"fmt"
@@ -37,7 +38,7 @@ func parseFile(filename string) ([]entities.Beer, error) {
 	}
 	records = records[1:]
 
-	beers := make([]entities.Beer, 0)
+	beers := make([]entities.Beer, 0, len(records))
 
 	// Name, Rating, Description, ABV (%), IBU, Features, City, Category, Country
 	for _, record := range records {
@@ -72,7 +73,7 @@ func parseFile(filename string) ([]entities.Beer, error) {
 	return beers, nil
 }
 
-func fillDB(ctx context.Context, filename string, repo *postgres.Repository) error {
+func fillDB(ctx context.Context, filename string, repo *repository.Postgres) error {
 	beers, err := parseFile(filename)
 	if err != nil {
 		return fmt.Errorf("parseFile: %w", err)
@@ -86,12 +87,12 @@ func fillDB(ctx context.Context, filename string, repo *postgres.Repository) err
 	return nil
 }
 
-func getBeers(ctx context.Context, repo *postgres.Repository){
+func getBeers(ctx context.Context, repo *repository.Postgres) {
 	beers, err := repo.GetBeers(ctx)
-	if err != nil{
+	if err != nil {
 		fmt.Print("GetBeers: ", err)
 	}
-	for _, beer := range beers{
+	for _, beer := range beers {
 		fmt.Println(beer)
 	}
 }
@@ -121,7 +122,7 @@ func main() {
 		fmt.Println("fillDB: ", err)
 	}
 
-	repo := postgres.NewRepository(pool)
+	repo := repository.NewPostgres(pool)
 	if err = fillDB(ctx, filename, repo); err != nil {
 		fmt.Print("fillDB: ", err)
 	}
