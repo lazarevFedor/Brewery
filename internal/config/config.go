@@ -16,5 +16,6 @@ func NewConfig() (*Config, error) {
 	if err := cleanenv.ReadEnv(&config); err != nil {
 		return nil, fmt.Errorf("reading env error: %w", err)
 	}
+
 	return &config, nil
 }
