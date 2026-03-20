@@ -1,6 +1,8 @@
 // Package entities contains app's main objects' models
 package entities
 
+
+// Beer представляет полное описание пива со всеми связанными данными.
 type Beer struct {
     ID          uint     `json:"id" info:"ID записи в бд"`
     Name        string   `json:"name" info:"Название напитка"`

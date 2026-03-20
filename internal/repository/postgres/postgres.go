@@ -1,22 +1,26 @@
-package postgres
+package repository
 
 import (
 	"Brewery/internal/entities"
 	"context"
 	"fmt"
+	"errors"
 
 	// sq "github.com/Masterminds/squirrel"
-	"github.com/jackc/pgx/v5/pgxpool"
 	_ "embed"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5"
+
 )
 
-var(
+var (
 	//go:embed sql/get_or_create_country.sql
 	getOrCreateCountryQuery string
 
 	//go:embed sql/get_or_create_city.sql
 	getOrCreateCityQuery string
-	
+
 	//go:embed sql/get_or_create_type.sql
 	getOrCreateTypeQuery string
 
@@ -36,22 +40,30 @@ var(
 	getBeersQuery string
 )
 
-
-type Repository struct {
+// Postgres хранит в себе пул подлючений к БД
+type Postgres struct {
 	pool *pgxpool.Pool
 }
 
-func NewRepository(pgPool *pgxpool.Pool) *Repository {
-	return &Repository{pool: pgPool}
+// NewPostgres создает новый репозиторий БД
+func NewPostgres(pgPool *pgxpool.Pool) *Postgres {
+	return &Postgres{pool: pgPool}
 }
 
-func (r *Repository) InsertBeer(ctx context.Context, beer entities.Beer) error {
+// InsertBeer сохраняет новую сущность Beer в хранилище.
+func (r *Postgres) InsertBeer(ctx context.Context, beer entities.Beer) error {
 
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("Begin: %w", err)
 	}
-	defer tx.Rollback(ctx)
+	defer func(tx pgx.Tx, ctx context.Context) (err error) {
+		rollbackErr := tx.Rollback(ctx)
+		if rollbackErr != nil && errors.Is(rollbackErr, pgx.ErrTxClosed){
+			err = fmt.Errorf("InsertBeer: rollback error: %w", rollbackErr)
+		}
+		return nil
+	}(tx, ctx)
 
 	var countryID int
 	err = tx.QueryRow(ctx, getOrCreateCountryQuery, beer.Country).Scan(&countryID)
@@ -75,21 +87,25 @@ func (r *Repository) InsertBeer(ctx context.Context, beer entities.Beer) error {
 	}
 
 	var beerID int
-	err = tx.QueryRow(ctx, insertBeerQuery, 
-		beer.Name, beer.Rating, beer.Description, beer.ABV, beer.IBU, 
+	err = tx.QueryRow(ctx, insertBeerQuery,
+		beer.Name, beer.Rating, beer.Description, beer.ABV, beer.IBU,
 		typeID, cityID, categoryID,
 	).Scan(&beerID)
 	if err != nil {
 		return fmt.Errorf("Beer QueryRow: %w", err)
 	}
 
-	for _, featName := range beer.Features{
+	for _, featName := range beer.Features {
 		var featID int
 		err = tx.QueryRow(ctx, insertFeatureQuery, featName).Scan(&featID)
 		if err != nil {
 			return fmt.Errorf("Feature QueryRow: %w", err)
 		}
-		tx.Exec(ctx, insertBeerFeatureQuery, beerID, featID)
+
+		_, err := tx.Exec(ctx, insertBeerFeatureQuery, beerID, featID)
+		if err != nil {
+			return fmt.Errorf("Exec: %w", err)
+		}
 	}
 
 	err = tx.Commit(ctx)
@@ -101,12 +117,14 @@ func (r *Repository) InsertBeer(ctx context.Context, beer entities.Beer) error {
 }
 
 // TODO: Добавить ошибки приложения
-func (r *Repository) GetBeers(ctx context.Context) ([]entities.Beer, error){
+
+// GetBeers возвращает список всех сортов пива.
+func (r *Postgres) GetBeers(ctx context.Context) ([]entities.Beer, error) {
 	rows, err := r.pool.Query(ctx, getBeersQuery)
-	if err != nil{
+	if err != nil {
 		return nil, fmt.Errorf("Query: %w", err)
 	}
-	defer rows.Close() 
+	defer rows.Close()
 
 	beers := make([]entities.Beer, 0)
 
@@ -122,7 +140,6 @@ func (r *Repository) GetBeers(ctx context.Context) ([]entities.Beer, error){
 	return beers, nil
 }
 
-
 // func (r *Repository) GetBeerByName(ctx context.Context, name string) error {
 
 // 	beers := sq.Select("*").From("beers")
@@ -132,6 +149,6 @@ func (r *Repository) GetBeers(ctx context.Context) ([]entities.Beer, error){
 // 		return fmt.Errorf("ToSql: %w", err)
 // 	}
 // 	row = r.pool.QueryRow(ctx, sql, args...)
-	
+
 // 	return nil
 // }
