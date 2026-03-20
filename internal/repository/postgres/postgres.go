@@ -3,15 +3,14 @@ package repository
 import (
 	"Brewery/internal/entities"
 	"context"
-	"fmt"
 	"errors"
+	"fmt"
 
 	// sq "github.com/Masterminds/squirrel"
 	_ "embed"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5"
-
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 var (
@@ -59,7 +58,7 @@ func (r *Postgres) InsertBeer(ctx context.Context, beer entities.Beer) error {
 	}
 	defer func(tx pgx.Tx, ctx context.Context) (err error) {
 		rollbackErr := tx.Rollback(ctx)
-		if rollbackErr != nil && errors.Is(rollbackErr, pgx.ErrTxClosed){
+		if rollbackErr != nil && errors.Is(rollbackErr, pgx.ErrTxClosed) {
 			err = fmt.Errorf("InsertBeer: rollback error: %w", rollbackErr)
 		}
 		return nil
