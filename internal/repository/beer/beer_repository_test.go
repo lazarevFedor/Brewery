@@ -61,7 +61,7 @@ func TestBeerRepository_Insert(t *testing.T) {
 	err = migrator.Up(db)
 	require.NoError(t, err, "Миграции должны применяться без ошибок")
 
-	repo := NewPostgres(db)
+	repo := NewBeerPostgres(db)
 
 	t.Run("Insert Beer", func(t *testing.T){
 		testBeer := entities.Beer{
@@ -73,7 +73,9 @@ func TestBeerRepository_Insert(t *testing.T) {
 			City: "Москва",
 			Country: "Россия",
 			Type: "Lager",
-			Category: "-",
+			Category: entities.ProductCategory{
+				Name: "Beer",
+			},
 			Features: []string{"feat1", "feat2", "feat3"},
 		}
 		err := repo.InsertBeer(ctx, testBeer)

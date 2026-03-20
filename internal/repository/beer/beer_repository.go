@@ -39,18 +39,28 @@ var (
 	getBeersQuery string
 )
 
+// BeerRepository определяет контракт для хранения и получения данных о пиве.
+type BeerRepository interface {
+
+	// InsertBeer сохраняет новую сущность Beer в хранилище.
+	InsertBeer(ctx context.Context, beer entities.Beer) error
+
+	// GetBeers возвращает список всех сортов пива.
+	GetBeers(ctx context.Context) ([]entities.Beer, error)
+}
+
 // Postgres хранит в себе пул подлючений к БД
-type Postgres struct {
+type BeerPostgres struct {
 	pool *pgxpool.Pool
 }
 
 // NewPostgres создает новый репозиторий БД
-func NewPostgres(pgPool *pgxpool.Pool) *Postgres {
-	return &Postgres{pool: pgPool}
+func NewBeerPostgres(pgPool *pgxpool.Pool) *BeerPostgres {
+	return &BeerPostgres{pool: pgPool}
 }
 
 // InsertBeer сохраняет новую сущность Beer в хранилище.
-func (r *Postgres) InsertBeer(ctx context.Context, beer entities.Beer) error {
+func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) error {
 
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
@@ -80,7 +90,7 @@ func (r *Postgres) InsertBeer(ctx context.Context, beer entities.Beer) error {
 		return fmt.Errorf("Type QueryRow: %w", err)
 	}
 	var categoryID int
-	err = tx.QueryRow(ctx, getProductCategoryByNameQuery, beer.Category).Scan(&categoryID)
+	err = tx.QueryRow(ctx, getProductCategoryByNameQuery, beer.Category.Name).Scan(&categoryID)
 	if err != nil {
 		return fmt.Errorf("Category QueryRow: %w", err)
 	}
@@ -118,7 +128,7 @@ func (r *Postgres) InsertBeer(ctx context.Context, beer entities.Beer) error {
 // TODO: Добавить ошибки приложения
 
 // GetBeers возвращает список всех сортов пива.
-func (r *Postgres) GetBeers(ctx context.Context) ([]entities.Beer, error) {
+func (r *BeerPostgres) GetBeers(ctx context.Context) ([]entities.Beer, error) {
 	rows, err := r.pool.Query(ctx, getBeersQuery)
 	if err != nil {
 		return nil, fmt.Errorf("Query: %w", err)
@@ -131,7 +141,7 @@ func (r *Postgres) GetBeers(ctx context.Context) ([]entities.Beer, error) {
 		b := entities.Beer{}
 		rows.Scan(&b.ID, &b.Name, &b.Rating, &b.Description,
 			&b.ABV, &b.IBU, &b.City, &b.Country,
-			&b.Category, &b.Type, &b.Features)
+			&b.Category.Name, &b.Type, &b.Features)
 
 		beers = append(beers, b)
 	}
