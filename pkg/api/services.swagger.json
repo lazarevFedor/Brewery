@@ -1,108 +1,23 @@
 {
-  "openapi": "3.0.0",
+  "openapi": "3.0.3",
   "info": {
     "title": "Product Categories API",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "description": "API for managing product categories hierarchy"
   },
+  "servers": [
+    {
+      "url": "http://localhost:8080/api"
+    }
+  ],
   "paths": {
-    "/categories/{id}": {
-      "patch": {
-        "summary": "Редактировать категорию",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "integer" }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "name": { "type": "string" },
-                  "parent_id": { "type": "integer" },
-                  "child_id": { "type": "integer" }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Обновленная категория",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Category"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "summary": "Удалить категорию",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "integer" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Результат удаления",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-
     "/categories": {
-      "post": {
-        "summary": "Создать категорию",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CategoryCreate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Созданная категория",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Category"
-                }
-              }
-            }
-          }
-        }
-      },
       "get": {
-        "summary": "Получить всё дерево категорий",
+        "summary": "Get all categories",
+        "operationId": "getCategories",
         "responses": {
           "200": {
-            "description": "Список категорий",
+            "description": "List of categories",
             "content": {
               "application/json": {
                 "schema": {
@@ -115,82 +30,23 @@
             }
           }
         }
-      }
-    },
-
-    "/categories/{id}/child": {
-      "get": {
-        "summary": "Получить потомка категории",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "integer" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Потомок",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Category"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-
-    "/categories/{id}/parent": {
-      "get": {
-        "summary": "Получить родителя категории",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "integer" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Родитель",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Category"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-
-    "/categories/change-parent": {
-      "patch": {
-        "summary": "Изменить родителя категории",
+      },
+      "post": {
+        "summary": "Create category",
+        "operationId": "createCategory",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "id": { "type": "integer" },
-                  "parent_id": { "type": "integer" }
-                },
-                "required": ["id", "parent_id"]
+                "$ref": "#/components/schemas/CategoryCreate"
               }
             }
           }
         },
         "responses": {
-          "200": {
-            "description": "Обновленная категория",
+          "201": {
+            "description": "Category created",
             "content": {
               "application/json": {
                 "schema": {
@@ -203,20 +59,45 @@
       }
     },
 
-    "/categories/change-child": {
+    "/categories/{id}": {
+      "get": {
+        "summary": "Get category by ID",
+        "operationId": "getCategoryById",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CategoryId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Category",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Category"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Category not found"
+          }
+        }
+      },
+
       "patch": {
-        "summary": "Change category child",
+        "summary": "Update category",
+        "operationId": "updateCategory",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CategoryId"
+          }
+        ],
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "id": { "type": "integer" },
-                  "child_id": { "type": "integer" }
-                },
-                "required": ["id", "child_id"]
+                "$ref": "#/components/schemas/CategoryUpdate"
               }
             }
           }
@@ -233,28 +114,134 @@
             }
           }
         }
+      },
+
+      "delete": {
+        "summary": "Delete category",
+        "operationId": "deleteCategory",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CategoryId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted successfully"
+          }
+        }
+      }
+    },
+
+    "/categories/{id}/parent": {
+      "get": {
+        "summary": "Get parent category",
+        "operationId": "getParent",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CategoryId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Parent category",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Category"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/categories/{id}/children": {
+      "get": {
+        "summary": "Get child categories",
+        "operationId": "getChildren",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CategoryId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of children",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Category"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   },
 
   "components": {
+    "parameters": {
+      "CategoryId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "integer"
+        }
+      }
+    },
+
     "schemas": {
       "Category": {
         "type": "object",
+        "required": ["id", "name"],
         "properties": {
-          "id": { "type": "integer" },
-          "name": { "type": "string" },
-          "parent_id": { "type": "integer", "nullable": true },
-          "child_id": { "type": "integer", "nullable": true }
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "IPA"
+          },
+          "parent_id": {
+            "type": "integer",
+            "nullable": true,
+            "example": 10
+          }
         }
       },
+
       "CategoryCreate": {
         "type": "object",
+        "required": ["name"],
         "properties": {
-          "name": { "type": "string" },
-          "parent_id": { "type": "integer" }
-        },
-        "required": ["name"]
+          "name": {
+            "type": "string",
+            "example": "Lager"
+          },
+          "parent_id": {
+            "type": "integer",
+            "example": 1
+          }
+        }
+      },
+
+      "CategoryUpdate": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "parent_id": {
+            "type": "integer"
+          }
+        }
       }
     }
   }
