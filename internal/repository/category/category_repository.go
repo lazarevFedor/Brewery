@@ -1,13 +1,15 @@
 package category
 
 import (
-	"context"
 	"Brewery/internal/entities"
+	"context"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type CategoryRepository interface {
+	InsertCategory(ctx context.Context, category entities.ProductCategory) error
+	DeleteCategoryByName(ctx context.Context, name string) error
 }
 
 type CategoryPostgres struct {
