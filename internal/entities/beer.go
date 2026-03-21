@@ -15,3 +15,6 @@ type Beer struct {
 	Category    ProductCategory `json:"category" info:"Информация о категории товара"`
 	Features    []string        `json:"features,omitempty" info:"Список особенностей"`
 }
+
+//easyjson:json
+type Beers []Beer
