@@ -14,7 +14,7 @@ import (
 	"github.com/mailru/easyjson"
 )
 
-type beerClassifier interface {
+type BreweryHandlers interface {
 	CreateCategory(c *gin.Context)
 	GetCategoryById(c *gin.Context)
 	UpdateCategory(c *gin.Context)
@@ -35,7 +35,7 @@ type BeersHandler struct {
 	uc usecase.BeerService
 }
 
-func NewBeersHandler(useCase usecase.BeerService) *BeersHandler {
+func NewBreweryHandlers(useCase usecase.BeerService) BreweryHandlers {
 	return &BeersHandler{
 		uc: useCase,
 	}
