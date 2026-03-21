@@ -207,3 +207,4 @@ linters:
     - migrator
     - script
     - api
+    - internal/entities
