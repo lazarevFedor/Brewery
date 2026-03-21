@@ -1,9 +1,9 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "Product Categories API",
+    "title": "Beer Catalog API",
     "version": "1.0.0",
-    "description": "API for managing product categories hierarchy"
+    "description": "API for managing categories, beers and reviews"
   },
   "servers": [
     {
@@ -22,9 +22,7 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Category"
-                  }
+                  "items": { "$ref": "#/components/schemas/Category" }
                 }
               }
             }
@@ -38,20 +36,16 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CategoryCreate"
-              }
+              "schema": { "$ref": "#/components/schemas/CategoryCreate" }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Category created",
+            "description": "Created",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Category"
-                }
+                "schema": { "$ref": "#/components/schemas/Category" }
               }
             }
           }
@@ -64,90 +58,91 @@
         "summary": "Get category by ID",
         "operationId": "getCategoryById",
         "parameters": [
-          {
-            "$ref": "#/components/parameters/CategoryId"
-          }
+          { "$ref": "#/components/parameters/CategoryId" }
         ],
         "responses": {
           "200": {
             "description": "Category",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Category"
-                }
+                "schema": { "$ref": "#/components/schemas/Category" }
               }
             }
           },
-          "404": {
-            "description": "Category not found"
-          }
+          "404": { "description": "Not found" }
         }
       },
-
       "patch": {
         "summary": "Update category",
         "operationId": "updateCategory",
         "parameters": [
-          {
-            "$ref": "#/components/parameters/CategoryId"
-          }
+          { "$ref": "#/components/parameters/CategoryId" }
         ],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CategoryUpdate"
-              }
+              "schema": { "$ref": "#/components/schemas/CategoryUpdate" }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Updated category",
+            "description": "Updated",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Category"
-                }
+                "schema": { "$ref": "#/components/schemas/Category" }
               }
             }
           }
         }
       },
-
       "delete": {
         "summary": "Delete category",
         "operationId": "deleteCategory",
         "parameters": [
-          {
-            "$ref": "#/components/parameters/CategoryId"
-          }
+          { "$ref": "#/components/parameters/CategoryId" }
         ],
         "responses": {
-          "204": {
-            "description": "Deleted successfully"
+          "204": { "description": "Deleted" }
+        }
+      }
+    },
+
+    "/categories/parent/{id}": {
+      "get": {
+        "summary": "Get parent category",
+        "operationId": "getParent",
+        "parameters": [
+          { "$ref": "#/components/parameters/CategoryId" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Parent",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Category" }
+              }
+            }
           }
         }
       }
     },
 
-    "/categories/{id}/parent": {
+    "/categories/children/{id}": {
       "get": {
-        "summary": "Get parent category",
-        "operationId": "getParent",
+        "summary": "Get child categories",
+        "operationId": "getChildren",
         "parameters": [
-          {
-            "$ref": "#/components/parameters/CategoryId"
-          }
+          { "$ref": "#/components/parameters/CategoryId" }
         ],
         "responses": {
           "200": {
-            "description": "Parent category",
+            "description": "Children list",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Category"
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Category" }
                 }
               }
             }
@@ -156,25 +151,134 @@
       }
     },
 
-    "/categories/{id}/children": {
-      "get": {
-        "summary": "Get child categories",
-        "operationId": "getChildren",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/CategoryId"
+    "/beers": {
+      "post": {
+        "summary": "Create beer",
+        "operationId": "createBeer",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/BeerCreate" }
+            }
           }
-        ],
+        },
         "responses": {
-          "200": {
-            "description": "List of children",
+          "201": {
+            "description": "Created",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Category"
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" }
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/beers/{id}": {
+      "patch": {
+        "summary": "Update beer",
+        "operationId": "updateBeer",
+        "parameters": [
+          { "$ref": "#/components/parameters/BeerId" }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/BeerUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated beer",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Beer" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete beer",
+        "operationId": "deleteBeer",
+        "parameters": [
+          { "$ref": "#/components/parameters/BeerId" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Delete status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/beers/reviews/{id}": {
+      "post": {
+        "summary": "Add review",
+        "operationId": "addReview",
+        "parameters": [
+          { "$ref": "#/components/parameters/BeerId" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ReviewCreate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/categories/beers/{id}": {
+      "get": {
+        "summary": "Get beers by category",
+        "operationId": "getBeersByCategory",
+        "parameters": [
+          { "$ref": "#/components/parameters/CategoryId" },
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/Limit" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated beers list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedBeers"
                 }
               }
             }
@@ -190,8 +294,31 @@
         "name": "id",
         "in": "path",
         "required": true,
+        "schema": { "type": "integer" }
+      },
+      "BeerId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": { "type": "integer" }
+      },
+      "Page": {
+        "name": "page",
+        "in": "query",
         "schema": {
-          "type": "integer"
+          "type": "integer",
+          "default": 1,
+          "minimum": 1
+        }
+      },
+      "Limit": {
+        "name": "limit",
+        "in": "query",
+        "schema": {
+          "type": "integer",
+          "default": 10,
+          "minimum": 1,
+          "maximum": 100
         }
       }
     },
@@ -201,19 +328,9 @@
         "type": "object",
         "required": ["id", "name"],
         "properties": {
-          "id": {
-            "type": "integer",
-            "example": 1
-          },
-          "name": {
-            "type": "string",
-            "example": "IPA"
-          },
-          "parent_id": {
-            "type": "integer",
-            "nullable": true,
-            "example": 10
-          }
+          "id": { "type": "integer" },
+          "name": { "type": "string" },
+          "parent_id": { "type": "integer", "nullable": true }
         }
       },
 
@@ -221,26 +338,93 @@
         "type": "object",
         "required": ["name"],
         "properties": {
-          "name": {
-            "type": "string",
-            "example": "Lager"
-          },
-          "parent_id": {
-            "type": "integer",
-            "example": 1
-          }
+          "name": { "type": "string" },
+          "parent_id": { "type": "integer" }
         }
       },
 
       "CategoryUpdate": {
         "type": "object",
         "properties": {
-          "name": {
-            "type": "string"
+          "name": { "type": "string" },
+          "parent_id": { "type": "integer" }
+        }
+      },
+
+      "Beer": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "abv": { "type": "number" },
+          "ibu": { "type": "number" },
+          "city_id": { "type": "integer" },
+          "category_id": { "type": "integer" },
+          "type_id": { "type": "integer" }
+        }
+      },
+
+      "BeerCreate": {
+        "type": "object",
+        "required": ["name", "abv", "ibu", "city_id", "category_id", "type_id"],
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "abv": { "type": "number" },
+          "ibu": { "type": "number" },
+          "city_id": { "type": "integer" },
+          "category_id": { "type": "integer" },
+          "type_id": { "type": "integer" }
+        }
+      },
+
+      "BeerUpdate": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "abv": { "type": "number" },
+          "ibu": { "type": "number" },
+          "city_id": { "type": "integer" },
+          "category_id": { "type": "integer" },
+          "type_id": { "type": "integer" }
+        }
+      },
+
+      "BeerShort": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "rating": { "type": "number" },
+          "description": { "type": "string" }
+        }
+      },
+
+      "PaginatedBeers": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BeerShort"
+            }
           },
-          "parent_id": {
-            "type": "integer"
-          }
+          "page": { "type": "integer" },
+          "limit": { "type": "integer" },
+          "total": { "type": "integer" },
+          "total_pages": { "type": "integer" },
+          "has_next": { "type": "boolean" },
+          "has_prev": { "type": "boolean" }
+        }
+      },
+
+      "ReviewCreate": {
+        "type": "object",
+        "required": ["body", "rating"],
+        "properties": {
+          "body": { "type": "string" },
+          "rating": { "type": "number" }
         }
       }
     }
