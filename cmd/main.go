@@ -2,7 +2,11 @@ package main
 
 import (
 	"Brewery/internal/config"
+	"Brewery/internal/http/handlers"
+	repository "Brewery/internal/repository/beer"
+	"Brewery/internal/usecase"
 	"Brewery/pkg/logger"
+	"Brewery/pkg/postgres"
 	"context"
 	"errors"
 	"fmt"
@@ -46,6 +50,19 @@ func main() {
 	if err != nil {
 		panic(fmt.Errorf("failed to create config: %w", err))
 	}
+
+	pool, err := postgres.NewPool(ctx, cfg.Postgres)
+	if err != nil {
+		panic(fmt.Errorf("failed to create postgres pool: %w", err))
+	}
+
+	beerRepo := repository.NewBeerPostgres(pool)
+
+	// TODO: add category repository
+	var ctgRepo any
+
+	beerSrv := usecase.NewBeerService(beerRepo, ctgRepo)
+	_ = handlers.NewBreweryHandlers(beerSrv)
 
 	engine := gin.New()
 	engine.Use(gin.Recovery())
