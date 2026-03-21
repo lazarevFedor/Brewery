@@ -2,8 +2,9 @@ package main
 
 import (
 	"Brewery/internal/entities"
-	"Brewery/internal/postgres"
+	repository "Brewery/internal/repository/beer"
 	"Brewery/migrator"
+	"Brewery/pkg/postgres"
 	"context"
 	"encoding/csv"
 	"fmt"
@@ -37,22 +38,22 @@ func parseFile(filename string) ([]entities.Beer, error) {
 	}
 	records = records[1:]
 
-	beers := make([]entities.Beer, 0)
+	beers := make([]entities.Beer, 0, len(records))
 
 	// Name, Rating, Description, ABV (%), IBU, Features, City, Category, Country
 	for _, record := range records {
 		beer := entities.Beer{}
 		rating, err := strconv.ParseFloat(record[1], 32)
 		if err != nil {
-			return nil, fmt.Errorf("rating ParseFloat:", err)
+			return nil, fmt.Errorf("rating ParseFloat: %w", err)
 		}
 		abv, err := strconv.ParseFloat(record[3], 32)
 		if err != nil {
-			return nil, fmt.Errorf("abv ParseFloat:", err)
+			return nil, fmt.Errorf("abv ParseFloat: %w", err)
 		}
 		ibu, err := strconv.Atoi(record[4])
 		if err != nil {
-			return nil, fmt.Errorf("ibu Atoi:", err)
+			return nil, fmt.Errorf("ibu Atoi: %w", err)
 		}
 		features := strings.Split(record[5], ", ")
 
@@ -65,14 +66,14 @@ func parseFile(filename string) ([]entities.Beer, error) {
 		beer.Country = record[8]
 		beer.Type = record[7]
 		beer.Features = features
-		beer.Category = "-"
+		beer.Category.Name = "-"
 
 		beers = append(beers, beer)
 	}
 	return beers, nil
 }
 
-func fillDB(ctx context.Context, filename string, repo *postgres.Repository) error {
+func fillDB(ctx context.Context, filename string, repo *repository.BeerPostgres) error {
 	beers, err := parseFile(filename)
 	if err != nil {
 		return fmt.Errorf("parseFile: %w", err)
@@ -86,12 +87,12 @@ func fillDB(ctx context.Context, filename string, repo *postgres.Repository) err
 	return nil
 }
 
-func getBeers(ctx context.Context, repo *postgres.Repository){
+func getBeers(ctx context.Context, repo *repository.BeerPostgres) {
 	beers, err := repo.GetBeers(ctx)
-	if err != nil{
+	if err != nil {
 		fmt.Print("GetBeers: ", err)
 	}
-	for _, beer := range beers{
+	for _, beer := range beers {
 		fmt.Println(beer)
 	}
 }
@@ -121,7 +122,7 @@ func main() {
 		fmt.Println("fillDB: ", err)
 	}
 
-	repo := postgres.NewRepository(pool)
+	repo := repository.NewBeerPostgres(pool)
 	if err = fillDB(ctx, filename, repo); err != nil {
 		fmt.Print("fillDB: ", err)
 	}

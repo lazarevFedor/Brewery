@@ -65,11 +65,11 @@ func RequestID(id string) zap.Field {
 	return zap.String(string(RequestIDField), id)
 }
 
-
 func (l *Logger) withRequestID(ctx context.Context, fields []zap.Field) []zap.Field {
 	if id, ok := getRequestID(ctx); ok {
 		fields = append(fields, RequestID(id))
 	}
+
 	return fields
 }
 
