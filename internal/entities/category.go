@@ -7,3 +7,6 @@ type ProductCategory struct {
 	ParentID   int    `json:"parent_id,omitempty" info:"ID категории меньшего уровня"`
 	ChildrenID []int  `json:"children_id,omitempty" info:"Список ID категории большего уровня"`
 }
+
+//easyjson:json
+type Products []ProductCategory
