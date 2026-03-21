@@ -1,8 +1,10 @@
-package repository
+// Package repository contains layer that manipulates data in database
+package repository_test
 
 import (
 	"Brewery/internal/config"
 	"Brewery/internal/entities"
+	repository "Brewery/internal/repository/beer"
 	"Brewery/migrator"
 	"Brewery/pkg/postgres"
 	"context"
@@ -25,9 +27,10 @@ func TestBeerRepository_Insert(t *testing.T) {
 	ctx := context.Background()
 
 	testCfg := &TestDBConfig{}
+
 	testCfg, err := config.FillConfig(testCfg)
 	if err != nil {
-		t.Fatalf("failed to read test config from env: %w", err)
+		t.Fatalf("failed to fill config")
 	}
 
 	dbContainer, err := pgContainer.Run(ctx,
@@ -43,7 +46,12 @@ func TestBeerRepository_Insert(t *testing.T) {
 	)
 
 	require.NoError(t, err)
-	defer dbContainer.Terminate(ctx)
+
+	defer func(dbContainer *pgContainer.PostgresContainer, ctx context.Context) {
+		err = dbContainer.Terminate(ctx)
+		// TODO: handle or log error
+		_ = err
+	}(dbContainer, ctx)
 
 	args := []string{
 		"sslmode=disable",
@@ -56,35 +64,37 @@ func TestBeerRepository_Insert(t *testing.T) {
 
 	db, err := pgxpool.New(ctx, connStr)
 	require.NoError(t, err)
+
 	defer db.Close()
 
 	err = migrator.Up(db)
 	require.NoError(t, err, "Миграции должны применяться без ошибок")
 
-	repo := NewBeerPostgres(db)
+	repo := repository.NewBeerPostgres(db)
 
-	t.Run("Insert Beer", func(t *testing.T){
+	t.Run("Insert Beer", func(t *testing.T) {
 		testBeer := entities.Beer{
-			Name: "test",
-			Rating: 4.7,
+			Name:        "test",
+			Rating:      4.7,
 			Description: "test description",
-			ABV: 4.7,
-			IBU: 100,
-			City: "Москва",
-			Country: "Россия",
-			Type: "Lager",
+			ABV:         4.7,
+			IBU:         100,
+			City:        "Москва",
+			Country:     "Россия",
+			Type:        "Lager",
 			Category: entities.ProductCategory{
 				Name: "Beer",
 			},
 			Features: []string{"feat1", "feat2", "feat3"},
 		}
-		err := repo.InsertBeer(ctx, testBeer)
+		err = repo.InsertBeer(ctx, testBeer)
 		require.NoError(t, err)
 
-		beers, err := repo.GetBeers(ctx)
+		var beers []entities.Beer
+
+		beers, err = repo.GetBeers(ctx)
 		require.NoError(t, err)
 		require.Len(t, beers, 1, "Длина слайса должна быть равно 1")
 		require.Equal(t, testBeer, beers[0], "Вставленный и полученный товары должны быть равны")
 	})
-
 }
