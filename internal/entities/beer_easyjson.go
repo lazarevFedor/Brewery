@@ -17,7 +17,77 @@ var (
 	_ easyjson.Marshaler
 )
 
-func easyjson57ba88e2DecodeBreweryInternalEntities(in *jlexer.Lexer, out *Beer) {
+func easyjson57ba88e2DecodeBreweryInternalEntities(in *jlexer.Lexer, out *Beers) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		in.Skip()
+		*out = nil
+	} else {
+		in.Delim('[')
+		if *out == nil {
+			if !in.IsDelim(']') {
+				*out = make(Beers, 0, 0)
+			} else {
+				*out = Beers{}
+			}
+		} else {
+			*out = (*out)[:0]
+		}
+		for !in.IsDelim(']') {
+			var v1 Beer
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				(v1).UnmarshalEasyJSON(in)
+			}
+			*out = append(*out, v1)
+			in.WantComma()
+		}
+		in.Delim(']')
+	}
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson57ba88e2EncodeBreweryInternalEntities(out *jwriter.Writer, in Beers) {
+	if in == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+		out.RawString("null")
+	} else {
+		out.RawByte('[')
+		for v2, v3 := range in {
+			if v2 > 0 {
+				out.RawByte(',')
+			}
+			(v3).MarshalEasyJSON(out)
+		}
+		out.RawByte(']')
+	}
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v Beers) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson57ba88e2EncodeBreweryInternalEntities(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v Beers) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson57ba88e2EncodeBreweryInternalEntities(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *Beers) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjson57ba88e2DecodeBreweryInternalEntities(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *Beers) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson57ba88e2DecodeBreweryInternalEntities(l, v)
+}
+func easyjson57ba88e2DecodeBreweryInternalEntities1(in *jlexer.Lexer, out *Beer) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -107,13 +177,13 @@ func easyjson57ba88e2DecodeBreweryInternalEntities(in *jlexer.Lexer, out *Beer) 
 					out.Features = (out.Features)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v1 string
+					var v4 string
 					if in.IsNull() {
 						in.Skip()
 					} else {
-						v1 = string(in.String())
+						v4 = string(in.String())
 					}
-					out.Features = append(out.Features, v1)
+					out.Features = append(out.Features, v4)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -128,7 +198,7 @@ func easyjson57ba88e2DecodeBreweryInternalEntities(in *jlexer.Lexer, out *Beer) 
 		in.Consumed()
 	}
 }
-func easyjson57ba88e2EncodeBreweryInternalEntities(out *jwriter.Writer, in Beer) {
+func easyjson57ba88e2EncodeBreweryInternalEntities1(out *jwriter.Writer, in Beer) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -187,11 +257,11 @@ func easyjson57ba88e2EncodeBreweryInternalEntities(out *jwriter.Writer, in Beer)
 		out.RawString(prefix)
 		{
 			out.RawByte('[')
-			for v2, v3 := range in.Features {
-				if v2 > 0 {
+			for v5, v6 := range in.Features {
+				if v5 > 0 {
 					out.RawByte(',')
 				}
-				out.String(string(v3))
+				out.String(string(v6))
 			}
 			out.RawByte(']')
 		}
@@ -202,23 +272,23 @@ func easyjson57ba88e2EncodeBreweryInternalEntities(out *jwriter.Writer, in Beer)
 // MarshalJSON supports json.Marshaler interface
 func (v Beer) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson57ba88e2EncodeBreweryInternalEntities(&w, v)
+	easyjson57ba88e2EncodeBreweryInternalEntities1(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v Beer) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson57ba88e2EncodeBreweryInternalEntities(w, v)
+	easyjson57ba88e2EncodeBreweryInternalEntities1(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Beer) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson57ba88e2DecodeBreweryInternalEntities(&r, v)
+	easyjson57ba88e2DecodeBreweryInternalEntities1(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Beer) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson57ba88e2DecodeBreweryInternalEntities(l, v)
+	easyjson57ba88e2DecodeBreweryInternalEntities1(l, v)
 }
