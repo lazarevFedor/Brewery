@@ -42,7 +42,7 @@ func main() {
 		panic("logger not found in context")
 	}
 
-	cfg, err := config.NewConfig()
+	cfg, err := config.FillConfig(config.NewAppConfig())
 	if err != nil {
 		panic(fmt.Errorf("failed to create config: %w", err))
 	}
@@ -62,6 +62,7 @@ func main() {
 	defer router.Close()
 
 	log.Info(ctx, fmt.Sprintf("server listening on port %s", cfg.Port))
+
 	if err = router.RunWithContext(ctx); err != nil && !errors.Is(err, context.Canceled) {
 		panic(fmt.Errorf("failed to run router: %w", err))
 	}
