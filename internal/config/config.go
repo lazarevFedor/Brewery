@@ -3,18 +3,24 @@ package config
 import (
 	"fmt"
 
+	"Brewery/pkg/postgres"
+
 	"github.com/ilyakaznacheev/cleanenv"
 )
 
-type Config struct {
-	//Postgres postgres.Config `env:"POSTGRES"`
-	Port string `env:"SERVER_PORT"`
+type AppConfig struct {
+	Postgres postgres.Config `env:"POSTGRES"`
+	Port     string          `env:"SERVER_PORT"`
 }
 
-func NewConfig() (*Config, error) {
-	var config Config
-	if err := cleanenv.ReadEnv(&config); err != nil {
+func NewAppConfig() *AppConfig {
+	return &AppConfig{}
+}
+
+func FillConfig[T any](cfg *T) (*T, error) {
+	if err := cleanenv.ReadEnv(cfg); err != nil {
 		return nil, fmt.Errorf("reading env error: %w", err)
 	}
-	return &config, nil
+
+	return cfg, nil
 }

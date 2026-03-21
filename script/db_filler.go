@@ -2,7 +2,7 @@ package main
 
 import (
 	"Brewery/internal/entities"
-	repository "Brewery/internal/repository/postgres"
+	repository "Brewery/internal/repository/beer"
 	"Brewery/migrator"
 	"Brewery/pkg/postgres"
 	"context"
@@ -45,15 +45,15 @@ func parseFile(filename string) ([]entities.Beer, error) {
 		beer := entities.Beer{}
 		rating, err := strconv.ParseFloat(record[1], 32)
 		if err != nil {
-			return nil, fmt.Errorf("rating ParseFloat:", err)
+			return nil, fmt.Errorf("rating ParseFloat: %w", err)
 		}
 		abv, err := strconv.ParseFloat(record[3], 32)
 		if err != nil {
-			return nil, fmt.Errorf("abv ParseFloat:", err)
+			return nil, fmt.Errorf("abv ParseFloat: %w", err)
 		}
 		ibu, err := strconv.Atoi(record[4])
 		if err != nil {
-			return nil, fmt.Errorf("ibu Atoi:", err)
+			return nil, fmt.Errorf("ibu Atoi: %w", err)
 		}
 		features := strings.Split(record[5], ", ")
 
@@ -66,14 +66,14 @@ func parseFile(filename string) ([]entities.Beer, error) {
 		beer.Country = record[8]
 		beer.Type = record[7]
 		beer.Features = features
-		beer.Category = "-"
+		beer.Category.Name = "-"
 
 		beers = append(beers, beer)
 	}
 	return beers, nil
 }
 
-func fillDB(ctx context.Context, filename string, repo *repository.Postgres) error {
+func fillDB(ctx context.Context, filename string, repo *repository.BeerPostgres) error {
 	beers, err := parseFile(filename)
 	if err != nil {
 		return fmt.Errorf("parseFile: %w", err)
@@ -87,7 +87,7 @@ func fillDB(ctx context.Context, filename string, repo *repository.Postgres) err
 	return nil
 }
 
-func getBeers(ctx context.Context, repo *repository.Postgres) {
+func getBeers(ctx context.Context, repo *repository.BeerPostgres) {
 	beers, err := repo.GetBeers(ctx)
 	if err != nil {
 		fmt.Print("GetBeers: ", err)
@@ -122,7 +122,7 @@ func main() {
 		fmt.Println("fillDB: ", err)
 	}
 
-	repo := repository.NewPostgres(pool)
+	repo := repository.NewBeerPostgres(pool)
 	if err = fillDB(ctx, filename, repo); err != nil {
 		fmt.Print("fillDB: ", err)
 	}
