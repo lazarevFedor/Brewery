@@ -21,6 +21,7 @@ type BeerService interface {
 	UpdateBeer(ctx context.Context, id int) error
 	DeleteBeer(ctx context.Context, id int) error
 	GetAllBeers(ctx context.Context) ([]entities.Beer, error)
+	CreateBeerReview(ctx context.Context, id int) error
 }
 
 type beerService struct {
@@ -115,4 +116,10 @@ func (s *beerService) GetBeersByCategory(ctx context.Context, id int) ([]entitie
 	_ = id
 
 	return nil, nil
+}
+
+func (s *beerService) CreateBeerReview(ctx context.Context, id int) error {
+	_ = ctx
+
+	return nil
 }
