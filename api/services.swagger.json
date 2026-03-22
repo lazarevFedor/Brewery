@@ -152,6 +152,26 @@
     },
 
     "/beers": {
+      "get": {
+        "summary": "Get all beers",
+        "operationId": "getAllBeers",
+        "parameters": [
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/Limit" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated beers list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedBeers"
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "summary": "Create beer",
         "operationId": "createBeer",
