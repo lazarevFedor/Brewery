@@ -74,21 +74,37 @@ func (l *Logger) withRequestID(ctx context.Context, fields []zap.Field) []zap.Fi
 }
 
 func (l *Logger) Info(ctx context.Context, msg string, fields ...zap.Field) {
+	if l == nil || l.l == nil {
+		return
+	}
+
 	fields = l.withRequestID(ctx, fields)
 	l.l.Info(msg, fields...)
 }
 
 func (l *Logger) Warn(ctx context.Context, msg string, fields ...zap.Field) {
+	if l == nil || l.l == nil {
+		return
+	}
+
 	fields = l.withRequestID(ctx, fields)
 	l.l.Warn(msg, fields...)
 }
 
 func (l *Logger) Error(ctx context.Context, msg string, fields ...zap.Field) {
+	if l == nil || l.l == nil {
+		return
+	}
+
 	fields = l.withRequestID(ctx, fields)
 	l.l.Error(msg, fields...)
 }
 
 func (l *Logger) Debug(ctx context.Context, msg string, fields ...zap.Field) {
+	if l == nil || l.l == nil {
+		return
+	}
+
 	fields = l.withRequestID(ctx, fields)
 	l.l.Debug(msg, fields...)
 }
