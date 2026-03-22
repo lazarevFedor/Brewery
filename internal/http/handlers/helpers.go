@@ -9,6 +9,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	defaultPage  = 1
+	defaultLimit = 20
+	maxLimit     = 100
+)
+
 func getIdParam(c *gin.Context) (int, error) {
 	idStr := c.Param("id")
 
@@ -31,4 +37,37 @@ func readRequestBody(c *gin.Context) ([]byte, error) {
 	}
 
 	return body, nil
+}
+
+func getPaginationParams(c *gin.Context) (int, int, error) {
+	page := defaultPage
+	limit := defaultLimit
+
+	if rawPage := c.Query("page"); rawPage != "" {
+		parsedPage, err := strconv.Atoi(rawPage)
+		if err != nil || parsedPage <= 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid page"})
+
+			return 0, 0, errors.New("invalid page")
+		}
+
+		page = parsedPage
+	}
+
+	if rawLimit := c.Query("limit"); rawLimit != "" {
+		parsedLimit, err := strconv.Atoi(rawLimit)
+		if err != nil || parsedLimit <= 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid limit"})
+
+			return 0, 0, errors.New("invalid limit")
+		}
+
+		if parsedLimit > maxLimit {
+			parsedLimit = maxLimit
+		}
+
+		limit = parsedLimit
+	}
+
+	return page, limit, nil
 }
