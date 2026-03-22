@@ -1,3 +1,4 @@
+// Package middleware содержит функции для создания middleware для HTTP сервера.
 package middleware
 
 import (
@@ -12,6 +13,7 @@ import (
 )
 
 var (
+	// timings задает гистограмму для сбора временных метрик по HTTP запросам, с лейблами для метода, маршрута и статуса ответа.
 	timings = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Name:    "http_request_duration_seconds",
@@ -20,6 +22,7 @@ var (
 		},
 		[]string{"method", "route", "status"},
 	)
+	// counter задает счетчик для подсчета общего количества HTTP запросов, с лейблами для метода, маршрута и статуса ответа.
 	counter = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "http_requests_total",
@@ -30,6 +33,7 @@ var (
 	metricsRegisterOnce sync.Once
 )
 
+// RequestContextMiddleware прокидывает логгер с request_id в обработчики.
 func RequestContextMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		reqID := uuid.New().String()[:8]
@@ -44,6 +48,7 @@ func RequestContextMiddleware() gin.HandlerFunc {
 	}
 }
 
+// MetricsMiddleware собирает метрики по HTTP запросам и отправляет их в Prometheus.
 func MetricsMiddleware() gin.HandlerFunc {
 	metricsRegisterOnce.Do(func() {
 		prometheus.MustRegister(timings, counter)
