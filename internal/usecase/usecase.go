@@ -17,7 +17,7 @@ type BeerService interface {
 	GetChildCategory(ctx context.Context, id int) (*entities.ProductCategory, error)
 
 	CreateBeer(ctx context.Context, beer *entities.Beer) (int, error)
-	GetBeerById(ctx context.Context, id int) (*entities.Beer, error)
+	GetBeersByCategory(ctx context.Context, id int) (*entities.Beer, error)
 	UpdateBeer(ctx context.Context, id int) error
 	DeleteBeer(ctx context.Context, id int) error
 	GetAllBeers(ctx context.Context) ([]entities.Beer, error)
@@ -90,7 +90,7 @@ func (s *beerService) CreateBeer(ctx context.Context, beer *entities.Beer) (int,
 	return 0, nil
 }
 
-func (s *beerService) GetBeerById(ctx context.Context, id int) (*entities.Beer, error) {
+func (s *beerService) GetBeersByCategory(ctx context.Context, id int) (*entities.Beer, error) {
 	_ = ctx
 	_ = id
 
