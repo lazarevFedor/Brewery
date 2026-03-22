@@ -3,9 +3,15 @@ on:
   push:
     branches:
       - master
+      - feature/*
+      - feat/*
+      - dev
   pull_request:
     branches:
       - master
+      - feature/*
+      - feat/*
+      - dev
 
 jobs:
   build:
