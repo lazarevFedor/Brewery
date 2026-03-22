@@ -18,6 +18,7 @@ type CategoriesHandlers interface {
 	DeleteCategory(c *gin.Context)
 	GetAllCategories(c *gin.Context)
 
+	GetBeersByCategory(c *gin.Context)
 	GetParentCategory(c *gin.Context)
 	GetChildCategory(c *gin.Context)
 }
@@ -244,6 +245,41 @@ func (h *categoriesHandler) GetChildCategory(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal category: %v", err))
+
+		return
+	}
+
+	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
+	log.Info(c.Request.Context(), "")
+}
+
+func (h *categoriesHandler) GetBeersByCategory(c *gin.Context) {
+	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+	if !ok {
+		c.Status(http.StatusInternalServerError)
+
+		return
+	}
+
+	id, err := getIdParam(c)
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
+
+		return
+	}
+
+	beer, err := h.uc.GetBeersByCategory(c.Request.Context(), id)
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get beer by id: %v", err))
+		c.Status(http.StatusInternalServerError)
+
+		return
+	}
+
+	rawBytes, err := easyjson.Marshal(beer)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal beer: %v", err))
 
 		return
 	}
