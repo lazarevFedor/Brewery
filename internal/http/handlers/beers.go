@@ -18,6 +18,7 @@ type BeersHandlers interface {
 	UpdateBeer(c *gin.Context)
 	DeleteBeer(c *gin.Context)
 	GetAllBeers(c *gin.Context)
+	CreateBeerReview(c *gin.Context)
 }
 
 // beersHandler реализует интерфейс BeersHandlers и использует сервис BeerService для обработки бизнес-логики.
@@ -183,4 +184,31 @@ func (h *beersHandler) GetAllBeers(c *gin.Context) {
 
 	c.Data(http.StatusOK, "application/json; charset=utf-8", w.Buffer.BuildBytes())
 	log.Info(c.Request.Context(), "")
+}
+
+func (h *beersHandler) CreateBeerReview(c *gin.Context) {
+	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+	if !ok {
+		c.Status(http.StatusInternalServerError)
+
+		return
+	}
+
+	id, err := getIdParam(c)
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
+
+		return
+	}
+
+	err = h.uc.CreateBeerReview(c.Request.Context(), id)
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to create review: %v", err))
+		c.Status(http.StatusInternalServerError)
+
+		return
+	}
+
+	log.Info(c.Request.Context(), "")
+	c.Status(http.StatusOK)
 }

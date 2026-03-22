@@ -122,7 +122,7 @@ func (h *categoriesHandler) UpdateCategory(c *gin.Context) {
 		return
 	}
 
-	err = h.uc.UpdateCategory(c, id)
+	err = h.uc.UpdateCategory(c.Request.Context(), id)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to update category: %v", err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update category"})
