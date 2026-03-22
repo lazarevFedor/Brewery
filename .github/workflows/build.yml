@@ -23,5 +23,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Build Docker images
         run: |
+          touch configs/.env
+          cp configs/env.example configs/.env
           mkdir deployments/pgdata
-          docker compose -f deployments/docker-compose.yml --env-file configs/env.example up -d --build server
+          docker compose -f deployments/docker-compose.yml --env-file configs/.env up -d --build server
