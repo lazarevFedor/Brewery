@@ -56,7 +56,7 @@ func (h *beersHandler) CreateBeer(c *gin.Context) {
 		return
 	}
 
-	log.Info(c.Request.Context(), "")
+	log.Info(c.Request.Context(), fmt.Sprintf("action=create resource=beer status=success name=%q", req.Name))
 	c.Status(http.StatusCreated)
 }
 
@@ -65,7 +65,6 @@ func (h *beersHandler) UpdateBeer(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
 		c.Status(http.StatusInternalServerError)
-		log.Error(c.Request.Context(), "Failed to get logger from context")
 
 		return
 	}
@@ -85,7 +84,7 @@ func (h *beersHandler) UpdateBeer(c *gin.Context) {
 		return
 	}
 
-	log.Info(c.Request.Context(), "")
+	log.Info(c.Request.Context(), fmt.Sprintf("action=update resource=beer status=success id=%d", id))
 	c.Status(http.StatusOK)
 }
 
@@ -94,7 +93,6 @@ func (h *beersHandler) DeleteBeer(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
 		c.Status(http.StatusInternalServerError)
-		log.Error(c.Request.Context(), "Failed to get logger from context")
 
 		return
 	}
@@ -114,7 +112,7 @@ func (h *beersHandler) DeleteBeer(c *gin.Context) {
 		return
 	}
 
-	log.Info(c.Request.Context(), "")
+	log.Info(c.Request.Context(), fmt.Sprintf("action=delete resource=beer status=success id=%d", id))
 	c.Status(http.StatusOK)
 }
 
@@ -183,7 +181,7 @@ func (h *beersHandler) GetAllBeers(c *gin.Context) {
 	}
 
 	c.Data(http.StatusOK, "application/json; charset=utf-8", w.Buffer.BuildBytes())
-	log.Info(c.Request.Context(), "")
+	log.Info(c.Request.Context(), fmt.Sprintf("action=list resource=beer status=success offset=%d limit=%d items=%d total=%d", offset, limit, len(items), total))
 }
 
 func (h *beersHandler) CreateBeerReview(c *gin.Context) {
@@ -209,6 +207,6 @@ func (h *beersHandler) CreateBeerReview(c *gin.Context) {
 		return
 	}
 
-	log.Info(c.Request.Context(), "")
+	log.Info(c.Request.Context(), fmt.Sprintf("action=create resource=review status=success beer_id=%d", id))
 	c.Status(http.StatusOK)
 }

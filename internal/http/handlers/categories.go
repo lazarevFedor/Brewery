@@ -43,7 +43,6 @@ func (h *categoriesHandler) CreateCategory(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get logger from context"})
-		log.Error(c.Request.Context(), "Failed to get logger from context")
 
 		return
 	}
@@ -64,7 +63,7 @@ func (h *categoriesHandler) CreateCategory(c *gin.Context) {
 		return
 	}
 
-	log.Info(c.Request.Context(), "")
+	log.Info(c.Request.Context(), fmt.Sprintf("action=create resource=category status=success name=%q level=%d", req.Name, req.Level))
 	c.Status(http.StatusCreated)
 }
 
@@ -73,7 +72,6 @@ func (h *categoriesHandler) GetCategoryById(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get logger from context"})
-		log.Error(c.Request.Context(), "Failed to get logger from context")
 
 		return
 	}
@@ -102,7 +100,7 @@ func (h *categoriesHandler) GetCategoryById(c *gin.Context) {
 	}
 
 	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
-	log.Info(c.Request.Context(), "")
+	log.Info(c.Request.Context(), fmt.Sprintf("action=get resource=category status=success id=%d", id))
 }
 
 // UpdateCategory обрабатывает HTTP-запрос на обновление существующей категории продукта по ее идентификатору.
@@ -110,7 +108,6 @@ func (h *categoriesHandler) UpdateCategory(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get logger from context"})
-		log.Error(c.Request.Context(), "Failed to get logger from context")
 
 		return
 	}
@@ -130,7 +127,7 @@ func (h *categoriesHandler) UpdateCategory(c *gin.Context) {
 		return
 	}
 
-	log.Info(c.Request.Context(), "")
+	log.Info(c.Request.Context(), fmt.Sprintf("action=update resource=category status=success id=%d", id))
 	c.Status(http.StatusOK)
 }
 
@@ -139,7 +136,6 @@ func (h *categoriesHandler) DeleteCategory(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get logger from context"})
-		log.Error(c.Request.Context(), "Failed to get logger from context")
 
 		return
 	}
@@ -159,7 +155,7 @@ func (h *categoriesHandler) DeleteCategory(c *gin.Context) {
 		return
 	}
 
-	log.Info(c.Request.Context(), "")
+	log.Info(c.Request.Context(), fmt.Sprintf("action=delete resource=category status=success id=%d", id))
 	c.Status(http.StatusOK)
 }
 
@@ -168,7 +164,6 @@ func (h *categoriesHandler) GetAllCategories(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
 		c.Status(http.StatusInternalServerError)
-		log.Error(c.Request.Context(), "Failed to get logger from context")
 
 		return
 	}
@@ -190,7 +185,7 @@ func (h *categoriesHandler) GetAllCategories(c *gin.Context) {
 	}
 
 	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
-	log.Info(c.Request.Context(), "")
+	log.Info(c.Request.Context(), fmt.Sprintf("action=list resource=category status=success items=%d", len(categories)))
 }
 
 // GetParentCategory обрабатывает HTTP-запрос на получение родительской категории для заданной категории по ее идентификатору.
@@ -226,7 +221,7 @@ func (h *categoriesHandler) GetParentCategory(c *gin.Context) {
 	}
 
 	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
-	log.Info(c.Request.Context(), "")
+	log.Info(c.Request.Context(), fmt.Sprintf("action=get resource=category_parent status=success id=%d", id))
 }
 
 // GetChildCategory обрабатывает HTTP-запрос на получение дочерней категории для заданной категории по ее идентификатору.
@@ -262,7 +257,7 @@ func (h *categoriesHandler) GetChildCategory(c *gin.Context) {
 	}
 
 	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
-	log.Info(c.Request.Context(), "")
+	log.Info(c.Request.Context(), fmt.Sprintf("action=get resource=category_child status=success id=%d", id))
 }
 
 // GetBeersByCategory обрабатывает HTTP-запрос на получение пива по заданной идентификатором категории.
@@ -338,5 +333,5 @@ func (h *categoriesHandler) GetBeersByCategory(c *gin.Context) {
 	}
 
 	c.Data(http.StatusOK, "application/json; charset=utf-8", w.Buffer.BuildBytes())
-	log.Info(c.Request.Context(), "")
+	log.Info(c.Request.Context(), fmt.Sprintf("action=list resource=beer_by_category status=success category_id=%d offset=%d limit=%d items=%d total=%d", id, offset, limit, len(items), total))
 }
