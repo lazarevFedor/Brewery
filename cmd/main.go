@@ -49,7 +49,8 @@ func main() {
 	var ctgRepo any
 
 	beerSrv := usecase.NewBeerService(beerRepo, ctgRepo)
-	_ = handlers.NewBreweryHandlers(beerSrv)
+	_ = handlers.NewBeersHandlers(beerSrv)
+	_ = handlers.NewCategoriesHandlers(beerSrv)
 
 	engine := gin.New()
 	engine.Use(gin.Recovery())
