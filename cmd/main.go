@@ -54,6 +54,11 @@ func main() {
 
 	engine := gin.New()
 	engine.Use(gin.Recovery())
+	engine.Use(func(c *gin.Context) {
+		ctxWithLogger := logger.NewContextWithLogger(c.Request.Context(), log)
+		c.Request = c.Request.WithContext(ctxWithLogger)
+		c.Next()
+	})
 	engine.Use(middleware.RequestContextMiddleware())
 	engine.Use(middleware.MetricsMiddleware())
 
@@ -69,19 +74,20 @@ func main() {
 
 	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
-	router.POST("/categories", categoryHandler.CreateCategory)
-	router.GET("/categories/:id", categoryHandler.GetCategoryById)
-	router.PATCH("/categories/:id", categoryHandler.UpdateCategory)
-	router.DELETE("/categories/:id", categoryHandler.DeleteCategory)
-	router.GET("/categories/beers/:id", categoryHandler.GetBeersByCategory)
-	router.GET("/categories/parent/:id", categoryHandler.GetParentCategory)
-	router.GET("/categories/children/:id", categoryHandler.GetChildCategory)
+	router.POST("/api/categories", categoryHandler.CreateCategory)
+	router.GET("/api/categories/:id", categoryHandler.GetCategoryById)
+	router.PATCH("/api/categories/:id", categoryHandler.UpdateCategory)
+	router.DELETE("/api/categories/:id", categoryHandler.DeleteCategory)
+	router.GET("/api/categories", categoryHandler.GetAllCategories)
+	router.GET("/api/categories/beers/:id", categoryHandler.GetBeersByCategory)
+	router.GET("/api/categories/parent/:id", categoryHandler.GetParentCategory)
+	router.GET("/api/categories/children/:id", categoryHandler.GetChildCategory)
 
-	router.POST("/beers", beersHandler.CreateBeer)
-	router.PATCH("/beers/:id", beersHandler.UpdateBeer)
-	router.DELETE("/beers/:id", beersHandler.DeleteBeer)
-	router.GET("/beers", beersHandler.GetAllBeers)
-	router.POST("/beers/reviews/:id", nil)
+	router.POST("/api/beers", beersHandler.CreateBeer)
+	router.PATCH("/api/beers/:id", beersHandler.UpdateBeer)
+	router.DELETE("/api/beers/:id", beersHandler.DeleteBeer)
+	router.GET("/api/beers", beersHandler.GetAllBeers)
+	router.POST("/api/beers/reviews/:id", nil)
 
 	log.Info(ctx, fmt.Sprintf("server listening on port %s", cfg.Port))
 
