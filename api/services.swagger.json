@@ -156,7 +156,7 @@
         "summary": "Get all beers",
         "operationId": "getAllBeers",
         "parameters": [
-          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/Offset" },
           { "$ref": "#/components/parameters/Limit" }
         ],
         "responses": {
@@ -289,7 +289,7 @@
         "operationId": "getBeersByCategory",
         "parameters": [
           { "$ref": "#/components/parameters/CategoryId" },
-          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/Offset" },
           { "$ref": "#/components/parameters/Limit" }
         ],
         "responses": {
@@ -322,13 +322,13 @@
         "required": true,
         "schema": { "type": "integer" }
       },
-      "Page": {
-        "name": "page",
+      "Offset": {
+        "name": "offset",
         "in": "query",
         "schema": {
           "type": "integer",
-          "default": 1,
-          "minimum": 1
+          "default": 0,
+          "minimum": 0
         }
       },
       "Limit": {
@@ -430,7 +430,7 @@
               "$ref": "#/components/schemas/BeerShort"
             }
           },
-          "page": { "type": "integer" },
+          "offset": { "type": "integer" },
           "limit": { "type": "integer" },
           "total": { "type": "integer" },
           "total_pages": { "type": "integer" },
