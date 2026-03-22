@@ -49,8 +49,8 @@ func main() {
 	var ctgRepo any
 
 	beerSrv := usecase.NewBeerService(beerRepo, ctgRepo)
-	_ = handlers.NewBeersHandlers(beerSrv)
-	_ = handlers.NewCategoriesHandlers(beerSrv)
+	beersHandler := handlers.NewBeersHandlers(beerSrv)
+	categoryHandler := handlers.NewCategoriesHandlers(beerSrv)
 
 	engine := gin.New()
 	engine.Use(gin.Recovery())
@@ -68,6 +68,20 @@ func main() {
 	defer router.Close()
 
 	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
+
+	router.POST("/categories", categoryHandler.CreateCategory)
+	router.GET("/categories/:id", categoryHandler.GetCategoryById)
+	router.PATCH("/categories/:id", categoryHandler.UpdateCategory)
+	router.DELETE("/categories/:id", categoryHandler.DeleteCategory)
+	router.GET("/categories/beers/:id", categoryHandler.GetBeersByCategory)
+	router.GET("/categories/parent/:id", categoryHandler.GetParentCategory)
+	router.GET("/categories/children/:id", categoryHandler.GetChildCategory)
+
+	router.POST("/beers", beersHandler.CreateBeer)
+	router.PATCH("/beers/:id", beersHandler.UpdateBeer)
+	router.DELETE("/beers/:id", beersHandler.DeleteBeer)
+	router.GET("/beers", beersHandler.GetAllBeers)
+	router.POST("/beers/reviews/:id", nil)
 
 	log.Info(ctx, fmt.Sprintf("server listening on port %s", cfg.Port))
 
