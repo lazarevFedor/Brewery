@@ -10,11 +10,15 @@ import (
 )
 
 const (
-	defaultPage  = 1
+	// defaultOffset это дефолтное значение для смещения при пагинации.
+	defaultOffset = 0
+	// defaultLimit это дефолтное значения для лимита при пагинации.
 	defaultLimit = 20
-	maxLimit     = 100
+	// maxLimit это максимальное значение для лимита при пагинации.
+	maxLimit = 100
 )
 
+// getIdParam извлекает и валидирует параметр id из URL.
 func getIdParam(c *gin.Context) (int, error) {
 	idStr := c.Param("id")
 
@@ -28,6 +32,7 @@ func getIdParam(c *gin.Context) (int, error) {
 	return id, nil
 }
 
+// readRequestBody читает тело HTTP-запроса и возвращает его в виде байтового среза.
 func readRequestBody(c *gin.Context) ([]byte, error) {
 	body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
@@ -39,19 +44,20 @@ func readRequestBody(c *gin.Context) ([]byte, error) {
 	return body, nil
 }
 
+// getPaginationParams извлекает параметры пагинации из HTTP-запроса
 func getPaginationParams(c *gin.Context) (int, int, error) {
-	page := defaultPage
+	offset := defaultOffset
 	limit := defaultLimit
 
-	if rawPage := c.Query("page"); rawPage != "" {
-		parsedPage, err := strconv.Atoi(rawPage)
-		if err != nil || parsedPage <= 0 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid page"})
+	if rawOffset := c.Query("offset"); rawOffset != "" {
+		parsedOffset, err := strconv.Atoi(rawOffset)
+		if err != nil || parsedOffset < 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid offset"})
 
-			return 0, 0, errors.New("invalid page")
+			return 0, 0, errors.New("invalid offset")
 		}
 
-		page = parsedPage
+		offset = parsedOffset
 	}
 
 	if rawLimit := c.Query("limit"); rawLimit != "" {
@@ -69,5 +75,5 @@ func getPaginationParams(c *gin.Context) (int, int, error) {
 		limit = parsedLimit
 	}
 
-	return page, limit, nil
+	return offset, limit, nil
 }
