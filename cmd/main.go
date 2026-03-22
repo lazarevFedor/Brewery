@@ -3,6 +3,7 @@ package main
 import (
 	"Brewery/internal/config"
 	"Brewery/internal/http/handlers"
+	"Brewery/internal/http/middleware"
 	repository "Brewery/internal/repository/beer"
 	"Brewery/internal/usecase"
 	"Brewery/pkg/logger"
@@ -15,22 +16,8 @@ import (
 
 	"github.com/gin-contrib/graceful"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
-
-func RequestContextMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		reqID := uuid.New().String()[:8]
-
-		ctx := c.Request.Context()
-
-		ctx = logger.WithRequestID(ctx, reqID)
-
-		c.Request = c.Request.WithContext(ctx)
-
-		c.Next()
-	}
-}
 
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
@@ -66,7 +53,8 @@ func main() {
 
 	engine := gin.New()
 	engine.Use(gin.Recovery())
-	engine.Use(RequestContextMiddleware())
+	engine.Use(middleware.RequestContextMiddleware())
+	engine.Use(middleware.MetricsMiddleware())
 
 	router, err := graceful.New(
 		engine,
@@ -77,6 +65,8 @@ func main() {
 		panic(fmt.Errorf("failed to initialize router: %w", err))
 	}
 	defer router.Close()
+
+	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	log.Info(ctx, fmt.Sprintf("server listening on port %s", cfg.Port))
 
