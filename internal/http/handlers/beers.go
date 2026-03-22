@@ -12,6 +12,7 @@ import (
 	"github.com/mailru/easyjson/jwriter"
 )
 
+// BeersHandlers определяет интерфейс для обработки HTTP-запросов, связанных с пивом.
 type BeersHandlers interface {
 	CreateBeer(c *gin.Context)
 	UpdateBeer(c *gin.Context)
@@ -19,16 +20,19 @@ type BeersHandlers interface {
 	GetAllBeers(c *gin.Context)
 }
 
+// beersHandler реализует интерфейс BeersHandlers и использует сервис BeerService для обработки бизнес-логики.
 type beersHandler struct {
 	uc usecase.BeerService
 }
 
+// NewBeersHandlers создает новый экзмепляр beersHandler с предоставленным сервисом BeerService.
 func NewBeersHandlers(useCase usecase.BeerService) BeersHandlers {
 	return &beersHandler{
 		uc: useCase,
 	}
 }
 
+// CreateBeer обрабатывает HTTP-запрос на создание пива
 func (h *beersHandler) CreateBeer(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -55,6 +59,7 @@ func (h *beersHandler) CreateBeer(c *gin.Context) {
 	c.Status(http.StatusCreated)
 }
 
+// UpdateBeer обрабатывает HTTP-запрос на обновление пива.
 func (h *beersHandler) UpdateBeer(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -83,6 +88,7 @@ func (h *beersHandler) UpdateBeer(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+// DeleteBeer обрабатывает HTTP-запрос на удаление пива.
 func (h *beersHandler) DeleteBeer(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -111,6 +117,7 @@ func (h *beersHandler) DeleteBeer(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+// GetAllBeers обрабатывает HTTP-запрос на получение всех видов пива.
 func (h *beersHandler) GetAllBeers(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -119,7 +126,7 @@ func (h *beersHandler) GetAllBeers(c *gin.Context) {
 		return
 	}
 
-	page, limit, err := getPaginationParams(c)
+	offset, limit, err := getPaginationParams(c)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid pagination params: %v", err))
 
@@ -135,18 +142,16 @@ func (h *beersHandler) GetAllBeers(c *gin.Context) {
 	}
 
 	total := len(beers)
+
 	totalPages := 0
 	if total > 0 {
 		totalPages = (total + limit - 1) / limit
 	}
 
-	offset := (page - 1) * limit
 	items := make([]entities.Beer, 0)
+
 	if offset < total {
-		end := offset + limit
-		if end > total {
-			end = total
-		}
+		end := min(offset+limit, total)
 
 		items = beers[offset:end]
 	}
@@ -155,8 +160,8 @@ func (h *beersHandler) GetAllBeers(c *gin.Context) {
 	w.RawByte('{')
 	w.RawString("\"items\":")
 	entities.Beers(items).MarshalEasyJSON(&w)
-	w.RawString(",\"page\":")
-	w.Int(page)
+	w.RawString(",\"offset\":")
+	w.Int(offset)
 	w.RawString(",\"limit\":")
 	w.Int(limit)
 	w.RawString(",\"total\":")
@@ -164,9 +169,9 @@ func (h *beersHandler) GetAllBeers(c *gin.Context) {
 	w.RawString(",\"total_pages\":")
 	w.Int(totalPages)
 	w.RawString(",\"has_next\":")
-	w.Bool(page < totalPages)
+	w.Bool(offset+limit < total)
 	w.RawString(",\"has_prev\":")
-	w.Bool(page > 1)
+	w.Bool(offset > 0)
 	w.RawByte('}')
 
 	if w.Error != nil {
