@@ -1,3 +1,4 @@
+// Package handlers содержит реализацию HTTP-обработчиков для управления категориями продуктов в пивоварне.
 package handlers
 
 import (
@@ -9,8 +10,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/mailru/easyjson"
+	"github.com/mailru/easyjson/jwriter"
 )
 
+// CategoriesHandlers определяет интерфейс для обработки HTTP-запросов, связанных с категориями продуктов.
 type CategoriesHandlers interface {
 	CreateCategory(c *gin.Context)
 	GetCategoryById(c *gin.Context)
@@ -23,16 +26,19 @@ type CategoriesHandlers interface {
 	GetChildCategory(c *gin.Context)
 }
 
+// categoriesHandler конкретная реализация интерфейса CategoriesHandlers, которая использует сервис BeerService для обработки бизнес-логики.
 type categoriesHandler struct {
 	uc usecase.BeerService
 }
 
+// NewCategoriesHandlers создает новый экземпляр categoriesHandler с предоставленным сервисом BeerService.
 func NewCategoriesHandlers(useCase usecase.BeerService) CategoriesHandlers {
 	return &categoriesHandler{
 		uc: useCase,
 	}
 }
 
+// CreateCategory обрабатывает HTTP-запрос на создание новой категории продукта.
 func (h *categoriesHandler) CreateCategory(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -62,6 +68,7 @@ func (h *categoriesHandler) CreateCategory(c *gin.Context) {
 	c.Status(http.StatusCreated)
 }
 
+// GetCategoryById обрабатывает HTTP-запрос на получение категории продукта по ее идентификатору.
 func (h *categoriesHandler) GetCategoryById(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -98,6 +105,7 @@ func (h *categoriesHandler) GetCategoryById(c *gin.Context) {
 	log.Info(c.Request.Context(), "")
 }
 
+// UpdateCategory обрабатывает HTTP-запрос на обновление существующей категории продукта по ее идентификатору.
 func (h *categoriesHandler) UpdateCategory(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -126,6 +134,7 @@ func (h *categoriesHandler) UpdateCategory(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+// DeleteCategory обрабатывает HTTP-запрос на удаление категории по ее идентификатору.
 func (h *categoriesHandler) DeleteCategory(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -154,6 +163,7 @@ func (h *categoriesHandler) DeleteCategory(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+// GetAllCategories обрабатывает HTTP-запрос на получение всех категорий продуктов.
 func (h *categoriesHandler) GetAllCategories(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -183,6 +193,7 @@ func (h *categoriesHandler) GetAllCategories(c *gin.Context) {
 	log.Info(c.Request.Context(), "")
 }
 
+// GetParentCategory обрабатывает HTTP-запрос на получение родительской категории для заданной категории по ее идентификатору.
 func (h *categoriesHandler) GetParentCategory(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -218,6 +229,7 @@ func (h *categoriesHandler) GetParentCategory(c *gin.Context) {
 	log.Info(c.Request.Context(), "")
 }
 
+// GetChildCategory обрабатывает HTTP-запрос на получение дочерней категории для заданной категории по ее идентификатору.
 func (h *categoriesHandler) GetChildCategory(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -253,6 +265,7 @@ func (h *categoriesHandler) GetChildCategory(c *gin.Context) {
 	log.Info(c.Request.Context(), "")
 }
 
+// GetBeersByCategory обрабатывает HTTP-запрос на получение пива по заданной идентификатором категории.
 func (h *categoriesHandler) GetBeersByCategory(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -268,22 +281,62 @@ func (h *categoriesHandler) GetBeersByCategory(c *gin.Context) {
 		return
 	}
 
-	beer, err := h.uc.GetBeersByCategory(c.Request.Context(), id)
+	offset, limit, err := getPaginationParams(c)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get beer by id: %v", err))
+		log.Error(c.Request.Context(), fmt.Sprintf("Invalid pagination params: %v", err))
+
+		return
+	}
+
+	beers, err := h.uc.GetBeersByCategory(c.Request.Context(), id)
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get beers by category: %v", err))
 		c.Status(http.StatusInternalServerError)
 
 		return
 	}
 
-	rawBytes, err := easyjson.Marshal(beer)
-	if err != nil {
+	total := len(beers)
+
+	totalPages := 0
+
+	if total > 0 {
+		totalPages = (total + limit - 1) / limit
+	}
+
+	items := make([]entities.Beer, 0)
+
+	if offset < total {
+		end := min(offset+limit, total)
+
+		items = beers[offset:end]
+	}
+
+	var w jwriter.Writer
+	w.RawByte('{')
+	w.RawString("\"items\":")
+	entities.Beers(items).MarshalEasyJSON(&w)
+	w.RawString(",\"offset\":")
+	w.Int(offset)
+	w.RawString(",\"limit\":")
+	w.Int(limit)
+	w.RawString(",\"total\":")
+	w.Int(total)
+	w.RawString(",\"total_pages\":")
+	w.Int(totalPages)
+	w.RawString(",\"has_next\":")
+	w.Bool(offset+limit < total)
+	w.RawString(",\"has_prev\":")
+	w.Bool(offset > 0)
+	w.RawByte('}')
+
+	if w.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal beer: %v", err))
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal beer: %v", w.Error))
 
 		return
 	}
 
-	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
+	c.Data(http.StatusOK, "application/json; charset=utf-8", w.Buffer.BuildBytes())
 	log.Info(c.Request.Context(), "")
 }
