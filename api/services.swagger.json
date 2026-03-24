@@ -10,9 +10,20 @@
       "url": "http://localhost:80/api"
     }
   ],
+  "tags": [
+    {
+      "name": "Categories",
+      "description": "Все операции, связанные с категориями товаров"
+    },
+    {
+      "name": "Beers",
+      "description": "Операции, связанные с пивной продукцией"
+    }
+  ],
   "paths": {
     "/categories": {
       "get": {
+        "tags": ["Categories"],
         "summary": "Get all categories",
         "operationId": "getCategories",
         "responses": {
@@ -30,6 +41,7 @@
         }
       },
       "post": {
+        "tags": ["Categories"],
         "summary": "Create category",
         "operationId": "createCategory",
         "requestBody": {
@@ -55,6 +67,7 @@
 
     "/categories/{id}": {
       "get": {
+        "tags": ["Categories"],
         "summary": "Get category by ID",
         "operationId": "getCategoryById",
         "parameters": [
@@ -73,6 +86,7 @@
         }
       },
       "patch": {
+        "tags": ["Categories"],
         "summary": "Update category",
         "operationId": "updateCategory",
         "parameters": [
@@ -97,6 +111,7 @@
         }
       },
       "delete": {
+        "tags": ["Categories"],
         "summary": "Delete category",
         "operationId": "deleteCategory",
         "parameters": [
@@ -110,6 +125,7 @@
 
     "/categories/parent/{id}": {
       "get": {
+        "tags": ["Categories"],
         "summary": "Get parent category",
         "operationId": "getParent",
         "parameters": [
@@ -130,6 +146,7 @@
 
     "/categories/children/{id}": {
       "get": {
+        "tags": ["Categories"],
         "summary": "Get child categories",
         "operationId": "getChildren",
         "parameters": [
@@ -153,6 +170,7 @@
 
     "/beers": {
       "get": {
+        "tags": ["Beers"],
         "summary": "Get all beers",
         "operationId": "getAllBeers",
         "parameters": [
@@ -173,6 +191,7 @@
         }
       },
       "post": {
+        "tags": ["Beers"],
         "summary": "Create beer",
         "operationId": "createBeer",
         "requestBody": {
@@ -203,6 +222,7 @@
 
     "/beers/{id}": {
       "patch": {
+        "tags": ["Beers"],
         "summary": "Update beer",
         "operationId": "updateBeer",
         "parameters": [
@@ -227,6 +247,7 @@
         }
       },
       "delete": {
+        "tags": ["Beers"],
         "summary": "Delete beer",
         "operationId": "deleteBeer",
         "parameters": [
@@ -252,6 +273,7 @@
 
     "/beers/reviews/{id}": {
       "post": {
+        "tags": ["Beers"],
         "summary": "Add review",
         "operationId": "addReview",
         "parameters": [
@@ -285,6 +307,7 @@
 
     "/categories/beers/{id}": {
       "get": {
+        "tags": ["Beers"],
         "summary": "Get beers by category",
         "operationId": "getBeersByCategory",
         "parameters": [
