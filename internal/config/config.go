@@ -1,26 +1,21 @@
+// Package config содержит функции для считывания конфигурационны переменных для приложения
 package config
 
 import (
-	"fmt"
-
 	"Brewery/pkg/postgres"
 
 	"github.com/ilyakaznacheev/cleanenv"
 )
 
 type AppConfig struct {
-	Postgres postgres.Config `env:"POSTGRES"`
+	Postgres postgres.Config `env-prefix:"POSTGRES_"`
 	Port     string          `env:"SERVER_PORT"`
 }
 
 func NewAppConfig() *AppConfig {
-	return &AppConfig{}
-}
-
-func FillConfig[T any](cfg *T) (*T, error) {
-	if err := cleanenv.ReadEnv(cfg); err != nil {
-		return nil, fmt.Errorf("reading env error: %w", err)
+	var cfg AppConfig
+	if err := cleanenv.ReadEnv(&cfg); err != nil {
+		return nil
 	}
-
-	return cfg, nil
+	return &cfg
 }

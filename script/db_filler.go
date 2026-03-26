@@ -2,7 +2,7 @@ package main
 
 import (
 	"Brewery/internal/entities"
-	repository "Brewery/internal/repository/beer"
+	"Brewery/internal/repository"
 	"Brewery/migrator"
 	"Brewery/pkg/postgres"
 	"context"
@@ -79,7 +79,7 @@ func fillDB(ctx context.Context, filename string, repo *repository.BeerPostgres)
 		return fmt.Errorf("parseFile: %w", err)
 	}
 	for _, beer := range beers {
-		err = repo.InsertBeer(ctx, beer)
+		_, err = repo.InsertBeer(ctx, beer)
 		if err != nil {
 			return fmt.Errorf("InsertBeer: %w", err)
 		}

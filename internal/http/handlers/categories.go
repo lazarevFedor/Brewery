@@ -63,7 +63,12 @@ func (h *categoriesHandler) CreateCategory(c *gin.Context) {
 		return
 	}
 
-	log.Info(c.Request.Context(), fmt.Sprintf("action=create resource=category status=success name=%q level=%d", req.Name, req.Level))
+	log.Info(
+		c.Request.Context(),
+		// fmt.Sprintf("action=create resource=category status=success name=%q level=%d",
+		// 	req.Name, req.Level))
+		fmt.Sprintf("action=create resource=category status=success name=%q",
+			req.Name))
 	c.Status(http.StatusCreated)
 }
 
@@ -81,9 +86,9 @@ func (h *categoriesHandler) GetCategoryById(c *gin.Context) {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
 
 		return
-	}
+	
 
-	category, err := h.uc.GetCategoryById(c.Request.Context(), id)
+	category, err := h.uc.GetCategoryByID(c.Request.Context(), id)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get category: %v", err))
 		c.JSON(http.StatusNotFound, gin.H{"error": "category not found"})
@@ -101,6 +106,7 @@ func (h *categoriesHandler) GetCategoryById(c *gin.Context) {
 
 	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
 	log.Info(c.Request.Context(), fmt.Sprintf("action=get resource=category status=success id=%d", id))
+	}
 }
 
 // UpdateCategory обрабатывает HTTP-запрос на обновление существующей категории продукта по ее идентификатору.
@@ -108,7 +114,6 @@ func (h *categoriesHandler) UpdateCategory(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get logger from context"})
-
 		return
 	}
 
