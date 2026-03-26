@@ -1,7 +1,7 @@
 -- +goose Up
 CREATE TABLE IF NOT EXISTS product_categories(
     id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL,
+    name TEXT NOT NULL UNIQUE,
     parent_id INT REFERENCES product_categories (id)
 );
 
