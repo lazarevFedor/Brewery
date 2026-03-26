@@ -1,4 +1,4 @@
-package category
+package repository
 
 import (
 	"Brewery/internal/entities"
@@ -17,16 +17,19 @@ const (
 )
 
 type CategoryRepository interface {
-	InsertCategory(ctx context.Context, category entities.ProductCategory) error
-	DeleteCategoryByName(ctx context.Context, name string) error
+	GetCategories(ctx context.Context) ([]entities.ProductCategory, error)
+	InsertCategory(ctx context.Context, category entities.ProductCategory)(int, error)
+	GetCategoryByID(ctx context.Context, id int) (*entities.ProductCategory, error)
+	UpdateCategory(ctx context.Context, id int, updates map[string]any) error
+	DeleteCategoryByID(ctx context.Context, id int) error
 }
 
 type CategoryPostgres struct {
-	pool *pgxpool.Pool
+	Pool *pgxpool.Pool
 }
 
-func NewCategoryPostgres(pool *pgxpool.Pool) *CategoryPostgres {
-	return &CategoryPostgres{pool: pool}
+func NewCategoryPostgres(Pool *pgxpool.Pool) *CategoryPostgres {
+	return &CategoryPostgres{Pool: Pool}
 }
 
 func (r *CategoryPostgres) GetCategories(ctx context.Context) ([]entities.ProductCategory, error) {
@@ -38,12 +41,13 @@ func (r *CategoryPostgres) GetCategories(ctx context.Context) ([]entities.Produc
 		return nil, fmt.Errorf("ToSql: %w", err)
 	}
 
-	rows, err := r.pool.Query(ctx, query, args...)
+	rows, err := r.Pool.Query(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("Query: %w", err)
 	}
 
 	categories := make([]entities.ProductCategory, 0)
+	
 	for rows.Next() {
 		ctg := entities.ProductCategory{}
 
@@ -56,27 +60,32 @@ func (r *CategoryPostgres) GetCategories(ctx context.Context) ([]entities.Produc
 	return categories, nil
 }
 
-func (r *CategoryPostgres) InsertCategory(ctx context.Context, category entities.ProductCategory) error {
-	data := map[string]interface{}{
+func (r *CategoryPostgres) InsertCategory(
+	ctx context.Context, category entities.ProductCategory,
+	)(int, error) {
+	data := map[string]any{
 		nameCol:     category.Name,
 		parentIDCol: category.ParentID,
 	}
-	builder := sq.Insert(tableCategories).SetMap(data)
+	builder := sq.Insert(tableCategories).SetMap(data).Suffix("RETURNING id")
 	psql := builder.PlaceholderFormat(sq.Dollar)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return fmt.Errorf("ToSql: %w", err)
+		return 0, fmt.Errorf("ToSql: %w", err)
 	}
 
-	_, err = r.pool.Exec(ctx, query, args...)
+	var newID int
+	err = r.Pool.QueryRow(ctx, query, args...).Scan(&newID)
 	if err != nil {
-		return fmt.Errorf("Exec: %w", err)
+		return 0, fmt.Errorf("Exec: %w", err)
 	}
-	return nil
+
+	return newID, nil
+
 }
 
-func (r *CategoryPostgres) GetCategoryById(ctx context.Context, id int) (*entities.ProductCategory, error) {
-	data := map[string]interface{}{
+func (r *CategoryPostgres) GetCategoryByID(ctx context.Context, id int) (*entities.ProductCategory, error) {
+	data := map[string]any{
 		IDCol: id,
 	}
 	builder := sq.Select(IDCol, nameCol, parentIDCol).Where(data)
@@ -87,7 +96,7 @@ func (r *CategoryPostgres) GetCategoryById(ctx context.Context, id int) (*entiti
 	}
 
 	var ctg entities.ProductCategory
-	err = r.pool.QueryRow(ctx, query, args...).Scan(&ctg.ID, &ctg.Name, &ctg.ParentID)
+	err = r.Pool.QueryRow(ctx, query, args...).Scan(&ctg.ID, &ctg.Name, &ctg.ParentID)
 	if err != nil {
 		return nil, fmt.Errorf("QueryRow: %w", err)
 	}
@@ -95,7 +104,7 @@ func (r *CategoryPostgres) GetCategoryById(ctx context.Context, id int) (*entiti
 	return &ctg, nil
 }
 
-func (r *CategoryPostgres) UpdateCategory(ctx context.Context, id int, updates map[string]interface{}) error {
+func (r *CategoryPostgres) UpdateCategory(ctx context.Context, id int, updates map[string]any) error {
 	builder := sq.Update(tableCategories).
 		SetMap(updates).
 		Where(sq.Eq{IDCol: id})
@@ -104,8 +113,7 @@ func (r *CategoryPostgres) UpdateCategory(ctx context.Context, id int, updates m
 	if err != nil {
 		return fmt.Errorf("ToSql: %w", err)
 	}
-
-	result, err := r.pool.Exec(ctx, query, args...)
+	result, err := r.Pool.Exec(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("QueryRow: %w", err)
 	}
@@ -129,7 +137,7 @@ func (r *CategoryPostgres) DeleteCategoryByID(ctx context.Context, id int) error
 		return fmt.Errorf("ToSql: %w", err)
 	}
 
-	result, err := r.pool.Exec(ctx, query, args...)
+	result, err := r.Pool.Exec(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("Exec: %w", err)
 	}

@@ -44,7 +44,7 @@ var (
 type BeerRepository interface {
 
 	// InsertBeer сохраняет новую сущность Beer в хранилище.
-	InsertBeer(ctx context.Context, beer entities.Beer) error
+	InsertBeer(ctx context.Context, beer entities.Beer) (int, error)
 
 	// GetBeers возвращает список всех сортов пива.
 	GetBeers(ctx context.Context) ([]entities.Beer, error)
@@ -52,19 +52,18 @@ type BeerRepository interface {
 
 // BeerPostgres хранит в себе пул подлючений к БД
 type BeerPostgres struct {
-	pool *pgxpool.Pool
+	Pool *pgxpool.Pool
 }
 
 // NewBeerPostgres создает новый репозиторий БД
 func NewBeerPostgres(pgPool *pgxpool.Pool) *BeerPostgres {
-	return &BeerPostgres{pool: pgPool}
+	return &BeerPostgres{Pool: pgPool}
 }
 
-// InsertBeer сохраняет новую сущность Beer в хранилище.
-func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) error {
-	tx, err := r.pool.Begin(ctx)
+func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (int, error) {
+	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
-		return fmt.Errorf("begin: %w", err)
+		return 0, fmt.Errorf("begin: %w", err)
 	}
 	defer func(tx pgx.Tx, ctx context.Context) {
 		rollbackErr := tx.Rollback(ctx)
@@ -77,38 +76,38 @@ func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) error
 
 	err = tx.QueryRow(ctx, getOrCreateCountryQuery, beer.Country).Scan(&countryID)
 	if err != nil {
-		return fmt.Errorf("country QueryRow: %w", err)
+		return 0, fmt.Errorf("country QueryRow: %w", err)
 	}
 
 	var cityID int
 
 	err = tx.QueryRow(ctx, getOrCreateCityQuery, beer.City, countryID).Scan(&cityID)
 	if err != nil {
-		return fmt.Errorf("city QueryRow: %w", err)
+		return 0, fmt.Errorf("city QueryRow: %w", err)
 	}
 
 	var typeID int
 
 	err = tx.QueryRow(ctx, getOrCreateTypeQuery, beer.Type).Scan(&typeID)
 	if err != nil {
-		return fmt.Errorf("type QueryRow: %w", err)
+		return 0, fmt.Errorf("type QueryRow: %w", err)
 	}
 
 	var categoryID int
 
 	err = tx.QueryRow(ctx, getProductCategoryByNameQuery, beer.Category.Name).Scan(&categoryID)
 	if err != nil {
-		return fmt.Errorf("category QueryRow: %w", err)
+		return 0, fmt.Errorf("category QueryRow: %w", err)
 	}
 
 	var beerID int
 
 	err = tx.QueryRow(ctx, insertBeerQuery,
-		beer.Name, beer.Rating, beer.Description, beer.ABV, beer.IBU,
-		typeID, cityID, categoryID,
-	).Scan(&beerID)
+		beer.Name, beer.Rating, beer.Description,
+		beer.ABV, beer.IBU, typeID, cityID, categoryID).
+		Scan(&beerID)
 	if err != nil {
-		return fmt.Errorf("beer QueryRow: %w", err)
+		return 0, fmt.Errorf("beer QueryRow: %w", err)
 	}
 
 	for _, featName := range beer.Features {
@@ -116,28 +115,27 @@ func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) error
 
 		err = tx.QueryRow(ctx, insertFeatureQuery, featName).Scan(&featID)
 		if err != nil {
-			return fmt.Errorf("feature QueryRow: %w", err)
+			return 0, fmt.Errorf("feature QueryRow: %w", err)
 		}
 
 		_, err = tx.Exec(ctx, insertBeerFeatureQuery, beerID, featID)
 		if err != nil {
-			return fmt.Errorf("exec: %w", err)
+			return 0, fmt.Errorf("exec: %w", err)
 		}
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		return fmt.Errorf("commit: %w", err)
+		return 0, fmt.Errorf("commit: %w", err)
 	}
 
-	return nil
+	return beerID, nil
 }
 
 // TODO: Добавить ошибки приложения
 
-// GetBeers возвращает список всех сортов пива.
 func (r *BeerPostgres) GetBeers(ctx context.Context) ([]entities.Beer, error) {
-	rows, err := r.pool.Query(ctx, getBeersQuery)
+	rows, err := r.Pool.Query(ctx, getBeersQuery)
 	if err != nil {
 		return nil, fmt.Errorf("query: %w", err)
 	}
@@ -169,7 +167,7 @@ func (r *BeerPostgres) GetBeers(ctx context.Context) ([]entities.Beer, error) {
 // 	if err != nil {
 // 		return fmt.Errorf("ToSql: %w", err)
 // 	}
-// 	row = r.pool.QueryRow(ctx, sql, args...)
+// 	row = r.Pool.QueryRow(ctx, sql, args...)
 
 // 	return nil
 // }
