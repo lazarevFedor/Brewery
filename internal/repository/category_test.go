@@ -21,7 +21,7 @@ func TestCategoryRepository_InsertCategory(t *testing.T) {
 		assert.NotZero(t, ctgID)
 
 		t.Cleanup(func() {
-			cleanDB(t, ctx, ctgRepo.Pool)
+			cleanDB(t, ctx, ctgRepo.Pool, "product_categories")
 		})
 	})
 
@@ -51,7 +51,7 @@ func TestCategoryRepository_InsertCategory(t *testing.T) {
 		}
 
 		t.Cleanup(func() {
-			cleanDB(t, ctx, ctgRepo.Pool)
+			cleanDB(t, ctx, ctgRepo.Pool, "product_categories")
 		})
 	})
 
@@ -62,7 +62,7 @@ func TestCategoryRepository_GetCategories(t *testing.T){
 
 	t.Run("Пустая БД", func(t *testing.T){
 		ctgs, err := ctgRepo.GetCategories(ctx)
-		assert.Nil(t, ctgs)
+		assert.Empty(t, ctgs)
 		assert.NoError(t, err)
 	})
 

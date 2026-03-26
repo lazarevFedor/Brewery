@@ -5,6 +5,7 @@ import (
 	"Brewery/migrator"
 	"Brewery/pkg/postgres"
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -76,8 +77,10 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func cleanDB(t *testing.T, ctx context.Context, db *pgxpool.Pool) {
-	_, err := testDB.Exec(context.Background(), "TRUNCATE TABLE users RESTART IDENTITY CASCADE")
+func cleanDB(t *testing.T, ctx context.Context, db *pgxpool.Pool, tablename string) {
+	_, err := testDB.Exec(ctx, 
+		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", tablename),
+	)
 	if err != nil {
 		t.Errorf("failed to clean db: %v", err)
 	}

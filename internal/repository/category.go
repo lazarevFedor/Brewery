@@ -7,6 +7,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const (
@@ -51,10 +52,17 @@ func (r *CategoryPostgres) GetCategories(ctx context.Context) ([]entities.Produc
 	for rows.Next() {
 		ctg := entities.ProductCategory{}
 
-		err = rows.Scan(&ctg.ID, &ctg.Name, &ctg.ParentID)
+		var nullableInt pgtype.Int8
+		err = rows.Scan(&ctg.ID, &ctg.Name, &nullableInt)
 		if err != nil {
 			return nil, fmt.Errorf("Scan: %w", err)
 		}
+		if nullableInt.Valid {
+			ctg.ParentID = int(nullableInt.Int64)
+		} else {
+			ctg.ParentID = 0
+		}
+		
 		categories = append(categories, ctg)
 	}
 	return categories, nil
@@ -65,8 +73,11 @@ func (r *CategoryPostgres) InsertCategory(
 	)(int, error) {
 	data := map[string]any{
 		nameCol:     category.Name,
-		parentIDCol: category.ParentID,
 	}
+	if category.ParentID != 0{
+	data[parentIDCol] =  category.ParentID
+	}
+
 	builder := sq.Insert(tableCategories).SetMap(data).Suffix("RETURNING id")
 	psql := builder.PlaceholderFormat(sq.Dollar)
 	query, args, err := psql.ToSql()
