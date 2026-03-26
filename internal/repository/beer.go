@@ -7,8 +7,9 @@ import (
 	"errors"
 	"fmt"
 
-	// sq "github.com/Masterminds/squirrel"
 	_ "embed"
+
+	sq "github.com/Masterminds/squirrel"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -47,7 +48,15 @@ type BeerRepository interface {
 	InsertBeer(ctx context.Context, beer entities.Beer) (int, error)
 
 	// GetBeers возвращает список всех сортов пива.
-	GetBeers(ctx context.Context) ([]entities.Beer, error)
+	GetBeers(ctx context.Context, limit, offset int) ([]entities.Beer, error)
+
+	UpdateBeer(ctx context.Context, id int, updates map[string]any) (*entities.Beer, error)
+
+	DeleteBeer(ctx context.Context, id int) error
+
+	InsertReview(ctx context.Context, review entities.Review) (int, error)
+
+	GetBeersByCategoryID(ctx context.Context, ctgID, limit, offset int) ([]entities.Beer, error)
 }
 
 // BeerPostgres хранит в себе пул подлючений к БД
@@ -128,14 +137,22 @@ func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (int,
 	if err != nil {
 		return 0, fmt.Errorf("commit: %w", err)
 	}
-
 	return beerID, nil
 }
 
 // TODO: Добавить ошибки приложения
 
-func (r *BeerPostgres) GetBeers(ctx context.Context) ([]entities.Beer, error) {
-	rows, err := r.Pool.Query(ctx, getBeersQuery)
+func (r *BeerPostgres) GetBeers(ctx context.Context, limit, offset int) ([]entities.Beer, error) {
+	builder := sq.Select("*").From("beers").
+		OrderBy("id DESC").
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
+	psql := builder.PlaceholderFormat(sq.Dollar)
+	query, _, err := psql.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("ToSql: %w", err)
+	}
+	rows, err := r.Pool.Query(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("query: %w", err)
 	}
@@ -144,30 +161,116 @@ func (r *BeerPostgres) GetBeers(ctx context.Context) ([]entities.Beer, error) {
 	beers := make([]entities.Beer, 0)
 
 	for rows.Next() {
-		b := entities.Beer{}
-
-		err = rows.Scan(&b.ID, &b.Name, &b.Rating, &b.Description,
-			&b.ABV, &b.IBU, &b.City, &b.Country,
-			&b.Category.Name, &b.Type, &b.Features)
+		beer, err := scanBeer(rows)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan row: %w", err)
 		}
 
-		beers = append(beers, b)
+		beers = append(beers, *beer)
 	}
-
 	return beers, nil
 }
 
-// func (r *Repository) GetBeerByName(ctx context.Context, name string) error {
+func (r *BeerPostgres) UpdateBeer(ctx context.Context, id int, updates map[string]any) (*entities.Beer, error) {
+	builder := sq.Update("beers").
+		SetMap(updates).
+		Where(sq.Eq{"id": id}).
+		Suffix("RETURNING *")
+	psql := builder.PlaceholderFormat(sq.Dollar)
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("ToSql: %w", err)
+	}
 
-// 	beers := sq.Select("*").From("beers")
-// 	active := beers.Where(sq.Eq{"name": name})
-// 	sql, args, err := active.ToSql()
-// 	if err != nil {
-// 		return fmt.Errorf("ToSql: %w", err)
-// 	}
-// 	row = r.Pool.QueryRow(ctx, sql, args...)
+	beer, err := scanBeer(r.Pool.QueryRow(ctx, query, args...))
+	if err != nil {
+		return nil, fmt.Errorf("Scan: %w", err)
+	}
+	return beer, nil
+}
 
-// 	return nil
-// }
+func (r *BeerPostgres) DeleteBeer(ctx context.Context, id int) error {
+	condition := map[string]any{
+		"id": id,
+	}
+	builder := sq.Delete("beers").Where(condition)
+	psql := builder.PlaceholderFormat(sq.Dollar)
+
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return fmt.Errorf("ToSql: %w", err)
+	}
+	result, err := r.Pool.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("Exec: %w", err)
+	}
+
+	if result.RowsAffected() == 0 {
+		return fmt.Errorf("failed to delete category: no such category")
+	}
+	return nil
+}
+
+func (r *BeerPostgres) InsertReview(ctx context.Context, review entities.Review) (int, error) {
+	data := map[string]any{
+		"body":    review.Body,
+		"rating":  review.Rating,
+		"beer_id": review.BeerID,
+	}
+
+	builder := sq.Insert("reviews").SetMap(data).Suffix("RETURNING id")
+	psql := builder.PlaceholderFormat(sq.Dollar)
+
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return 0, fmt.Errorf("ToSql: %w", err)
+	}
+
+	var reviewID int
+	err = r.Pool.QueryRow(ctx, query, args...).Scan(&reviewID)
+	if err != nil {
+		return 0, fmt.Errorf("Scan: %w", err)
+	}
+	return reviewID, nil
+}
+
+func (r *BeerPostgres) GetBeersByCategoryID(ctx context.Context, ctgID, limit, offset int) ([]entities.Beer, error) {
+	builder := sq.Select("*").From("beers").
+		Where(sq.Eq{"category_id": ctgID}).
+		OrderBy("id DESC").
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
+	psql := builder.PlaceholderFormat(sq.Dollar)
+	query, _, err := psql.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("ToSql: %w", err)
+	}
+	rows, err := r.Pool.Query(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("query: %w", err)
+	}
+	defer rows.Close()
+
+	beers := make([]entities.Beer, 0)
+
+	for rows.Next() {
+		beer, err := scanBeer(rows)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan row: %w", err)
+		}
+		beers = append(beers, *beer)
+	}
+	return beers, nil
+}
+
+func scanBeer(row pgx.Row) (*entities.Beer, error) {
+	var beer entities.Beer
+	err := row.Scan(&beer.ID, &beer.Name, &beer.Rating, &beer.Description,
+		&beer.ABV, &beer.IBU, &beer.City, &beer.Country,
+		&beer.Category.Name, &beer.Type, &beer.Features)
+	if err != nil {
+		return nil, fmt.Errorf("Scan: %w", err)
+	}
+
+	return &beer, nil
+}

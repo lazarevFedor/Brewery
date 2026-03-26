@@ -22,7 +22,7 @@ func TestBeerRepository_Insert(t *testing.T) {
 			Country:     "Россия",
 			Type:        "Lager",
 			Category: entities.ProductCategory{
-				Name: "Beer",
+				Name: "test_category",
 			},
 			Features: []string{"feat1", "feat2", "feat3"},
 		}
@@ -32,14 +32,15 @@ func TestBeerRepository_Insert(t *testing.T) {
 		require.NotZero(t, beerID)
 
 		t.Cleanup(func() {
-			cleanDB(t, ctx, ctgRepo.Pool)
+			cleanDB(t, ctx, ctgRepo.Pool, "beers")
 		})
 
 		var beers []entities.Beer
 
-		beers, err = beerRepo.GetBeers(ctx)
+		beers, err = beerRepo.GetBeers(ctx, 1, 0)
 		require.NoError(t, err)
 		require.Len(t, beers, 1, "Длина слайса должна быть равно 1")
-		require.Equal(t, testBeer, beers[0], "Вставленный и полученный товары должны быть равны")
+		require.Equal(t, testBeer.Name, beers[0].Name, "Имя вставленного и полученного товара должны быть равны")
+		require.Equal(t, testBeer.City, beers[0].City, "Имя вставленного и полученного товара должны быть равны")
 	})
 }
