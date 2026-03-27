@@ -3,6 +3,7 @@ package repository
 
 import (
 	"Brewery/internal/entities"
+	"Brewery/pkg/logger"
 	"context"
 	"errors"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	_ "embed"
 
 	sq "github.com/Masterminds/squirrel"
+	"go.uber.org/zap"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -76,8 +78,11 @@ func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (int,
 	}
 	defer func(tx pgx.Tx, ctx context.Context) {
 		rollbackErr := tx.Rollback(ctx)
-		if rollbackErr != nil && errors.Is(rollbackErr, pgx.ErrTxClosed) {
-			_ = fmt.Errorf("InsertBeer: rollback error: %w", rollbackErr)
+		log, ok := logger.GetLoggerFromCtx(ctx)
+		if ok{
+			if rollbackErr != nil && errors.Is(rollbackErr, pgx.ErrTxClosed) {
+				log.Error(ctx, "InsertBeer: rollback error:",  zap.Error(rollbackErr))
+			}
 		}
 	}(tx, ctx)
 
@@ -143,6 +148,20 @@ func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (int,
 // TODO: Добавить ошибки приложения
 
 func (r *BeerPostgres) GetBeers(ctx context.Context, limit, offset int) ([]entities.Beer, error) {
+	tx, err := r.Pool.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("Begin: %w", err)
+	}
+	defer func(tx pgx.Tx, ctx context.Context) {
+		rollbackErr := tx.Rollback(ctx)
+		log, ok := logger.GetLoggerFromCtx(ctx)
+		if ok{
+			if rollbackErr != nil && errors.Is(rollbackErr, pgx.ErrTxClosed) {
+				log.Error(ctx, "InsertBeer: rollback error:",  zap.Error(rollbackErr))
+			}
+		}
+	}(tx, ctx)
+
 	builder := sq.Select("*").From("beers").
 		OrderBy("id DESC").
 		Limit(uint64(limit)).
@@ -168,10 +187,28 @@ func (r *BeerPostgres) GetBeers(ctx context.Context, limit, offset int) ([]entit
 
 		beers = append(beers, *beer)
 	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("commit: %w", err)
+	}
 	return beers, nil
 }
 
 func (r *BeerPostgres) UpdateBeer(ctx context.Context, id int, updates map[string]any) (*entities.Beer, error) {
+	tx, err := r.Pool.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("Begin: %w", err)
+	}
+	defer func(tx pgx.Tx, ctx context.Context) {
+		rollbackErr := tx.Rollback(ctx)
+		log, ok := logger.GetLoggerFromCtx(ctx)
+		if ok{
+			if rollbackErr != nil && errors.Is(rollbackErr, pgx.ErrTxClosed) {
+				log.Error(ctx, "InsertBeer: rollback error:",  zap.Error(rollbackErr))
+			}
+		}
+	}(tx, ctx)
 	builder := sq.Update("beers").
 		SetMap(updates).
 		Where(sq.Eq{"id": id}).
@@ -186,10 +223,27 @@ func (r *BeerPostgres) UpdateBeer(ctx context.Context, id int, updates map[strin
 	if err != nil {
 		return nil, fmt.Errorf("Scan: %w", err)
 	}
+	err = tx.Commit(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("commit: %w", err)
+	}
 	return beer, nil
 }
 
 func (r *BeerPostgres) DeleteBeer(ctx context.Context, id int) error {
+	tx, err := r.Pool.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("Begin: %w", err)
+	}
+	defer func(tx pgx.Tx, ctx context.Context) {
+		rollbackErr := tx.Rollback(ctx)
+		log, ok := logger.GetLoggerFromCtx(ctx)
+		if ok{
+			if rollbackErr != nil && errors.Is(rollbackErr, pgx.ErrTxClosed) {
+				log.Error(ctx, "InsertBeer: rollback error:",  zap.Error(rollbackErr))
+			}
+		}
+	}(tx, ctx)
 	condition := map[string]any{
 		"id": id,
 	}
@@ -208,10 +262,27 @@ func (r *BeerPostgres) DeleteBeer(ctx context.Context, id int) error {
 	if result.RowsAffected() == 0 {
 		return fmt.Errorf("failed to delete category: no such category")
 	}
+	err = tx.Commit(ctx)
+	if err != nil {
+		return fmt.Errorf("commit: %w", err)
+	}
 	return nil
 }
 
 func (r *BeerPostgres) InsertReview(ctx context.Context, review entities.Review) (int, error) {
+	tx, err := r.Pool.Begin(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("Begin: %w", err)
+	}
+	defer func(tx pgx.Tx, ctx context.Context) {
+		rollbackErr := tx.Rollback(ctx)
+		log, ok := logger.GetLoggerFromCtx(ctx)
+		if ok{
+			if rollbackErr != nil && errors.Is(rollbackErr, pgx.ErrTxClosed) {
+				log.Error(ctx, "InsertBeer: rollback error:",  zap.Error(rollbackErr))
+			}
+		}
+	}(tx, ctx)
 	data := map[string]any{
 		"body":    review.Body,
 		"rating":  review.Rating,
@@ -231,10 +302,28 @@ func (r *BeerPostgres) InsertReview(ctx context.Context, review entities.Review)
 	if err != nil {
 		return 0, fmt.Errorf("Scan: %w", err)
 	}
+	err = tx.Commit(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("commit: %w", err)
+	}
 	return reviewID, nil
 }
 
 func (r *BeerPostgres) GetBeersByCategoryID(ctx context.Context, ctgID, limit, offset int) ([]entities.Beer, error) {
+	tx, err := r.Pool.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("Begin: %w", err)
+	}
+	defer func(tx pgx.Tx, ctx context.Context) {
+		rollbackErr := tx.Rollback(ctx)
+		log, ok := logger.GetLoggerFromCtx(ctx)
+		if ok{
+			if rollbackErr != nil && errors.Is(rollbackErr, pgx.ErrTxClosed) {
+				log.Error(ctx, "InsertBeer: rollback error:",  zap.Error(rollbackErr))
+			}
+		}
+	}(tx, ctx)
+
 	builder := sq.Select("*").From("beers").
 		Where(sq.Eq{"category_id": ctgID}).
 		OrderBy("id DESC").
@@ -259,6 +348,10 @@ func (r *BeerPostgres) GetBeersByCategoryID(ctx context.Context, ctgID, limit, o
 			return nil, fmt.Errorf("failed to scan row: %w", err)
 		}
 		beers = append(beers, *beer)
+	}
+	err = tx.Commit(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("commit: %w", err)
 	}
 	return beers, nil
 }
