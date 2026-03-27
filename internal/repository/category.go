@@ -23,7 +23,7 @@ const (
 
 type CategoryRepository interface {
 	GetCategories(ctx context.Context) ([]entities.ProductCategory, error)
-	InsertCategory(ctx context.Context, category entities.ProductCategory)(int, error)
+	InsertCategory(ctx context.Context, category entities.ProductCategory) (int, error)
 	GetCategoryByID(ctx context.Context, id int) (*entities.ProductCategory, error)
 	UpdateCategory(ctx context.Context, id int, updates map[string]any) error
 	DeleteCategoryByID(ctx context.Context, id int) error
@@ -33,8 +33,8 @@ type CategoryPostgres struct {
 	Pool *pgxpool.Pool
 }
 
-func NewCategoryPostgres(Pool *pgxpool.Pool) *CategoryPostgres {
-	return &CategoryPostgres{Pool: Pool}
+func NewCategoryPostgres(pool *pgxpool.Pool) *CategoryPostgres {
+	return &CategoryPostgres{Pool: pool}
 }
 
 func (r *CategoryPostgres) GetCategories(ctx context.Context) ([]entities.ProductCategory, error) {
@@ -45,9 +45,9 @@ func (r *CategoryPostgres) GetCategories(ctx context.Context) ([]entities.Produc
 	defer func(tx pgx.Tx, ctx context.Context) {
 		rollbackErr := tx.Rollback(ctx)
 		log, ok := logger.GetLoggerFromCtx(ctx)
-		if ok{
+		if ok {
 			if rollbackErr != nil && errors.Is(rollbackErr, pgx.ErrTxClosed) {
-				log.Error(ctx, "InsertBeer: rollback error:",  zap.Error(rollbackErr))
+				log.Error(ctx, "InsertBeer: rollback error:", zap.Error(rollbackErr))
 			}
 		}
 	}(tx, ctx)
@@ -62,25 +62,25 @@ func (r *CategoryPostgres) GetCategories(ctx context.Context) ([]entities.Produc
 
 	rows, err := r.Pool.Query(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("Query: %w", err)
+		return nil, fmt.Errorf("%s: %w", "Query", err)
 	}
 
 	categories := make([]entities.ProductCategory, 0)
-	
+
 	for rows.Next() {
 		ctg := entities.ProductCategory{}
 
 		var nullableInt pgtype.Int8
 		err = rows.Scan(&ctg.ID, &ctg.Name, &nullableInt)
 		if err != nil {
-			return nil, fmt.Errorf("Scan: %w", err)
+			return nil, fmt.Errorf("%s: %w", "Scan", err)
 		}
 		if nullableInt.Valid {
 			ctg.ParentID = int(nullableInt.Int64)
 		} else {
 			ctg.ParentID = 0
 		}
-		
+
 		categories = append(categories, ctg)
 	}
 	err = tx.Commit(ctx)
@@ -92,7 +92,7 @@ func (r *CategoryPostgres) GetCategories(ctx context.Context) ([]entities.Produc
 
 func (r *CategoryPostgres) InsertCategory(
 	ctx context.Context, category entities.ProductCategory,
-	)(int, error) {
+) (int, error) {
 	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("begin: %w", err)
@@ -100,31 +100,31 @@ func (r *CategoryPostgres) InsertCategory(
 	defer func(tx pgx.Tx, ctx context.Context) {
 		rollbackErr := tx.Rollback(ctx)
 		log, ok := logger.GetLoggerFromCtx(ctx)
-		if ok{
+		if ok {
 			if rollbackErr != nil && errors.Is(rollbackErr, pgx.ErrTxClosed) {
-				log.Error(ctx, "InsertBeer: rollback error:",  zap.Error(rollbackErr))
+				log.Error(ctx, "InsertBeer: rollback error:", zap.Error(rollbackErr))
 			}
 		}
 	}(tx, ctx)
 
 	data := map[string]any{
-		nameCol:     category.Name,
+		nameCol: category.Name,
 	}
-	if category.ParentID != 0{
-	data[parentIDCol] =  category.ParentID
+	if category.ParentID != 0 {
+		data[parentIDCol] = category.ParentID
 	}
 
 	builder := sq.Insert(tableCategories).SetMap(data).Suffix("RETURNING id")
 	psql := builder.PlaceholderFormat(sq.Dollar)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return 0, fmt.Errorf("ToSql: %w", err)
+		return 0, fmt.Errorf("%s: %w", "ToSql", err)
 	}
 
 	var newID int
 	err = r.Pool.QueryRow(ctx, query, args...).Scan(&newID)
 	if err != nil {
-		return 0, fmt.Errorf("Exec: %w", err)
+		return 0, fmt.Errorf("%s: %w", "Exec", err)
 	}
 
 	err = tx.Commit(ctx)
@@ -142,9 +142,9 @@ func (r *CategoryPostgres) GetCategoryByID(ctx context.Context, id int) (*entiti
 	defer func(tx pgx.Tx, ctx context.Context) {
 		rollbackErr := tx.Rollback(ctx)
 		log, ok := logger.GetLoggerFromCtx(ctx)
-		if ok{
+		if ok {
 			if rollbackErr != nil && errors.Is(rollbackErr, pgx.ErrTxClosed) {
-				log.Error(ctx, "InsertBeer: rollback error:",  zap.Error(rollbackErr))
+				log.Error(ctx, "InsertBeer: rollback error:", zap.Error(rollbackErr))
 			}
 		}
 	}(tx, ctx)
@@ -156,13 +156,13 @@ func (r *CategoryPostgres) GetCategoryByID(ctx context.Context, id int) (*entiti
 	psql := builder.PlaceholderFormat(sq.Dollar)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("ToSql: %w", err)
+		return nil, fmt.Errorf("%s: %w", "ToSql", err)
 	}
 
 	var ctg entities.ProductCategory
 	err = r.Pool.QueryRow(ctx, query, args...).Scan(&ctg.ID, &ctg.Name, &ctg.ParentID)
 	if err != nil {
-		return nil, fmt.Errorf("QueryRow: %w", err)
+		return nil, fmt.Errorf("%s: %w", "QueryRow", err)
 	}
 	err = tx.Commit(ctx)
 	if err != nil {
@@ -180,9 +180,9 @@ func (r *CategoryPostgres) UpdateCategory(ctx context.Context, id int, updates m
 	defer func(tx pgx.Tx, ctx context.Context) {
 		rollbackErr := tx.Rollback(ctx)
 		log, ok := logger.GetLoggerFromCtx(ctx)
-		if ok{
+		if ok {
 			if rollbackErr != nil && errors.Is(rollbackErr, pgx.ErrTxClosed) {
-				log.Error(ctx, "InsertBeer: rollback error:",  zap.Error(rollbackErr))
+				log.Error(ctx, "InsertBeer: rollback error:", zap.Error(rollbackErr))
 			}
 		}
 	}(tx, ctx)
@@ -193,15 +193,15 @@ func (r *CategoryPostgres) UpdateCategory(ctx context.Context, id int, updates m
 	psql := builder.PlaceholderFormat(sq.Dollar)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return fmt.Errorf("ToSql: %w", err)
+		return fmt.Errorf("%s: %w", "ToSql", err)
 	}
 	result, err := r.Pool.Exec(ctx, query, args...)
 	if err != nil {
-		return fmt.Errorf("QueryRow: %w", err)
+		return fmt.Errorf("%s: %w", "QueryRow", err)
 	}
 
-	if result.RowsAffected() == 0{
-		return fmt.Errorf("failed to update category: no such category")
+	if result.RowsAffected() == 0 {
+		return errors.New("failed to update category: no such category")
 	}
 
 	err = tx.Commit(ctx)
@@ -218,15 +218,16 @@ func (r *CategoryPostgres) DeleteCategoryByID(ctx context.Context, id int) error
 	}
 	defer func(tx pgx.Tx, ctx context.Context) {
 		rollbackErr := tx.Rollback(ctx)
+
 		log, ok := logger.GetLoggerFromCtx(ctx)
-		if ok{
+		if ok {
 			if rollbackErr != nil && errors.Is(rollbackErr, pgx.ErrTxClosed) {
-				log.Error(ctx, "InsertBeer: rollback error:",  zap.Error(rollbackErr))
+				log.Error(ctx, fmt.Sprintf("%s InsertBeer: Rollback:", "InsertBeer"), zap.Error(rollbackErr))
 			}
 		}
 	}(tx, ctx)
 
-	conditions := map[string]interface{}{
+	conditions := map[string]any{
 		IDCol: id,
 	}
 	builder := sq.Delete(tableCategories).Where(conditions)
@@ -234,16 +235,16 @@ func (r *CategoryPostgres) DeleteCategoryByID(ctx context.Context, id int) error
 
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return fmt.Errorf("ToSql: %w", err)
+		return fmt.Errorf("%s: %w", "ToSql", err)
 	}
 
 	result, err := r.Pool.Exec(ctx, query, args...)
 	if err != nil {
-		return fmt.Errorf("Exec: %w", err)
+		return fmt.Errorf("%s: %w", "Exec", err)
 	}
 
 	if result.RowsAffected() == 0 {
-		return fmt.Errorf("failed to delete category: no such category")
+		return errors.New("failed to delete category: no such category")
 	}
 
 	err = tx.Commit(ctx)

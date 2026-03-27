@@ -3,7 +3,6 @@ package repository_test
 import (
 	"Brewery/internal/repository"
 	"Brewery/migrator"
-	"Brewery/pkg/postgres"
 	"context"
 	"fmt"
 	"log"
@@ -23,10 +22,7 @@ var (
 	ctgRepo  *repository.CategoryPostgres
 )
 
-type TestDBConfig struct {
-	Postgres postgres.Config `env-prefix:"TEST_POSTGRES_"`
-}
-
+//nolint:gocritic, gosec
 func TestMain(m *testing.M) {
 	ctx := context.Background()
 
@@ -40,11 +36,10 @@ func TestMain(m *testing.M) {
 				WithOccurrence(2).WithStartupTimeout(5*time.Second),
 		),
 	)
-
+	defer dbContainer.Terminate(ctx)
 	if err != nil {
 		log.Fatalf("Failed to start container: %s", err)
 	}
-	defer dbContainer.Terminate(ctx)
 
 	args := []string{
 		"sslmode=disable",
@@ -62,7 +57,7 @@ func TestMain(m *testing.M) {
 		log.Fatalf("Failed to connect to DB: %s", err)
 	}
 
-	if err := migrator.Up(testDB); err != nil {
+	if err = migrator.Up(testDB); err != nil {
 		log.Fatalf("Failed to run migrations: %s", err)
 	}
 
@@ -77,8 +72,8 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func cleanDB(t *testing.T, ctx context.Context, db *pgxpool.Pool, tablename string) {
-	_, err := testDB.Exec(ctx, 
+func cleanDB(t *testing.T, ctx context.Context, tablename string) {
+	_, err := testDB.Exec(ctx,
 		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", tablename),
 	)
 	if err != nil {

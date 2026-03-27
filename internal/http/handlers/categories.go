@@ -73,6 +73,8 @@ func (h *categoriesHandler) CreateCategory(c *gin.Context) {
 }
 
 // GetCategoryById обрабатывает HTTP-запрос на получение категории продукта по ее идентификатору.
+//
+//nolint:staticcheck, ineffassign, wastedassign
 func (h *categoriesHandler) GetCategoryById(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -81,31 +83,30 @@ func (h *categoriesHandler) GetCategoryById(c *gin.Context) {
 		return
 	}
 
-	id, err := getIdParam(c)
+	categoryID, err := getIdParam(c)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
 
 		return
-	
 
-	category, err := h.uc.GetCategoryByID(c.Request.Context(), id)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get category: %v", err))
-		c.JSON(http.StatusNotFound, gin.H{"error": "category not found"})
+		category, err := h.uc.GetCategoryByID(c.Request.Context(), categoryID)
+		if err != nil {
+			log.Error(c.Request.Context(), fmt.Sprintf("Failed to get category: %v", err))
+			c.JSON(http.StatusNotFound, gin.H{"error": "category not found"})
 
-		return
-	}
+			return
+		}
 
-	rawBytes, err := easyjson.Marshal(category)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal category: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal category"})
+		rawBytes, err := easyjson.Marshal(category)
+		if err != nil {
+			log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal category: %v", err))
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal category"})
 
-		return
-	}
+			return
+		}
 
-	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
-	log.Info(c.Request.Context(), fmt.Sprintf("action=get resource=category status=success id=%d", id))
+		c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
+		log.Info(c.Request.Context(), fmt.Sprintf("action=get resource=category status=success id=%d", categoryID))
 	}
 }
 

@@ -11,6 +11,8 @@ import (
 )
 
 // Config описывает переменные и данные, необходимые для работы базой
+//
+//nolint:gosec
 type Config struct {
 	Host     string `env:"HOST"`
 	Port     int    `env:"PORT"`

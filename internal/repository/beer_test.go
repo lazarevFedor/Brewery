@@ -32,7 +32,7 @@ func TestBeerRepository_Insert(t *testing.T) {
 		require.NotZero(t, beerID)
 
 		t.Cleanup(func() {
-			cleanDB(t, ctx, ctgRepo.Pool, "beers")
+			cleanDB(t, ctx, "beers")
 		})
 
 		var beers []entities.Beer
