@@ -36,10 +36,10 @@ func TestBeerRepository_Insert(t *testing.T) {
 		})
 
 		var beers []entities.Beer
+		beers, err = beerRepo.GetBeers(ctx, 0, 0)
 
-		beers, err = beerRepo.GetBeers(ctx, 1, 0)
 		require.NoError(t, err)
-		require.Len(t, beers, 1, "Длина слайса должна быть равно 1")
+		require.Len(t, beers, 1, "Длина слайса должна быть равна 1")
 		require.Equal(t, testBeer.Name, beers[0].Name, "Имя вставленного и полученного товара должны быть равны")
 		require.Equal(t, testBeer.City, beers[0].City, "Имя вставленного и полученного товара должны быть равны")
 	})

@@ -2,12 +2,12 @@ package repository
 
 import (
 	"Brewery/internal/entities"
+	"Brewery/internal/repository/queries"
 	"Brewery/pkg/logger"
 	"context"
 	"errors"
 	"fmt"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -52,9 +52,8 @@ func (r *CategoryPostgres) GetCategories(ctx context.Context) ([]entities.Produc
 		}
 	}(tx, ctx)
 
-	builder := sq.Select(IDCol, nameCol, parentIDCol).From(tableCategories)
+	psql := queries.FullCategorySelect()
 
-	psql := builder.PlaceholderFormat(sq.Dollar)
 	query, args, err := psql.ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("ToSql: %w", err)
@@ -107,22 +106,14 @@ func (r *CategoryPostgres) InsertCategory(
 		}
 	}(tx, ctx)
 
-	data := map[string]any{
-		nameCol: category.Name,
-	}
-	if category.ParentID != 0 {
-		data[parentIDCol] = category.ParentID
-	}
-
-	builder := sq.Insert(tableCategories).SetMap(data).Suffix("RETURNING id")
-	psql := builder.PlaceholderFormat(sq.Dollar)
+	psql := queries.CategoryInsert(category)
 	query, args, err := psql.ToSql()
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", "ToSql", err)
 	}
 
 	var newID int
-	err = r.Pool.QueryRow(ctx, query, args...).Scan(&newID)
+	err = tx.QueryRow(ctx, query, args...).Scan(&newID)
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", "Exec", err)
 	}
@@ -134,7 +125,7 @@ func (r *CategoryPostgres) InsertCategory(
 	return newID, nil
 }
 
-func (r *CategoryPostgres) GetCategoryByID(ctx context.Context, id int) (*entities.ProductCategory, error) {
+func (r *CategoryPostgres) GetCategoryByID(ctx context.Context, id uint) (*entities.ProductCategory, error) {
 	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("begin: %w", err)
@@ -149,18 +140,14 @@ func (r *CategoryPostgres) GetCategoryByID(ctx context.Context, id int) (*entiti
 		}
 	}(tx, ctx)
 
-	data := map[string]any{
-		IDCol: id,
-	}
-	builder := sq.Select(IDCol, nameCol, parentIDCol).Where(data)
-	psql := builder.PlaceholderFormat(sq.Dollar)
+	psql := queries.SelectCategoryByID(id)
 	query, args, err := psql.ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ToSql", err)
 	}
 
 	var ctg entities.ProductCategory
-	err = r.Pool.QueryRow(ctx, query, args...).Scan(&ctg.ID, &ctg.Name, &ctg.ParentID)
+	err = tx.QueryRow(ctx, query, args...).Scan(&ctg.ID, &ctg.Name, &ctg.ParentID)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "QueryRow", err)
 	}
@@ -172,7 +159,7 @@ func (r *CategoryPostgres) GetCategoryByID(ctx context.Context, id int) (*entiti
 	return &ctg, nil
 }
 
-func (r *CategoryPostgres) UpdateCategory(ctx context.Context, id int, updates map[string]any) error {
+func (r *CategoryPostgres) UpdateCategory(ctx context.Context, id uint, updates map[string]any) error {
 	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("begin: %w", err)
@@ -187,15 +174,12 @@ func (r *CategoryPostgres) UpdateCategory(ctx context.Context, id int, updates m
 		}
 	}(tx, ctx)
 
-	builder := sq.Update(tableCategories).
-		SetMap(updates).
-		Where(sq.Eq{IDCol: id})
-	psql := builder.PlaceholderFormat(sq.Dollar)
+	psql := queries.UpdateCategory(id, updates)
 	query, args, err := psql.ToSql()
 	if err != nil {
 		return fmt.Errorf("%s: %w", "ToSql", err)
 	}
-	result, err := r.Pool.Exec(ctx, query, args...)
+	result, err := tx.Exec(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("%s: %w", "QueryRow", err)
 	}
@@ -211,7 +195,7 @@ func (r *CategoryPostgres) UpdateCategory(ctx context.Context, id int, updates m
 	return nil
 }
 
-func (r *CategoryPostgres) DeleteCategoryByID(ctx context.Context, id int) error {
+func (r *CategoryPostgres) DeleteCategoryByID(ctx context.Context, id uint) error {
 	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("begin: %w", err)
@@ -227,18 +211,13 @@ func (r *CategoryPostgres) DeleteCategoryByID(ctx context.Context, id int) error
 		}
 	}(tx, ctx)
 
-	conditions := map[string]any{
-		IDCol: id,
-	}
-	builder := sq.Delete(tableCategories).Where(conditions)
-	psql := builder.PlaceholderFormat(sq.Dollar)
-
+	psql := queries.DeleteCategory(id)
 	query, args, err := psql.ToSql()
 	if err != nil {
 		return fmt.Errorf("%s: %w", "ToSql", err)
 	}
 
-	result, err := r.Pool.Exec(ctx, query, args...)
+	result, err := tx.Exec(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("%s: %w", "Exec", err)
 	}

@@ -3,6 +3,7 @@ package repository
 
 import (
 	"Brewery/internal/entities"
+	"Brewery/internal/repository/queries"
 	"Brewery/pkg/logger"
 	"context"
 	"errors"
@@ -15,6 +16,10 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+const (
+	tableBeers = "beers"
 )
 
 var (
@@ -58,7 +63,7 @@ type BeerRepository interface {
 	GetBeersByCategoryID(ctx context.Context, ctgID, limit, offset int) ([]entities.Beer, error)
 }
 
-// BeerPostgres хранит в себе пул подлючений к БД
+// BeerPostgres хранит в себе пул подключений к БД
 type BeerPostgres struct {
 	Pool *pgxpool.Pool
 }
@@ -143,7 +148,7 @@ func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (int,
 }
 
 // TODO: Добавить ошибки приложения
-func (r *BeerPostgres) GetBeers(ctx context.Context, limit, offset int) ([]entities.Beer, error) {
+func (r *BeerPostgres) GetBeers(ctx context.Context, limit, offset uint64) ([]entities.Beer, error) {
 	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Begin", err)
@@ -158,23 +163,23 @@ func (r *BeerPostgres) GetBeers(ctx context.Context, limit, offset int) ([]entit
 		}
 	}(tx, ctx)
 
-	builder := sq.Select("*").From("beers").
-		OrderBy("id DESC").
-		Limit(uint64(limit)).
-		Offset(uint64(offset))
-	psql := builder.PlaceholderFormat(sq.Dollar)
+	psql := queries.FullBeerSelect().Offset(offset)
+	if limit != 0 {
+		psql = psql.Limit(limit)
+	}
+
 	query, _, err := psql.ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ToSql", err)
 	}
-	rows, err := r.Pool.Query(ctx, query)
+
+	rows, err := tx.Query(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("query: %w", err)
 	}
 	defer rows.Close()
 
 	beers := make([]entities.Beer, 0)
-
 	for rows.Next() {
 		beer, err := scanBeer(rows)
 		if err != nil {
