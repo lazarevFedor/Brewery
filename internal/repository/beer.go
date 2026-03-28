@@ -18,10 +18,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-const (
-	tableBeers = "beers"
-)
-
 var (
 	//go:embed sql/get_or_create_country.sql
 	getOrCreateCountryQuery string
@@ -52,11 +48,11 @@ type BeerRepository interface {
 	InsertBeer(ctx context.Context, beer entities.Beer) (int, error)
 
 	// GetBeers возвращает список всех сортов пива.
-	GetBeers(ctx context.Context, limit, offset int) ([]entities.Beer, error)
+	GetBeers(ctx context.Context, limit, offset uint64) ([]entities.Beer, error)
 
-	UpdateBeer(ctx context.Context, id int, updates map[string]any) (*entities.Beer, error)
+	UpdateBeer(ctx context.Context, id uint, updates map[string]any) (*entities.Beer, error)
 
-	DeleteBeer(ctx context.Context, id int) error
+	DeleteBeer(ctx context.Context, id uint) error
 
 	InsertReview(ctx context.Context, review entities.Review) (int, error)
 
@@ -196,7 +192,7 @@ func (r *BeerPostgres) GetBeers(ctx context.Context, limit, offset uint64) ([]en
 	return beers, nil
 }
 
-func (r *BeerPostgres) UpdateBeer(ctx context.Context, id int, updates map[string]any) (*entities.Beer, error) {
+func (r *BeerPostgres) UpdateBeer(ctx context.Context, id uint, updates map[string]any) (*entities.Beer, error) {
 	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Begin", err)
@@ -231,7 +227,7 @@ func (r *BeerPostgres) UpdateBeer(ctx context.Context, id int, updates map[strin
 	return beer, nil
 }
 
-func (r *BeerPostgres) DeleteBeer(ctx context.Context, id int) error {
+func (r *BeerPostgres) DeleteBeer(ctx context.Context, id uint) error {
 	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("%s: %w", "Begin", err)

@@ -44,5 +44,4 @@ func UpdateCategory(id uint, updates map[string]any) sq.UpdateBuilder {
 
 func DeleteCategory(id uint) sq.DeleteBuilder {
 	return psql.Delete(tableCategories).Where(sq.Eq{categoryIDCol: id})
-
 }

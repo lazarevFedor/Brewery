@@ -24,9 +24,9 @@ const (
 type CategoryRepository interface {
 	GetCategories(ctx context.Context) ([]entities.ProductCategory, error)
 	InsertCategory(ctx context.Context, category entities.ProductCategory) (int, error)
-	GetCategoryByID(ctx context.Context, id int) (*entities.ProductCategory, error)
-	UpdateCategory(ctx context.Context, id int, updates map[string]any) error
-	DeleteCategoryByID(ctx context.Context, id int) error
+	GetCategoryByID(ctx context.Context, id uint) (*entities.ProductCategory, error)
+	UpdateCategory(ctx context.Context, id uint, updates map[string]any) error
+	DeleteCategoryByID(ctx context.Context, id uint) error
 }
 
 type CategoryPostgres struct {
