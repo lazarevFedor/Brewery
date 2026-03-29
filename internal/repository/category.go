@@ -9,7 +9,6 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )
@@ -23,10 +22,11 @@ const (
 
 type CategoryRepository interface {
 	GetCategories(ctx context.Context) ([]entities.ProductCategory, error)
-	InsertCategory(ctx context.Context, category entities.ProductCategory) (int, error)
+	InsertCategory(ctx context.Context, category entities.ProductCategory) (uint, error)
 	GetCategoryByID(ctx context.Context, id uint) (*entities.ProductCategory, error)
 	UpdateCategory(ctx context.Context, id uint, updates map[string]any) error
 	DeleteCategoryByID(ctx context.Context, id uint) error
+	GetCategoryID(ctx context.Context, ctgName string) (uint, error)
 }
 
 type CategoryPostgres struct {
@@ -53,13 +53,12 @@ func (r *CategoryPostgres) GetCategories(ctx context.Context) ([]entities.Produc
 	}(tx, ctx)
 
 	psql := queries.FullCategorySelect()
-
 	query, args, err := psql.ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("ToSql: %w", err)
 	}
 
-	rows, err := r.Pool.Query(ctx, query, args...)
+	rows, err := tx.Query(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Query", err)
 	}
@@ -69,17 +68,10 @@ func (r *CategoryPostgres) GetCategories(ctx context.Context) ([]entities.Produc
 	for rows.Next() {
 		ctg := entities.ProductCategory{}
 
-		var nullableInt pgtype.Int8
-		err = rows.Scan(&ctg.ID, &ctg.Name, &nullableInt)
+		err = rows.Scan(&ctg.ID, &ctg.Name, &ctg.ParentID)
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", "Scan", err)
 		}
-		if nullableInt.Valid {
-			ctg.ParentID = int(nullableInt.Int64)
-		} else {
-			ctg.ParentID = 0
-		}
-
 		categories = append(categories, ctg)
 	}
 	err = tx.Commit(ctx)
@@ -91,7 +83,7 @@ func (r *CategoryPostgres) GetCategories(ctx context.Context) ([]entities.Produc
 
 func (r *CategoryPostgres) InsertCategory(
 	ctx context.Context, category entities.ProductCategory,
-) (int, error) {
+) (uint, error) {
 	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("begin: %w", err)
@@ -112,7 +104,7 @@ func (r *CategoryPostgres) InsertCategory(
 		return 0, fmt.Errorf("%s: %w", "ToSql", err)
 	}
 
-	var newID int
+	var newID uint
 	err = tx.QueryRow(ctx, query, args...).Scan(&newID)
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", "Exec", err)
@@ -139,7 +131,6 @@ func (r *CategoryPostgres) GetCategoryByID(ctx context.Context, id uint) (*entit
 			}
 		}
 	}(tx, ctx)
-
 	psql := queries.SelectCategoryByID(id)
 	query, args, err := psql.ToSql()
 	if err != nil {
@@ -231,4 +222,14 @@ func (r *CategoryPostgres) DeleteCategoryByID(ctx context.Context, id uint) erro
 		return fmt.Errorf("commit: %w", err)
 	}
 	return nil
+}
+
+func (r *CategoryPostgres) GetCategoryID(ctx context.Context, ctgName string) (uint, error) {
+	var categoryID uint
+	err := r.Pool.QueryRow(ctx, getOrCreateCategoryQuery, ctgName).Scan(&categoryID)
+	if err != nil {
+		return 0, fmt.Errorf("category QueryRow: %w", err)
+	}
+
+	return categoryID, nil
 }

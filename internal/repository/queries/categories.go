@@ -16,7 +16,7 @@ func FullCategorySelect() sq.SelectBuilder {
 	return psql.Select(
 		categoryIDCol,
 		categoryNameCol,
-		categoryParentIDCol,
+		"COALESCE(parent_id, 0)",
 	).From(tableCategories)
 }
 
@@ -33,7 +33,7 @@ func CategoryInsert(category entities.ProductCategory) sq.InsertBuilder {
 }
 
 func SelectCategoryByID(id uint) sq.SelectBuilder {
-	return FullBeerSelect().Where(sq.Eq{categoryIDCol: id})
+	return FullCategorySelect().Where(sq.Eq{categoryIDCol: id})
 }
 
 func UpdateCategory(id uint, updates map[string]any) sq.UpdateBuilder {
