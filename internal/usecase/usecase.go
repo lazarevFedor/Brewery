@@ -2,13 +2,13 @@ package usecase
 
 import (
 	"Brewery/internal/entities"
-	repository "Brewery/internal/repository/beer"
+	"Brewery/internal/repository"
 	"context"
 )
 
 type BeerService interface {
 	CreateCategory(ctx context.Context, cat *entities.ProductCategory) (int, error)
-	GetCategoryById(ctx context.Context, id int) (*entities.ProductCategory, error)
+	GetCategoryByID(ctx context.Context, id int) (*entities.ProductCategory, error)
 	UpdateCategory(ctx context.Context, id int) error
 	DeleteCategory(ctx context.Context, id int) error
 	GetAllCategories(ctx context.Context) ([]entities.ProductCategory, error)
@@ -26,10 +26,10 @@ type BeerService interface {
 
 type beerService struct {
 	beerRepo     repository.BeerRepository
-	categoryRepo any // TODO: заменить на интерфейс CategoryRepository когда он появится
+	categoryRepo repository.CategoryRepository
 }
 
-func NewBeerService(beerRepo repository.BeerRepository, categoryRepo any) BeerService {
+func NewBeerService(beerRepo repository.BeerRepository, categoryRepo repository.CategoryRepository) BeerService {
 	return &beerService{
 		beerRepo:     beerRepo,
 		categoryRepo: categoryRepo,
@@ -43,7 +43,7 @@ func (s *beerService) CreateCategory(ctx context.Context, cat *entities.ProductC
 	return 0, nil
 }
 
-func (s *beerService) GetCategoryById(ctx context.Context, id int) (*entities.ProductCategory, error) {
+func (s *beerService) GetCategoryByID(ctx context.Context, id int) (*entities.ProductCategory, error) {
 	_ = ctx
 	_ = id
 

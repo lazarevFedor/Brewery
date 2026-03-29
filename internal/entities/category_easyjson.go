@@ -26,7 +26,7 @@ func easyjson6a91a67cDecodeBreweryInternalEntities(in *jlexer.Lexer, out *Produc
 		in.Delim('[')
 		if *out == nil {
 			if !in.IsDelim(']') {
-				*out = make(Products, 0, 1)
+				*out = make(Products, 0, 2)
 			} else {
 				*out = Products{}
 			}
@@ -113,44 +113,11 @@ func easyjson6a91a67cDecodeBreweryInternalEntities1(in *jlexer.Lexer, out *Produ
 			} else {
 				out.Name = string(in.String())
 			}
-		case "level":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				out.Level = int(in.Int())
-			}
 		case "parent_id":
 			if in.IsNull() {
 				in.Skip()
 			} else {
 				out.ParentID = int(in.Int())
-			}
-		case "children_id":
-			if in.IsNull() {
-				in.Skip()
-				out.ChildrenID = nil
-			} else {
-				in.Delim('[')
-				if out.ChildrenID == nil {
-					if !in.IsDelim(']') {
-						out.ChildrenID = make([]int, 0, 8)
-					} else {
-						out.ChildrenID = []int{}
-					}
-				} else {
-					out.ChildrenID = (out.ChildrenID)[:0]
-				}
-				for !in.IsDelim(']') {
-					var v4 int
-					if in.IsNull() {
-						in.Skip()
-					} else {
-						v4 = int(in.Int())
-					}
-					out.ChildrenID = append(out.ChildrenID, v4)
-					in.WantComma()
-				}
-				in.Delim(']')
 			}
 		default:
 			in.SkipRecursive()
@@ -182,29 +149,10 @@ func easyjson6a91a67cEncodeBreweryInternalEntities1(out *jwriter.Writer, in Prod
 		}
 		out.String(string(in.Name))
 	}
-	{
-		const prefix string = ",\"level\":"
-		out.RawString(prefix)
-		out.Int(int(in.Level))
-	}
 	if in.ParentID != 0 {
 		const prefix string = ",\"parent_id\":"
 		out.RawString(prefix)
 		out.Int(int(in.ParentID))
-	}
-	if len(in.ChildrenID) != 0 {
-		const prefix string = ",\"children_id\":"
-		out.RawString(prefix)
-		{
-			out.RawByte('[')
-			for v5, v6 := range in.ChildrenID {
-				if v5 > 0 {
-					out.RawByte(',')
-				}
-				out.Int(int(v6))
-			}
-			out.RawByte(']')
-		}
 	}
 	out.RawByte('}')
 }

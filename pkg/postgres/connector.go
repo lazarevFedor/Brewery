@@ -11,14 +11,16 @@ import (
 )
 
 // Config описывает переменные и данные, необходимые для работы базой
+//
+//nolint:gosec
 type Config struct {
-	Host     string `env:"POSTGRES_HOST"`
-	Port     int    `env:"POSTGRES_PORT"`
-	DB       string `env:"POSTGRES_DB"`
-	Username string `env:"POSTGRES_USER"`
-	Password string `env:"POSTGRES_PASSWORD"`
-	MaxConns int    `env:"POSTGRES_MAX_CONNS"`
-	MinConns int    `env:"POSTGRES_MIN_CONNS"`
+	Host     string `env:"HOST"`
+	Port     int    `env:"PORT"`
+	DB       string `env:"DB"`
+	Username string `env:"USER"`
+	Password string `env:"PASSWORD"`
+	MaxConns int    `env:"MAX_CONNS"`
+	MinConns int    `env:"MIN_CONNS"`
 }
 
 // NewPool создает пул подлючений в бд

@@ -4,7 +4,7 @@ import (
 	"Brewery/internal/config"
 	"Brewery/internal/http/handlers"
 	"Brewery/internal/http/middleware"
-	repository "Brewery/internal/repository/beer"
+	"Brewery/internal/repository"
 	"Brewery/internal/usecase"
 	"Brewery/pkg/logger"
 	"Brewery/pkg/postgres"
@@ -33,8 +33,8 @@ func main() {
 		panic("logger not found in context")
 	}
 
-	cfg, err := config.FillConfig(config.NewAppConfig())
-	if err != nil {
+	cfg := config.NewAppConfig()
+	if cfg == nil {
 		panic(fmt.Errorf("failed to create config: %w", err))
 	}
 
@@ -44,9 +44,7 @@ func main() {
 	}
 
 	beerRepo := repository.NewBeerPostgres(pool)
-
-	// TODO: add category repository
-	var ctgRepo any
+	ctgRepo := repository.NewCategoryPostgres(pool)
 
 	beerSrv := usecase.NewBeerService(beerRepo, ctgRepo)
 	beersHandler := handlers.NewBeersHandlers(beerSrv)
