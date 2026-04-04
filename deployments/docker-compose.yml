@@ -24,6 +24,20 @@ services:
       - postgres
     networks:
       - app_net
+    develop:
+      watch:
+        - path: ../internal
+          action: rebuild
+        - path: ../pkg
+          action: rebuild
+        - path: ../build/package/server
+          action: rebuild
+        - path: ../congigs
+          action: rebuild
+        - path: ../cmd
+          action: rebuild
+        - path: ../deployments/docker-compose.yml
+          action: rebuild
 
   prometheus:
     image: prom/prometheus:v3.3.1
@@ -34,7 +48,7 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
     depends_on:
-      - server
+      - nginx
     networks:
       - app_net
 
