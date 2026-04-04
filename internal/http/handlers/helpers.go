@@ -23,7 +23,7 @@ func getIdParam(c *gin.Context) (int, error) {
 	idStr := c.Param("id")
 
 	id, err := strconv.Atoi(idStr)
-	if err != nil || id <= 0 {
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 
 		return 0, errors.New("invalid id")
