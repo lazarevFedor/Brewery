@@ -87,7 +87,7 @@ func main() {
 	router.PATCH("/api/beers/:id", beersHandler.UpdateBeer)
 	router.DELETE("/api/beers/:id", beersHandler.DeleteBeer)
 	router.GET("/api/beers", beersHandler.GetAllBeers)
-	router.POST("/api/beers/reviews/:id", nil)
+	router.POST("/api/beers/reviews/:id", beersHandler.CreateBeerReview)
 
 	log.Info(ctx, fmt.Sprintf("server listening on port %s", cfg.Port))
 
