@@ -1,3 +1,4 @@
+// Package main содержит функцию main(), которая является точкой входа в программу.
 package main
 
 import (
@@ -19,6 +20,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+// main является точкой входа в программу.
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()

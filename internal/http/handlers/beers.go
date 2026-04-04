@@ -184,6 +184,7 @@ func (h *beersHandler) GetAllBeers(c *gin.Context) {
 	log.Info(c.Request.Context(), fmt.Sprintf("action=list resource=beer status=success offset=%d limit=%d items=%d total=%d", offset, limit, len(items), total))
 }
 
+// CreateBeerReview обрабатывает HTTP-запрос на создание отзыва о пиве.
 func (h *beersHandler) CreateBeerReview(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
