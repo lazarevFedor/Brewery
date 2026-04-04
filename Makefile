@@ -16,3 +16,6 @@ genjson:
 	easyjson -all internal/entities/beer.go
 	easyjson -all internal/entities/category.go
 	easyjson -all internal/entities/review.go
+
+genmock:
+	go generate ./internal/http/handlers/mocks
