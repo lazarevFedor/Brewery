@@ -305,7 +305,7 @@
       }
     },
 
-    "/categories/beers/{id}": {
+    "/categories/{id}/beers": {
       "get": {
         "tags": ["Beers"],
         "summary": "Get beers by category",

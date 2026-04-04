@@ -77,7 +77,7 @@ func main() {
 	router.PATCH("/api/categories/:id", categoryHandler.UpdateCategory)
 	router.DELETE("/api/categories/:id", categoryHandler.DeleteCategory)
 	router.GET("/api/categories", categoryHandler.GetAllCategories)
-	router.GET("/api/categories/beers/:id", categoryHandler.GetBeersByCategory)
+	router.GET("/api/categories/:id/beers", categoryHandler.GetBeersByCategory)
 	router.GET("/api/categories/parent/:id", categoryHandler.GetParentCategory)
 	router.GET("/api/categories/children/:id", categoryHandler.GetChildCategory)
 
