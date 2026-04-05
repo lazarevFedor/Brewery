@@ -4,6 +4,7 @@ import (
 	"Brewery/internal/entities"
 	"Brewery/internal/repository"
 	"context"
+	"errors"
 	"fmt"
 )
 
@@ -43,11 +44,11 @@ func (s *beerService) CreateCategory(ctx context.Context, cat *entities.ProductC
 	}
 
 	if cat == nil {
-		return 0, fmt.Errorf("category is nil")
+		return 0, errors.New("category is nil")
 	}
 
 	if cat.Name == "" {
-		return 0, fmt.Errorf("category name is required")
+		return 0, errors.New("category name is required")
 	}
 
 	id, err := s.categoryRepo.InsertCategory(ctx, *cat)
@@ -64,7 +65,7 @@ func (s *beerService) GetCategoryByID(ctx context.Context, id uint) (*entities.P
 	}
 
 	if id == 0 {
-		return nil, fmt.Errorf("invalid category id")
+		return nil, errors.New("invalid category id")
 	}
 
 	ctg, err := s.categoryRepo.GetCategoryByID(ctx, id)
@@ -81,11 +82,11 @@ func (s *beerService) UpdateCategory(ctx context.Context, id uint, updates map[s
 	}
 
 	if id == 0 {
-		return fmt.Errorf("invalid category id")
+		return errors.New("invalid category id")
 	}
 
 	if len(updates) == 0 {
-		return fmt.Errorf("no fields to update")
+		return errors.New("no fields to update")
 	}
 
 	err := s.categoryRepo.UpdateCategory(ctx, id, updates)
@@ -102,7 +103,7 @@ func (s *beerService) DeleteCategory(ctx context.Context, id uint) error {
 	}
 
 	if id == 0 {
-		return fmt.Errorf("invalid category id")
+		return errors.New("invalid category id")
 	}
 
 	err := s.categoryRepo.DeleteCategoryByID(ctx, id)
@@ -137,7 +138,7 @@ func (s *beerService) GetParentCategory(ctx context.Context, id uint) (*entities
 	}
 
 	if ctg.ParentID == 0 {
-		return nil, fmt.Errorf("category has no parent")
+		return nil, errors.New("category has no parent")
 	}
 
 	parent, err := s.categoryRepo.GetCategoryByID(ctx, uint(ctg.ParentID))
@@ -164,7 +165,7 @@ func (s *beerService) GetChildCategory(ctx context.Context, id uint) (*entities.
 		}
 	}
 
-	return nil, fmt.Errorf("child category not found")
+	return nil, errors.New("child category not found")
 }
 
 func (s *beerService) CreateBeer(ctx context.Context, beer *entities.Beer) (uint, error) {
@@ -173,11 +174,11 @@ func (s *beerService) CreateBeer(ctx context.Context, beer *entities.Beer) (uint
 	}
 
 	if beer == nil {
-		return 0, fmt.Errorf("beer is nil")
+		return 0, errors.New("beer is nil")
 	}
 
 	if beer.Name == "" {
-		return 0, fmt.Errorf("beer name is required")
+		return 0, errors.New("beer name is required")
 	}
 
 	id, err := s.beerRepo.InsertBeer(ctx, *beer)
@@ -207,7 +208,7 @@ func (s *beerService) GetBeersByCategory(ctx context.Context, id uint, limit, of
 	}
 
 	if id == 0 {
-		return nil, fmt.Errorf("invalid category id")
+		return nil, errors.New("invalid category id")
 	}
 
 	beers, err := s.beerRepo.GetBeersByCategoryID(ctx, id, limit, offset)
@@ -224,11 +225,11 @@ func (s *beerService) UpdateBeer(ctx context.Context, id uint, updates map[strin
 	}
 
 	if id == 0 {
-		return 0, fmt.Errorf("invalid beer id")
+		return 0, errors.New("invalid beer id")
 	}
 
 	if len(updates) == 0 {
-		return 0, fmt.Errorf("no fields to update")
+		return 0, errors.New("no fields to update")
 	}
 
 	beerID, err := s.beerRepo.UpdateBeer(ctx, id, updates)
@@ -245,7 +246,7 @@ func (s *beerService) DeleteBeer(ctx context.Context, id uint) error {
 	}
 
 	if id == 0 {
-		return fmt.Errorf("invalid beer id")
+		return errors.New("invalid beer id")
 	}
 
 	err := s.beerRepo.DeleteBeer(ctx, id)
@@ -262,11 +263,11 @@ func (s *beerService) CreateBeerReview(ctx context.Context, review *entities.Rev
 	}
 
 	if review == nil {
-		return 0, fmt.Errorf("review is nil")
+		return 0, errors.New("review is nil")
 	}
 
 	if review.BeerID == 0 {
-		return 0, fmt.Errorf("invalid beer id")
+		return 0, errors.New("invalid beer id")
 	}
 
 	id, err := s.beerRepo.InsertReview(ctx, *review)
