@@ -136,11 +136,11 @@ func (s *beerService) GetParentCategory(ctx context.Context, id uint) (*entities
 		return nil, fmt.Errorf("failed to get category: %w", err)
 	}
 
-	if ctg.ParentID == nil {
+	if ctg.ParentID == 0 {
 		return nil, fmt.Errorf("category has no parent")
 	}
 
-	parent, err := s.categoryRepo.GetCategoryByID(ctx, *ctg.ParentID)
+	parent, err := s.categoryRepo.GetCategoryByID(ctx, uint(ctg.ParentID))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get parent category: %w", err)
 	}
@@ -159,7 +159,7 @@ func (s *beerService) GetChildCategory(ctx context.Context, id uint) (*entities.
 	}
 
 	for _, c := range categories {
-		if c.ParentID != nil && *c.ParentID == id {
+		if c.ParentID != 0 && uint(c.ParentID) == id {
 			return &c, nil
 		}
 	}
