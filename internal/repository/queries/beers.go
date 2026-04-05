@@ -23,6 +23,8 @@ func FullBeerSelect() sq.SelectBuilder {
 		"b.description",
 		"b.abv",
 		"b.ibu",
+		"b.amount",
+		"b.units",
 		"ct.name AS city",
 		"cntr.name AS country",
 		"pc.name AS category",

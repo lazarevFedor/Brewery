@@ -36,6 +36,8 @@ CREATE TABLE IF NOT EXISTS beers (
     description TEXT,
     abv float4 NOT NULL,
     ibu SMALLINT NOT NULL,
+    amount INT NOT NULL,
+    units text NOT NULL,
     city_id SMALLINT NOT NULL,
     type_id SMALLINT NOT NULL,
     category_id INT NOT NULL,

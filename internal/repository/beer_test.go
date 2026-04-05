@@ -15,6 +15,8 @@ var (
 		Description: "test description",
 		ABV:         4.7,
 		IBU:         100,
+		Amount:      100,
+		Unit:        "Литр",
 		City:        "Москва",
 		Country:     "Россия",
 		Type:        "Lager",

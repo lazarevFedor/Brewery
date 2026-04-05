@@ -87,10 +87,10 @@ linters:
       # Checks that sync.Mutex and sync.RWMutex are not used as embedded fields.
       forbid-mutex: true
 
-#    errcheck:
-#        # Report about not checking of errors in type assertions: `a := b.(MyStruct)`.
-#        # Such cases aren't reported by default.
-#        check-type-assertions: true
+  #  errcheck:
+  #      # Report about not checking of errors in type assertions: `a := b.(MyStruct)`.
+  #      # Such cases aren't reported by default.
+  #      check-type-assertions: true
 
     exhaustive:
         # Program elements to check for exhaustiveness.
@@ -199,14 +199,15 @@ linters:
 
 
   disable:
-    - depguard
-    - errcheck
-    - wsl_v5
-    - unqueryvet
-    - nilnil
-    - nolintlint
-    - govet
+      - depguard
+      - errcheck
+      - wsl_v5
+      - unqueryvet
+      - nilnil
+      - nolintlint
+      - govet
 
+      
   exclusions:
     paths:
     - configs
