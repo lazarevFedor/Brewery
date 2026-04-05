@@ -406,6 +406,8 @@
           "ibu": { "type": "number" },
           "city_id": { "type": "integer" },
           "category_id": { "type": "integer" },
+          "amount": {"type": "integer"},
+          "units": {"type":  "string"},
           "type_id": { "type": "integer" }
         }
       },
@@ -420,6 +422,8 @@
           "ibu": { "type": "number" },
           "city_id": { "type": "integer" },
           "category_id": { "type": "integer" },
+          "amount": {"type": "integer"},
+          "units": {"type":  "string"},
           "type_id": { "type": "integer" }
         }
       },
@@ -433,6 +437,8 @@
           "ibu": { "type": "number" },
           "city_id": { "type": "integer" },
           "category_id": { "type": "integer" },
+          "amount": {"type": "integer"},
+          "units": {"type":  "string"},
           "type_id": { "type": "integer" }
         }
       },
