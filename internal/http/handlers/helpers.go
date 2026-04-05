@@ -19,17 +19,17 @@ const (
 )
 
 // getIdParam извлекает и валидирует параметр id из URL.
-func getIdParam(c *gin.Context) (int, error) {
+func getIdParam(c *gin.Context) (uint, error) {
 	idStr := c.Param("id")
 
 	id, err := strconv.Atoi(idStr)
-	if err != nil {
+	if err != nil || id <= 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 
 		return 0, errors.New("invalid id")
 	}
 
-	return id, nil
+	return uint(id), nil
 }
 
 // readRequestBody читает тело HTTP-запроса и возвращает его в виде байтового среза.
@@ -45,7 +45,7 @@ func readRequestBody(c *gin.Context) ([]byte, error) {
 }
 
 // getPaginationParams извлекает параметры пагинации из HTTP-запроса
-func getPaginationParams(c *gin.Context) (int, int, error) {
+func getPaginationParams(c *gin.Context) (uint64, uint64, error) {
 	offset := defaultOffset
 	limit := defaultLimit
 
@@ -75,5 +75,5 @@ func getPaginationParams(c *gin.Context) (int, int, error) {
 		limit = parsedLimit
 	}
 
-	return offset, limit, nil
+	return uint64(offset), uint64(limit), nil
 }
