@@ -117,7 +117,8 @@ func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (uint
 	var beerID uint
 	err = tx.QueryRow(ctx, insertBeerQuery,
 		beer.Name, beer.Rating, beer.Description,
-		beer.ABV, beer.IBU, typeID, cityID, categoryID).
+		beer.ABV, beer.IBU, beer.Amount, beer.Unit,
+		typeID, cityID, categoryID).
 		Scan(&beerID)
 	if err != nil {
 		return 0, fmt.Errorf("beer QueryRow: %w", err)
@@ -152,7 +153,7 @@ func (r *BeerPostgres) GetBeers(ctx context.Context, limit, offset uint64) ([]en
 		log, ok := logger.GetLoggerFromCtx(ctx)
 		if ok {
 			if rollbackErr != nil && errors.Is(rollbackErr, pgx.ErrTxClosed) {
-				log.Error(ctx, "InsertBeer: rollback error:", zap.Error(rollbackErr))
+				log.Error(ctx, "GetBeers: rollback error:", zap.Error(rollbackErr))
 			}
 		}
 	}(tx, ctx)
@@ -423,8 +424,9 @@ func (r *BeerPostgres) InsertBeerFeature(ctx context.Context, featID, beerID uin
 
 func scanBeer(row pgx.Row) (*entities.Beer, error) {
 	var beer entities.Beer
-	err := row.Scan(&beer.ID, &beer.Name, &beer.Rating, &beer.Description,
-		&beer.ABV, &beer.IBU, &beer.City, &beer.Country,
+	err := row.Scan(&beer.ID, &beer.Name, &beer.Rating,
+		&beer.Description, &beer.ABV, &beer.IBU, &beer.Amount,
+		&beer.Unit, &beer.City, &beer.Country,
 		&beer.Category.Name, &beer.Type, &beer.Features)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Scan", err)

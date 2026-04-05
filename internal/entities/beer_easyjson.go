@@ -137,6 +137,18 @@ func easyjson57ba88e2DecodeBreweryInternalEntities1(in *jlexer.Lexer, out *Beer)
 			} else {
 				out.IBU = uint8(in.Uint8())
 			}
+		case "amount":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Amount = uint(in.Uint())
+			}
+		case "unit":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Unit = string(in.String())
+			}
 		case "city":
 			if in.IsNull() {
 				in.Skip()
@@ -231,6 +243,16 @@ func easyjson57ba88e2EncodeBreweryInternalEntities1(out *jwriter.Writer, in Beer
 		const prefix string = ",\"ibu\":"
 		out.RawString(prefix)
 		out.Uint8(uint8(in.IBU))
+	}
+	{
+		const prefix string = ",\"amount\":"
+		out.RawString(prefix)
+		out.Uint(uint(in.Amount))
+	}
+	{
+		const prefix string = ",\"unit\":"
+		out.RawString(prefix)
+		out.String(string(in.Unit))
 	}
 	{
 		const prefix string = ",\"city\":"

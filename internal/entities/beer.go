@@ -9,6 +9,8 @@ type Beer struct {
 	Description string          `json:"description,omitempty" info:"Описание продукта"`
 	ABV         float32         `json:"abv" info:"Крепость в %"`
 	IBU         uint8           `json:"ibu" info:"Индекс горечи"`
+	Amount      uint            `json:"amount" info:"Кол-во в наличие"`
+	Unit        string          `json:"unit" info:"Единица измерений"`
 	City        string          `json:"city" info:"Город производства"`
 	Country     string          `json:"country" info:"Страна производства"`
 	Type        string          `json:"type" info:"Тип напитка"`
