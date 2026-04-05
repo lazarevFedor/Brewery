@@ -179,11 +179,12 @@
         ],
         "responses": {
           "200": {
-            "description": "Paginated beers list",
+            "description": "Beers list",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PaginatedBeers"
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Beer" }
                 }
               }
             }
@@ -317,11 +318,12 @@
         ],
         "responses": {
           "200": {
-            "description": "Paginated beers list",
+            "description": "Beers list",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PaginatedBeers"
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Beer" }
                 }
               }
             }
