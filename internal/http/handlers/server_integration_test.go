@@ -103,12 +103,14 @@ func TestServer_UpdateCategory_UsesPathParam(t *testing.T) {
 
 	serviceMock := mocks.NewBeerServiceMock(mc)
 	serviceMock.UpdateCategoryMock.
-		Expect(minimock.AnyContext, 12).
+		Expect(minimock.AnyContext, uint(12), map[string]any{"name": "ale"}).
 		Return(nil)
 
 	router := setupIntegrationRouter(t, serviceMock)
 
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodPatch, "/api/categories/12", nil)
+	body := strings.NewReader(`{"name":"ale"}`)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodPatch, "/api/categories/12", body)
+	req.Header.Set("Content-Type", "application/json")
 	resp := httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
 
@@ -157,7 +159,7 @@ func TestServer_GetBeersByCategory_NewRoute_WorksWithIDAndPagination(t *testing.
 
 	serviceMock := mocks.NewBeerServiceMock(mc)
 	serviceMock.GetBeersByCategoryMock.
-		Expect(minimock.AnyContext, 42).
+		Expect(minimock.AnyContext, uint(42), uint64(1), uint64(1)).
 		Return([]entities.Beer{
 			{Name: "one", Rating: 4.1},
 			{Name: "two", Rating: 4.2},
@@ -172,24 +174,11 @@ func TestServer_GetBeersByCategory_NewRoute_WorksWithIDAndPagination(t *testing.
 
 	require.Equal(t, http.StatusOK, resp.Code)
 
-	var got struct {
-		Items      []map[string]any `json:"items"`
-		Offset     int              `json:"offset"`
-		Limit      int              `json:"limit"`
-		Total      int              `json:"total"`
-		TotalPages int              `json:"total_pages"`
-		HasNext    bool             `json:"has_next"`
-		HasPrev    bool             `json:"has_prev"`
-	}
+	var got []entities.Beer
 	require.NoError(t, json.Unmarshal(resp.Body.Bytes(), &got))
-
-	assert.Equal(t, 1, got.Offset)
-	assert.Equal(t, 1, got.Limit)
-	assert.Equal(t, 3, got.Total)
-	assert.Equal(t, 3, got.TotalPages)
-	assert.True(t, got.HasNext)
-	assert.True(t, got.HasPrev)
-	require.Len(t, got.Items, 1)
+	require.Len(t, got, 3)
+	assert.Equal(t, "one", got[0].Name)
+	assert.Equal(t, "three", got[2].Name)
 }
 
 // TestServer_GetBeersByCategory_InvalidID_ReturnsBadRequest проверяет, что при запросе пива по категории с нечисловым ID возвращается статус 400 Bad Request и корректное сообщение об ошибке.
@@ -252,12 +241,14 @@ func TestServer_UpdateBeer_UsesPathParam(t *testing.T) {
 
 	serviceMock := mocks.NewBeerServiceMock(mc)
 	serviceMock.UpdateBeerMock.
-		Expect(minimock.AnyContext, 77).
-		Return(nil)
+		Expect(minimock.AnyContext, uint(77), map[string]any{"name": "ipa"}).
+		Return(uint(77), nil)
 
 	router := setupIntegrationRouter(t, serviceMock)
 
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodPatch, "/api/beers/77", nil)
+	body := strings.NewReader(`{"name":"ipa"}`)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodPatch, "/api/beers/77", body)
+	req.Header.Set("Content-Type", "application/json")
 	resp := httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
 
@@ -305,7 +296,7 @@ func TestServer_GetAllBeers_ReturnsOK(t *testing.T) {
 
 	serviceMock := mocks.NewBeerServiceMock(mc)
 	serviceMock.GetAllBeersMock.
-		Expect(minimock.AnyContext).
+		Expect(minimock.AnyContext, uint64(10), uint64(0)).
 		Return([]entities.Beer{{Name: "ipa", Rating: 4.5}}, nil)
 
 	router := setupIntegrationRouter(t, serviceMock)
@@ -315,6 +306,11 @@ func TestServer_GetAllBeers_ReturnsOK(t *testing.T) {
 	router.ServeHTTP(resp, req)
 
 	require.Equal(t, http.StatusOK, resp.Code)
+
+	var got []entities.Beer
+	require.NoError(t, json.Unmarshal(resp.Body.Bytes(), &got))
+	require.Len(t, got, 1)
+	assert.Equal(t, "ipa", got[0].Name)
 }
 
 // TestServer_CreateBeerReview_UsesPathParam проверяет, что при создании отзыва на пиво используется правильный путь и передается правильный ID пива в сервис.
@@ -322,13 +318,19 @@ func TestServer_CreateBeerReview_UsesPathParam(t *testing.T) {
 	mc := minimock.NewController(t)
 
 	serviceMock := mocks.NewBeerServiceMock(mc)
-	serviceMock.CreateBeerReviewMock.
-		Expect(minimock.AnyContext, 17).
-		Return(nil)
+	serviceMock.CreateBeerReviewMock.Set(func(ctx context.Context, review *entities.Review) (uint, error) {
+		require.Equal(t, uint(17), review.BeerID)
+		require.Equal(t, "great", review.Body)
+		require.InDelta(t, 4.5, float64(review.Rating), 1e-6)
+
+		return 1, nil
+	})
 
 	router := setupIntegrationRouter(t, serviceMock)
 
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/api/beers/reviews/17", nil)
+	body := strings.NewReader(`{"body":"great","rating":4.5}`)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/api/beers/reviews/17", body)
+	req.Header.Set("Content-Type", "application/json")
 	resp := httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
 
