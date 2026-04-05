@@ -4,12 +4,12 @@ import (
 	"Brewery/internal/entities"
 	"Brewery/internal/usecase"
 	"Brewery/pkg/logger"
+	"encoding/json"
 	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mailru/easyjson"
-	"github.com/mailru/easyjson/jwriter"
 )
 
 // BeersHandlers определяет интерфейс для обработки HTTP-запросов, связанных с пивом.
@@ -71,12 +71,32 @@ func (h *beersHandler) UpdateBeer(c *gin.Context) {
 
 	id, err := getIdParam(c)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
+		log.Error(c.Request.Context(), fmt.Sprintf("Invalid beer id: %v", err))
 
 		return
 	}
 
-	err = h.uc.UpdateBeer(c.Request.Context(), id)
+	body, err := readRequestBody(c)
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read updates in the request body: %v", err))
+
+		return
+	}
+
+	updates := make(map[string]any)
+	if err = json.Unmarshal(body, &updates); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
+
+		return
+	}
+
+	if len(updates) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "empty update payload"})
+
+		return
+	}
+
+	_, err = h.uc.UpdateBeer(c.Request.Context(), id, updates)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to update beer: %v", err))
 		c.Status(http.StatusInternalServerError)
@@ -132,7 +152,7 @@ func (h *beersHandler) GetAllBeers(c *gin.Context) {
 		return
 	}
 
-	beers, err := h.uc.GetAllBeers(c.Request.Context())
+	beers, err := h.uc.GetAllBeers(c.Request.Context(), limit, offset)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get beers: %v", err))
 		c.Status(http.StatusInternalServerError)
@@ -140,48 +160,16 @@ func (h *beersHandler) GetAllBeers(c *gin.Context) {
 		return
 	}
 
-	total := len(beers)
-
-	totalPages := 0
-	if total > 0 {
-		totalPages = (total + limit - 1) / limit
-	}
-
-	items := make([]entities.Beer, 0)
-
-	if offset < total {
-		end := min(offset+limit, total)
-
-		items = beers[offset:end]
-	}
-
-	var w jwriter.Writer
-	w.RawByte('{')
-	w.RawString("\"items\":")
-	entities.Beers(items).MarshalEasyJSON(&w)
-	w.RawString(",\"offset\":")
-	w.Int(offset)
-	w.RawString(",\"limit\":")
-	w.Int(limit)
-	w.RawString(",\"total\":")
-	w.Int(total)
-	w.RawString(",\"total_pages\":")
-	w.Int(totalPages)
-	w.RawString(",\"has_next\":")
-	w.Bool(offset+limit < total)
-	w.RawString(",\"has_prev\":")
-	w.Bool(offset > 0)
-	w.RawByte('}')
-
-	if w.Error != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal paginated beers: %v", w.Error))
+	rawBytes, err := easyjson.Marshal(entities.Beers(beers))
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal beers: %v", err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
 
 		return
 	}
 
-	c.Data(http.StatusOK, "application/json; charset=utf-8", w.Buffer.BuildBytes())
-	log.Info(c.Request.Context(), fmt.Sprintf("action=list resource=beer status=success offset=%d limit=%d items=%d total=%d", offset, limit, len(items), total))
+	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
+	log.Info(c.Request.Context(), fmt.Sprintf("action=list resource=beer status=success offset=%d limit=%d items=%d", offset, limit, len(beers)))
 }
 
 // CreateBeerReview обрабатывает HTTP-запрос на создание отзыва о пиве.
@@ -195,12 +183,28 @@ func (h *beersHandler) CreateBeerReview(c *gin.Context) {
 
 	id, err := getIdParam(c)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
+		log.Error(c.Request.Context(), fmt.Sprintf("Invalid beer id: %v", err))
 
 		return
 	}
 
-	err = h.uc.CreateBeerReview(c.Request.Context(), id)
+	body, err := readRequestBody(c)
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read review in the request body: %v", err))
+
+		return
+	}
+
+	var req entities.Review
+	if err = easyjson.Unmarshal(body, &req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
+
+		return
+	}
+
+	req.BeerID = id
+
+	_, err = h.uc.CreateBeerReview(c.Request.Context(), &req)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to create review: %v", err))
 		c.Status(http.StatusInternalServerError)
