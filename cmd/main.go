@@ -37,7 +37,7 @@ func main() {
 
 	cfg := config.NewAppConfig()
 	if cfg == nil {
-		panic(fmt.Errorf("failed to create config: %w", err))
+		panic(errors.New("failed to create config"))
 	}
 
 	pool, err := postgres.NewPool(ctx, cfg.Postgres)
