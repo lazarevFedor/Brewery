@@ -1,3 +1,5 @@
 configs/.env
 .idea
 deployments/pgdata
+.vscode/
+.DS_Store

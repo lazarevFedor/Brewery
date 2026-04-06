@@ -16,3 +16,6 @@ genjson:
 	easyjson -all internal/entities/beer.go
 	easyjson -all internal/entities/category.go
 	easyjson -all internal/entities/review.go
+
+psqlup:
+	docker compose -f deployments/docker-compose.yml --env-file configs/.env up -d postgres
