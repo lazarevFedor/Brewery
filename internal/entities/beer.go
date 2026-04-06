@@ -18,5 +18,7 @@ type Beer struct {
 	Features    []string        `json:"features,omitempty" info:"Список особенностей"`
 }
 
+// Beers представляет собой срез изделий Beer.
+//
 //easyjson:json
 type Beers []Beer

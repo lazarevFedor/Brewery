@@ -3,6 +3,8 @@ package main
 import (
 	"Brewery/internal/entities"
 	"Brewery/internal/repository"
+	"Brewery/migrator"
+	"Brewery/pkg/postgres"
 	"context"
 	"encoding/csv"
 	"fmt"
@@ -91,5 +93,30 @@ func getBeers(ctx context.Context, repo *repository.BeerPostgres) {
 	}
 	for _, beer := range beers {
 		fmt.Println(beer)
+	}
+}
+
+func main() {
+	ctx := context.Background()
+	postgresCfg := postgres.Config{
+		Host:     "localhost",
+		Port:     5432,
+		Username: "user",
+		Password: "1234",
+		DB:       "brewery_db",
+		MinConns: 1,
+		MaxConns: 10,
+	}
+	pool, err := postgres.NewPool(ctx, postgresCfg)
+	if err != nil {
+		panic(fmt.Errorf("failed to create postgres pool: %w", err))
+	}
+
+	err = migrator.Up(pool)
+
+	beerRepo := repository.NewBeerPostgres(pool)
+	err = fillDB(ctx, "/Users/fedorlazarev/GolandProjects/Brewery/script/beers.csv", beerRepo)
+	if err != nil {
+		panic(err)
 	}
 }

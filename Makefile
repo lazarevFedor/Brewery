@@ -19,3 +19,9 @@ genjson:
 
 psqlup:
 	docker compose -f deployments/docker-compose.yml --env-file configs/.env up -d postgres
+  
+genmock:
+	go generate ./internal/http/handlers/mocks
+
+filldb:
+	go run script/db_filler.go

@@ -143,7 +143,6 @@ func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (uint
 	return beerID, nil
 }
 
-// TODO: Добавить ошибки приложения
 func (r *BeerPostgres) GetBeers(ctx context.Context, limit, offset uint64) ([]entities.Beer, error) {
 	tx, err := r.Pool.Begin(ctx)
 	if err != nil {

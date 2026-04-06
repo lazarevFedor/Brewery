@@ -73,10 +73,10 @@ linters:
       excludes:
         - G115
 
-#    wsl_v5:
-#      allow-first-in-block: true
-#      allow-whole-block: false
-#      branch-max-lines: 2
+    wsl_v5:
+      allow-first-in-block: true
+      allow-whole-block: false
+      branch-max-lines: 2
     cyclop:
       # The maximal code complexity to report.
       max-complexity: 30
@@ -87,10 +87,10 @@ linters:
       # Checks that sync.Mutex and sync.RWMutex are not used as embedded fields.
       forbid-mutex: true
 
-  #  errcheck:
-  #      # Report about not checking of errors in type assertions: `a := b.(MyStruct)`.
-  #      # Such cases aren't reported by default.
-  #      check-type-assertions: true
+    errcheck:
+        # Report about not checking of errors in type assertions: `a := b.(MyStruct)`.
+        # Such cases aren't reported by default.
+        check-type-assertions: true
 
     exhaustive:
         # Program elements to check for exhaustiveness.
@@ -199,15 +199,14 @@ linters:
 
 
   disable:
-      - depguard
-      - errcheck
-      - wsl_v5
-      - unqueryvet
-      - nilnil
-      - nolintlint
-      - govet
+    - depguard
+    - errcheck
+    - wsl_v5
+    - unqueryvet
+    - nilnil
+    - nolintlint
+    - govet
 
-      
   exclusions:
     paths:
     - configs

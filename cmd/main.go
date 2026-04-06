@@ -1,3 +1,4 @@
+// Package main содержит функцию main(), которая является точкой входа в программу.
 package main
 
 import (
@@ -19,6 +20,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+// main является точкой входа в программу.
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
@@ -35,7 +37,7 @@ func main() {
 
 	cfg := config.NewAppConfig()
 	if cfg == nil {
-		panic(fmt.Errorf("failed to create config: %w", err))
+		panic(errors.New("failed to create config"))
 	}
 
 	pool, err := postgres.NewPool(ctx, cfg.Postgres)
@@ -77,7 +79,7 @@ func main() {
 	router.PATCH("/api/categories/:id", categoryHandler.UpdateCategory)
 	router.DELETE("/api/categories/:id", categoryHandler.DeleteCategory)
 	router.GET("/api/categories", categoryHandler.GetAllCategories)
-	router.GET("/api/categories/beers/:id", categoryHandler.GetBeersByCategory)
+	router.GET("/api/categories/:id/beers", categoryHandler.GetBeersByCategory)
 	router.GET("/api/categories/parent/:id", categoryHandler.GetParentCategory)
 	router.GET("/api/categories/children/:id", categoryHandler.GetChildCategory)
 
@@ -85,7 +87,7 @@ func main() {
 	router.PATCH("/api/beers/:id", beersHandler.UpdateBeer)
 	router.DELETE("/api/beers/:id", beersHandler.DeleteBeer)
 	router.GET("/api/beers", beersHandler.GetAllBeers)
-	router.POST("/api/beers/reviews/:id", nil)
+	router.POST("/api/beers/reviews/:id", beersHandler.CreateBeerReview)
 
 	log.Info(ctx, fmt.Sprintf("server listening on port %s", cfg.Port))
 

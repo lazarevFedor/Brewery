@@ -179,11 +179,12 @@
         ],
         "responses": {
           "200": {
-            "description": "Paginated beers list",
+            "description": "Beers list",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PaginatedBeers"
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Beer" }
                 }
               }
             }
@@ -305,7 +306,7 @@
       }
     },
 
-    "/categories/beers/{id}": {
+    "/categories/{id}/beers": {
       "get": {
         "tags": ["Beers"],
         "summary": "Get beers by category",
@@ -317,11 +318,12 @@
         ],
         "responses": {
           "200": {
-            "description": "Paginated beers list",
+            "description": "Beers list",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PaginatedBeers"
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Beer" }
                 }
               }
             }
@@ -404,6 +406,8 @@
           "ibu": { "type": "number" },
           "city_id": { "type": "integer" },
           "category_id": { "type": "integer" },
+          "amount": {"type": "integer"},
+          "units": {"type":  "string"},
           "type_id": { "type": "integer" }
         }
       },
@@ -418,6 +422,8 @@
           "ibu": { "type": "number" },
           "city_id": { "type": "integer" },
           "category_id": { "type": "integer" },
+          "amount": {"type": "integer"},
+          "units": {"type":  "string"},
           "type_id": { "type": "integer" }
         }
       },
@@ -431,6 +437,8 @@
           "ibu": { "type": "number" },
           "city_id": { "type": "integer" },
           "category_id": { "type": "integer" },
+          "amount": {"type": "integer"},
+          "units": {"type":  "string"},
           "type_id": { "type": "integer" }
         }
       },
