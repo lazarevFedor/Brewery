@@ -19,3 +19,6 @@ genjson:
 
 genmock:
 	go generate ./internal/http/handlers/mocks
+
+filldb:
+	go run script/db_filler.go
