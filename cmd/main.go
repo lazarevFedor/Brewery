@@ -18,6 +18,7 @@ import (
 	"github.com/gin-contrib/graceful"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	cors "github.com/rs/cors/wrapper/gin"
 )
 
 // main является точкой входа в программу.
@@ -61,6 +62,7 @@ func main() {
 	})
 	engine.Use(middleware.RequestContextMiddleware())
 	engine.Use(middleware.MetricsMiddleware())
+	engine.Use(cors.Default())
 
 	router, err := graceful.New(
 		engine,
