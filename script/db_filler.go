@@ -115,7 +115,7 @@ func main() {
 	err = migrator.Up(pool)
 
 	beerRepo := repository.NewBeerPostgres(pool)
-	err = fillDB(ctx, "/Users/fedorlazarev/GolandProjects/Brewery/script/beers.csv", beerRepo)
+	err = fillDB(ctx, "beers.csv", beerRepo)
 	if err != nil {
 		panic(err)
 	}

@@ -87,7 +87,7 @@ func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (uint
 		rollbackErr := tx.Rollback(ctx)
 		log, ok := logger.GetLoggerFromCtx(ctx)
 		if ok {
-			if rollbackErr != nil && errors.Is(rollbackErr, pgx.ErrTxClosed) {
+			if rollbackErr != nil && !errors.Is(rollbackErr, pgx.ErrTxClosed) {
 				log.Error(ctx, "InsertBeer: rollback error:", zap.Error(rollbackErr))
 			}
 		}
@@ -152,7 +152,7 @@ func (r *BeerPostgres) GetBeers(ctx context.Context, limit, offset uint64) ([]en
 		rollbackErr := tx.Rollback(ctx)
 		log, ok := logger.GetLoggerFromCtx(ctx)
 		if ok {
-			if rollbackErr != nil && errors.Is(rollbackErr, pgx.ErrTxClosed) {
+			if rollbackErr != nil && !errors.Is(rollbackErr, pgx.ErrTxClosed) {
 				log.Error(ctx, "GetBeers: rollback error:", zap.Error(rollbackErr))
 			}
 		}
@@ -200,7 +200,7 @@ func (r *BeerPostgres) GetBeerByID(ctx context.Context, id uint) (*entities.Beer
 		rollbackErr := tx.Rollback(ctx)
 		log, ok := logger.GetLoggerFromCtx(ctx)
 		if ok {
-			if rollbackErr != nil && errors.Is(rollbackErr, pgx.ErrTxClosed) {
+			if rollbackErr != nil && !errors.Is(rollbackErr, pgx.ErrTxClosed) {
 				log.Error(ctx, "InsertBeer: rollback error:", zap.Error(rollbackErr))
 			}
 		}
@@ -233,7 +233,7 @@ func (r *BeerPostgres) UpdateBeer(ctx context.Context, id uint, updates map[stri
 		rollbackErr := tx.Rollback(ctx)
 		log, ok := logger.GetLoggerFromCtx(ctx)
 		if ok {
-			if rollbackErr != nil && errors.Is(rollbackErr, pgx.ErrTxClosed) {
+			if rollbackErr != nil && !errors.Is(rollbackErr, pgx.ErrTxClosed) {
 				log.Error(ctx, "InsertBeer: rollback error:", zap.Error(rollbackErr))
 			}
 		}
@@ -267,7 +267,7 @@ func (r *BeerPostgres) DeleteBeer(ctx context.Context, id uint) error {
 		rollbackErr := tx.Rollback(ctx)
 		log, ok := logger.GetLoggerFromCtx(ctx)
 		if ok {
-			if rollbackErr != nil && errors.Is(rollbackErr, pgx.ErrTxClosed) {
+			if rollbackErr != nil && !errors.Is(rollbackErr, pgx.ErrTxClosed) {
 				log.Error(ctx, "InsertBeer: rollback error:", zap.Error(rollbackErr))
 			}
 		}
@@ -302,7 +302,7 @@ func (r *BeerPostgres) InsertReview(ctx context.Context, review entities.Review)
 		rollbackErr := tx.Rollback(ctx)
 		log, ok := logger.GetLoggerFromCtx(ctx)
 		if ok {
-			if rollbackErr != nil && errors.Is(rollbackErr, pgx.ErrTxClosed) {
+			if rollbackErr != nil && !errors.Is(rollbackErr, pgx.ErrTxClosed) {
 				log.Error(ctx, "InsertBeer: rollback error:", zap.Error(rollbackErr))
 			}
 		}
@@ -338,7 +338,7 @@ func (r *BeerPostgres) GetBeersByCategoryID(
 		rollbackErr := tx.Rollback(ctx)
 		log, ok := logger.GetLoggerFromCtx(ctx)
 		if ok {
-			if rollbackErr != nil && errors.Is(rollbackErr, pgx.ErrTxClosed) {
+			if rollbackErr != nil && !errors.Is(rollbackErr, pgx.ErrTxClosed) {
 				log.Error(ctx, "InsertBeer: rollback error:", zap.Error(rollbackErr))
 			}
 		}

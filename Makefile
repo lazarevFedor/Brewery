@@ -1,8 +1,11 @@
 up:
-	docker compose -f deployments/docker-compose.yml --env-file configs/.env up -d
+	docker compose -f deployments/docker-compose.yml --env-file configs/.env up --build 
 
 down:
 	docker compose -f deployments/docker-compose.yml --env-file configs/.env down
+
+logs:
+	docker compose -f deployments/docker-compose.yml --env-file configs/.env logs
 
 lint:
 	golangci-lint run
