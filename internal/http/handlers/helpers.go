@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -18,9 +19,12 @@ const (
 	maxLimit = 100
 )
 
+
 // getIdParam извлекает и валидирует параметр id из URL.
 func getIdParam(c *gin.Context) (uint, error) {
 	idStr := c.Param("id")
+
+	fmt.Println("params:", c.Params)
 
 	id, err := strconv.Atoi(idStr)
 	if err != nil || id <= 0 {
@@ -30,6 +34,32 @@ func getIdParam(c *gin.Context) (uint, error) {
 	}
 
 	return uint(id), nil
+}
+
+func getBeerIDParam(c *gin.Context) (uint, error) {
+	beerIDStr := c.Param("beer_id")
+
+	beerID, err := strconv.Atoi(beerIDStr)
+	if err != nil || beerID <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid beer id"})
+
+		return 0, fmt.Errorf("invalid beer id: %w", err)
+	}
+
+	return uint(beerID), nil
+}
+
+func getCategoryIDParam(c *gin.Context) (uint, error) {
+	ctgIDStr := c.Param("category_id")
+
+	beerID, err := strconv.Atoi(ctgIDStr)
+	if err != nil || beerID <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid category id"})
+
+		return 0, fmt.Errorf("invalid category id: %w", err)
+	}
+
+	return uint(beerID), nil
 }
 
 // readRequestBody читает тело HTTP-запроса и возвращает его в виде байтового среза.

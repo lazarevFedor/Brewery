@@ -112,7 +112,7 @@ func main() {
 		panic(fmt.Errorf("failed to create postgres pool: %w", err))
 	}
 
-	err = migrator.Up(pool)
+	_ = migrator.Up(pool)
 
 	beerRepo := repository.NewBeerPostgres(pool)
 	err = fillDB(ctx, "beers.csv", beerRepo)

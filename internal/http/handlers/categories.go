@@ -43,14 +43,12 @@ func (h *categoriesHandler) CreateCategory(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get logger from context"})
-
 		return
 	}
 
 	body, err := readRequestBody(c)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read category in the request body: %v", err))
-
 		return
 	}
 
@@ -59,16 +57,23 @@ func (h *categoriesHandler) CreateCategory(c *gin.Context) {
 	if err = easyjson.Unmarshal(body, &req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to unmarshal category: %v", err))
-
 		return
 	}
 
+	ctgID, err := h.uc.CreateCategory(c.Request.Context(), &req)
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get category: %v", err))
+		c.JSON(http.StatusNotFound, gin.H{"error": "category not found"})
+		return
+	}
+
+	log.Debug(c.Request.Context(), fmt.Sprintf("ctgID=%d", ctgID))
 	log.Info(
 		c.Request.Context(),
 		// fmt.Sprintf("action=create resource=category status=success name=%q level=%d",
 		// 	req.Name, req.Level))
-		fmt.Sprintf("action=create resource=category status=success name=%q",
-			req.Name))
+		fmt.Sprintf("action=create resource=category status=success name=%q", req.Name),
+	)
 	c.Status(http.StatusCreated)
 }
 
@@ -267,7 +272,7 @@ func (h *categoriesHandler) GetChildCategory(c *gin.Context) {
 		return
 	}
 
-	category, err := h.uc.GetChildCategory(c.Request.Context(), id)
+	children, err := h.uc.GetChildCategories(c.Request.Context(), id)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get child category: %v", err))
 		c.Status(http.StatusInternalServerError)
@@ -275,7 +280,7 @@ func (h *categoriesHandler) GetChildCategory(c *gin.Context) {
 		return
 	}
 
-	rawBytes, err := easyjson.Marshal(category)
+	rawBytes, err := easyjson.Marshal(entities.Products(children))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal category: %v", err))
@@ -296,7 +301,7 @@ func (h *categoriesHandler) GetBeersByCategory(c *gin.Context) {
 		return
 	}
 
-	id, err := getIdParam(c)
+	id, err := getCategoryIDParam(c)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
 

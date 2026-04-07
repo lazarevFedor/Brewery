@@ -167,7 +167,7 @@ func easyjson57ba88e2DecodeBreweryInternalEntities1(in *jlexer.Lexer, out *Beer)
 			} else {
 				out.Type = string(in.String())
 			}
-		case "category":
+		case "category_name":
 			if in.IsNull() {
 				in.Skip()
 			} else {
@@ -270,7 +270,7 @@ func easyjson57ba88e2EncodeBreweryInternalEntities1(out *jwriter.Writer, in Beer
 		out.String(string(in.Type))
 	}
 	{
-		const prefix string = ",\"category\":"
+		const prefix string = ",\"category_name\":"
 		out.RawString(prefix)
 		(in.Category).MarshalEasyJSON(out)
 	}

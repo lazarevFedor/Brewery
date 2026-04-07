@@ -9,14 +9,14 @@ import (
 )
 
 type BeerService interface {
-	CreateCategory(ctx context.Context, cat *entities.ProductCategory) (uint, error)
+	CreateCategory(ctx context.Context, ctg *entities.ProductCategory) (uint, error)
 	GetCategoryByID(ctx context.Context, id uint) (*entities.ProductCategory, error)
 	UpdateCategory(ctx context.Context, id uint, updates map[string]any) error
 	DeleteCategory(ctx context.Context, id uint) error
 	GetAllCategories(ctx context.Context) ([]entities.ProductCategory, error)
 
 	GetParentCategory(ctx context.Context, id uint) (*entities.ProductCategory, error)
-	GetChildCategory(ctx context.Context, id uint) (*entities.ProductCategory, error)
+	GetChildCategories(ctx context.Context, id uint) ([]entities.ProductCategory, error)
 
 	CreateBeer(ctx context.Context, beer *entities.Beer) (uint, error)
 	GetBeersByCategory(ctx context.Context, id uint, limit, offset uint64) ([]entities.Beer, error)
@@ -38,20 +38,21 @@ func NewBeerService(beerRepo repository.BeerRepository, categoryRepo repository.
 	}
 }
 
-func (s *beerService) CreateCategory(ctx context.Context, cat *entities.ProductCategory) (uint, error) {
+func (s *beerService) CreateCategory(ctx context.Context, ctg *entities.ProductCategory) (uint, error) {
+	fmt.Print("Start request to insert")
 	if err := ctx.Err(); err != nil {
 		return 0, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	if cat == nil {
+	if ctg == nil {
 		return 0, errors.New("category is nil")
 	}
 
-	if cat.Name == "" {
+	if ctg.Name == "" {
 		return 0, errors.New("category name is required")
 	}
 
-	id, err := s.categoryRepo.InsertCategory(ctx, *cat)
+	id, err := s.categoryRepo.InsertCategory(ctx, *ctg)
 	if err != nil {
 		return 0, fmt.Errorf("failed to create category: %w", err)
 	}
@@ -87,6 +88,17 @@ func (s *beerService) UpdateCategory(ctx context.Context, id uint, updates map[s
 
 	if len(updates) == 0 {
 		return errors.New("no fields to update")
+	}
+
+	parentID, ok := updates["parent_id"]
+	fmt.Println(parentID, ok)
+	if ok {
+		parentIDFloat, ok := parentID.(float64)
+		if ok {
+			if parentIDFloat == 0 {
+				delete(updates, "parent_id")
+			}
+		}
 	}
 
 	err := s.categoryRepo.UpdateCategory(ctx, id, updates)
@@ -138,7 +150,7 @@ func (s *beerService) GetParentCategory(ctx context.Context, id uint) (*entities
 	}
 
 	if ctg.ParentID == 0 {
-		return nil, errors.New("category has no parent")
+		return nil, nil
 	}
 
 	parent, err := s.categoryRepo.GetCategoryByID(ctx, uint(ctg.ParentID))
@@ -149,7 +161,7 @@ func (s *beerService) GetParentCategory(ctx context.Context, id uint) (*entities
 	return parent, nil
 }
 
-func (s *beerService) GetChildCategory(ctx context.Context, id uint) (*entities.ProductCategory, error) {
+func (s *beerService) GetChildCategories(ctx context.Context, id uint) ([]entities.ProductCategory, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -158,14 +170,14 @@ func (s *beerService) GetChildCategory(ctx context.Context, id uint) (*entities.
 	if err != nil {
 		return nil, fmt.Errorf("failed to get categories: %w", err)
 	}
-
+	children := make([]entities.ProductCategory, 0)
 	for _, c := range categories {
 		if c.ParentID != 0 && uint(c.ParentID) == id {
-			return &c, nil
+			children = append(children, c)
+			
 		}
 	}
-
-	return nil, errors.New("child category not found")
+	return children, nil
 }
 
 func (s *beerService) CreateBeer(ctx context.Context, beer *entities.Beer) (uint, error) {
@@ -232,7 +244,67 @@ func (s *beerService) UpdateBeer(ctx context.Context, id uint, updates map[strin
 		return 0, errors.New("no fields to update")
 	}
 
-	beerID, err := s.beerRepo.UpdateBeer(ctx, id, updates)
+	finalUpdates := make(map[string]any)
+
+	for k, v := range updates {
+		switch k {
+
+		case "city":
+			countryName, ok := updates["country"].(string)
+			if !ok {
+				return 0, errors.New("country Datatype error")
+			}
+			ctrID, err := s.beerRepo.GetCountryID(ctx, countryName)
+			if err != nil {
+				return 0, fmt.Errorf("failed to get Country ID: %w", err)
+			}
+
+			cityName, ok := v.(string)
+			if !ok {
+				return 0, errors.New("cityName Datatype error")
+			}
+			cityID, err := s.beerRepo.GetCityID(ctx, cityName, ctrID)
+			if err != nil {
+				return 0, err
+			}
+			finalUpdates["city_id"] = cityID
+
+		case "type":
+			typeName, ok := v.(string)
+			if !ok {
+				return 0, errors.New("beerType Datatype error")
+			}
+			typeID, err := s.beerRepo.GetTypeID(ctx, typeName)
+			if err != nil {
+				return 0, fmt.Errorf("failed to get Type ID: %w", err)
+			}
+			finalUpdates["type_id"] = typeID
+
+		case "category":
+			categoryUpdates, ok := v.(map[string]any)
+			if !ok {
+				return 0, errors.New("category datatype error")
+			}
+
+			ctgName, ok := categoryUpdates["name"]
+			if !ok {
+				return 0, errors.New("category name needs to update category")
+			}
+
+			ctgNameStr, ok := ctgName.(string)
+			if !ok {
+				return 0, errors.New("category name datatype error")
+			}
+
+			ctgID, err := s.categoryRepo.GetCategoryID(ctx, ctgNameStr)
+			if err != nil {
+				return 0, fmt.Errorf("failed to get Category ID: %w", err)
+			}
+			finalUpdates["category_id"] = ctgID
+		}
+	}
+
+	beerID, err := s.beerRepo.UpdateBeer(ctx, id, finalUpdates)
 	if err != nil {
 		return 0, fmt.Errorf("failed to update beer: %w", err)
 	}

@@ -62,7 +62,13 @@ func main() {
 	})
 	engine.Use(middleware.RequestContextMiddleware())
 	engine.Use(middleware.MetricsMiddleware())
-	engine.Use(cors.Default())
+	engine.Use(cors.New(cors.Options{
+		AllowOriginFunc: func(origin string) bool {
+			return true
+		},
+		AllowedMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowedHeaders: []string{"Origin", "Content-Type", "Authorization"},
+	}))
 
 	router, err := graceful.New(
 		engine,
@@ -81,7 +87,7 @@ func main() {
 	router.PATCH("/api/categories/:id", categoryHandler.UpdateCategory)
 	router.DELETE("/api/categories/:id", categoryHandler.DeleteCategory)
 	router.GET("/api/categories", categoryHandler.GetAllCategories)
-	router.GET("/api/categories/:id/beers", categoryHandler.GetBeersByCategory)
+	router.GET("/api/categories/beers/:category_id", categoryHandler.GetBeersByCategory)
 	router.GET("/api/categories/parent/:id", categoryHandler.GetParentCategory)
 	router.GET("/api/categories/children/:id", categoryHandler.GetChildCategory)
 
@@ -89,7 +95,7 @@ func main() {
 	router.PATCH("/api/beers/:id", beersHandler.UpdateBeer)
 	router.DELETE("/api/beers/:id", beersHandler.DeleteBeer)
 	router.GET("/api/beers", beersHandler.GetAllBeers)
-	router.POST("/api/beers/reviews/:id", beersHandler.CreateBeerReview)
+	router.POST("/api/beers/reviews/:beer_id", beersHandler.CreateBeerReview)
 
 	log.Info(ctx, fmt.Sprintf("server listening on port %s", cfg.Port))
 

@@ -90,7 +90,7 @@
         "summary": "Update category",
         "operationId": "updateCategory",
         "parameters": [
-          { "$ref": "#/components/parameters/CategoryId" }
+          { "$ref": "#/components/parameters/Id" }
         ],
         "requestBody": {
           "content": {
@@ -115,7 +115,7 @@
         "summary": "Delete category",
         "operationId": "deleteCategory",
         "parameters": [
-          { "$ref": "#/components/parameters/CategoryId" }
+          { "$ref": "#/components/parameters/Id" }
         ],
         "responses": {
           "204": { "description": "Deleted" }
@@ -129,7 +129,7 @@
         "summary": "Get parent category",
         "operationId": "getParent",
         "parameters": [
-          { "$ref": "#/components/parameters/CategoryId" }
+          { "$ref": "#/components/parameters/Id" }
         ],
         "responses": {
           "200": {
@@ -150,7 +150,7 @@
         "summary": "Get child categories",
         "operationId": "getChildren",
         "parameters": [
-          { "$ref": "#/components/parameters/CategoryId" }
+          { "$ref": "#/components/parameters/Id" }
         ],
         "responses": {
           "200": {
@@ -227,7 +227,7 @@
         "summary": "Update beer",
         "operationId": "updateBeer",
         "parameters": [
-          { "$ref": "#/components/parameters/BeerId" }
+          { "$ref": "#/components/parameters/Id" }
         ],
         "requestBody": {
           "content": {
@@ -252,7 +252,7 @@
         "summary": "Delete beer",
         "operationId": "deleteBeer",
         "parameters": [
-          { "$ref": "#/components/parameters/BeerId" }
+          { "$ref": "#/components/parameters/Id" }
         ],
         "responses": {
           "200": {
@@ -272,7 +272,7 @@
       }
     },
 
-    "/beers/reviews/{id}": {
+    "/beers/reviews/{beer_id}": {
       "post": {
         "tags": ["Beers"],
         "summary": "Add review",
@@ -306,7 +306,7 @@
       }
     },
 
-    "/categories/{id}/beers": {
+    "/categories/beers/{category_id}": {
       "get": {
         "tags": ["Beers"],
         "summary": "Get beers by category",
@@ -336,17 +336,24 @@
   "components": {
     "parameters": {
       "CategoryId": {
+        "name": "category_id",
+        "in": "path",
+        "required": true,
+        "schema": { "type": "integer" }
+      },
+      "Id": {
         "name": "id",
         "in": "path",
         "required": true,
         "schema": { "type": "integer" }
       },
       "BeerId": {
-        "name": "id",
+        "name": "beer_id",
         "in": "path",
         "required": true,
         "schema": { "type": "integer" }
       },
+
       "Offset": {
         "name": "offset",
         "in": "query",
@@ -371,7 +378,7 @@
     "schemas": {
       "Category": {
         "type": "object",
-        "required": ["id", "name"],
+        "required": ["name"],
         "properties": {
           "id": { "type": "integer" },
           "name": { "type": "string" },
@@ -404,27 +411,29 @@
           "description": { "type": "string" },
           "abv": { "type": "number" },
           "ibu": { "type": "number" },
-          "city_id": { "type": "integer" },
-          "category_id": { "type": "integer" },
+          "city": { "type": "string" },
+          "country": { "type": "string" },
+          "category": { "$ref": "#/components/schemas/Category" },
           "amount": {"type": "integer"},
           "units": {"type":  "string"},
-          "type_id": { "type": "integer" }
+          "type": { "type": "string" }
         }
       },
 
       "BeerCreate": {
         "type": "object",
-        "required": ["name", "abv", "ibu", "city_id", "category_id", "type_id"],
+        "required": ["name", "abv", "ibu", "city", "category", "type"],
         "properties": {
           "name": { "type": "string" },
           "description": { "type": "string" },
           "abv": { "type": "number" },
           "ibu": { "type": "number" },
-          "city_id": { "type": "integer" },
-          "category_id": { "type": "integer" },
+          "city": { "type": "string" },
+          "country": { "type": "string" },
+          "category": { "$ref": "#/components/schemas/Category" }, 
           "amount": {"type": "integer"},
           "units": {"type":  "string"},
-          "type_id": { "type": "integer" }
+          "type": { "type": "string" }
         }
       },
 
@@ -435,11 +444,12 @@
           "description": { "type": "string" },
           "abv": { "type": "number" },
           "ibu": { "type": "number" },
-          "city_id": { "type": "integer" },
-          "category_id": { "type": "integer" },
+          "city": { "type": "string" },
+          "country": { "type": "string" },
+          "category": { "$ref": "#/components/schemas/Category" },
           "amount": {"type": "integer"},
           "units": {"type":  "string"},
-          "type_id": { "type": "integer" }
+          "type": { "type": "string" }
         }
       },
 

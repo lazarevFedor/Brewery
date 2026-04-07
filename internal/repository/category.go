@@ -84,6 +84,8 @@ func (r *CategoryPostgres) GetCategories(ctx context.Context) ([]entities.Produc
 func (r *CategoryPostgres) InsertCategory(
 	ctx context.Context, category entities.ProductCategory,
 ) (uint, error) {
+
+	fmt.Println("start inserting category")
 	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("begin: %w", err)
@@ -97,17 +99,24 @@ func (r *CategoryPostgres) InsertCategory(
 			}
 		}
 	}(tx, ctx)
-
+	
+	fmt.Println("start query")
 	psql := queries.CategoryInsert(category)
 	query, args, err := psql.ToSql()
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", "ToSql", err)
 	}
 
+	fmt.Println("end query")
 	var newID uint
 	err = tx.QueryRow(ctx, query, args...).Scan(&newID)
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", "Exec", err)
+	}
+
+	fmt.Println("NewID:", newID)
+	if newID == 0{
+		return 0, errors.New("zero id")
 	}
 
 	err = tx.Commit(ctx)
