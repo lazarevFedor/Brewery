@@ -33,9 +33,9 @@ type BeerServiceMock struct {
 	beforeCreateBeerReviewCounter uint64
 	CreateBeerReviewMock          mBeerServiceMockCreateBeerReview
 
-	funcCreateCategory          func(ctx context.Context, cat *entities.ProductCategory) (u1 uint, err error)
+	funcCreateCategory          func(ctx context.Context, ctg *entities.ProductCategory) (u1 uint, err error)
 	funcCreateCategoryOrigin    string
-	inspectFuncCreateCategory   func(ctx context.Context, cat *entities.ProductCategory)
+	inspectFuncCreateCategory   func(ctx context.Context, ctg *entities.ProductCategory)
 	afterCreateCategoryCounter  uint64
 	beforeCreateCategoryCounter uint64
 	CreateCategoryMock          mBeerServiceMockCreateCategory
@@ -82,12 +82,12 @@ type BeerServiceMock struct {
 	beforeGetCategoryByIDCounter uint64
 	GetCategoryByIDMock          mBeerServiceMockGetCategoryByID
 
-	funcGetChildCategory          func(ctx context.Context, id uint) (pp1 *entities.ProductCategory, err error)
-	funcGetChildCategoryOrigin    string
-	inspectFuncGetChildCategory   func(ctx context.Context, id uint)
-	afterGetChildCategoryCounter  uint64
-	beforeGetChildCategoryCounter uint64
-	GetChildCategoryMock          mBeerServiceMockGetChildCategory
+	funcGetChildCategories          func(ctx context.Context, id uint) (pa1 []entities.ProductCategory, err error)
+	funcGetChildCategoriesOrigin    string
+	inspectFuncGetChildCategories   func(ctx context.Context, id uint)
+	afterGetChildCategoriesCounter  uint64
+	beforeGetChildCategoriesCounter uint64
+	GetChildCategoriesMock          mBeerServiceMockGetChildCategories
 
 	funcGetParentCategory          func(ctx context.Context, id uint) (pp1 *entities.ProductCategory, err error)
 	funcGetParentCategoryOrigin    string
@@ -146,8 +146,8 @@ func NewBeerServiceMock(t minimock.Tester) *BeerServiceMock {
 	m.GetCategoryByIDMock = mBeerServiceMockGetCategoryByID{mock: m}
 	m.GetCategoryByIDMock.callArgs = []*BeerServiceMockGetCategoryByIDParams{}
 
-	m.GetChildCategoryMock = mBeerServiceMockGetChildCategory{mock: m}
-	m.GetChildCategoryMock.callArgs = []*BeerServiceMockGetChildCategoryParams{}
+	m.GetChildCategoriesMock = mBeerServiceMockGetChildCategories{mock: m}
+	m.GetChildCategoriesMock.callArgs = []*BeerServiceMockGetChildCategoriesParams{}
 
 	m.GetParentCategoryMock = mBeerServiceMockGetParentCategory{mock: m}
 	m.GetParentCategoryMock.callArgs = []*BeerServiceMockGetParentCategoryParams{}
@@ -876,13 +876,13 @@ type BeerServiceMockCreateCategoryExpectation struct {
 // BeerServiceMockCreateCategoryParams contains parameters of the BeerService.CreateCategory
 type BeerServiceMockCreateCategoryParams struct {
 	ctx context.Context
-	cat *entities.ProductCategory
+	ctg *entities.ProductCategory
 }
 
 // BeerServiceMockCreateCategoryParamPtrs contains pointers to parameters of the BeerService.CreateCategory
 type BeerServiceMockCreateCategoryParamPtrs struct {
 	ctx *context.Context
-	cat **entities.ProductCategory
+	ctg **entities.ProductCategory
 }
 
 // BeerServiceMockCreateCategoryResults contains results of the BeerService.CreateCategory
@@ -895,7 +895,7 @@ type BeerServiceMockCreateCategoryResults struct {
 type BeerServiceMockCreateCategoryExpectationOrigins struct {
 	origin    string
 	originCtx string
-	originCat string
+	originCtg string
 }
 
 // Marks this method to be optional. The default behavior of any method with Return() is '1 or more', meaning
@@ -909,7 +909,7 @@ func (mmCreateCategory *mBeerServiceMockCreateCategory) Optional() *mBeerService
 }
 
 // Expect sets up expected params for BeerService.CreateCategory
-func (mmCreateCategory *mBeerServiceMockCreateCategory) Expect(ctx context.Context, cat *entities.ProductCategory) *mBeerServiceMockCreateCategory {
+func (mmCreateCategory *mBeerServiceMockCreateCategory) Expect(ctx context.Context, ctg *entities.ProductCategory) *mBeerServiceMockCreateCategory {
 	if mmCreateCategory.mock.funcCreateCategory != nil {
 		mmCreateCategory.mock.t.Fatalf("BeerServiceMock.CreateCategory mock is already set by Set")
 	}
@@ -922,7 +922,7 @@ func (mmCreateCategory *mBeerServiceMockCreateCategory) Expect(ctx context.Conte
 		mmCreateCategory.mock.t.Fatalf("BeerServiceMock.CreateCategory mock is already set by ExpectParams functions")
 	}
 
-	mmCreateCategory.defaultExpectation.params = &BeerServiceMockCreateCategoryParams{ctx, cat}
+	mmCreateCategory.defaultExpectation.params = &BeerServiceMockCreateCategoryParams{ctx, ctg}
 	mmCreateCategory.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
 	for _, e := range mmCreateCategory.expectations {
 		if minimock.Equal(e.params, mmCreateCategory.defaultExpectation.params) {
@@ -956,8 +956,8 @@ func (mmCreateCategory *mBeerServiceMockCreateCategory) ExpectCtxParam1(ctx cont
 	return mmCreateCategory
 }
 
-// ExpectCatParam2 sets up expected param cat for BeerService.CreateCategory
-func (mmCreateCategory *mBeerServiceMockCreateCategory) ExpectCatParam2(cat *entities.ProductCategory) *mBeerServiceMockCreateCategory {
+// ExpectCtgParam2 sets up expected param ctg for BeerService.CreateCategory
+func (mmCreateCategory *mBeerServiceMockCreateCategory) ExpectCtgParam2(ctg *entities.ProductCategory) *mBeerServiceMockCreateCategory {
 	if mmCreateCategory.mock.funcCreateCategory != nil {
 		mmCreateCategory.mock.t.Fatalf("BeerServiceMock.CreateCategory mock is already set by Set")
 	}
@@ -973,14 +973,14 @@ func (mmCreateCategory *mBeerServiceMockCreateCategory) ExpectCatParam2(cat *ent
 	if mmCreateCategory.defaultExpectation.paramPtrs == nil {
 		mmCreateCategory.defaultExpectation.paramPtrs = &BeerServiceMockCreateCategoryParamPtrs{}
 	}
-	mmCreateCategory.defaultExpectation.paramPtrs.cat = &cat
-	mmCreateCategory.defaultExpectation.expectationOrigins.originCat = minimock.CallerInfo(1)
+	mmCreateCategory.defaultExpectation.paramPtrs.ctg = &ctg
+	mmCreateCategory.defaultExpectation.expectationOrigins.originCtg = minimock.CallerInfo(1)
 
 	return mmCreateCategory
 }
 
 // Inspect accepts an inspector function that has same arguments as the BeerService.CreateCategory
-func (mmCreateCategory *mBeerServiceMockCreateCategory) Inspect(f func(ctx context.Context, cat *entities.ProductCategory)) *mBeerServiceMockCreateCategory {
+func (mmCreateCategory *mBeerServiceMockCreateCategory) Inspect(f func(ctx context.Context, ctg *entities.ProductCategory)) *mBeerServiceMockCreateCategory {
 	if mmCreateCategory.mock.inspectFuncCreateCategory != nil {
 		mmCreateCategory.mock.t.Fatalf("Inspect function is already set for BeerServiceMock.CreateCategory")
 	}
@@ -1005,7 +1005,7 @@ func (mmCreateCategory *mBeerServiceMockCreateCategory) Return(u1 uint, err erro
 }
 
 // Set uses given function f to mock the BeerService.CreateCategory method
-func (mmCreateCategory *mBeerServiceMockCreateCategory) Set(f func(ctx context.Context, cat *entities.ProductCategory) (u1 uint, err error)) *BeerServiceMock {
+func (mmCreateCategory *mBeerServiceMockCreateCategory) Set(f func(ctx context.Context, ctg *entities.ProductCategory) (u1 uint, err error)) *BeerServiceMock {
 	if mmCreateCategory.defaultExpectation != nil {
 		mmCreateCategory.mock.t.Fatalf("Default expectation is already set for the BeerService.CreateCategory method")
 	}
@@ -1021,14 +1021,14 @@ func (mmCreateCategory *mBeerServiceMockCreateCategory) Set(f func(ctx context.C
 
 // When sets expectation for the BeerService.CreateCategory which will trigger the result defined by the following
 // Then helper
-func (mmCreateCategory *mBeerServiceMockCreateCategory) When(ctx context.Context, cat *entities.ProductCategory) *BeerServiceMockCreateCategoryExpectation {
+func (mmCreateCategory *mBeerServiceMockCreateCategory) When(ctx context.Context, ctg *entities.ProductCategory) *BeerServiceMockCreateCategoryExpectation {
 	if mmCreateCategory.mock.funcCreateCategory != nil {
 		mmCreateCategory.mock.t.Fatalf("BeerServiceMock.CreateCategory mock is already set by Set")
 	}
 
 	expectation := &BeerServiceMockCreateCategoryExpectation{
 		mock:               mmCreateCategory.mock,
-		params:             &BeerServiceMockCreateCategoryParams{ctx, cat},
+		params:             &BeerServiceMockCreateCategoryParams{ctx, ctg},
 		expectationOrigins: BeerServiceMockCreateCategoryExpectationOrigins{origin: minimock.CallerInfo(1)},
 	}
 	mmCreateCategory.expectations = append(mmCreateCategory.expectations, expectation)
@@ -1063,17 +1063,17 @@ func (mmCreateCategory *mBeerServiceMockCreateCategory) invocationsDone() bool {
 }
 
 // CreateCategory implements mm_usecase.BeerService
-func (mmCreateCategory *BeerServiceMock) CreateCategory(ctx context.Context, cat *entities.ProductCategory) (u1 uint, err error) {
+func (mmCreateCategory *BeerServiceMock) CreateCategory(ctx context.Context, ctg *entities.ProductCategory) (u1 uint, err error) {
 	mm_atomic.AddUint64(&mmCreateCategory.beforeCreateCategoryCounter, 1)
 	defer mm_atomic.AddUint64(&mmCreateCategory.afterCreateCategoryCounter, 1)
 
 	mmCreateCategory.t.Helper()
 
 	if mmCreateCategory.inspectFuncCreateCategory != nil {
-		mmCreateCategory.inspectFuncCreateCategory(ctx, cat)
+		mmCreateCategory.inspectFuncCreateCategory(ctx, ctg)
 	}
 
-	mm_params := BeerServiceMockCreateCategoryParams{ctx, cat}
+	mm_params := BeerServiceMockCreateCategoryParams{ctx, ctg}
 
 	// Record call args
 	mmCreateCategory.CreateCategoryMock.mutex.Lock()
@@ -1092,7 +1092,7 @@ func (mmCreateCategory *BeerServiceMock) CreateCategory(ctx context.Context, cat
 		mm_want := mmCreateCategory.CreateCategoryMock.defaultExpectation.params
 		mm_want_ptrs := mmCreateCategory.CreateCategoryMock.defaultExpectation.paramPtrs
 
-		mm_got := BeerServiceMockCreateCategoryParams{ctx, cat}
+		mm_got := BeerServiceMockCreateCategoryParams{ctx, ctg}
 
 		if mm_want_ptrs != nil {
 
@@ -1101,9 +1101,9 @@ func (mmCreateCategory *BeerServiceMock) CreateCategory(ctx context.Context, cat
 					mmCreateCategory.CreateCategoryMock.defaultExpectation.expectationOrigins.originCtx, *mm_want_ptrs.ctx, mm_got.ctx, minimock.Diff(*mm_want_ptrs.ctx, mm_got.ctx))
 			}
 
-			if mm_want_ptrs.cat != nil && !minimock.Equal(*mm_want_ptrs.cat, mm_got.cat) {
-				mmCreateCategory.t.Errorf("BeerServiceMock.CreateCategory got unexpected parameter cat, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
-					mmCreateCategory.CreateCategoryMock.defaultExpectation.expectationOrigins.originCat, *mm_want_ptrs.cat, mm_got.cat, minimock.Diff(*mm_want_ptrs.cat, mm_got.cat))
+			if mm_want_ptrs.ctg != nil && !minimock.Equal(*mm_want_ptrs.ctg, mm_got.ctg) {
+				mmCreateCategory.t.Errorf("BeerServiceMock.CreateCategory got unexpected parameter ctg, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmCreateCategory.CreateCategoryMock.defaultExpectation.expectationOrigins.originCtg, *mm_want_ptrs.ctg, mm_got.ctg, minimock.Diff(*mm_want_ptrs.ctg, mm_got.ctg))
 			}
 
 		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
@@ -1118,9 +1118,9 @@ func (mmCreateCategory *BeerServiceMock) CreateCategory(ctx context.Context, cat
 		return (*mm_results).u1, (*mm_results).err
 	}
 	if mmCreateCategory.funcCreateCategory != nil {
-		return mmCreateCategory.funcCreateCategory(ctx, cat)
+		return mmCreateCategory.funcCreateCategory(ctx, ctg)
 	}
-	mmCreateCategory.t.Fatalf("Unexpected call to BeerServiceMock.CreateCategory. %v %v", ctx, cat)
+	mmCreateCategory.t.Fatalf("Unexpected call to BeerServiceMock.CreateCategory. %v %v", ctx, ctg)
 	return
 }
 
@@ -3310,50 +3310,50 @@ func (m *BeerServiceMock) MinimockGetCategoryByIDInspect() {
 	}
 }
 
-type mBeerServiceMockGetChildCategory struct {
+type mBeerServiceMockGetChildCategories struct {
 	optional           bool
 	mock               *BeerServiceMock
-	defaultExpectation *BeerServiceMockGetChildCategoryExpectation
-	expectations       []*BeerServiceMockGetChildCategoryExpectation
+	defaultExpectation *BeerServiceMockGetChildCategoriesExpectation
+	expectations       []*BeerServiceMockGetChildCategoriesExpectation
 
-	callArgs []*BeerServiceMockGetChildCategoryParams
+	callArgs []*BeerServiceMockGetChildCategoriesParams
 	mutex    sync.RWMutex
 
 	expectedInvocations       uint64
 	expectedInvocationsOrigin string
 }
 
-// BeerServiceMockGetChildCategoryExpectation specifies expectation struct of the BeerService.GetChildCategory
-type BeerServiceMockGetChildCategoryExpectation struct {
+// BeerServiceMockGetChildCategoriesExpectation specifies expectation struct of the BeerService.GetChildCategories
+type BeerServiceMockGetChildCategoriesExpectation struct {
 	mock               *BeerServiceMock
-	params             *BeerServiceMockGetChildCategoryParams
-	paramPtrs          *BeerServiceMockGetChildCategoryParamPtrs
-	expectationOrigins BeerServiceMockGetChildCategoryExpectationOrigins
-	results            *BeerServiceMockGetChildCategoryResults
+	params             *BeerServiceMockGetChildCategoriesParams
+	paramPtrs          *BeerServiceMockGetChildCategoriesParamPtrs
+	expectationOrigins BeerServiceMockGetChildCategoriesExpectationOrigins
+	results            *BeerServiceMockGetChildCategoriesResults
 	returnOrigin       string
 	Counter            uint64
 }
 
-// BeerServiceMockGetChildCategoryParams contains parameters of the BeerService.GetChildCategory
-type BeerServiceMockGetChildCategoryParams struct {
+// BeerServiceMockGetChildCategoriesParams contains parameters of the BeerService.GetChildCategories
+type BeerServiceMockGetChildCategoriesParams struct {
 	ctx context.Context
 	id  uint
 }
 
-// BeerServiceMockGetChildCategoryParamPtrs contains pointers to parameters of the BeerService.GetChildCategory
-type BeerServiceMockGetChildCategoryParamPtrs struct {
+// BeerServiceMockGetChildCategoriesParamPtrs contains pointers to parameters of the BeerService.GetChildCategories
+type BeerServiceMockGetChildCategoriesParamPtrs struct {
 	ctx *context.Context
 	id  *uint
 }
 
-// BeerServiceMockGetChildCategoryResults contains results of the BeerService.GetChildCategory
-type BeerServiceMockGetChildCategoryResults struct {
-	pp1 *entities.ProductCategory
+// BeerServiceMockGetChildCategoriesResults contains results of the BeerService.GetChildCategories
+type BeerServiceMockGetChildCategoriesResults struct {
+	pa1 []entities.ProductCategory
 	err error
 }
 
-// BeerServiceMockGetChildCategoryOrigins contains origins of expectations of the BeerService.GetChildCategory
-type BeerServiceMockGetChildCategoryExpectationOrigins struct {
+// BeerServiceMockGetChildCategoriesOrigins contains origins of expectations of the BeerService.GetChildCategories
+type BeerServiceMockGetChildCategoriesExpectationOrigins struct {
 	origin    string
 	originCtx string
 	originId  string
@@ -3364,292 +3364,292 @@ type BeerServiceMockGetChildCategoryExpectationOrigins struct {
 // Optional() makes method check to work in '0 or more' mode.
 // It is NOT RECOMMENDED to use this option unless you really need it, as default behaviour helps to
 // catch the problems when the expected method call is totally skipped during test run.
-func (mmGetChildCategory *mBeerServiceMockGetChildCategory) Optional() *mBeerServiceMockGetChildCategory {
-	mmGetChildCategory.optional = true
-	return mmGetChildCategory
+func (mmGetChildCategories *mBeerServiceMockGetChildCategories) Optional() *mBeerServiceMockGetChildCategories {
+	mmGetChildCategories.optional = true
+	return mmGetChildCategories
 }
 
-// Expect sets up expected params for BeerService.GetChildCategory
-func (mmGetChildCategory *mBeerServiceMockGetChildCategory) Expect(ctx context.Context, id uint) *mBeerServiceMockGetChildCategory {
-	if mmGetChildCategory.mock.funcGetChildCategory != nil {
-		mmGetChildCategory.mock.t.Fatalf("BeerServiceMock.GetChildCategory mock is already set by Set")
+// Expect sets up expected params for BeerService.GetChildCategories
+func (mmGetChildCategories *mBeerServiceMockGetChildCategories) Expect(ctx context.Context, id uint) *mBeerServiceMockGetChildCategories {
+	if mmGetChildCategories.mock.funcGetChildCategories != nil {
+		mmGetChildCategories.mock.t.Fatalf("BeerServiceMock.GetChildCategories mock is already set by Set")
 	}
 
-	if mmGetChildCategory.defaultExpectation == nil {
-		mmGetChildCategory.defaultExpectation = &BeerServiceMockGetChildCategoryExpectation{}
+	if mmGetChildCategories.defaultExpectation == nil {
+		mmGetChildCategories.defaultExpectation = &BeerServiceMockGetChildCategoriesExpectation{}
 	}
 
-	if mmGetChildCategory.defaultExpectation.paramPtrs != nil {
-		mmGetChildCategory.mock.t.Fatalf("BeerServiceMock.GetChildCategory mock is already set by ExpectParams functions")
+	if mmGetChildCategories.defaultExpectation.paramPtrs != nil {
+		mmGetChildCategories.mock.t.Fatalf("BeerServiceMock.GetChildCategories mock is already set by ExpectParams functions")
 	}
 
-	mmGetChildCategory.defaultExpectation.params = &BeerServiceMockGetChildCategoryParams{ctx, id}
-	mmGetChildCategory.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
-	for _, e := range mmGetChildCategory.expectations {
-		if minimock.Equal(e.params, mmGetChildCategory.defaultExpectation.params) {
-			mmGetChildCategory.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmGetChildCategory.defaultExpectation.params)
+	mmGetChildCategories.defaultExpectation.params = &BeerServiceMockGetChildCategoriesParams{ctx, id}
+	mmGetChildCategories.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
+	for _, e := range mmGetChildCategories.expectations {
+		if minimock.Equal(e.params, mmGetChildCategories.defaultExpectation.params) {
+			mmGetChildCategories.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmGetChildCategories.defaultExpectation.params)
 		}
 	}
 
-	return mmGetChildCategory
+	return mmGetChildCategories
 }
 
-// ExpectCtxParam1 sets up expected param ctx for BeerService.GetChildCategory
-func (mmGetChildCategory *mBeerServiceMockGetChildCategory) ExpectCtxParam1(ctx context.Context) *mBeerServiceMockGetChildCategory {
-	if mmGetChildCategory.mock.funcGetChildCategory != nil {
-		mmGetChildCategory.mock.t.Fatalf("BeerServiceMock.GetChildCategory mock is already set by Set")
+// ExpectCtxParam1 sets up expected param ctx for BeerService.GetChildCategories
+func (mmGetChildCategories *mBeerServiceMockGetChildCategories) ExpectCtxParam1(ctx context.Context) *mBeerServiceMockGetChildCategories {
+	if mmGetChildCategories.mock.funcGetChildCategories != nil {
+		mmGetChildCategories.mock.t.Fatalf("BeerServiceMock.GetChildCategories mock is already set by Set")
 	}
 
-	if mmGetChildCategory.defaultExpectation == nil {
-		mmGetChildCategory.defaultExpectation = &BeerServiceMockGetChildCategoryExpectation{}
+	if mmGetChildCategories.defaultExpectation == nil {
+		mmGetChildCategories.defaultExpectation = &BeerServiceMockGetChildCategoriesExpectation{}
 	}
 
-	if mmGetChildCategory.defaultExpectation.params != nil {
-		mmGetChildCategory.mock.t.Fatalf("BeerServiceMock.GetChildCategory mock is already set by Expect")
+	if mmGetChildCategories.defaultExpectation.params != nil {
+		mmGetChildCategories.mock.t.Fatalf("BeerServiceMock.GetChildCategories mock is already set by Expect")
 	}
 
-	if mmGetChildCategory.defaultExpectation.paramPtrs == nil {
-		mmGetChildCategory.defaultExpectation.paramPtrs = &BeerServiceMockGetChildCategoryParamPtrs{}
+	if mmGetChildCategories.defaultExpectation.paramPtrs == nil {
+		mmGetChildCategories.defaultExpectation.paramPtrs = &BeerServiceMockGetChildCategoriesParamPtrs{}
 	}
-	mmGetChildCategory.defaultExpectation.paramPtrs.ctx = &ctx
-	mmGetChildCategory.defaultExpectation.expectationOrigins.originCtx = minimock.CallerInfo(1)
+	mmGetChildCategories.defaultExpectation.paramPtrs.ctx = &ctx
+	mmGetChildCategories.defaultExpectation.expectationOrigins.originCtx = minimock.CallerInfo(1)
 
-	return mmGetChildCategory
+	return mmGetChildCategories
 }
 
-// ExpectIdParam2 sets up expected param id for BeerService.GetChildCategory
-func (mmGetChildCategory *mBeerServiceMockGetChildCategory) ExpectIdParam2(id uint) *mBeerServiceMockGetChildCategory {
-	if mmGetChildCategory.mock.funcGetChildCategory != nil {
-		mmGetChildCategory.mock.t.Fatalf("BeerServiceMock.GetChildCategory mock is already set by Set")
+// ExpectIdParam2 sets up expected param id for BeerService.GetChildCategories
+func (mmGetChildCategories *mBeerServiceMockGetChildCategories) ExpectIdParam2(id uint) *mBeerServiceMockGetChildCategories {
+	if mmGetChildCategories.mock.funcGetChildCategories != nil {
+		mmGetChildCategories.mock.t.Fatalf("BeerServiceMock.GetChildCategories mock is already set by Set")
 	}
 
-	if mmGetChildCategory.defaultExpectation == nil {
-		mmGetChildCategory.defaultExpectation = &BeerServiceMockGetChildCategoryExpectation{}
+	if mmGetChildCategories.defaultExpectation == nil {
+		mmGetChildCategories.defaultExpectation = &BeerServiceMockGetChildCategoriesExpectation{}
 	}
 
-	if mmGetChildCategory.defaultExpectation.params != nil {
-		mmGetChildCategory.mock.t.Fatalf("BeerServiceMock.GetChildCategory mock is already set by Expect")
+	if mmGetChildCategories.defaultExpectation.params != nil {
+		mmGetChildCategories.mock.t.Fatalf("BeerServiceMock.GetChildCategories mock is already set by Expect")
 	}
 
-	if mmGetChildCategory.defaultExpectation.paramPtrs == nil {
-		mmGetChildCategory.defaultExpectation.paramPtrs = &BeerServiceMockGetChildCategoryParamPtrs{}
+	if mmGetChildCategories.defaultExpectation.paramPtrs == nil {
+		mmGetChildCategories.defaultExpectation.paramPtrs = &BeerServiceMockGetChildCategoriesParamPtrs{}
 	}
-	mmGetChildCategory.defaultExpectation.paramPtrs.id = &id
-	mmGetChildCategory.defaultExpectation.expectationOrigins.originId = minimock.CallerInfo(1)
+	mmGetChildCategories.defaultExpectation.paramPtrs.id = &id
+	mmGetChildCategories.defaultExpectation.expectationOrigins.originId = minimock.CallerInfo(1)
 
-	return mmGetChildCategory
+	return mmGetChildCategories
 }
 
-// Inspect accepts an inspector function that has same arguments as the BeerService.GetChildCategory
-func (mmGetChildCategory *mBeerServiceMockGetChildCategory) Inspect(f func(ctx context.Context, id uint)) *mBeerServiceMockGetChildCategory {
-	if mmGetChildCategory.mock.inspectFuncGetChildCategory != nil {
-		mmGetChildCategory.mock.t.Fatalf("Inspect function is already set for BeerServiceMock.GetChildCategory")
+// Inspect accepts an inspector function that has same arguments as the BeerService.GetChildCategories
+func (mmGetChildCategories *mBeerServiceMockGetChildCategories) Inspect(f func(ctx context.Context, id uint)) *mBeerServiceMockGetChildCategories {
+	if mmGetChildCategories.mock.inspectFuncGetChildCategories != nil {
+		mmGetChildCategories.mock.t.Fatalf("Inspect function is already set for BeerServiceMock.GetChildCategories")
 	}
 
-	mmGetChildCategory.mock.inspectFuncGetChildCategory = f
+	mmGetChildCategories.mock.inspectFuncGetChildCategories = f
 
-	return mmGetChildCategory
+	return mmGetChildCategories
 }
 
-// Return sets up results that will be returned by BeerService.GetChildCategory
-func (mmGetChildCategory *mBeerServiceMockGetChildCategory) Return(pp1 *entities.ProductCategory, err error) *BeerServiceMock {
-	if mmGetChildCategory.mock.funcGetChildCategory != nil {
-		mmGetChildCategory.mock.t.Fatalf("BeerServiceMock.GetChildCategory mock is already set by Set")
+// Return sets up results that will be returned by BeerService.GetChildCategories
+func (mmGetChildCategories *mBeerServiceMockGetChildCategories) Return(pa1 []entities.ProductCategory, err error) *BeerServiceMock {
+	if mmGetChildCategories.mock.funcGetChildCategories != nil {
+		mmGetChildCategories.mock.t.Fatalf("BeerServiceMock.GetChildCategories mock is already set by Set")
 	}
 
-	if mmGetChildCategory.defaultExpectation == nil {
-		mmGetChildCategory.defaultExpectation = &BeerServiceMockGetChildCategoryExpectation{mock: mmGetChildCategory.mock}
+	if mmGetChildCategories.defaultExpectation == nil {
+		mmGetChildCategories.defaultExpectation = &BeerServiceMockGetChildCategoriesExpectation{mock: mmGetChildCategories.mock}
 	}
-	mmGetChildCategory.defaultExpectation.results = &BeerServiceMockGetChildCategoryResults{pp1, err}
-	mmGetChildCategory.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
-	return mmGetChildCategory.mock
+	mmGetChildCategories.defaultExpectation.results = &BeerServiceMockGetChildCategoriesResults{pa1, err}
+	mmGetChildCategories.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
+	return mmGetChildCategories.mock
 }
 
-// Set uses given function f to mock the BeerService.GetChildCategory method
-func (mmGetChildCategory *mBeerServiceMockGetChildCategory) Set(f func(ctx context.Context, id uint) (pp1 *entities.ProductCategory, err error)) *BeerServiceMock {
-	if mmGetChildCategory.defaultExpectation != nil {
-		mmGetChildCategory.mock.t.Fatalf("Default expectation is already set for the BeerService.GetChildCategory method")
+// Set uses given function f to mock the BeerService.GetChildCategories method
+func (mmGetChildCategories *mBeerServiceMockGetChildCategories) Set(f func(ctx context.Context, id uint) (pa1 []entities.ProductCategory, err error)) *BeerServiceMock {
+	if mmGetChildCategories.defaultExpectation != nil {
+		mmGetChildCategories.mock.t.Fatalf("Default expectation is already set for the BeerService.GetChildCategories method")
 	}
 
-	if len(mmGetChildCategory.expectations) > 0 {
-		mmGetChildCategory.mock.t.Fatalf("Some expectations are already set for the BeerService.GetChildCategory method")
+	if len(mmGetChildCategories.expectations) > 0 {
+		mmGetChildCategories.mock.t.Fatalf("Some expectations are already set for the BeerService.GetChildCategories method")
 	}
 
-	mmGetChildCategory.mock.funcGetChildCategory = f
-	mmGetChildCategory.mock.funcGetChildCategoryOrigin = minimock.CallerInfo(1)
-	return mmGetChildCategory.mock
+	mmGetChildCategories.mock.funcGetChildCategories = f
+	mmGetChildCategories.mock.funcGetChildCategoriesOrigin = minimock.CallerInfo(1)
+	return mmGetChildCategories.mock
 }
 
-// When sets expectation for the BeerService.GetChildCategory which will trigger the result defined by the following
+// When sets expectation for the BeerService.GetChildCategories which will trigger the result defined by the following
 // Then helper
-func (mmGetChildCategory *mBeerServiceMockGetChildCategory) When(ctx context.Context, id uint) *BeerServiceMockGetChildCategoryExpectation {
-	if mmGetChildCategory.mock.funcGetChildCategory != nil {
-		mmGetChildCategory.mock.t.Fatalf("BeerServiceMock.GetChildCategory mock is already set by Set")
+func (mmGetChildCategories *mBeerServiceMockGetChildCategories) When(ctx context.Context, id uint) *BeerServiceMockGetChildCategoriesExpectation {
+	if mmGetChildCategories.mock.funcGetChildCategories != nil {
+		mmGetChildCategories.mock.t.Fatalf("BeerServiceMock.GetChildCategories mock is already set by Set")
 	}
 
-	expectation := &BeerServiceMockGetChildCategoryExpectation{
-		mock:               mmGetChildCategory.mock,
-		params:             &BeerServiceMockGetChildCategoryParams{ctx, id},
-		expectationOrigins: BeerServiceMockGetChildCategoryExpectationOrigins{origin: minimock.CallerInfo(1)},
+	expectation := &BeerServiceMockGetChildCategoriesExpectation{
+		mock:               mmGetChildCategories.mock,
+		params:             &BeerServiceMockGetChildCategoriesParams{ctx, id},
+		expectationOrigins: BeerServiceMockGetChildCategoriesExpectationOrigins{origin: minimock.CallerInfo(1)},
 	}
-	mmGetChildCategory.expectations = append(mmGetChildCategory.expectations, expectation)
+	mmGetChildCategories.expectations = append(mmGetChildCategories.expectations, expectation)
 	return expectation
 }
 
-// Then sets up BeerService.GetChildCategory return parameters for the expectation previously defined by the When method
-func (e *BeerServiceMockGetChildCategoryExpectation) Then(pp1 *entities.ProductCategory, err error) *BeerServiceMock {
-	e.results = &BeerServiceMockGetChildCategoryResults{pp1, err}
+// Then sets up BeerService.GetChildCategories return parameters for the expectation previously defined by the When method
+func (e *BeerServiceMockGetChildCategoriesExpectation) Then(pa1 []entities.ProductCategory, err error) *BeerServiceMock {
+	e.results = &BeerServiceMockGetChildCategoriesResults{pa1, err}
 	return e.mock
 }
 
-// Times sets number of times BeerService.GetChildCategory should be invoked
-func (mmGetChildCategory *mBeerServiceMockGetChildCategory) Times(n uint64) *mBeerServiceMockGetChildCategory {
+// Times sets number of times BeerService.GetChildCategories should be invoked
+func (mmGetChildCategories *mBeerServiceMockGetChildCategories) Times(n uint64) *mBeerServiceMockGetChildCategories {
 	if n == 0 {
-		mmGetChildCategory.mock.t.Fatalf("Times of BeerServiceMock.GetChildCategory mock can not be zero")
+		mmGetChildCategories.mock.t.Fatalf("Times of BeerServiceMock.GetChildCategories mock can not be zero")
 	}
-	mm_atomic.StoreUint64(&mmGetChildCategory.expectedInvocations, n)
-	mmGetChildCategory.expectedInvocationsOrigin = minimock.CallerInfo(1)
-	return mmGetChildCategory
+	mm_atomic.StoreUint64(&mmGetChildCategories.expectedInvocations, n)
+	mmGetChildCategories.expectedInvocationsOrigin = minimock.CallerInfo(1)
+	return mmGetChildCategories
 }
 
-func (mmGetChildCategory *mBeerServiceMockGetChildCategory) invocationsDone() bool {
-	if len(mmGetChildCategory.expectations) == 0 && mmGetChildCategory.defaultExpectation == nil && mmGetChildCategory.mock.funcGetChildCategory == nil {
+func (mmGetChildCategories *mBeerServiceMockGetChildCategories) invocationsDone() bool {
+	if len(mmGetChildCategories.expectations) == 0 && mmGetChildCategories.defaultExpectation == nil && mmGetChildCategories.mock.funcGetChildCategories == nil {
 		return true
 	}
 
-	totalInvocations := mm_atomic.LoadUint64(&mmGetChildCategory.mock.afterGetChildCategoryCounter)
-	expectedInvocations := mm_atomic.LoadUint64(&mmGetChildCategory.expectedInvocations)
+	totalInvocations := mm_atomic.LoadUint64(&mmGetChildCategories.mock.afterGetChildCategoriesCounter)
+	expectedInvocations := mm_atomic.LoadUint64(&mmGetChildCategories.expectedInvocations)
 
 	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
 }
 
-// GetChildCategory implements mm_usecase.BeerService
-func (mmGetChildCategory *BeerServiceMock) GetChildCategory(ctx context.Context, id uint) (pp1 *entities.ProductCategory, err error) {
-	mm_atomic.AddUint64(&mmGetChildCategory.beforeGetChildCategoryCounter, 1)
-	defer mm_atomic.AddUint64(&mmGetChildCategory.afterGetChildCategoryCounter, 1)
+// GetChildCategories implements mm_usecase.BeerService
+func (mmGetChildCategories *BeerServiceMock) GetChildCategories(ctx context.Context, id uint) (pa1 []entities.ProductCategory, err error) {
+	mm_atomic.AddUint64(&mmGetChildCategories.beforeGetChildCategoriesCounter, 1)
+	defer mm_atomic.AddUint64(&mmGetChildCategories.afterGetChildCategoriesCounter, 1)
 
-	mmGetChildCategory.t.Helper()
+	mmGetChildCategories.t.Helper()
 
-	if mmGetChildCategory.inspectFuncGetChildCategory != nil {
-		mmGetChildCategory.inspectFuncGetChildCategory(ctx, id)
+	if mmGetChildCategories.inspectFuncGetChildCategories != nil {
+		mmGetChildCategories.inspectFuncGetChildCategories(ctx, id)
 	}
 
-	mm_params := BeerServiceMockGetChildCategoryParams{ctx, id}
+	mm_params := BeerServiceMockGetChildCategoriesParams{ctx, id}
 
 	// Record call args
-	mmGetChildCategory.GetChildCategoryMock.mutex.Lock()
-	mmGetChildCategory.GetChildCategoryMock.callArgs = append(mmGetChildCategory.GetChildCategoryMock.callArgs, &mm_params)
-	mmGetChildCategory.GetChildCategoryMock.mutex.Unlock()
+	mmGetChildCategories.GetChildCategoriesMock.mutex.Lock()
+	mmGetChildCategories.GetChildCategoriesMock.callArgs = append(mmGetChildCategories.GetChildCategoriesMock.callArgs, &mm_params)
+	mmGetChildCategories.GetChildCategoriesMock.mutex.Unlock()
 
-	for _, e := range mmGetChildCategory.GetChildCategoryMock.expectations {
+	for _, e := range mmGetChildCategories.GetChildCategoriesMock.expectations {
 		if minimock.Equal(*e.params, mm_params) {
 			mm_atomic.AddUint64(&e.Counter, 1)
-			return e.results.pp1, e.results.err
+			return e.results.pa1, e.results.err
 		}
 	}
 
-	if mmGetChildCategory.GetChildCategoryMock.defaultExpectation != nil {
-		mm_atomic.AddUint64(&mmGetChildCategory.GetChildCategoryMock.defaultExpectation.Counter, 1)
-		mm_want := mmGetChildCategory.GetChildCategoryMock.defaultExpectation.params
-		mm_want_ptrs := mmGetChildCategory.GetChildCategoryMock.defaultExpectation.paramPtrs
+	if mmGetChildCategories.GetChildCategoriesMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmGetChildCategories.GetChildCategoriesMock.defaultExpectation.Counter, 1)
+		mm_want := mmGetChildCategories.GetChildCategoriesMock.defaultExpectation.params
+		mm_want_ptrs := mmGetChildCategories.GetChildCategoriesMock.defaultExpectation.paramPtrs
 
-		mm_got := BeerServiceMockGetChildCategoryParams{ctx, id}
+		mm_got := BeerServiceMockGetChildCategoriesParams{ctx, id}
 
 		if mm_want_ptrs != nil {
 
 			if mm_want_ptrs.ctx != nil && !minimock.Equal(*mm_want_ptrs.ctx, mm_got.ctx) {
-				mmGetChildCategory.t.Errorf("BeerServiceMock.GetChildCategory got unexpected parameter ctx, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
-					mmGetChildCategory.GetChildCategoryMock.defaultExpectation.expectationOrigins.originCtx, *mm_want_ptrs.ctx, mm_got.ctx, minimock.Diff(*mm_want_ptrs.ctx, mm_got.ctx))
+				mmGetChildCategories.t.Errorf("BeerServiceMock.GetChildCategories got unexpected parameter ctx, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmGetChildCategories.GetChildCategoriesMock.defaultExpectation.expectationOrigins.originCtx, *mm_want_ptrs.ctx, mm_got.ctx, minimock.Diff(*mm_want_ptrs.ctx, mm_got.ctx))
 			}
 
 			if mm_want_ptrs.id != nil && !minimock.Equal(*mm_want_ptrs.id, mm_got.id) {
-				mmGetChildCategory.t.Errorf("BeerServiceMock.GetChildCategory got unexpected parameter id, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
-					mmGetChildCategory.GetChildCategoryMock.defaultExpectation.expectationOrigins.originId, *mm_want_ptrs.id, mm_got.id, minimock.Diff(*mm_want_ptrs.id, mm_got.id))
+				mmGetChildCategories.t.Errorf("BeerServiceMock.GetChildCategories got unexpected parameter id, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmGetChildCategories.GetChildCategoriesMock.defaultExpectation.expectationOrigins.originId, *mm_want_ptrs.id, mm_got.id, minimock.Diff(*mm_want_ptrs.id, mm_got.id))
 			}
 
 		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
-			mmGetChildCategory.t.Errorf("BeerServiceMock.GetChildCategory got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
-				mmGetChildCategory.GetChildCategoryMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+			mmGetChildCategories.t.Errorf("BeerServiceMock.GetChildCategories got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+				mmGetChildCategories.GetChildCategoriesMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
 		}
 
-		mm_results := mmGetChildCategory.GetChildCategoryMock.defaultExpectation.results
+		mm_results := mmGetChildCategories.GetChildCategoriesMock.defaultExpectation.results
 		if mm_results == nil {
-			mmGetChildCategory.t.Fatal("No results are set for the BeerServiceMock.GetChildCategory")
+			mmGetChildCategories.t.Fatal("No results are set for the BeerServiceMock.GetChildCategories")
 		}
-		return (*mm_results).pp1, (*mm_results).err
+		return (*mm_results).pa1, (*mm_results).err
 	}
-	if mmGetChildCategory.funcGetChildCategory != nil {
-		return mmGetChildCategory.funcGetChildCategory(ctx, id)
+	if mmGetChildCategories.funcGetChildCategories != nil {
+		return mmGetChildCategories.funcGetChildCategories(ctx, id)
 	}
-	mmGetChildCategory.t.Fatalf("Unexpected call to BeerServiceMock.GetChildCategory. %v %v", ctx, id)
+	mmGetChildCategories.t.Fatalf("Unexpected call to BeerServiceMock.GetChildCategories. %v %v", ctx, id)
 	return
 }
 
-// GetChildCategoryAfterCounter returns a count of finished BeerServiceMock.GetChildCategory invocations
-func (mmGetChildCategory *BeerServiceMock) GetChildCategoryAfterCounter() uint64 {
-	return mm_atomic.LoadUint64(&mmGetChildCategory.afterGetChildCategoryCounter)
+// GetChildCategoriesAfterCounter returns a count of finished BeerServiceMock.GetChildCategories invocations
+func (mmGetChildCategories *BeerServiceMock) GetChildCategoriesAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmGetChildCategories.afterGetChildCategoriesCounter)
 }
 
-// GetChildCategoryBeforeCounter returns a count of BeerServiceMock.GetChildCategory invocations
-func (mmGetChildCategory *BeerServiceMock) GetChildCategoryBeforeCounter() uint64 {
-	return mm_atomic.LoadUint64(&mmGetChildCategory.beforeGetChildCategoryCounter)
+// GetChildCategoriesBeforeCounter returns a count of BeerServiceMock.GetChildCategories invocations
+func (mmGetChildCategories *BeerServiceMock) GetChildCategoriesBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmGetChildCategories.beforeGetChildCategoriesCounter)
 }
 
-// Calls returns a list of arguments used in each call to BeerServiceMock.GetChildCategory.
+// Calls returns a list of arguments used in each call to BeerServiceMock.GetChildCategories.
 // The list is in the same order as the calls were made (i.e. recent calls have a higher index)
-func (mmGetChildCategory *mBeerServiceMockGetChildCategory) Calls() []*BeerServiceMockGetChildCategoryParams {
-	mmGetChildCategory.mutex.RLock()
+func (mmGetChildCategories *mBeerServiceMockGetChildCategories) Calls() []*BeerServiceMockGetChildCategoriesParams {
+	mmGetChildCategories.mutex.RLock()
 
-	argCopy := make([]*BeerServiceMockGetChildCategoryParams, len(mmGetChildCategory.callArgs))
-	copy(argCopy, mmGetChildCategory.callArgs)
+	argCopy := make([]*BeerServiceMockGetChildCategoriesParams, len(mmGetChildCategories.callArgs))
+	copy(argCopy, mmGetChildCategories.callArgs)
 
-	mmGetChildCategory.mutex.RUnlock()
+	mmGetChildCategories.mutex.RUnlock()
 
 	return argCopy
 }
 
-// MinimockGetChildCategoryDone returns true if the count of the GetChildCategory invocations corresponds
+// MinimockGetChildCategoriesDone returns true if the count of the GetChildCategories invocations corresponds
 // the number of defined expectations
-func (m *BeerServiceMock) MinimockGetChildCategoryDone() bool {
-	if m.GetChildCategoryMock.optional {
+func (m *BeerServiceMock) MinimockGetChildCategoriesDone() bool {
+	if m.GetChildCategoriesMock.optional {
 		// Optional methods provide '0 or more' call count restriction.
 		return true
 	}
 
-	for _, e := range m.GetChildCategoryMock.expectations {
+	for _, e := range m.GetChildCategoriesMock.expectations {
 		if mm_atomic.LoadUint64(&e.Counter) < 1 {
 			return false
 		}
 	}
 
-	return m.GetChildCategoryMock.invocationsDone()
+	return m.GetChildCategoriesMock.invocationsDone()
 }
 
-// MinimockGetChildCategoryInspect logs each unmet expectation
-func (m *BeerServiceMock) MinimockGetChildCategoryInspect() {
-	for _, e := range m.GetChildCategoryMock.expectations {
+// MinimockGetChildCategoriesInspect logs each unmet expectation
+func (m *BeerServiceMock) MinimockGetChildCategoriesInspect() {
+	for _, e := range m.GetChildCategoriesMock.expectations {
 		if mm_atomic.LoadUint64(&e.Counter) < 1 {
-			m.t.Errorf("Expected call to BeerServiceMock.GetChildCategory at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
+			m.t.Errorf("Expected call to BeerServiceMock.GetChildCategories at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
 		}
 	}
 
-	afterGetChildCategoryCounter := mm_atomic.LoadUint64(&m.afterGetChildCategoryCounter)
+	afterGetChildCategoriesCounter := mm_atomic.LoadUint64(&m.afterGetChildCategoriesCounter)
 	// if default expectation was set then invocations count should be greater than zero
-	if m.GetChildCategoryMock.defaultExpectation != nil && afterGetChildCategoryCounter < 1 {
-		if m.GetChildCategoryMock.defaultExpectation.params == nil {
-			m.t.Errorf("Expected call to BeerServiceMock.GetChildCategory at\n%s", m.GetChildCategoryMock.defaultExpectation.returnOrigin)
+	if m.GetChildCategoriesMock.defaultExpectation != nil && afterGetChildCategoriesCounter < 1 {
+		if m.GetChildCategoriesMock.defaultExpectation.params == nil {
+			m.t.Errorf("Expected call to BeerServiceMock.GetChildCategories at\n%s", m.GetChildCategoriesMock.defaultExpectation.returnOrigin)
 		} else {
-			m.t.Errorf("Expected call to BeerServiceMock.GetChildCategory at\n%s with params: %#v", m.GetChildCategoryMock.defaultExpectation.expectationOrigins.origin, *m.GetChildCategoryMock.defaultExpectation.params)
+			m.t.Errorf("Expected call to BeerServiceMock.GetChildCategories at\n%s with params: %#v", m.GetChildCategoriesMock.defaultExpectation.expectationOrigins.origin, *m.GetChildCategoriesMock.defaultExpectation.params)
 		}
 	}
 	// if func was set then invocations count should be greater than zero
-	if m.funcGetChildCategory != nil && afterGetChildCategoryCounter < 1 {
-		m.t.Errorf("Expected call to BeerServiceMock.GetChildCategory at\n%s", m.funcGetChildCategoryOrigin)
+	if m.funcGetChildCategories != nil && afterGetChildCategoriesCounter < 1 {
+		m.t.Errorf("Expected call to BeerServiceMock.GetChildCategories at\n%s", m.funcGetChildCategoriesOrigin)
 	}
 
-	if !m.GetChildCategoryMock.invocationsDone() && afterGetChildCategoryCounter > 0 {
-		m.t.Errorf("Expected %d calls to BeerServiceMock.GetChildCategory at\n%s but found %d calls",
-			mm_atomic.LoadUint64(&m.GetChildCategoryMock.expectedInvocations), m.GetChildCategoryMock.expectedInvocationsOrigin, afterGetChildCategoryCounter)
+	if !m.GetChildCategoriesMock.invocationsDone() && afterGetChildCategoriesCounter > 0 {
+		m.t.Errorf("Expected %d calls to BeerServiceMock.GetChildCategories at\n%s but found %d calls",
+			mm_atomic.LoadUint64(&m.GetChildCategoriesMock.expectedInvocations), m.GetChildCategoriesMock.expectedInvocationsOrigin, afterGetChildCategoriesCounter)
 	}
 }
 
@@ -4765,7 +4765,7 @@ func (m *BeerServiceMock) MinimockFinish() {
 
 			m.MinimockGetCategoryByIDInspect()
 
-			m.MinimockGetChildCategoryInspect()
+			m.MinimockGetChildCategoriesInspect()
 
 			m.MinimockGetParentCategoryInspect()
 
@@ -4804,7 +4804,7 @@ func (m *BeerServiceMock) minimockDone() bool {
 		m.MinimockGetAllCategoriesDone() &&
 		m.MinimockGetBeersByCategoryDone() &&
 		m.MinimockGetCategoryByIDDone() &&
-		m.MinimockGetChildCategoryDone() &&
+		m.MinimockGetChildCategoriesDone() &&
 		m.MinimockGetParentCategoryDone() &&
 		m.MinimockUpdateBeerDone() &&
 		m.MinimockUpdateCategoryDone()
