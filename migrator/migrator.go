@@ -18,11 +18,11 @@ func Up(pgPool *pgxpool.Pool) error {
 	goose.SetBaseFS(embedMigrations)
 
 	if err := goose.SetDialect("postgres"); err != nil {
-		return fmt.Errorf("SetDialect: failed to set SQL dialect: %W", err)
+		return fmt.Errorf("SetDialect: failed to set SQL dialect: %w", err)
 	}
 
 	if err := goose.Up(db, "sql"); err != nil {
-		return fmt.Errorf("Up: failed to up migrations: %W", err)
+		return fmt.Errorf("Up: failed to up migrations: %w", err)
 	}
 
 	if err := db.Close(); err != nil {
@@ -36,17 +36,17 @@ func Down(gpPool *pgxpool.Pool) error {
 	db := stdlib.OpenDBFromPool(gpPool)
 	goose.SetBaseFS(embedMigrations)
 
-	if err := goose.SetDialect("postgres"); err != nil{
-		return fmt.Errorf("SetDialect: failed to set SQL dialect: %W", err)
+	if err := goose.SetDialect("postgres"); err != nil {
+		return fmt.Errorf("SetDialect: failed to set SQL dialect: %w", err)
 	}
 
-	if err := goose.Down(db, "sql"); err != nil{
-		return fmt.Errorf("Down: failed to down migrations: %W", err)
+	if err := goose.Down(db, "sql"); err != nil {
+		return fmt.Errorf("Down: failed to down migrations: %w", err)
 	}
 
 	if err := db.Close(); err != nil {
 		return fmt.Errorf("Close: failed to close db connection: %w", err)
 	}
-	
+
 	return nil
 }
