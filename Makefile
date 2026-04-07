@@ -27,4 +27,5 @@ genmock:
 	go generate ./internal/http/handlers/mocks
 
 filldb:
-	go run script/db_filler.go
+	cd script
+	go run db_filler.go
