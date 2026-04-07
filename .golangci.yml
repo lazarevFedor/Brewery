@@ -206,6 +206,7 @@ linters:
     - nilnil
     - nolintlint
     - govet
+    - nestif
 
   exclusions:
     paths:
