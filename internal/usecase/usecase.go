@@ -51,6 +51,26 @@ func (s *beerService) CreateCategory(ctx context.Context, ctg *entities.ProductC
 		return 0, errors.New("category name is required")
 	}
 
+	if ctg.ParentID == 0 {
+		categories, err := s.categoryRepo.GetCategories(ctx)
+		if err != nil {
+			return 0, fmt.Errorf("failed to check existing categories: %w", err)
+		}
+		for _, c := range categories {
+			if c.ParentID == 0 {
+				return 0, errors.New("root category already exists")
+			}
+		}
+	} else {
+		parent, err := s.categoryRepo.GetCategoryByID(ctx, uint(ctg.ParentID))
+		if err != nil {
+			return 0, fmt.Errorf("failed to get parent category: %w", err)
+		}
+		if parent == nil {
+			return 0, errors.New("parent category not found")
+		}
+	}
+
 	id, err := s.categoryRepo.InsertCategory(ctx, *ctg)
 	if err != nil {
 		return 0, fmt.Errorf("failed to create category: %w", err)
@@ -94,7 +114,12 @@ func (s *beerService) UpdateCategory(ctx context.Context, id uint, updates map[s
 		parentIDFloat, ok := parentID.(float64)
 		if ok {
 			if parentIDFloat == 0 {
-				delete(updates, "parent_id")
+				updates["parent_id"] = nil
+			} else {
+				err := s.ensureCategoryParentIsNotDescendant(ctx, id, uint(parentIDFloat))
+				if err != nil {
+					return fmt.Errorf("failed to update parent category: %w", err)
+				}
 			}
 		}
 	}
@@ -102,6 +127,34 @@ func (s *beerService) UpdateCategory(ctx context.Context, id uint, updates map[s
 	err := s.categoryRepo.UpdateCategory(ctx, id, updates)
 	if err != nil {
 		return fmt.Errorf("failed to update category: %w", err)
+	}
+
+	return nil
+}
+
+func (s *beerService) ensureCategoryParentIsNotDescendant(ctx context.Context, categoryID, parentID uint) error {
+	visited := make(map[uint]struct{})
+	currentID := parentID
+
+	for currentID != 0 {
+		if _, seen := visited[currentID]; seen {
+			return errors.New("category hierarchy contains a cycle")
+		}
+		visited[currentID] = struct{}{}
+
+		category, err := s.categoryRepo.GetCategoryByID(ctx, currentID)
+		if err != nil {
+			return fmt.Errorf("failed to get parent category: %w", err)
+		}
+		if category == nil {
+			return errors.New("parent category not found")
+		}
+
+		if category.ID == int(categoryID) {
+			return errors.New("category parent creates a cycle")
+		}
+
+		currentID = uint(category.ParentID)
 	}
 
 	return nil
