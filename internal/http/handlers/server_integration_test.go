@@ -49,7 +49,7 @@ func setupIntegrationRouter(t *testing.T, svc *mocks.BeerServiceMock) *gin.Engin
 	engine.PATCH("/api/categories/:id", categoryHandler.UpdateCategory)
 	engine.DELETE("/api/categories/:id", categoryHandler.DeleteCategory)
 	engine.GET("/api/categories", categoryHandler.GetAllCategories)
-	engine.GET("/api/categories/:id/beers", categoryHandler.GetBeersByCategory)
+	engine.GET("/api/categories/beers/:category_id", categoryHandler.GetBeersByCategory)
 	engine.GET("/api/categories/parent/:id", categoryHandler.GetParentCategory)
 	engine.GET("/api/categories/children/:id", categoryHandler.GetChildCategory)
 
@@ -57,7 +57,7 @@ func setupIntegrationRouter(t *testing.T, svc *mocks.BeerServiceMock) *gin.Engin
 	engine.PATCH("/api/beers/:id", beersHandler.UpdateBeer)
 	engine.DELETE("/api/beers/:id", beersHandler.DeleteBeer)
 	engine.GET("/api/beers", beersHandler.GetAllBeers)
-	engine.POST("/api/beers/reviews/:id", beersHandler.CreateBeerReview)
+	engine.POST("/api/beers/reviews/:beer_id", beersHandler.CreateBeerReview)
 
 	return engine
 }
@@ -85,6 +85,12 @@ func TestServer_CreateCategory_ReturnsCreated(t *testing.T) {
 	mc := minimock.NewController(t)
 
 	serviceMock := mocks.NewBeerServiceMock(mc)
+	serviceMock.CreateCategoryMock.Set(func(ctx context.Context, ctg *entities.ProductCategory) (uint, error) {
+		require.Equal(t, "lager", ctg.Name)
+		require.Equal(t, 1, ctg.ParentID)
+
+		return 1, nil
+	})
 	router := setupIntegrationRouter(t, serviceMock)
 
 	body := strings.NewReader(`{"name":"lager","parent_id":1}`)
@@ -168,7 +174,7 @@ func TestServer_GetBeersByCategory_NewRoute_WorksWithIDAndPagination(t *testing.
 
 	router := setupIntegrationRouter(t, serviceMock)
 
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/api/categories/42/beers?offset=1&limit=1", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/api/categories/beers/42?offset=1&limit=1", nil)
 	resp := httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
 
@@ -188,7 +194,7 @@ func TestServer_GetBeersByCategory_InvalidID_ReturnsBadRequest(t *testing.T) {
 	serviceMock := mocks.NewBeerServiceMock(mc)
 	router := setupIntegrationRouter(t, serviceMock)
 
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/api/categories/not-a-number/beers", nil)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/api/categories/beers/not-a-number", nil)
 	resp := httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
 
@@ -196,7 +202,7 @@ func TestServer_GetBeersByCategory_InvalidID_ReturnsBadRequest(t *testing.T) {
 
 	var got map[string]string
 	require.NoError(t, json.Unmarshal(resp.Body.Bytes(), &got))
-	assert.Equal(t, "invalid id", got["error"])
+	assert.Equal(t, "invalid category id", got["error"])
 }
 
 // TestServer_GetParentCategory_UsesPathParam проверяет, что при запросе родительской категории используется правильный путь и передается правильный ID в сервис.
@@ -222,9 +228,9 @@ func TestServer_GetChildCategory_UsesPathParam(t *testing.T) {
 	mc := minimock.NewController(t)
 
 	serviceMock := mocks.NewBeerServiceMock(mc)
-	serviceMock.GetChildCategoryMock.
+	serviceMock.GetChildCategoriesMock.
 		Expect(minimock.AnyContext, 15).
-		Return(&entities.ProductCategory{ID: 2, Name: "child"}, nil)
+		Return([]entities.ProductCategory{{ID: 2, Name: "child"}}, nil)
 
 	router := setupIntegrationRouter(t, serviceMock)
 
@@ -260,6 +266,11 @@ func TestServer_CreateBeer_ReturnsCreated(t *testing.T) {
 	mc := minimock.NewController(t)
 
 	serviceMock := mocks.NewBeerServiceMock(mc)
+	serviceMock.CreateBeerMock.Set(func(ctx context.Context, beer *entities.Beer) (uint, error) {
+		require.Equal(t, "ipa", beer.Name)
+
+		return 1, nil
+	})
 	router := setupIntegrationRouter(t, serviceMock)
 
 	body := strings.NewReader(`{"name":"ipa"}`)
