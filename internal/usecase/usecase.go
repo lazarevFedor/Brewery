@@ -39,7 +39,6 @@ func NewBeerService(beerRepo repository.BeerRepository, categoryRepo repository.
 }
 
 func (s *beerService) CreateCategory(ctx context.Context, ctg *entities.ProductCategory) (uint, error) {
-	fmt.Print("Start request to insert")
 	if err := ctx.Err(); err != nil {
 		return 0, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -91,7 +90,6 @@ func (s *beerService) UpdateCategory(ctx context.Context, id uint, updates map[s
 	}
 
 	parentID, ok := updates["parent_id"]
-	fmt.Println(parentID, ok)
 	if ok {
 		parentIDFloat, ok := parentID.(float64)
 		if ok {
@@ -174,7 +172,6 @@ func (s *beerService) GetChildCategories(ctx context.Context, id uint) ([]entiti
 	for _, c := range categories {
 		if c.ParentID != 0 && uint(c.ParentID) == id {
 			children = append(children, c)
-			
 		}
 	}
 	return children, nil
@@ -248,7 +245,6 @@ func (s *beerService) UpdateBeer(ctx context.Context, id uint, updates map[strin
 
 	for k, v := range updates {
 		switch k {
-
 		case "city":
 			countryName, ok := updates["country"].(string)
 			if !ok {

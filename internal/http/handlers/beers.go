@@ -36,7 +36,6 @@ func NewBeersHandlers(useCase usecase.BeerService) BeersHandlers {
 
 // CreateBeer обрабатывает HTTP-запрос на создание пива
 func (h *beersHandler) CreateBeer(c *gin.Context) {
-
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
 		c.Status(http.StatusInternalServerError)
@@ -117,7 +116,7 @@ func (h *beersHandler) UpdateBeer(c *gin.Context) {
 
 		return
 	}
-	
+
 	log.Debug(c.Request.Context(), fmt.Sprintf("beer_id = %d", beerID))
 	log.Info(c.Request.Context(), fmt.Sprintf("action=update resource=beer status=success id=%d", id))
 	c.Status(http.StatusOK)
@@ -189,7 +188,6 @@ func (h *beersHandler) GetAllBeers(c *gin.Context) {
 
 // CreateBeerReview обрабатывает HTTP-запрос на создание отзыва о пиве.
 func (h *beersHandler) CreateBeerReview(c *gin.Context) {
-
 	reqCtx := c.Request.Context()
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -212,16 +210,16 @@ func (h *beersHandler) CreateBeerReview(c *gin.Context) {
 		return
 	}
 
-	var ReviewReq entities.Review
-	if err = easyjson.Unmarshal(body, &ReviewReq); err != nil {
+	var reviewReq entities.Review
+	if err = easyjson.Unmarshal(body, &reviewReq); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
 
 		return
 	}
 
-	ReviewReq.BeerID = beerID
+	reviewReq.BeerID = beerID
 
-	reviewID, err := h.uc.CreateBeerReview(c.Request.Context(), &ReviewReq)
+	reviewID, err := h.uc.CreateBeerReview(c.Request.Context(), &reviewReq)
 	if err != nil {
 		log.Error(reqCtx, fmt.Sprintf("Failed to create review: %v", err))
 		c.Status(http.StatusInternalServerError)
