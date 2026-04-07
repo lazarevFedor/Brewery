@@ -22,20 +22,20 @@ type BeersHandlers interface {
 	CreateBeerReview(c *gin.Context)
 }
 
-// beersHandler реализует интерфейс BeersHandlers и использует сервис BeerService для обработки бизнес-логики.
-type beersHandler struct {
+// beersHandlers реализует интерфейс BeersHandlers и использует сервис BeerService для обработки бизнес-логики.
+type beersHandlers struct {
 	uc usecase.BeerService
 }
 
 // NewBeersHandlers создает новый экзмепляр beersHandler с предоставленным сервисом BeerService.
 func NewBeersHandlers(useCase usecase.BeerService) BeersHandlers {
-	return &beersHandler{
+	return &beersHandlers{
 		uc: useCase,
 	}
 }
 
 // CreateBeer обрабатывает HTTP-запрос на создание пива
-func (h *beersHandler) CreateBeer(c *gin.Context) {
+func (h *beersHandlers) CreateBeer(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
 		c.Status(http.StatusInternalServerError)
@@ -74,7 +74,7 @@ func (h *beersHandler) CreateBeer(c *gin.Context) {
 }
 
 // UpdateBeer обрабатывает HTTP-запрос на обновление пива.
-func (h *beersHandler) UpdateBeer(c *gin.Context) {
+func (h *beersHandlers) UpdateBeer(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
 		c.Status(http.StatusInternalServerError)
@@ -123,7 +123,7 @@ func (h *beersHandler) UpdateBeer(c *gin.Context) {
 }
 
 // DeleteBeer обрабатывает HTTP-запрос на удаление пива.
-func (h *beersHandler) DeleteBeer(c *gin.Context) {
+func (h *beersHandlers) DeleteBeer(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
 		c.Status(http.StatusInternalServerError)
@@ -151,7 +151,7 @@ func (h *beersHandler) DeleteBeer(c *gin.Context) {
 }
 
 // GetAllBeers обрабатывает HTTP-запрос на получение всех видов пива.
-func (h *beersHandler) GetAllBeers(c *gin.Context) {
+func (h *beersHandlers) GetAllBeers(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
 		c.Status(http.StatusInternalServerError)
@@ -187,7 +187,7 @@ func (h *beersHandler) GetAllBeers(c *gin.Context) {
 }
 
 // CreateBeerReview обрабатывает HTTP-запрос на создание отзыва о пиве.
-func (h *beersHandler) CreateBeerReview(c *gin.Context) {
+func (h *beersHandlers) CreateBeerReview(c *gin.Context) {
 	reqCtx := c.Request.Context()
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {

@@ -26,20 +26,20 @@ type CategoriesHandlers interface {
 	GetChildCategory(c *gin.Context)
 }
 
-// categoriesHandler конкретная реализация интерфейса CategoriesHandlers, которая использует сервис BeerService для обработки бизнес-логики.
-type categoriesHandler struct {
+// categoriesHandlers конкретная реализация интерфейса CategoriesHandlers, которая использует сервис BeerService для обработки бизнес-логики.
+type categoriesHandlers struct {
 	uc usecase.BeerService
 }
 
 // NewCategoriesHandlers создает новый экземпляр categoriesHandler с предоставленным сервисом BeerService.
 func NewCategoriesHandlers(useCase usecase.BeerService) CategoriesHandlers {
-	return &categoriesHandler{
+	return &categoriesHandlers{
 		uc: useCase,
 	}
 }
 
 // CreateCategory обрабатывает HTTP-запрос на создание новой категории продукта.
-func (h *categoriesHandler) CreateCategory(c *gin.Context) {
+func (h *categoriesHandlers) CreateCategory(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get logger from context"})
@@ -80,7 +80,7 @@ func (h *categoriesHandler) CreateCategory(c *gin.Context) {
 // GetCategoryById обрабатывает HTTP-запрос на получение категории продукта по ее идентификатору.
 //
 //nolint:staticcheck, ineffassign, wastedassign
-func (h *categoriesHandler) GetCategoryById(c *gin.Context) {
+func (h *categoriesHandlers) GetCategoryById(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get logger from context"})
@@ -116,7 +116,7 @@ func (h *categoriesHandler) GetCategoryById(c *gin.Context) {
 }
 
 // UpdateCategory обрабатывает HTTP-запрос на обновление существующей категории продукта по ее идентификатору.
-func (h *categoriesHandler) UpdateCategory(c *gin.Context) {
+func (h *categoriesHandlers) UpdateCategory(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get logger from context"})
@@ -164,7 +164,7 @@ func (h *categoriesHandler) UpdateCategory(c *gin.Context) {
 }
 
 // DeleteCategory обрабатывает HTTP-запрос на удаление категории по ее идентификатору.
-func (h *categoriesHandler) DeleteCategory(c *gin.Context) {
+func (h *categoriesHandlers) DeleteCategory(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get logger from context"})
@@ -192,7 +192,7 @@ func (h *categoriesHandler) DeleteCategory(c *gin.Context) {
 }
 
 // GetAllCategories обрабатывает HTTP-запрос на получение всех категорий продуктов.
-func (h *categoriesHandler) GetAllCategories(c *gin.Context) {
+func (h *categoriesHandlers) GetAllCategories(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
 		c.Status(http.StatusInternalServerError)
@@ -221,7 +221,7 @@ func (h *categoriesHandler) GetAllCategories(c *gin.Context) {
 }
 
 // GetParentCategory обрабатывает HTTP-запрос на получение родительской категории для заданной категории по ее идентификатору.
-func (h *categoriesHandler) GetParentCategory(c *gin.Context) {
+func (h *categoriesHandlers) GetParentCategory(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
 		c.Status(http.StatusInternalServerError)
@@ -257,7 +257,7 @@ func (h *categoriesHandler) GetParentCategory(c *gin.Context) {
 }
 
 // GetChildCategory обрабатывает HTTP-запрос на получение дочерней категории для заданной категории по ее идентификатору.
-func (h *categoriesHandler) GetChildCategory(c *gin.Context) {
+func (h *categoriesHandlers) GetChildCategory(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
 		c.Status(http.StatusInternalServerError)
@@ -293,7 +293,7 @@ func (h *categoriesHandler) GetChildCategory(c *gin.Context) {
 }
 
 // GetBeersByCategory обрабатывает HTTP-запрос на получение пива по заданной идентификатором категории.
-func (h *categoriesHandler) GetBeersByCategory(c *gin.Context) {
+func (h *categoriesHandlers) GetBeersByCategory(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
 		c.Status(http.StatusInternalServerError)
