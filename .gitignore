@@ -1,2 +1,6 @@
 configs/.env
 .idea
+deployments/pgdata
+.vscode/
+.DS_Store
+class_diagram.md

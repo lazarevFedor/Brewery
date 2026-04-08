@@ -4,10 +4,14 @@ on:
     branches:
       - master
       - feature/*
+      - feat/*
+      - dev
   pull_request:
     branches:
       - master
       - feature/*
+      - feat/*
+      - dev
 
 permissions:
   contents: read

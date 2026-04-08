@@ -1,0 +1,99 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: postgres_container
+    env_file:
+      - ../configs/.env
+    ports:
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+    volumes:
+      - ./pgdata/beers_data:/var/lib/postgresql/data
+    networks:
+      - app_net
+  
+  server:
+    container_name: server
+    build:
+      context: ..
+      dockerfile: build/package/server/Dockerfile
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"
+    env_file:
+      - ../configs/.env
+    depends_on:
+      - postgres
+    networks:
+      - app_net
+    develop:
+      watch:
+        - path: ../internal
+          action: rebuild
+        - path: ../pkg
+          action: rebuild
+        - path: ../build/package/server
+          action: rebuild
+        - path: ../congigs
+          action: rebuild
+        - path: ../cmd
+          action: rebuild
+        - path: ../deployments/docker-compose.yml
+          action: rebuild
+
+  prometheus:
+    image: prom/prometheus:v3.3.1
+    container_name: prometheus
+    ports:
+      - "${PROMETHEUS_PORT}:${PROMETHEUS_PORT}"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    depends_on:
+      - nginx
+    networks:
+      - app_net
+
+  grafana:
+    image: grafana/grafana:12.0.0
+    container_name: grafana
+    ports:
+      - "${GF_PORT}:${GF_PORT}"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_PASSWORD}
+    depends_on:
+      - prometheus
+    networks:
+      - app_net
+    volumes:
+      - ./provisioning/datasources:/etc/grafana/provisioning/datasources
+      - grafana_data:/var/lib/grafana
+
+  node_exporter:
+    image: prom/node-exporter:v1.9.1
+    container_name: node_exporter
+    ports:
+      - "${NODE_EXPORTER_PORT}:${NODE_EXPORTER_PORT}"
+    networks:
+      - app_net
+
+  nginx:
+    container_name: nginx
+    build:
+      context: ..
+      dockerfile: build/package/nginx/Dockerfile
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+    networks:
+      - app_net
+
+volumes:
+  pgdata:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  app_net:
+    driver: bridge

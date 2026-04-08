@@ -1,0 +1,29 @@
+name: build.yml
+on:
+  push:
+    branches:
+      - master
+      - feature/*
+      - feat/*
+      - dev
+  pull_request:
+    branches:
+      - master
+      - feature/*
+      - feat/*
+      - dev
+
+jobs:
+  build:
+    name: Build Project
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Build Docker images
+        run: |
+          touch configs/.env
+          cp configs/env.example configs/.env
+          mkdir deployments/pgdata
+          docker compose -f deployments/docker-compose.yml --env-file configs/.env up -d --build server
