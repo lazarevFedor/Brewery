@@ -233,15 +233,18 @@ func (r *CategoryPostgres) DeleteCategoryByID(ctx context.Context, id uint) erro
 			return fmt.Errorf("children scanning: %w", err)
 		}
 		if childID != 0 {
-			r.UpdateCategory(ctx, uint(childID),
+			err = r.UpdateCategory(ctx, uint(childID),
 				map[string]any{
 					"parent_id": category.ParentID,
 				})
+			if err != nil {
+				return fmt.Errorf("failed to update category: %w", err)
+			}
 		}
 	}
 
-	DeletePsql := queries.DeleteCategory(id)
-	query, args, err = DeletePsql.ToSql()
+	deletePsql := queries.DeleteCategory(id)
+	query, args, err = deletePsql.ToSql()
 	if err != nil {
 		return fmt.Errorf("%s: %w", "ToSql", err)
 	}
