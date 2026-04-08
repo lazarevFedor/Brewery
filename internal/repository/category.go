@@ -206,8 +206,42 @@ func (r *CategoryPostgres) DeleteCategoryByID(ctx context.Context, id uint) erro
 		}
 	}(tx, ctx)
 
-	psql := queries.DeleteCategory(id)
-	query, args, err := psql.ToSql()
+	category, err := r.GetCategoryByID(ctx, id)
+	if err != nil {
+		return fmt.Errorf("get category by id: %w", err)
+	}
+
+	if category.ParentID == 0 {
+		return errors.New("cannot delete root category")
+	}
+
+	childrenPsql := queries.SelectChildrenCategories(id)
+	query, args, err := childrenPsql.ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: %w", "ToSql", err)
+	}
+
+	rows, err := tx.Query(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("%s: %w", "Query", err)
+	}
+
+	for rows.Next() {
+		childID := 0
+		err = rows.Scan(&childID)
+		if err != nil {
+			return fmt.Errorf("children scanning: %w", err)
+		}
+		if childID != 0 {
+			r.UpdateCategory(ctx, uint(childID),
+				map[string]any{
+					"parent_id": category.ParentID,
+				})
+		}
+	}
+
+	DeletePsql := queries.DeleteCategory(id)
+	query, args, err = DeletePsql.ToSql()
 	if err != nil {
 		return fmt.Errorf("%s: %w", "ToSql", err)
 	}
@@ -252,7 +286,7 @@ func (r *CategoryPostgres) GetCategoryID(ctx context.Context, ctgName string) (u
 	}
 
 	rows, err := tx.Query(ctx, query, args...)
-	if err != nil{
+	if err != nil {
 		return 0, fmt.Errorf("%s: %w", "Query", err)
 	}
 

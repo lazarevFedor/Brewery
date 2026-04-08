@@ -52,3 +52,10 @@ func UpdateCategory(id uint, updates map[string]any) sq.UpdateBuilder {
 func DeleteCategory(id uint) sq.DeleteBuilder {
 	return psql.Delete(tableCategories).Where(sq.Eq{categoryIDCol: id})
 }
+
+
+func SelectChildrenCategories(id uint) sq.SelectBuilder{
+	return psql.Select(categoryIDCol).
+	From(tableCategories).
+	Where(sq.Eq{categoryParentIDCol: id})
+}
