@@ -37,6 +37,12 @@ func SelectCategoryByID(id uint) sq.SelectBuilder {
 	return FullCategorySelect().Where(sq.Eq{categoryIDCol: id})
 }
 
+func SelectCategoryByName(name string) sq.SelectBuilder {
+	return psql.Select(categoryIDCol).
+	From(tableCategories).
+	Where(sq.Eq{categoryNameCol:name})
+}
+
 func UpdateCategory(id uint, updates map[string]any) sq.UpdateBuilder {
 	return psql.Update(tableCategories).
 		SetMap(updates).

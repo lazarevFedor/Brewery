@@ -5,7 +5,7 @@ down:
 	docker compose -f deployments/docker-compose.yml --env-file configs/.env down
 
 logs:
-	docker compose -f deployments/docker-compose.yml --env-file configs/.env logs
+	docker compose -f deployments/docker-compose.yml --env-file configs/.env logs server
 
 lint:
 	golangci-lint run

@@ -27,9 +27,6 @@ var (
 	//go:embed sql/get_or_create_type.sql
 	getOrCreateTypeQuery string
 
-	//go:embed sql/get_or_create_category.sql
-	getOrCreateCategoryQuery string
-
 	//go:embed sql/insert_beer.sql
 	insertBeerQuery string
 
@@ -103,7 +100,7 @@ func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (uint
 		return 0, fmt.Errorf("city QueryRow: %w", err)
 	}
 
-	typeID, err := r.GetTypeID(ctx, beer.Category.Name)
+	typeID, err := r.GetTypeID(ctx, beer.Type)
 	if err != nil {
 		return 0, fmt.Errorf("type QueryRow: %w", err)
 	}
@@ -111,7 +108,14 @@ func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (uint
 	ctgRepo := NewCategoryPostgres(r.Pool)
 	categoryID, err := ctgRepo.GetCategoryID(ctx, beer.Category.Name)
 	if err != nil {
-		return 0, fmt.Errorf("category QueryRow: %w", err)
+		return 0, fmt.Errorf("getCategoryID: %w", err)
+	}
+
+	if categoryID == 0 {
+		categoryID, err = ctgRepo.InsertCategory(ctx, beer.Category)
+		if err != nil {
+			return 0, fmt.Errorf("insertCategory: %w", err)
+		}
 	}
 
 	var beerID uint
