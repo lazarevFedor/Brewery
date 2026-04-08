@@ -281,38 +281,54 @@ func (s *beerService) GetBeersByCategory(ctx context.Context, id uint, limit, of
 	return beers, nil
 }
 
-func (s *beerService) UpdateBeer(ctx context.Context, id uint, updates map[string]any) (uint, error) {
+func validation(ctx context.Context, id uint, updates map[string]any) error {
 	if err := ctx.Err(); err != nil {
-		return 0, fmt.Errorf("request cancelled: %w", err)
+		return fmt.Errorf("request cancelled: %w", err)
 	}
 
 	if id == 0 {
-		return 0, errors.New("invalid beer id")
+		return errors.New("invalid beer id")
 	}
 
 	if len(updates) == 0 {
-		return 0, errors.New("no fields to update")
+		return errors.New("no fields to update")
+	}
+	return nil
+}
+
+func (s *beerService) resolveCityUpdate(ctx context.Context, updates map[string]any) (uint, error) {
+	countryName, ok := updates["country"].(string)
+	if !ok {
+		return 0, errors.New("country Datatype error")
+	}
+	ctrID, err := s.beerRepo.GetCountryID(ctx, countryName)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get Country ID: %w", err)
+	}
+	
+	city := updates["city"]
+	cityName, ok := city.(string)
+	if !ok {
+		return 0, errors.New("cityName Datatype error")
+	}
+	cityID, err := s.beerRepo.GetCityID(ctx, cityName, ctrID)
+	if err != nil {
+		return 0, err
 	}
 
+	return cityID, nil
+}
+
+func (s *beerService) UpdateBeer(ctx context.Context, id uint, updates map[string]any) (uint, error) {
+	if err := validation(ctx, id, updates); err != nil{
+		return 0, err
+	}
 	finalUpdates := make(map[string]any)
 
 	for k, v := range updates {
 		switch k {
 		case "city":
-			countryName, ok := updates["country"].(string)
-			if !ok {
-				return 0, errors.New("country Datatype error")
-			}
-			ctrID, err := s.beerRepo.GetCountryID(ctx, countryName)
-			if err != nil {
-				return 0, fmt.Errorf("failed to get Country ID: %w", err)
-			}
-
-			cityName, ok := v.(string)
-			if !ok {
-				return 0, errors.New("cityName Datatype error")
-			}
-			cityID, err := s.beerRepo.GetCityID(ctx, cityName, ctrID)
+			cityID, err := s.resolveCityUpdate(ctx, updates)
 			if err != nil {
 				return 0, err
 			}
@@ -335,21 +351,58 @@ func (s *beerService) UpdateBeer(ctx context.Context, id uint, updates map[strin
 				return 0, errors.New("category datatype error")
 			}
 
-			ctgName, ok := categoryUpdates["name"]
-			if !ok {
-				return 0, errors.New("category name needs to update category")
+			updateCtgID, ok := categoryUpdates["id"]
+			if ok {
+				updateCtgIDFLoat, ok := updateCtgID.(float64)
+				if !ok {
+					return 0, errors.New("category id datatype error")
+				}
+
+				ctg, err := s.categoryRepo.GetCategoryByID(ctx, uint(updateCtgIDFLoat))
+				if err != nil {
+					return 0, fmt.Errorf("failed to get ctg by id: %w", err)
+				}
+				finalUpdates["category_id"] = uint(ctg.ID)
+			} else {
+				ctgName, ok := categoryUpdates["name"]
+				if !ok {
+					return 0, errors.New("category name needs to update category")
+				}
+
+				ctgNameStr, ok := ctgName.(string)
+				if !ok {
+					return 0, errors.New("category name datatype error")
+				}
+
+				ctgID, err := s.categoryRepo.GetCategoryID(ctx, ctgNameStr)
+				if err != nil {
+					return 0, fmt.Errorf("failed to get Category ID: %w", err)
+				}
+				if ctgID == 0 {
+					parentID, ok := categoryUpdates["parent_id"]
+					if !ok {
+						return 0, errors.New("category name needs to update category")
+					}
+
+					parentIDFloat, ok := parentID.(float64)
+					if !ok {
+						return 0, errors.New("parent_id datatype error")
+					}
+					ctgID, err = s.categoryRepo.InsertCategory(ctx, entities.ProductCategory{
+						Name:     ctgNameStr,
+						ParentID: int(parentIDFloat),
+					})
+					if err != nil {
+						return 0, fmt.Errorf("insertcategory: %w", err)
+					}
+				}
+				finalUpdates["category_id"] = ctgID
 			}
 
-			ctgNameStr, ok := ctgName.(string)
-			if !ok {
-				return 0, errors.New("category name datatype error")
+		default:
+			if k != "country" {
+				finalUpdates[k] = v
 			}
-
-			ctgID, err := s.categoryRepo.GetCategoryID(ctx, ctgNameStr)
-			if err != nil {
-				return 0, fmt.Errorf("failed to get Category ID: %w", err)
-			}
-			finalUpdates["category_id"] = ctgID
 		}
 	}
 

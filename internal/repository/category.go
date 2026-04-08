@@ -299,8 +299,8 @@ func (r *CategoryPostgres) GetCategoryID(ctx context.Context, ctgName string) (u
 			return 0, fmt.Errorf("scan: %w", err)
 		}
 	}
-
 	rows.Close()
+
 	err = tx.Commit(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("commit: %w", err)
