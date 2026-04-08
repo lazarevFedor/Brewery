@@ -62,7 +62,7 @@ func (h *beersHandlers) CreateBeer(c *gin.Context) {
 
 	beerID, err := h.uc.CreateBeer(c.Request.Context(), &req)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to update beer: %v", err))
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to create beer: %v", err))
 		c.Status(http.StatusInternalServerError)
 
 		return

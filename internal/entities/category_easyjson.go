@@ -101,7 +101,7 @@ func easyjson6a91a67cDecodeBreweryInternalEntities1(in *jlexer.Lexer, out *Produ
 		key := in.UnsafeFieldName(false)
 		in.WantColon()
 		switch key {
-		case "category":
+		case "id":
 			if in.IsNull() {
 				in.Skip()
 			} else {
@@ -134,7 +134,7 @@ func easyjson6a91a67cEncodeBreweryInternalEntities1(out *jwriter.Writer, in Prod
 	first := true
 	_ = first
 	if in.ID != 0 {
-		const prefix string = ",\"category\":"
+		const prefix string = ",\"id\":"
 		first = false
 		out.RawString(prefix[1:])
 		out.Int(int(in.ID))

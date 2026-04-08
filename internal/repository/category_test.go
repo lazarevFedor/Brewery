@@ -16,6 +16,11 @@ func TestCategoryRepository_InsertCategory(t *testing.T) {
 	ctx := t.Context()
 
 	t.Run("Успешная вставка", func(t *testing.T) {
+		ctgs, err := ctgRepo.GetCategories(ctx)
+		require.NoError(t, err)
+		require.NotEmpty(t, ctgs, "Должна быть уже 1 категория")
+		testCtg.ParentID = ctgs[0].ID
+
 		ctgID, err := ctgRepo.InsertCategory(ctx, testCtg)
 		require.NoError(t, err)
 		require.NotZero(t, ctgID)

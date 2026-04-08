@@ -143,7 +143,7 @@ func easyjson57ba88e2DecodeBreweryInternalEntities1(in *jlexer.Lexer, out *Beer)
 			} else {
 				out.Amount = uint(in.Uint())
 			}
-		case "unit":
+		case "units":
 			if in.IsNull() {
 				in.Skip()
 			} else {
@@ -167,7 +167,7 @@ func easyjson57ba88e2DecodeBreweryInternalEntities1(in *jlexer.Lexer, out *Beer)
 			} else {
 				out.Type = string(in.String())
 			}
-		case "category_name":
+		case "category":
 			if in.IsNull() {
 				in.Skip()
 			} else {
@@ -250,7 +250,7 @@ func easyjson57ba88e2EncodeBreweryInternalEntities1(out *jwriter.Writer, in Beer
 		out.Uint(uint(in.Amount))
 	}
 	{
-		const prefix string = ",\"unit\":"
+		const prefix string = ",\"units\":"
 		out.RawString(prefix)
 		out.String(string(in.Unit))
 	}
@@ -270,7 +270,7 @@ func easyjson57ba88e2EncodeBreweryInternalEntities1(out *jwriter.Writer, in Beer
 		out.String(string(in.Type))
 	}
 	{
-		const prefix string = ",\"category_name\":"
+		const prefix string = ",\"category\":"
 		out.RawString(prefix)
 		(in.Category).MarshalEasyJSON(out)
 	}

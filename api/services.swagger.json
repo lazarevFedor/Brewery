@@ -71,7 +71,7 @@
         "summary": "Get category by ID",
         "operationId": "getCategoryById",
         "parameters": [
-          { "$ref": "#/components/parameters/CategoryId" }
+          { "$ref": "#/components/parameters/Id" }
         ],
         "responses": {
           "200": {

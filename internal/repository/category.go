@@ -229,11 +229,44 @@ func (r *CategoryPostgres) DeleteCategoryByID(ctx context.Context, id uint) erro
 }
 
 func (r *CategoryPostgres) GetCategoryID(ctx context.Context, ctgName string) (uint, error) {
-	var categoryID uint
-	err := r.Pool.QueryRow(ctx, getOrCreateCategoryQuery, ctgName).Scan(&categoryID)
+	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
-		return 0, fmt.Errorf("category QueryRow: %w", err)
+		return 0, fmt.Errorf("begin: %w", err)
+	}
+	defer func(tx pgx.Tx, ctx context.Context) {
+		rollbackErr := tx.Rollback(ctx)
+
+		log, ok := logger.GetLoggerFromCtx(ctx)
+		if ok {
+			if rollbackErr != nil && !errors.Is(rollbackErr, pgx.ErrTxClosed) {
+				log.Error(ctx, fmt.Sprintf("%s: Rollback:", "GetCategoryID"), zap.Error(rollbackErr))
+			}
+		}
+	}(tx, ctx)
+
+	var categoryID uint
+	psql := queries.SelectCategoryByName(ctgName)
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", "ToSql", err)
 	}
 
+	rows, err := tx.Query(ctx, query, args...)
+	if err != nil{
+		return 0, fmt.Errorf("%s: %w", "Query", err)
+	}
+
+	if rows.Next() {
+		err = rows.Scan(&categoryID)
+		if err != nil {
+			return 0, fmt.Errorf("scan: %w", err)
+		}
+	}
+
+	rows.Close()
+	err = tx.Commit(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("commit: %w", err)
+	}
 	return categoryID, nil
 }
