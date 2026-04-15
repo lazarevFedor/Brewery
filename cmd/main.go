@@ -21,12 +21,15 @@ import (
 	cors "github.com/rs/cors/wrapper/gin"
 )
 
+
+const devMode = true
+
 // main является точкой входа в программу.
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	ctx, err := logger.NewLoggerContext(ctx, true)
+	ctx, err := logger.NewLoggerContext(ctx, devMode)
 	if err != nil {
 		panic(fmt.Errorf("failed to create logger context: %w", err))
 	}
