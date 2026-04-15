@@ -1,7 +1,7 @@
 up:
 	docker compose -f deployments/docker-compose.yml --env-file configs/.env up
 
-build:
+buildup:
 	docker compose -f deployments/docker-compose.yml --env-file configs/.env up --build
 
 down:
