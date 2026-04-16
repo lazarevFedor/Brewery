@@ -1,3 +1,5 @@
+.PHONY: build
+
 up:
 	docker compose -f deployments/docker-compose.yml --env-file configs/.env up
 
@@ -30,5 +32,7 @@ genmock:
 	go generate ./internal/http/handlers/mocks
 
 filldb:
-	cd script
-	go run db_filler.go
+	go run scripts/fill/db_filler.go
+
+cleandb:
+	go run scripts/clean/db_cleaner.go
