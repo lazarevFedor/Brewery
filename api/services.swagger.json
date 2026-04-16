@@ -415,8 +415,7 @@
           "country": { "type": "string" },
           "category": { "$ref": "#/components/schemas/Category" },
           "amount": {"type": "integer"},
-          "units": {"type":  "string"},
-          "type": { "type": "string" }
+          "units": {"type":  "string"}
         }
       },
 
@@ -432,8 +431,7 @@
           "country": { "type": "string" },
           "category": { "$ref": "#/components/schemas/Category" }, 
           "amount": {"type": "integer"},
-          "units": {"type":  "string"},
-          "type": { "type": "string" }
+          "units": {"type":  "string"}
         }
       },
 
@@ -448,8 +446,7 @@
           "country": { "type": "string" },
           "category": { "$ref": "#/components/schemas/Category" },
           "amount": {"type": "integer"},
-          "units": {"type":  "string"},
-          "type": { "type": "string" }
+          "units": {"type":  "string"}
         }
       },
 

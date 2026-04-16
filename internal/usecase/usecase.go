@@ -305,7 +305,7 @@ func (s *beerService) resolveCityUpdate(ctx context.Context, updates map[string]
 	if err != nil {
 		return 0, fmt.Errorf("failed to get Country ID: %w", err)
 	}
-	
+
 	city := updates["city"]
 	cityName, ok := city.(string)
 	if !ok {
@@ -320,7 +320,7 @@ func (s *beerService) resolveCityUpdate(ctx context.Context, updates map[string]
 }
 
 func (s *beerService) UpdateBeer(ctx context.Context, id uint, updates map[string]any) (uint, error) {
-	if err := validation(ctx, id, updates); err != nil{
+	if err := validation(ctx, id, updates); err != nil {
 		return 0, err
 	}
 	finalUpdates := make(map[string]any)
@@ -333,17 +333,6 @@ func (s *beerService) UpdateBeer(ctx context.Context, id uint, updates map[strin
 				return 0, err
 			}
 			finalUpdates["city_id"] = cityID
-
-		case "type":
-			typeName, ok := v.(string)
-			if !ok {
-				return 0, errors.New("beerType Datatype error")
-			}
-			typeID, err := s.beerRepo.GetTypeID(ctx, typeName)
-			if err != nil {
-				return 0, fmt.Errorf("failed to get Type ID: %w", err)
-			}
-			finalUpdates["type_id"] = typeID
 
 		case "category":
 			categoryUpdates, ok := v.(map[string]any)
