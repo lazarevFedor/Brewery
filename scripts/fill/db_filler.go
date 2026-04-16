@@ -1,3 +1,4 @@
+//nolint:all
 package main
 
 import (
@@ -123,7 +124,7 @@ func main() {
 	}
 
 	beerRepo := repository.NewBeerPostgres(pool)
-	err = fillDB(ctx, "beers.csv", beerRepo)
+	err = fillDB(ctx, "scripts/beers.csv", beerRepo)
 	if err != nil {
 		panic(err)
 	}

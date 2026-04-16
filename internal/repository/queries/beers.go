@@ -82,7 +82,6 @@ func UpdateBeer(id uint, updates map[string]any) sq.UpdateBuilder {
 }
 
 func SelectOrInsertCountry() string {
-
 	query := `INSERT INTO countries (name)
 			  VALUES ($1)
 			  ON CONFLICT (name) DO UPDATE

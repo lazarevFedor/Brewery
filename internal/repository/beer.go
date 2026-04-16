@@ -53,7 +53,6 @@ func NewBeerPostgres(pgPool *pgxpool.Pool) *BeerPostgres {
 	return &BeerPostgres{Pool: pgPool}
 }
 
-// TODO: depcrecated type must be deleted
 func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (uint, error) {
 	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
