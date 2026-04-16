@@ -17,26 +17,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var (
-	//go:embed sql/get_or_create_country.sql
-	getOrCreateCountryQuery string
-
-	//go:embed sql/get_or_create_city.sql
-	getOrCreateCityQuery string
-
-	//go:embed sql/get_or_create_type.sql
-	getOrCreateTypeQuery string
-
-	//go:embed sql/insert_beer.sql
-	insertBeerQuery string
-
-	//go:embed sql/get_or_create_feature.sql
-	getOrCreateFeatureQuery string
-
-	//go:embed sql/insert_beer_feature.sql
-	insertBeerFeatureQuery string
-)
-
 // BeerRepository определяет контракт для хранения и получения данных о пиве.
 type BeerRepository interface {
 
@@ -58,8 +38,6 @@ type BeerRepository interface {
 
 	GetCityID(ctx context.Context, cityName string, countryID uint) (uint, error)
 
-	GetTypeID(ctx context.Context, typeName string) (uint, error)
-
 	GetFeatureID(ctx context.Context, featName string) (uint, error)
 
 	InsertBeerFeature(ctx context.Context, featID, beerID uint) error
@@ -75,6 +53,7 @@ func NewBeerPostgres(pgPool *pgxpool.Pool) *BeerPostgres {
 	return &BeerPostgres{Pool: pgPool}
 }
 
+// TODO: depcrecated type must be deleted
 func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (uint, error) {
 	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
@@ -100,11 +79,6 @@ func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (uint
 		return 0, fmt.Errorf("city QueryRow: %w", err)
 	}
 
-	typeID, err := r.GetTypeID(ctx, beer.Type)
-	if err != nil {
-		return 0, fmt.Errorf("type QueryRow: %w", err)
-	}
-
 	ctgRepo := NewCategoryPostgres(r.Pool)
 	categoryID, err := ctgRepo.GetCategoryID(ctx, beer.Category.Name)
 	if err != nil {
@@ -119,10 +93,10 @@ func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (uint
 	}
 
 	var beerID uint
-	err = tx.QueryRow(ctx, insertBeerQuery,
+	err = tx.QueryRow(ctx, queries.InsertBeer(),
 		beer.Name, beer.Rating, beer.Description,
 		beer.ABV, beer.IBU, beer.Amount, beer.Unit,
-		typeID, cityID, categoryID).
+		cityID, categoryID).
 		Scan(&beerID)
 	if err != nil {
 		return 0, fmt.Errorf("beer QueryRow: %w", err)
@@ -379,7 +353,8 @@ func (r *BeerPostgres) GetBeersByCategoryID(
 
 func (r *BeerPostgres) GetCountryID(ctx context.Context, name string) (uint, error) {
 	var countryID uint
-	err := r.Pool.QueryRow(ctx, getOrCreateCountryQuery, name).Scan(&countryID)
+	query := queries.SelectOrInsertCountry()
+	err := r.Pool.QueryRow(ctx, query, name).Scan(&countryID)
 	if err != nil {
 		return 0, fmt.Errorf("country QueryRow: %w", err)
 	}
@@ -389,7 +364,8 @@ func (r *BeerPostgres) GetCountryID(ctx context.Context, name string) (uint, err
 
 func (r *BeerPostgres) GetCityID(ctx context.Context, cityName string, countryID uint) (uint, error) {
 	var cityID uint
-	err := r.Pool.QueryRow(ctx, getOrCreateCityQuery, cityName, countryID).Scan(&cityID)
+	query := queries.SelectOrInsertCity()
+	err := r.Pool.QueryRow(ctx, query, cityName, countryID).Scan(&cityID)
 	if err != nil {
 		return 0, fmt.Errorf("city QueryRow: %w", err)
 	}
@@ -397,19 +373,9 @@ func (r *BeerPostgres) GetCityID(ctx context.Context, cityName string, countryID
 	return cityID, nil
 }
 
-func (r *BeerPostgres) GetTypeID(ctx context.Context, typeName string) (uint, error) {
-	var typeID uint
-	err := r.Pool.QueryRow(ctx, getOrCreateTypeQuery, typeName).Scan(&typeID)
-	if err != nil {
-		return 0, fmt.Errorf("type QueryRow: %w", err)
-	}
-
-	return typeID, nil
-}
-
 func (r *BeerPostgres) GetFeatureID(ctx context.Context, featName string) (uint, error) {
 	var featID uint
-	err := r.Pool.QueryRow(ctx, getOrCreateFeatureQuery, featName).Scan(&featID)
+	err := r.Pool.QueryRow(ctx, queries.SelectOrInsertFeature(), featName).Scan(&featID)
 	if err != nil {
 		return 0, fmt.Errorf("category QueryRow: %w", err)
 	}
@@ -418,7 +384,7 @@ func (r *BeerPostgres) GetFeatureID(ctx context.Context, featName string) (uint,
 }
 
 func (r *BeerPostgres) InsertBeerFeature(ctx context.Context, featID, beerID uint) error {
-	_, err := r.Pool.Exec(ctx, insertBeerFeatureQuery, beerID, featID)
+	_, err := r.Pool.Exec(ctx, queries.SelectOrInsertBeerFeature(), beerID, featID)
 	if err != nil {
 		return fmt.Errorf("category QueryRow: %w", err)
 	}
@@ -431,7 +397,7 @@ func scanBeer(row pgx.Row) (*entities.Beer, error) {
 	err := row.Scan(&beer.ID, &beer.Name, &beer.Rating,
 		&beer.Description, &beer.ABV, &beer.IBU, &beer.Amount,
 		&beer.Unit, &beer.City, &beer.Country,
-		&beer.Category.Name, &beer.Type, &beer.Features)
+		&beer.Category.Name, &beer.Features)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Scan", err)
 	}

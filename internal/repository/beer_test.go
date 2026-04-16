@@ -19,7 +19,6 @@ var (
 		Unit:        "Литр",
 		City:        "Москва",
 		Country:     "Россия",
-		Type:        "Lager",
 		Category: entities.ProductCategory{
 			Name: "test_category",
 		},
