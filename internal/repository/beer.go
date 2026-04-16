@@ -352,8 +352,7 @@ func (r *BeerPostgres) GetBeersByCategoryID(
 
 func (r *BeerPostgres) GetCountryID(ctx context.Context, name string) (uint, error) {
 	var countryID uint
-	query := queries.SelectOrInsertCountry()
-	err := r.Pool.QueryRow(ctx, query, name).Scan(&countryID)
+	err := r.Pool.QueryRow(ctx, queries.SelectOrInsertCountry(), name).Scan(&countryID)
 	if err != nil {
 		return 0, fmt.Errorf("country QueryRow: %w", err)
 	}
@@ -363,8 +362,7 @@ func (r *BeerPostgres) GetCountryID(ctx context.Context, name string) (uint, err
 
 func (r *BeerPostgres) GetCityID(ctx context.Context, cityName string, countryID uint) (uint, error) {
 	var cityID uint
-	query := queries.SelectOrInsertCity()
-	err := r.Pool.QueryRow(ctx, query, cityName, countryID).Scan(&cityID)
+	err := r.Pool.QueryRow(ctx, queries.SelectOrInsertCity(), cityName, countryID).Scan(&cityID)
 	if err != nil {
 		return 0, fmt.Errorf("city QueryRow: %w", err)
 	}
