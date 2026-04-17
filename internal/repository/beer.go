@@ -171,35 +171,17 @@ func (r *BeerPostgres) GetBeers(ctx context.Context, limit, offset uint64) ([]en
 }
 
 func (r *BeerPostgres) GetBeerByID(ctx context.Context, id uint) (*entities.Beer, error) {
-	tx, err := r.Pool.Begin(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "Begin", err)
-	}
-	defer func(tx pgx.Tx, ctx context.Context) {
-		rollbackErr := tx.Rollback(ctx)
-		log, ok := logger.GetLoggerFromCtx(ctx)
-		if ok {
-			if rollbackErr != nil && !errors.Is(rollbackErr, pgx.ErrTxClosed) {
-				log.Error(ctx, "InsertBeer: rollback error:", zap.Error(rollbackErr))
-			}
-		}
-	}(tx, ctx)
-
 	psql := queries.SelectBeerByID(id)
 	query, args, err := psql.ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ToSql", err)
 	}
 
-	beer, err := scanBeer(tx.QueryRow(ctx, query, args...))
+	beer, err := scanBeer(r.Pool.QueryRow(ctx, query, args...))
 	if err != nil {
 		return nil, fmt.Errorf("query: %w", err)
 	}
 
-	err = tx.Commit(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("commit: %w", err)
-	}
 	return beer, nil
 }
 
