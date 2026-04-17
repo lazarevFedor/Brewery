@@ -7,11 +7,12 @@ import (
 )
 
 const (
-	beersTable     = "beers"
-	reviewsTable   = "reviews"
-	citiesTable    = "cities"
-	countriesTable = "countries"
-	featuresTable  = "features"
+	beersTable        = "beers"
+	reviewsTable      = "reviews"
+	citiesTable       = "cities"
+	countriesTable    = "countries"
+	featuresTable     = "features"
+	beerFeaturesTable = "beer_features"
 )
 
 var psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
@@ -62,7 +63,7 @@ func InsertReview(review entities.Review) sq.InsertBuilder {
 	}
 
 	return psql.
-		Insert("reviews").
+		Insert(reviewsTable).
 		SetMap(data).
 		Suffix("RETURNING id")
 }
@@ -81,57 +82,74 @@ func UpdateBeer(id uint, updates map[string]any) sq.UpdateBuilder {
 		Suffix("RETURNING id")
 }
 
-func SelectOrInsertCountry() string {
-	query := `INSERT INTO countries (name)
-			  VALUES ($1)
-			  ON CONFLICT (name) DO UPDATE
-			  SET name = EXCLUDED.name
-			  RETURNING id;`
+func SelectOrInsertCountry(name string) sq.InsertBuilder {
 
-	return query
+	data := map[string]any{
+		"name": name,
+	}
+
+	return psql.
+		Insert(countriesTable).
+		SetMap(data).
+		Suffix("ON CONFLICT (name) DO UPDATE " +
+			"SET name = EXCLUDED.name " +
+			"RETURNING id")
 }
 
-func SelectOrInsertCity() string {
-	query := `INSERT INTO cities (name, country_id)
-			  VALUES ($1, $2)
-			  ON CONFLICT (name, country_id) DO UPDATE
-			  SET name = EXCLUDED.name
-			  RETURNING id;`
+func SelectOrInsertCity(cityName string, countryID uint) sq.InsertBuilder {
+	data := map[string]any{
+		"name":       cityName,
+		"country_id": countryID,
+	}
 
-	return query
+	return psql.
+		Insert(citiesTable).
+		SetMap(data).
+		Suffix("ON CONFLICT (name, country_id) DO UPDATE " +
+			"SET name = EXCLUDED.name " +
+			"RETURNING id")
 }
 
-func SelectOrInsertFeature() string {
-	query := `INSERT INTO features (name)
-			  VALUES ($1)
-              ON CONFLICT (name) DO UPDATE
-              SET name = EXCLUDED.name
-              RETURNING id;`
+func SelectOrInsertFeature(featName string) sq.InsertBuilder {
+	data := map[string]any{
+		"name": featName,
+	}
 
-	return query
+	return psql.
+		Insert(featuresTable).
+		SetMap(data).
+		Suffix("ON CONFLICT (name) DO UPDATE " +
+			"SET name = EXCLUDED.name " +
+			"RETURNING id")
 }
 
-func SelectOrInsertBeerFeature() string {
-	query := `INSERT INTO beer_features (beer_id, feature_id)
-			  VALUES ($1, $2)
-              ON CONFLICT DO NOTHING;`
+func SelectOrInsertBeerFeature(featID, beerID uint) sq.InsertBuilder {
+	data := map[string]any{
+		"beer_id":    beerID,
+		"feature_id": featID,
+	}
 
-	return query
+	return psql.
+		Insert(beerFeaturesTable).
+		SetMap(data).
+		Suffix("ON CONFLICT DO NOTHING")
 }
 
-func InsertBeer() string {
-	query := `INSERT INTO beers (
-    		  name,
-			  rating,
-			  description,
-			  abv,
-			  ibu,
-			  amount,
-			  units,
-			  city_id,
-			  category_id
-		      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-		      RETURNING id;`
+func InsertBeer(beer entities.Beer, cityID, categoryID uint) sq.InsertBuilder {
+	data := map[string]any{
+		"name":        beer.Name,
+		"rating":      beer.Rating,
+		"description": beer.Description,
+		"abv":         beer.ABV,
+		"ibu":         beer.IBU,
+		"amount":      beer.Amount,
+		"units":       beer.Unit,
+		"city_id":     cityID,
+		"category_id": categoryID,
+	}
 
-	return query
+	return psql.
+		Insert(beersTable).
+		SetMap(data).
+		Suffix("RETURNING id")
 }

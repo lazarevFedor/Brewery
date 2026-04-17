@@ -92,11 +92,13 @@ func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (uint
 	}
 
 	var beerID uint
-	err = tx.QueryRow(ctx, queries.InsertBeer(),
-		beer.Name, beer.Rating, beer.Description,
-		beer.ABV, beer.IBU, beer.Amount, beer.Unit,
-		cityID, categoryID).
-		Scan(&beerID)
+	psql := queries.InsertBeer(beer, cityID, categoryID)
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return 0, fmt.Errorf("ToSql: %w", err)
+	}
+
+	err = tx.QueryRow(ctx, query, args...).Scan(&beerID)
 	if err != nil {
 		return 0, fmt.Errorf("beer QueryRow: %w", err)
 	}
@@ -352,7 +354,13 @@ func (r *BeerPostgres) GetBeersByCategoryID(
 
 func (r *BeerPostgres) GetCountryID(ctx context.Context, name string) (uint, error) {
 	var countryID uint
-	err := r.Pool.QueryRow(ctx, queries.SelectOrInsertCountry(), name).Scan(&countryID)
+	psql := queries.SelectOrInsertCountry(name)
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", "ToSql", err)
+	}
+
+	err = r.Pool.QueryRow(ctx, query, args...).Scan(&countryID)
 	if err != nil {
 		return 0, fmt.Errorf("country QueryRow: %w", err)
 	}
@@ -362,7 +370,13 @@ func (r *BeerPostgres) GetCountryID(ctx context.Context, name string) (uint, err
 
 func (r *BeerPostgres) GetCityID(ctx context.Context, cityName string, countryID uint) (uint, error) {
 	var cityID uint
-	err := r.Pool.QueryRow(ctx, queries.SelectOrInsertCity(), cityName, countryID).Scan(&cityID)
+	psql := queries.SelectOrInsertCity(cityName, countryID)
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", "ToSql", err)
+	}
+
+	err = r.Pool.QueryRow(ctx, query, args...).Scan(&cityID)
 	if err != nil {
 		return 0, fmt.Errorf("city QueryRow: %w", err)
 	}
@@ -372,7 +386,13 @@ func (r *BeerPostgres) GetCityID(ctx context.Context, cityName string, countryID
 
 func (r *BeerPostgres) GetFeatureID(ctx context.Context, featName string) (uint, error) {
 	var featID uint
-	err := r.Pool.QueryRow(ctx, queries.SelectOrInsertFeature(), featName).Scan(&featID)
+	psql := queries.SelectOrInsertFeature(featName)
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", "ToSql", err)
+	}
+
+	err = r.Pool.QueryRow(ctx, query, args...).Scan(&featID)
 	if err != nil {
 		return 0, fmt.Errorf("category QueryRow: %w", err)
 	}
@@ -381,7 +401,13 @@ func (r *BeerPostgres) GetFeatureID(ctx context.Context, featName string) (uint,
 }
 
 func (r *BeerPostgres) InsertBeerFeature(ctx context.Context, featID, beerID uint) error {
-	_, err := r.Pool.Exec(ctx, queries.SelectOrInsertBeerFeature(), beerID, featID)
+	psql := queries.SelectOrInsertBeerFeature(featID, beerID)
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: %w", "ToSql", err)
+	}
+
+	_, err = r.Pool.Exec(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("category QueryRow: %w", err)
 	}
