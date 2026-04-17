@@ -13,13 +13,6 @@ import (
 	"go.uber.org/zap"
 )
 
-const (
-	tableCategories = "product_categories"
-	IDCol           = "id"
-	nameCol         = "name"
-	parentIDCol     = "parent_id"
-)
-
 type CategoryRepository interface {
 	GetCategories(ctx context.Context) ([]entities.ProductCategory, error)
 	InsertCategory(ctx context.Context, category entities.ProductCategory) (uint, error)
