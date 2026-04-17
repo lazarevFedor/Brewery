@@ -83,7 +83,6 @@ func UpdateBeer(id uint, updates map[string]any) sq.UpdateBuilder {
 }
 
 func SelectOrInsertCountry(name string) sq.InsertBuilder {
-
 	data := map[string]any{
 		"name": name,
 	}
