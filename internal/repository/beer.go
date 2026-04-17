@@ -141,16 +141,16 @@ func (r *BeerPostgres) GetBeers(ctx context.Context, limit, offset uint64) ([]en
 
 	beers := make([]entities.Beer, 0)
 	for rows.Next() {
-		if rows.Err() != nil {
-			return nil, fmt.Errorf("rows.Err: %w", err)
-		}
-
 		beer, err := scanBeer(rows)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan row: %w", err)
 		}
 
 		beers = append(beers, *beer)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows.Err: %w", err)
 	}
 
 	return beers, nil
