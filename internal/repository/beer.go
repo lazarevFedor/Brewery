@@ -123,20 +123,6 @@ func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (uint
 }
 
 func (r *BeerPostgres) GetBeers(ctx context.Context, limit, offset uint64) ([]entities.Beer, error) {
-	tx, err := r.Pool.Begin(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "Begin", err)
-	}
-	defer func(tx pgx.Tx, ctx context.Context) {
-		rollbackErr := tx.Rollback(ctx)
-		log, ok := logger.GetLoggerFromCtx(ctx)
-		if ok {
-			if rollbackErr != nil && !errors.Is(rollbackErr, pgx.ErrTxClosed) {
-				log.Error(ctx, "GetBeers: rollback error:", zap.Error(rollbackErr))
-			}
-		}
-	}(tx, ctx)
-
 	psql := queries.FullBeerSelect().Offset(offset)
 	if limit != 0 {
 		psql = psql.Limit(limit)
@@ -147,7 +133,7 @@ func (r *BeerPostgres) GetBeers(ctx context.Context, limit, offset uint64) ([]en
 		return nil, fmt.Errorf("%s: %w", "ToSql", err)
 	}
 
-	rows, err := tx.Query(ctx, query)
+	rows, err := r.Pool.Query(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("query: %w", err)
 	}
@@ -155,6 +141,10 @@ func (r *BeerPostgres) GetBeers(ctx context.Context, limit, offset uint64) ([]en
 
 	beers := make([]entities.Beer, 0)
 	for rows.Next() {
+		if rows.Err() != nil {
+			return nil, fmt.Errorf("rows.Err: %w", err)
+		}
+
 		beer, err := scanBeer(rows)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan row: %w", err)
@@ -163,10 +153,6 @@ func (r *BeerPostgres) GetBeers(ctx context.Context, limit, offset uint64) ([]en
 		beers = append(beers, *beer)
 	}
 
-	err = tx.Commit(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("commit: %w", err)
-	}
 	return beers, nil
 }
 
@@ -255,20 +241,6 @@ func (r *BeerPostgres) DeleteBeer(ctx context.Context, id uint) error {
 }
 
 func (r *BeerPostgres) InsertReview(ctx context.Context, review entities.Review) (uint, error) {
-	tx, err := r.Pool.Begin(ctx)
-	if err != nil {
-		return 0, fmt.Errorf("%s: %w", "Begin", err)
-	}
-	defer func(tx pgx.Tx, ctx context.Context) {
-		rollbackErr := tx.Rollback(ctx)
-		log, ok := logger.GetLoggerFromCtx(ctx)
-		if ok {
-			if rollbackErr != nil && !errors.Is(rollbackErr, pgx.ErrTxClosed) {
-				log.Error(ctx, "InsertBeer: rollback error:", zap.Error(rollbackErr))
-			}
-		}
-	}(tx, ctx)
-
 	psql := queries.InsertReview(review)
 
 	query, args, err := psql.ToSql()
@@ -281,30 +253,13 @@ func (r *BeerPostgres) InsertReview(ctx context.Context, review entities.Review)
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", "Scan", err)
 	}
-	err = tx.Commit(ctx)
-	if err != nil {
-		return 0, fmt.Errorf("commit: %w", err)
-	}
+
 	return reviewID, nil
 }
 
 func (r *BeerPostgres) GetBeersByCategoryID(
 	ctx context.Context, ctgID uint, limit, offset uint64,
 ) ([]entities.Beer, error) {
-	tx, err := r.Pool.Begin(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "Begin", err)
-	}
-	defer func(tx pgx.Tx, ctx context.Context) {
-		rollbackErr := tx.Rollback(ctx)
-		log, ok := logger.GetLoggerFromCtx(ctx)
-		if ok {
-			if rollbackErr != nil && !errors.Is(rollbackErr, pgx.ErrTxClosed) {
-				log.Error(ctx, "InsertBeer: rollback error:", zap.Error(rollbackErr))
-			}
-		}
-	}(tx, ctx)
-
 	psql := queries.SelectBeerByCategoryID(ctgID).Offset(offset)
 	if limit != 0 {
 		psql = psql.Limit(limit)
@@ -313,7 +268,7 @@ func (r *BeerPostgres) GetBeersByCategoryID(
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ToSql", err)
 	}
-	rows, err := tx.Query(ctx, query, args...)
+	rows, err := r.Pool.Query(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("query: %w", err)
 	}
@@ -327,10 +282,7 @@ func (r *BeerPostgres) GetBeersByCategoryID(
 		}
 		beers = append(beers, *beer)
 	}
-	err = tx.Commit(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("commit: %w", err)
-	}
+
 	return beers, nil
 }
 
