@@ -2,9 +2,9 @@
 
 CREATE TABLE IF NOT EXISTS enum_classes (
     id INT PRIMARY KEY,
-    enum_type VARCHAR(100)
+    enum_type VARCHAR(100),
     entity_name VARCHAR(50),
-    field_name VARCHAR(50),
+    field_name VARCHAR(50)
 
 );
 
