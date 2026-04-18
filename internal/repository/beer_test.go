@@ -132,7 +132,7 @@ func TestBeerRepository_InsertGetBeer(t *testing.T) {
 		beers, err := beerRepo.GetBeers(ctx, 0, 0)
 
 		require.NoError(t, err)
-		require.Len(t, beers, 0, "Длина слайса должна быть равна 0")
+		require.Empty(t, beers, "Длина слайса должна быть равна 0")
 
 		t.Cleanup(func() {
 			cleanDB(t, ctx, "beers")
@@ -158,7 +158,7 @@ func TestBeerRepository_InsertGetBeer(t *testing.T) {
 		beers, err := beerRepo.GetBeers(ctx, 0, 0)
 
 		require.NoError(t, err)
-		require.Len(t, beers, 0, "Длина слайса должна быть равна 0")
+		require.Empty(t, beers, "Длина слайса должна быть равна 0")
 
 		t.Cleanup(func() {
 			cleanDB(t, ctx, "beers")
@@ -173,7 +173,7 @@ func TestBeerRepository_InsertGetBeer(t *testing.T) {
 		beers, err := beerRepo.GetBeers(ctx, 0, 0)
 
 		require.NoError(t, err)
-		require.Len(t, beers, 0, "Длина слайса должна быть равна 0")
+		require.Empty(t, beers, "Длина слайса должна быть равна 0")
 
 		t.Cleanup(func() {
 			cleanDB(t, ctx, "beers")
@@ -188,7 +188,7 @@ func TestBeerRepository_InsertGetBeer(t *testing.T) {
 		beers, err := beerRepo.GetBeers(ctx, 0, 0)
 
 		require.NoError(t, err)
-		require.Len(t, beers, 0, "Длина слайса должна быть равна 0")
+		require.Empty(t, beers, "Длина слайса должна быть равна 0")
 
 		t.Cleanup(func() {
 			cleanDB(t, ctx, "beers")
