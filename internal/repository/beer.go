@@ -54,6 +54,10 @@ func NewBeerPostgres(pgPool *pgxpool.Pool) *BeerPostgres {
 }
 
 func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (uint, error) {
+	if r.Pool == nil {
+		return 0, errors.New("pool is nil")
+	}
+
 	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", "Begin", err)
@@ -123,6 +127,10 @@ func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (uint
 }
 
 func (r *BeerPostgres) GetBeers(ctx context.Context, limit, offset uint64) ([]entities.Beer, error) {
+	if r.Pool == nil {
+		return nil, errors.New("pool is nil")
+	}
+
 	psql := queries.FullBeerSelect().Offset(offset)
 	if limit != 0 {
 		psql = psql.Limit(limit)
@@ -157,6 +165,10 @@ func (r *BeerPostgres) GetBeers(ctx context.Context, limit, offset uint64) ([]en
 }
 
 func (r *BeerPostgres) GetBeerByID(ctx context.Context, id uint) (*entities.Beer, error) {
+	if r.Pool == nil {
+		return nil, errors.New("pool is nil")
+	}
+
 	psql := queries.SelectBeerByID(id)
 	query, args, err := psql.ToSql()
 	if err != nil {
@@ -172,6 +184,10 @@ func (r *BeerPostgres) GetBeerByID(ctx context.Context, id uint) (*entities.Beer
 }
 
 func (r *BeerPostgres) UpdateBeer(ctx context.Context, id uint, updates map[string]any) (uint, error) {
+	if r.Pool == nil {
+		return 0, errors.New("pool is nil")
+	}
+
 	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", "Begin", err)
@@ -206,6 +222,10 @@ func (r *BeerPostgres) UpdateBeer(ctx context.Context, id uint, updates map[stri
 }
 
 func (r *BeerPostgres) DeleteBeer(ctx context.Context, id uint) error {
+	if r.Pool == nil {
+		return errors.New("pool is nil")
+	}
+
 	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("%s: %w", "Begin", err)
@@ -241,6 +261,10 @@ func (r *BeerPostgres) DeleteBeer(ctx context.Context, id uint) error {
 }
 
 func (r *BeerPostgres) InsertReview(ctx context.Context, review entities.Review) (uint, error) {
+	if r.Pool == nil {
+		return 0, errors.New("pool is nil")
+	}
+
 	psql := queries.InsertReview(review)
 
 	query, args, err := psql.ToSql()
@@ -260,6 +284,10 @@ func (r *BeerPostgres) InsertReview(ctx context.Context, review entities.Review)
 func (r *BeerPostgres) GetBeersByCategoryID(
 	ctx context.Context, ctgID uint, limit, offset uint64,
 ) ([]entities.Beer, error) {
+	if r.Pool == nil {
+		return nil, errors.New("pool is nil")
+	}
+
 	psql := queries.SelectBeerByCategoryID(ctgID).Offset(offset)
 	if limit != 0 {
 		psql = psql.Limit(limit)
@@ -287,6 +315,14 @@ func (r *BeerPostgres) GetBeersByCategoryID(
 }
 
 func (r *BeerPostgres) GetCountryID(ctx context.Context, name string) (uint, error) {
+	if r.Pool == nil {
+		return 0, errors.New("pool is nil")
+	}
+
+	if name == "" {
+		return 0, errors.New("country name is empty")
+	}
+
 	var countryID uint
 	psql := queries.SelectOrInsertCountry(name)
 	query, args, err := psql.ToSql()
@@ -303,6 +339,14 @@ func (r *BeerPostgres) GetCountryID(ctx context.Context, name string) (uint, err
 }
 
 func (r *BeerPostgres) GetCityID(ctx context.Context, cityName string, countryID uint) (uint, error) {
+	if r.Pool == nil {
+		return 0, errors.New("pool is nil")
+	}
+
+	if cityName == "" {
+		return 0, errors.New("city name is empty")
+	}
+
 	var cityID uint
 	psql := queries.SelectOrInsertCity(cityName, countryID)
 	query, args, err := psql.ToSql()
@@ -319,6 +363,10 @@ func (r *BeerPostgres) GetCityID(ctx context.Context, cityName string, countryID
 }
 
 func (r *BeerPostgres) GetFeatureID(ctx context.Context, featName string) (uint, error) {
+	if r.Pool == nil {
+		return 0, errors.New("pool is nil")
+	}
+
 	var featID uint
 	psql := queries.SelectOrInsertFeature(featName)
 	query, args, err := psql.ToSql()
@@ -335,6 +383,10 @@ func (r *BeerPostgres) GetFeatureID(ctx context.Context, featName string) (uint,
 }
 
 func (r *BeerPostgres) InsertBeerFeature(ctx context.Context, featID, beerID uint) error {
+	if r.Pool == nil {
+		return errors.New("pool is nil")
+	}
+
 	psql := queries.SelectOrInsertBeerFeature(featID, beerID)
 	query, args, err := psql.ToSql()
 	if err != nil {

@@ -242,6 +242,10 @@ func (r *CategoryPostgres) DeleteCategoryByID(ctx context.Context, id uint) erro
 }
 
 func (r *CategoryPostgres) GetCategoryID(ctx context.Context, ctgName string) (uint, error) {
+	if ctgName == "" {
+		return 0, errors.New("category name cannot be empty")
+	}
+
 	var categoryID uint
 	psql := queries.SelectCategoryByName(ctgName)
 	query, args, err := psql.ToSql()
