@@ -81,24 +81,23 @@ func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (uint
 		}
 	}(tx, ctx)
 
-	countryID, err := r.GetCountryID(ctx, beer.Country)
+	countryID, err := r.getCountryIDTx(ctx, tx, beer.Country)
 	if err != nil {
 		return 0, fmt.Errorf("country QueryRow: %w", err)
 	}
 
-	cityID, err := r.GetCityID(ctx, beer.City, countryID)
+	cityID, err := r.getCityIDTx(ctx, tx, beer.City, countryID)
 	if err != nil {
 		return 0, fmt.Errorf("city QueryRow: %w", err)
 	}
 
-	ctgRepo := NewCategoryPostgres(r.Pool)
-	categoryID, err := ctgRepo.GetCategoryID(ctx, beer.Category.Name)
+	categoryID, err := r.getCategoryIDTx(ctx, tx, beer.Category.Name)
 	if err != nil {
 		return 0, fmt.Errorf("getCategoryID: %w", err)
 	}
 
 	if categoryID == 0 {
-		categoryID, err = ctgRepo.InsertCategory(ctx, beer.Category)
+		categoryID, err = r.insertCategoryTx(ctx, tx, beer.Category)
 		if err != nil {
 			return 0, fmt.Errorf("insertCategory: %w", err)
 		}
@@ -117,12 +116,12 @@ func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (uint
 	}
 
 	for _, featName := range beer.Features {
-		featID, err := r.GetFeatureID(ctx, featName)
+		featID, err := r.getFeatureIDTx(ctx, tx, featName)
 		if err != nil {
 			return 0, fmt.Errorf("feature QueryRow: %w", err)
 		}
 
-		err = r.InsertBeerFeature(ctx, featID, beerID)
+		err = r.insertBeerFeatureTx(ctx, tx, featID, beerID)
 		if err != nil {
 			return 0, fmt.Errorf("exec: %w", err)
 		}
@@ -133,6 +132,127 @@ func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (uint
 		return 0, fmt.Errorf("commit: %w", err)
 	}
 	return beerID, nil
+}
+
+// getCountryIDTx возвращает ID страны по ее названию в рамках транзакции. Если страны нет, она будет добавлена в базу данных. Если name пустой, возвращает ошибку.
+func (r *BeerPostgres) getCountryIDTx(ctx context.Context, tx pgx.Tx, name string) (uint, error) {
+	if name == "" {
+		return 0, errors.New("country name is empty")
+	}
+
+	var countryID uint
+	psql := queries.SelectOrInsertCountry(name)
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", "ToSql", err)
+	}
+
+	err = tx.QueryRow(ctx, query, args...).Scan(&countryID)
+	if err != nil {
+		return 0, fmt.Errorf("country QueryRow: %w", err)
+	}
+
+	return countryID, nil
+}
+
+// getCityIDTx
+func (r *BeerPostgres) getCityIDTx(ctx context.Context, tx pgx.Tx, name string, countryID uint) (uint, error) {
+	if name == "" {
+		return 0, errors.New("city name is empty")
+	}
+
+	var cityID uint
+	psql := queries.SelectOrInsertCity(name, countryID)
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", "ToSql", err)
+	}
+
+	err = tx.QueryRow(ctx, query, args...).Scan(&cityID)
+	if err != nil {
+		return 0, fmt.Errorf("city QueryRow: %w", err)
+	}
+
+	return cityID, nil
+}
+
+// getCategoryIDTx возвращает ID категории по ее названию в рамках транзакции. Если категории нет, возвращает 0. Если name пустой, возвращает ошибку.
+func (r *BeerPostgres) getCategoryIDTx(ctx context.Context, tx pgx.Tx, categoryName string) (uint, error) {
+	if categoryName == "" {
+		return 0, errors.New("category name cannot be empty")
+	}
+
+	var categoryID uint
+	psql := queries.SelectCategoryByName(categoryName)
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", "ToSql", err)
+	}
+
+	err = tx.QueryRow(ctx, query, args...).Scan(&categoryID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, nil
+		}
+
+		return 0, fmt.Errorf("scan: %w", err)
+	}
+
+	return categoryID, nil
+}
+
+// insertCategoryTx вставляет категорию в базу данных в рамках транзакции и возвращает ее ID. Если name пустой, возвращает ошибку.
+func (r *BeerPostgres) insertCategoryTx(ctx context.Context, tx pgx.Tx, category entities.ProductCategory) (uint, error) {
+	psql := queries.CategoryInsert(category)
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", "ToSql", err)
+	}
+
+	var categoryID uint
+	err = tx.QueryRow(ctx, query, args...).Scan(&categoryID)
+	if err != nil {
+		return 0, fmt.Errorf("exec: %w", err)
+	}
+
+	if categoryID == 0 {
+		return 0, errors.New("zero id")
+	}
+
+	return categoryID, nil
+}
+
+// getFeatureIDTx возвращает ID характеристики по ее названию в рамках транзакции. Если характеристики нет, она будет добавлена в базу данных. Если name пустой, возвращает ошибку.
+func (r *BeerPostgres) getFeatureIDTx(ctx context.Context, tx pgx.Tx, name string) (uint, error) {
+	var featID uint
+	psql := queries.SelectOrInsertFeature(name)
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", "ToSql", err)
+	}
+
+	err = tx.QueryRow(ctx, query, args...).Scan(&featID)
+	if err != nil {
+		return 0, fmt.Errorf("QueryRow: %w", err)
+	}
+
+	return featID, nil
+}
+
+// insertBeerFeatureTx связывает характеристику с сортом пива в рамках транзакции. Если связь уже существует, она не будет добавлена повторно. Если featID или beerID равны 0, возвращает ошибку.
+func (r *BeerPostgres) insertBeerFeatureTx(ctx context.Context, tx pgx.Tx, featID, beerID uint) error {
+	psql := queries.SelectOrInsertBeerFeature(featID, beerID)
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: %w", "ToSql", err)
+	}
+
+	_, err = tx.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("QueryRow: %w", err)
+	}
+
+	return nil
 }
 
 // GetBeers возвращает список всех сортов пива. Если limit не равен 0, возвращает не более limit сортов пива, начиная с позиции offset.
@@ -358,18 +478,18 @@ func (r *BeerPostgres) GetCountryID(ctx context.Context, name string) (uint, err
 	return countryID, nil
 }
 
-// GetCityID возвращает ID города по его названию и ID страны. Если города нет, он будет добавлен в базу данных. Если cityName пустой, возвращает ошибку.
-func (r *BeerPostgres) GetCityID(ctx context.Context, cityName string, countryID uint) (uint, error) {
+// GetCityID возвращает ID города по его названию и ID страны. Если города нет, он будет добавлен в базу данных. Если name пустой, возвращает ошибку.
+func (r *BeerPostgres) GetCityID(ctx context.Context, name string, countryID uint) (uint, error) {
 	if r.Pool == nil {
 		return 0, errors.New("pool is nil")
 	}
 
-	if cityName == "" {
+	if name == "" {
 		return 0, errors.New("city name is empty")
 	}
 
 	var cityID uint
-	psql := queries.SelectOrInsertCity(cityName, countryID)
+	psql := queries.SelectOrInsertCity(name, countryID)
 	query, args, err := psql.ToSql()
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", "ToSql", err)
@@ -383,14 +503,14 @@ func (r *BeerPostgres) GetCityID(ctx context.Context, cityName string, countryID
 	return cityID, nil
 }
 
-// GetFeatureID возвращает ID характеристики по ее названию. Если характеристики нет, она будет добавлена в базу данных. Если featName пустой, возвращает ошибку.
-func (r *BeerPostgres) GetFeatureID(ctx context.Context, featName string) (uint, error) {
+// GetFeatureID возвращает ID характеристики по ее названию. Если характеристики нет, она будет добавлена в базу данных. Если name пустой, возвращает ошибку.
+func (r *BeerPostgres) GetFeatureID(ctx context.Context, name string) (uint, error) {
 	if r.Pool == nil {
 		return 0, errors.New("pool is nil")
 	}
 
 	var featID uint
-	psql := queries.SelectOrInsertFeature(featName)
+	psql := queries.SelectOrInsertFeature(name)
 	query, args, err := psql.ToSql()
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", "ToSql", err)
