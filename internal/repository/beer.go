@@ -398,7 +398,7 @@ func (r *BeerPostgres) GetFeatureID(ctx context.Context, featName string) (uint,
 
 	err = r.Pool.QueryRow(ctx, query, args...).Scan(&featID)
 	if err != nil {
-		return 0, fmt.Errorf("category QueryRow: %w", err)
+		return 0, fmt.Errorf("QueryRow: %w", err)
 	}
 
 	return featID, nil
@@ -418,7 +418,7 @@ func (r *BeerPostgres) InsertBeerFeature(ctx context.Context, featID, beerID uin
 
 	_, err = r.Pool.Exec(ctx, query, args...)
 	if err != nil {
-		return fmt.Errorf("category QueryRow: %w", err)
+		return fmt.Errorf("QueryRow: %w", err)
 	}
 
 	return nil
