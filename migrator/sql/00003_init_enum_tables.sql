@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS enum_classes (
     enum_type VARCHAR(100),
     entity_name VARCHAR(50),
     field_name VARCHAR(50)
+    UNIQUE (entity_name, field_name)
 
 );
 
@@ -15,11 +16,10 @@ CREATE TABLE IF NOT EXISTS enum_values (
     value_raw VARCHAR(255) NOT NULL,   -- само значение
     value_type VARCHAR(20) NOT NULL,   -- 'int', 'float', 'string', 'picture'
 
-    position INT
-
+    position INT,
     FOREIGN KEY (enum_class_id) REFERENCES enum_classes(id)
 );
 
 -- +goose Down
-DROP TABLE IF EXISTS enum_classes;
 DROP TABLE IF EXISTS enum_values;
+DROP TABLE IF EXISTS enum_classes;
