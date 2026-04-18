@@ -341,6 +341,31 @@ func TestBeerRepository_DeleteBeer(t *testing.T) {
 		})
 	})
 
+	t.Run("Удаление пива каскадно удаляет отзывы", func(t *testing.T) {
+		beerID, err := beerRepo.InsertBeer(ctx, testBeers[0])
+		require.NoError(t, err)
+		require.NotZero(t, beerID)
+
+		review := testReview
+		review.BeerID = beerID
+
+		reviewID, err := beerRepo.InsertReview(ctx, review)
+		require.NoError(t, err)
+		require.NotZero(t, reviewID)
+
+		err = beerRepo.DeleteBeer(ctx, beerID)
+		require.NoError(t, err)
+
+		var reviewCount int
+		err = testDB.QueryRow(ctx, "SELECT COUNT(*) FROM reviews WHERE beer_id = $1", beerID).Scan(&reviewCount)
+		require.NoError(t, err)
+		require.Zero(t, reviewCount)
+
+		t.Cleanup(func() {
+			cleanDB(t, ctx, "beers")
+		})
+	})
+
 	t.Run("Удаление несуществующего пива", func(t *testing.T) {
 		err := beerRepo.DeleteBeer(ctx, 999999)
 		require.Error(t, err)

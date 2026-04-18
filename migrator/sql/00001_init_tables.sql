@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS reviews(
     body TEXT,
     rating NUMERIC(2, 1) NOT NULL,
     beer_id INT,
-    CONSTRAINT fk_review_beer FOREIGN KEY (beer_id) REFERENCES beers (id)
+    CONSTRAINT fk_review_beer FOREIGN KEY (beer_id) REFERENCES beers (id) ON DELETE CASCADE
 );
 
 
