@@ -1,4 +1,4 @@
-// Package repository contains layer that manipulates data in database
+// Package repository_test содержит тесты для слоя repository
 package repository_test
 
 import (
@@ -13,6 +13,7 @@ import (
 )
 
 var (
+	// testBeers содержит набор тестовых данных для пива, включая как валидные, так и невалидные случаи для проверки различных сценариев вставки и получения данных из репозитория.
 	testBeers = []entities.Beer{
 		{
 			Name:        "test_success",
@@ -94,12 +95,14 @@ var (
 		},
 	}
 
+	// testReview содержит тестовые данные для отзыва, которые используются в тестах вставки отзывов в репозиторий.
 	testReview = entities.Review{
 		Body:   "test_body",
 		Rating: 4.5,
 	}
 )
 
+// TestBeerRepository_InsertGetBeer содержит тесты для проверки функциональности вставки и получения пива из репозитория, включая различные сценарии, такие как успешная вставка, вставка с невалидными данными и использование неинициализированного репозитория.
 func TestBeerRepository_InsertGetBeer(t *testing.T) {
 	ctx := t.Context()
 	ctx, err := logger.NewLoggerContext(ctx, true)
@@ -196,6 +199,7 @@ func TestBeerRepository_InsertGetBeer(t *testing.T) {
 	})
 }
 
+// TestBeerRepository_UpdateBeer содержит тесты для проверки функциональности обновления пива в репозитории, включая успешное обновление, попытку обновления несуществующего пива, обновление с пустым набором полей и обновление с неинициализированным репозиторием.
 func TestBeerRepository_UpdateBeer(t *testing.T) {
 	ctx := t.Context()
 
@@ -269,6 +273,7 @@ func TestBeerRepository_UpdateBeer(t *testing.T) {
 	})
 }
 
+// TestBeerRepository_DeleteBeer содержит тесты для проверки функциональности удаления пива из репозитория, включая успешное удаление, попытку удаления несуществующего пива и удаление с неинициализированным репозиторием.
 func TestBeerRepository_DeleteBeer(t *testing.T) {
 	ctx := t.Context()
 
@@ -311,6 +316,7 @@ func TestBeerRepository_DeleteBeer(t *testing.T) {
 	})
 }
 
+// TestBeerRepository_InsertReview содержит тесты для проверки функциональности вставки отзывов в репозиторий, включая успешную вставку отзыва, попытку вставки отзыва с неинициализированным репозиторием и вставку отзыва с отмененным контекстом.
 func TestBeerRepository_InsertReview(t *testing.T) {
 	ctx := t.Context()
 
@@ -343,6 +349,7 @@ func TestBeerRepository_InsertReview(t *testing.T) {
 	})
 }
 
+// TestBeerRepository_GetBeersByCategoryID содержит тесты для проверки функциональности получения пива по категории из репозитория, включая успешное получение, получение с лимитом и получение с неинициализированным репозиторием.
 func TestBeerRepository_GetBeersByCategoryID(t *testing.T) {
 	ctx := t.Context()
 
@@ -409,6 +416,7 @@ func TestBeerRepository_GetBeersByCategoryID(t *testing.T) {
 	})
 }
 
+// TestBeerRepository_GetBeers содержит тесты для проверки функциональности получения списка пива из репозитория, включая успешную выборку с лимитом и выборку с неинициализированным репозиторием.
 func TestBeerRepository_GetBeers(t *testing.T) {
 	ctx := t.Context()
 
@@ -487,6 +495,7 @@ func TestBeerRepository_GetBeerByID(t *testing.T) {
 	})
 }
 
+// TestBeerRepository_GetCountryID содержит тесты для проверки функциональности получения ID страны из репозитория, включая успешное получение, получение с пустым именем страны и получение с неинициализированным репозиторием.
 func TestBeerRepository_GetCountryID(t *testing.T) {
 	ctx := t.Context()
 
@@ -527,6 +536,7 @@ func TestBeerRepository_GetCountryID(t *testing.T) {
 	})
 }
 
+// TestBeerRepository_GetCityID содержит тесты для проверки функциональности получения ID города из репозитория, включая успешное получение, получение с пустым именем города и получение с неинициализированным репозиторием.
 func TestBeerRepository_GetCityID(t *testing.T) {
 	ctx := t.Context()
 
@@ -571,6 +581,7 @@ func TestBeerRepository_GetCityID(t *testing.T) {
 	})
 }
 
+// TestBeerRepository_GetFeatureIDAndInsertBeerFeature содержит тесты для проверки функциональности получения ID фичи и вставки связи beer-feature в репозитории, включая успешную вставку, получение ID фичи с неинициализированным репозиторием и вставку beer-feature с неинициализированным репозиторием.
 func TestBeerRepository_GetFeatureIDAndInsertBeerFeature(t *testing.T) {
 	ctx := t.Context()
 
@@ -618,6 +629,7 @@ func TestBeerRepository_GetFeatureIDAndInsertBeerFeature(t *testing.T) {
 	})
 }
 
+// TestBeerRepository_CanceledContext содержит тесты для проверки поведения методов репозитория при использовании отмененного контекста, включая попытки вставки, обновления, удаления и получения данных с отмененным контекстом, а также проверку правильного обработки ошибок в этих случаях.
 func TestBeerRepository_CanceledContext(t *testing.T) {
 	baseCtx := t.Context()
 	ctx, cancel := context.WithCancel(baseCtx)
