@@ -1,6 +1,6 @@
 -- +goose Up
 
-CREATE TABLE enum_classes (
+CREATE TABLE IF NOT EXISTS enum_classes (
     id INT PRIMARY KEY,
     enum_type VARCHAR(100)
     entity_name VARCHAR(50),
@@ -8,7 +8,7 @@ CREATE TABLE enum_classes (
 
 );
 
-CREATE TABLE enum_values (
+CREATE TABLE IF NOT EXISTS enum_values (
     id INT PRIMARY KEY,
     enum_class_id INT NOT NULL,
 
@@ -21,3 +21,5 @@ CREATE TABLE enum_values (
 );
 
 -- +goose Down
+DROP TABLE IF EXISTS enum_classes;
+DROP TABLE IF EXISTS enum_values;
