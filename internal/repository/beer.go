@@ -1,4 +1,4 @@
-// Package repository contains layer that manipulates data in database
+// Package repository содержит слой для манипуляции объектами в базе данных
 package repository
 
 import (
@@ -26,20 +26,28 @@ type BeerRepository interface {
 	// GetBeers возвращает список всех сортов пива.
 	GetBeers(ctx context.Context, limit, offset uint64) ([]entities.Beer, error)
 
+	// UpdateBeer обновляет поля у сущности Beer в хранилище
 	UpdateBeer(ctx context.Context, id uint, updates map[string]any) (uint, error)
 
+	// DeleteBeer удаляет сущность Beer из хранилища
 	DeleteBeer(ctx context.Context, id uint) error
 
+	// InsertReview сохраняет новую сущность Review в хранилище.
 	InsertReview(ctx context.Context, review entities.Review) (uint, error)
 
+	// GetBeersByCategoryID возвращает список сортов пива, принадлежащих к определенной категории.
 	GetBeersByCategoryID(ctx context.Context, ctgID uint, limit, offset uint64) ([]entities.Beer, error)
 
+	// GetCountryID возвращает ID страны по ее названию. Если страны нет, она будет добавлена в базу данных.
 	GetCountryID(ctx context.Context, name string) (uint, error)
 
+	// GetCityID возвращает ID города по его названию и ID страны. Если города нет, он будет добавлен в базу данных.
 	GetCityID(ctx context.Context, cityName string, countryID uint) (uint, error)
 
+	// GetFeatureID возвращает ID характеристики по ее названию. Если характеристики нет, она будет добавлена в базу данных.
 	GetFeatureID(ctx context.Context, featName string) (uint, error)
 
+	// InsertBeerFeature связывает характеристику с сортом пива. Если связь уже существует, она не будет добавлена повторно.
 	InsertBeerFeature(ctx context.Context, featID, beerID uint) error
 }
 
@@ -53,6 +61,7 @@ func NewBeerPostgres(pgPool *pgxpool.Pool) *BeerPostgres {
 	return &BeerPostgres{Pool: pgPool}
 }
 
+// InsertBeer сохраняет новую сущность Beer в хранилище. Если страна, город, категория или характеристика не существуют, они будут добавлены в базу данных.
 func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (uint, error) {
 	if r.Pool == nil {
 		return 0, errors.New("pool is nil")
@@ -126,6 +135,7 @@ func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (uint
 	return beerID, nil
 }
 
+// GetBeers возвращает список всех сортов пива. Если limit не равен 0, возвращает не более limit сортов пива, начиная с позиции offset.
 func (r *BeerPostgres) GetBeers(ctx context.Context, limit, offset uint64) ([]entities.Beer, error) {
 	if r.Pool == nil {
 		return nil, errors.New("pool is nil")
@@ -164,6 +174,7 @@ func (r *BeerPostgres) GetBeers(ctx context.Context, limit, offset uint64) ([]en
 	return beers, nil
 }
 
+// GetBeerByID возвращает сорт пива по его ID. Если сорт пива с таким ID не найден, возвращает ошибку.
 func (r *BeerPostgres) GetBeerByID(ctx context.Context, id uint) (*entities.Beer, error) {
 	if r.Pool == nil {
 		return nil, errors.New("pool is nil")
@@ -183,6 +194,7 @@ func (r *BeerPostgres) GetBeerByID(ctx context.Context, id uint) (*entities.Beer
 	return beer, nil
 }
 
+// UpdateBeer обновляет поля у сущности Beer в хранилище. Если сорт пива с таким ID не найден, возвращает ошибку. Если updates пустой, возвращает ID без изменений.
 func (r *BeerPostgres) UpdateBeer(ctx context.Context, id uint, updates map[string]any) (uint, error) {
 	if r.Pool == nil {
 		return 0, errors.New("pool is nil")
@@ -221,6 +233,7 @@ func (r *BeerPostgres) UpdateBeer(ctx context.Context, id uint, updates map[stri
 	return beerID, nil
 }
 
+// DeleteBeer удаляет сущность Beer из хранилища. Если сорт пива с таким ID не найден, возвращает ошибку.
 func (r *BeerPostgres) DeleteBeer(ctx context.Context, id uint) error {
 	if r.Pool == nil {
 		return errors.New("pool is nil")
@@ -260,6 +273,7 @@ func (r *BeerPostgres) DeleteBeer(ctx context.Context, id uint) error {
 	return nil
 }
 
+// InsertReview сохраняет новую сущность Review в хранилище. Если сорт пива, к которому относится отзыв, не найден, возвращает ошибку.
 func (r *BeerPostgres) InsertReview(ctx context.Context, review entities.Review) (uint, error) {
 	if r.Pool == nil {
 		return 0, errors.New("pool is nil")
@@ -281,6 +295,7 @@ func (r *BeerPostgres) InsertReview(ctx context.Context, review entities.Review)
 	return reviewID, nil
 }
 
+// GetBeersByCategoryID возвращает список сортов пива, принадлежащих к определенной категории. Если категория с таким ID не найдена, возвращает пустой список.
 func (r *BeerPostgres) GetBeersByCategoryID(
 	ctx context.Context, ctgID uint, limit, offset uint64,
 ) ([]entities.Beer, error) {
@@ -311,9 +326,14 @@ func (r *BeerPostgres) GetBeersByCategoryID(
 		beers = append(beers, *beer)
 	}
 
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows.Err: %w", err)
+	}
+
 	return beers, nil
 }
 
+// GetCountryID возвращает ID страны по ее названию. Если страны нет, она будет добавлена в базу данных. Если name пустой, возвращает ошибку.
 func (r *BeerPostgres) GetCountryID(ctx context.Context, name string) (uint, error) {
 	if r.Pool == nil {
 		return 0, errors.New("pool is nil")
@@ -338,6 +358,7 @@ func (r *BeerPostgres) GetCountryID(ctx context.Context, name string) (uint, err
 	return countryID, nil
 }
 
+// GetCityID возвращает ID города по его названию и ID страны. Если города нет, он будет добавлен в базу данных. Если cityName пустой, возвращает ошибку.
 func (r *BeerPostgres) GetCityID(ctx context.Context, cityName string, countryID uint) (uint, error) {
 	if r.Pool == nil {
 		return 0, errors.New("pool is nil")
@@ -362,6 +383,7 @@ func (r *BeerPostgres) GetCityID(ctx context.Context, cityName string, countryID
 	return cityID, nil
 }
 
+// GetFeatureID возвращает ID характеристики по ее названию. Если характеристики нет, она будет добавлена в базу данных. Если featName пустой, возвращает ошибку.
 func (r *BeerPostgres) GetFeatureID(ctx context.Context, featName string) (uint, error) {
 	if r.Pool == nil {
 		return 0, errors.New("pool is nil")
@@ -382,6 +404,7 @@ func (r *BeerPostgres) GetFeatureID(ctx context.Context, featName string) (uint,
 	return featID, nil
 }
 
+// InsertBeerFeature связывает характеристику с сортом пива. Если связь уже существует, она не будет добавлена повторно. Если featID или beerID равны 0, возвращает ошибку.
 func (r *BeerPostgres) InsertBeerFeature(ctx context.Context, featID, beerID uint) error {
 	if r.Pool == nil {
 		return errors.New("pool is nil")
@@ -401,6 +424,7 @@ func (r *BeerPostgres) InsertBeerFeature(ctx context.Context, featID, beerID uin
 	return nil
 }
 
+// scanBeer сканирует строку из базы данных в сущность Beer. Если строка не соответствует структуре сущности, возвращает ошибку.
 func scanBeer(row pgx.Row) (*entities.Beer, error) {
 	var beer entities.Beer
 	err := row.Scan(&beer.ID, &beer.Name, &beer.Rating,
