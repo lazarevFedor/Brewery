@@ -103,6 +103,8 @@ var (
 )
 
 // TestBeerRepository_InsertGetBeer содержит тесты для проверки функциональности вставки и получения пива из репозитория, включая различные сценарии, такие как успешная вставка, вставка с невалидными данными и использование неинициализированного репозитория.
+//
+//nolint:funlen
 func TestBeerRepository_InsertGetBeer(t *testing.T) {
 	ctx := t.Context()
 	ctx, err := logger.NewLoggerContext(ctx, true)
@@ -192,6 +194,50 @@ func TestBeerRepository_InsertGetBeer(t *testing.T) {
 
 		require.NoError(t, err)
 		require.Empty(t, beers, "Длина слайса должна быть равна 0")
+
+		t.Cleanup(func() {
+			cleanDB(t, ctx, "beers")
+		})
+	})
+
+	t.Run("Вставка с новой дочерней категорией", func(t *testing.T) {
+		rootID, err := ctgRepo.GetCategoryID(ctx, "test_category")
+		require.NoError(t, err)
+		require.NotZero(t, rootID)
+
+		beer := testBeers[0]
+		beer.Name = "test_success_new_child_category"
+		beer.Category = entities.ProductCategory{
+			Name:     "test_category_child",
+			ParentID: int(rootID),
+		}
+
+		beerID, err := beerRepo.InsertBeer(ctx, beer)
+		require.NoError(t, err)
+		require.NotZero(t, beerID)
+
+		gotBeer, err := beerRepo.GetBeerByID(ctx, beerID)
+		require.NoError(t, err)
+		require.NotNil(t, gotBeer)
+		require.Equal(t, beer.Category.Name, gotBeer.Category.Name)
+
+		t.Cleanup(func() {
+			cleanDB(t, ctx, "beers")
+		})
+	})
+
+	t.Run("Вставка с невалидной фичей", func(t *testing.T) {
+		beer := testBeers[0]
+		beer.Name = "test_failure_invalid_feature"
+		beer.Features = []string{"feat_ok", "bad\x00feature"}
+
+		beerID, err := beerRepo.InsertBeer(ctx, beer)
+		require.Error(t, err)
+		require.Zero(t, beerID)
+
+		beers, err := beerRepo.GetBeers(ctx, 0, 0)
+		require.NoError(t, err)
+		require.Empty(t, beers)
 
 		t.Cleanup(func() {
 			cleanDB(t, ctx, "beers")
@@ -630,6 +676,8 @@ func TestBeerRepository_GetFeatureIDAndInsertBeerFeature(t *testing.T) {
 }
 
 // TestBeerRepository_CanceledContext содержит тесты для проверки поведения методов репозитория при использовании отмененного контекста, включая попытки вставки, обновления, удаления и получения данных с отмененным контекстом, а также проверку правильного обработки ошибок в этих случаях.
+//
+//nolint:funlen
 func TestBeerRepository_CanceledContext(t *testing.T) {
 	baseCtx := t.Context()
 	ctx, cancel := context.WithCancel(baseCtx)
@@ -688,6 +736,45 @@ func TestBeerRepository_CanceledContext(t *testing.T) {
 		beers, err := beerRepo.GetBeersByCategoryID(ctx, 1, 0, 0)
 		require.Error(t, err)
 		require.Nil(t, beers)
+
+		t.Cleanup(func() {
+			cleanDB(t, baseCtx, "beers")
+		})
+	})
+
+	t.Run("Получение страны с отмененным контекстом", func(t *testing.T) {
+		countryID, err := beerRepo.GetCountryID(ctx, "x")
+		require.Error(t, err)
+		require.Zero(t, countryID)
+
+		t.Cleanup(func() {
+			cleanDB(t, baseCtx, "beers")
+		})
+	})
+
+	t.Run("Получение города с отмененным контекстом", func(t *testing.T) {
+		cityID, err := beerRepo.GetCityID(ctx, "x", 1)
+		require.Error(t, err)
+		require.Zero(t, cityID)
+
+		t.Cleanup(func() {
+			cleanDB(t, baseCtx, "beers")
+		})
+	})
+
+	t.Run("Получение feature с отмененным контекстом", func(t *testing.T) {
+		featureID, err := beerRepo.GetFeatureID(ctx, "x")
+		require.Error(t, err)
+		require.Zero(t, featureID)
+
+		t.Cleanup(func() {
+			cleanDB(t, baseCtx, "beers")
+		})
+	})
+
+	t.Run("Вставка связи beer-feature с отмененным контекстом", func(t *testing.T) {
+		err := beerRepo.InsertBeerFeature(ctx, 1, 1)
+		require.Error(t, err)
 
 		t.Cleanup(func() {
 			cleanDB(t, baseCtx, "beers")
