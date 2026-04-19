@@ -82,7 +82,7 @@ func (h *beersHandlers) UpdateBeer(c *gin.Context) {
 		return
 	}
 
-	id, err := getIdParam(c)
+	id, err := getIDParam(c)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid beer id: %v", err))
 
@@ -131,7 +131,7 @@ func (h *beersHandlers) DeleteBeer(c *gin.Context) {
 		return
 	}
 
-	id, err := getIdParam(c)
+	id, err := getIDParam(c)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
 
