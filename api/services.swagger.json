@@ -18,6 +18,10 @@
     {
       "name": "Beers",
       "description": "Операции, связанные с пивной продукцией"
+    },
+    {
+      "name": "Reviews",
+      "description": "Операции связанные с отзывами на пиво"
     }
   ],
   "paths": {
@@ -168,6 +172,9 @@
       }
     },
 
+
+
+    
     "/beers": {
       "get": {
         "tags": ["Beers"],
@@ -272,9 +279,35 @@
       }
     },
 
-    "/beers/reviews/{beer_id}": {
-      "post": {
+    "/categories/beers/{category_id}": {
+      "get": {
         "tags": ["Beers"],
+        "summary": "Get beers by category",
+        "operationId": "getBeersByCategory",
+        "parameters": [
+          { "$ref": "#/components/parameters/CategoryId" },
+          { "$ref": "#/components/parameters/Offset" },
+          { "$ref": "#/components/parameters/Limit" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Beers list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Beer" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/reviews/{beer_id}": {
+      "post": {
+        "tags": ["Reviews"],
         "summary": "Add review",
         "operationId": "addReview",
         "parameters": [
@@ -303,18 +336,13 @@
             }
           }
         }
-      }
-    },
-
-    "/categories/beers/{category_id}": {
+      },
       "get": {
-        "tags": ["Beers"],
-        "summary": "Get beers by category",
-        "operationId": "getBeersByCategory",
+        "tags": ["Reviews"],
+        "summary": "Get beer's reviews",
+        "operationId": "getReviews",
         "parameters": [
-          { "$ref": "#/components/parameters/CategoryId" },
-          { "$ref": "#/components/parameters/Offset" },
-          { "$ref": "#/components/parameters/Limit" }
+          { "$ref": "#/components/parameters/BeerId" }
         ],
         "responses": {
           "200": {
@@ -323,8 +351,58 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": { "$ref": "#/components/schemas/Beer" }
+                  "items": { "$ref": "#/components/schemas/Review" }
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reviews/{id}":{
+      "delete": {
+        "tags": ["Reviews"],
+        "summary": "Delete review",
+        "operationId": "deleteReview",
+        "parameters": [
+          { "$ref": "#/components/parameters/Id" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Delete status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": ["Reviews"],
+        "summary": "Update review",
+        "operationId": "updateReview",
+        "parameters": [
+          { "$ref": "#/components/parameters/Id" }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ReviewCreate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Review" }
               }
             }
           }
@@ -415,7 +493,8 @@
           "country": { "type": "string" },
           "category": { "$ref": "#/components/schemas/Category" },
           "amount": {"type": "integer"},
-          "units": {"type":  "string"}
+          "units": {"type":  "string"},
+          "type": { "type": "string" }
         }
       },
 
@@ -431,7 +510,8 @@
           "country": { "type": "string" },
           "category": { "$ref": "#/components/schemas/Category" }, 
           "amount": {"type": "integer"},
-          "units": {"type":  "string"}
+          "units": {"type":  "string"},
+          "type": { "type": "string" }
         }
       },
 
@@ -446,7 +526,8 @@
           "country": { "type": "string" },
           "category": { "$ref": "#/components/schemas/Category" },
           "amount": {"type": "integer"},
-          "units": {"type":  "string"}
+          "units": {"type":  "string"},
+          "type": { "type": "string" }
         }
       },
 
@@ -474,6 +555,16 @@
           "total_pages": { "type": "integer" },
           "has_next": { "type": "boolean" },
           "has_prev": { "type": "boolean" }
+        }
+      },
+
+
+      "Review": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "body": { "type": "string" },
+          "rating": { "type": "number" }
         }
       },
 
