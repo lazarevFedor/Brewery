@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 )
@@ -34,12 +35,12 @@ type EnumValues []EnumValue
 
 func (e *EnumValue) ToRow() (*EnumValueRow, error) {
 	if e == nil {
-		return nil, fmt.Errorf("enum value is nil")
+		return nil, errors.New("enum value is nil")
 	}
 
 	valueStr, err := enumValueToRaw(e.ValueType, e.Value)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("convert enum value to raw: %w", err)
 	}
 
 	return &EnumValueRow{
@@ -53,12 +54,12 @@ func (e *EnumValue) ToRow() (*EnumValueRow, error) {
 
 func (e *EnumValueRow) FromRow() (*EnumValue, error) {
 	if e == nil {
-		return nil, fmt.Errorf("enum value row is nil")
+		return nil, errors.New("enum value row is nil")
 	}
 
 	value, err := enumValueFromRaw(e.ValueType, e.ValueRaw)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("convert enum value from raw: %w", err)
 	}
 
 	return &EnumValue{
