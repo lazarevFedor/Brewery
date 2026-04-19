@@ -1,12 +1,9 @@
-// Package repository_test содержит тесты для слоя repository
 package repository_test
 
 import (
-	"Brewery/internal/entities"
 	"Brewery/internal/repository"
 	"Brewery/migrator"
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -25,8 +22,6 @@ var (
 	ctgRepo  *repository.CategoryPostgres
 )
 
-// TestMain запускает тестовую среду с помощью testcontainers, выполняет миграции и очищает ресурсы после тестов.
-//
 //nolint:gocritic, gosec
 func TestMain(m *testing.M) {
 	ctx := context.Background()
@@ -41,6 +36,7 @@ func TestMain(m *testing.M) {
 				WithOccurrence(2).WithStartupTimeout(5*time.Second),
 		),
 	)
+	defer dbContainer.Terminate(ctx)
 	if err != nil {
 		log.Fatalf("Failed to start container: %s", err)
 	}
@@ -68,63 +64,19 @@ func TestMain(m *testing.M) {
 	beerRepo = repository.NewBeerPostgres(testDB)
 	ctgRepo = repository.NewCategoryPostgres(testDB)
 
-	if err = seedTestData(ctx); err != nil {
-		log.Fatalf("Failed to seed test data: %s", err)
-	}
-
 	code := m.Run()
 
 	testDB.Close()
-	if err = dbContainer.Terminate(ctx); err != nil {
-		log.Printf("Failed to terminate container: %s", err)
-	}
+	dbContainer.Terminate(ctx)
 
 	os.Exit(code)
 }
 
-// cleanDB выполняет очистку указанной таблицы в базе данных, удаляя все записи и сбрасывая идентификаторы.
 func cleanDB(t *testing.T, ctx context.Context, tablename string) {
-	_, err := testDB.Exec(ctx, "TRUNCATE TABLE "+tablename+" RESTART IDENTITY CASCADE")
+	_, err := testDB.Exec(ctx,
+		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", tablename),
+	)
 	if err != nil {
 		t.Errorf("failed to clean db: %v", err)
 	}
-}
-
-// seedTestData выполняет начальную загрузку тестовых данных в базу данных, обеспечивая наличие необходимых записей для тестов.
-func seedTestData(ctx context.Context) error {
-	countryID, err := beerRepo.GetCountryID(ctx, "test_country")
-	if err != nil {
-		return fmt.Errorf("seed country: %w", err)
-	}
-
-	if countryID == 0 {
-		return errors.New("seed country: zero id")
-	}
-
-	cityID, err := beerRepo.GetCityID(ctx, "test_city", countryID)
-	if err != nil {
-		return fmt.Errorf("seed city: %w", err)
-	}
-
-	if cityID == 0 {
-		return errors.New("seed city: zero id")
-	}
-
-	categoryID, err := ctgRepo.GetCategoryID(ctx, "test_category")
-	if err != nil {
-		return fmt.Errorf("seed category get id: %w", err)
-	}
-
-	if categoryID == 0 {
-		categoryID, err = ctgRepo.InsertCategory(ctx, entities.ProductCategory{Name: "test_category"})
-		if err != nil {
-			return fmt.Errorf("seed category insert: %w", err)
-		}
-	}
-
-	if categoryID == 0 {
-		return errors.New("seed category: zero id")
-	}
-
-	return nil
 }

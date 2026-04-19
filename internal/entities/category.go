@@ -11,3 +11,4 @@ type ProductCategory struct {
 //
 //easyjson:json
 type Products []ProductCategory
+	

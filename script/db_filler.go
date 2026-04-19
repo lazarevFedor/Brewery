@@ -1,4 +1,3 @@
-//nolint:all
 package main
 
 import (
@@ -56,7 +55,7 @@ func parseFile(filename string) ([]entities.Beer, error) {
 			return nil, fmt.Errorf("ibu Atoi: %w", err)
 		}
 		features := strings.Split(record[5], ", ")
-		amount, err := strconv.Atoi(record[8])
+		amount, err := strconv.Atoi(record[9])
 		if err != nil {
 			return nil, fmt.Errorf("amount Atoi: %w", err)
 		}
@@ -67,11 +66,13 @@ func parseFile(filename string) ([]entities.Beer, error) {
 		beer.ABV = float32(abv)
 		beer.IBU = uint8(ibu)
 		beer.City = record[6]
-		beer.Country = record[7]
+		beer.Country = record[8]
+		beer.Type = record[7]
 		beer.Features = features
+		beer.Category.Name = "-"
 		beer.Amount = uint(amount)
-		beer.Unit = record[9]
-		beer.Category.Name = record[10]
+		beer.Unit = record[10]
+		beer.Category.Name = record[11]
 		beer.Category.ParentID = 1
 
 		beers = append(beers, beer)
@@ -124,7 +125,7 @@ func main() {
 	}
 
 	beerRepo := repository.NewBeerPostgres(pool)
-	err = fillDB(ctx, "scripts/beers.csv", beerRepo)
+	err = fillDB(ctx, "script/beers.csv", beerRepo)
 	if err != nil {
 		panic(err)
 	}
