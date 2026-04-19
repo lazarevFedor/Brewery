@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS enum_values (
     value_type VARCHAR(20) NOT NULL,   -- 'int', 'float', 'string', 'picture'
 
     position INT,
-    FOREIGN KEY (enum_class_id) REFERENCES enum_classes(id)
+    FOREIGN KEY (enum_class_id) REFERENCES enum_classes(id) ON DELETE CASCADE
 );
 
 -- +goose Down
