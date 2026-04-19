@@ -76,7 +76,7 @@ func enumValueToRaw(valueType string, value any) (string, error) {
 	case EnumValueTypeString, EnumValueTypePicture:
 		str, ok := value.(string)
 		if !ok {
-			return "", fmt.Errorf("invalid enum value type %q: expected string, got %T", valueType, value)
+			return "", fmt.Errorf("invalid enum value type %s: expected string, got %T", valueType, value)
 		}
 
 		return str, nil
@@ -85,14 +85,14 @@ func enumValueToRaw(valueType string, value any) (string, error) {
 		case int:
 			return strconv.Itoa(v), nil
 		default:
-			return "", fmt.Errorf("invalid enum value type %q: expected integer, got %T", valueType, value)
+			return "", fmt.Errorf("invalid enum value type %s: expected integer, got %T", valueType, value)
 		}
 	case EnumValueTypeFloat:
 		switch v := value.(type) {
 		case float32:
 			return strconv.FormatFloat(float64(v), 'f', -1, 32), nil
 		default:
-			return "", fmt.Errorf("invalid enum value type %q: expected float, got %T", valueType, value)
+			return "", fmt.Errorf("invalid enum value type %s: expected float, got %T", valueType, value)
 		}
 	default:
 		return "", fmt.Errorf("invalid enum value type: %s", valueType)
@@ -111,9 +111,9 @@ func enumValueFromRaw(valueType, valueRaw string) (any, error) {
 
 		return value, nil
 	case EnumValueTypeFloat:
-		value, err := strconv.ParseFloat(valueRaw, 64)
+		value, err := strconv.ParseFloat(valueRaw, 32)
 		if err != nil {
-			return nil, fmt.Errorf("parse float value %q: %w", valueRaw, err)
+			return nil, fmt.Errorf("parse float value %s: %w", valueRaw, err)
 		}
 
 		return value, nil
