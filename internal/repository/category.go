@@ -1,4 +1,3 @@
-// Package repository содержит слой для манипуляции объектами в базе данных
 package repository
 
 import (
@@ -12,6 +11,13 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
+)
+
+const (
+	tableCategories = "product_categories"
+	IDCol           = "id"
+	nameCol         = "name"
+	parentIDCol     = "parent_id"
 )
 
 type CategoryRepository interface {
@@ -116,6 +122,19 @@ func (r *CategoryPostgres) InsertCategory(
 }
 
 func (r *CategoryPostgres) GetCategoryByID(ctx context.Context, id uint) (*entities.ProductCategory, error) {
+	tx, err := r.Pool.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("begin: %w", err)
+	}
+	defer func(tx pgx.Tx, ctx context.Context) {
+		rollbackErr := tx.Rollback(ctx)
+		log, ok := logger.GetLoggerFromCtx(ctx)
+		if ok {
+			if rollbackErr != nil && !errors.Is(rollbackErr, pgx.ErrTxClosed) {
+				log.Error(ctx, "InsertBeer: rollback error:", zap.Error(rollbackErr))
+			}
+		}
+	}(tx, ctx)
 	psql := queries.SelectCategoryByID(id)
 	query, args, err := psql.ToSql()
 	if err != nil {
@@ -123,9 +142,13 @@ func (r *CategoryPostgres) GetCategoryByID(ctx context.Context, id uint) (*entit
 	}
 
 	var ctg entities.ProductCategory
-	err = r.Pool.QueryRow(ctx, query, args...).Scan(&ctg.ID, &ctg.Name, &ctg.ParentID)
+	err = tx.QueryRow(ctx, query, args...).Scan(&ctg.ID, &ctg.Name, &ctg.ParentID)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "QueryRow", err)
+	}
+	err = tx.Commit(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("commit: %w", err)
 	}
 
 	return &ctg, nil
@@ -243,9 +266,20 @@ func (r *CategoryPostgres) DeleteCategoryByID(ctx context.Context, id uint) erro
 }
 
 func (r *CategoryPostgres) GetCategoryID(ctx context.Context, ctgName string) (uint, error) {
-	if ctgName == "" {
-		return 0, errors.New("category name cannot be empty")
+	tx, err := r.Pool.Begin(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("begin: %w", err)
 	}
+	defer func(tx pgx.Tx, ctx context.Context) {
+		rollbackErr := tx.Rollback(ctx)
+
+		log, ok := logger.GetLoggerFromCtx(ctx)
+		if ok {
+			if rollbackErr != nil && !errors.Is(rollbackErr, pgx.ErrTxClosed) {
+				log.Error(ctx, fmt.Sprintf("%s: Rollback:", "GetCategoryID"), zap.Error(rollbackErr))
+			}
+		}
+	}(tx, ctx)
 
 	var categoryID uint
 	psql := queries.SelectCategoryByName(ctgName)
@@ -254,7 +288,7 @@ func (r *CategoryPostgres) GetCategoryID(ctx context.Context, ctgName string) (u
 		return 0, fmt.Errorf("%s: %w", "ToSql", err)
 	}
 
-	rows, err := r.Pool.Query(ctx, query, args...)
+	rows, err := tx.Query(ctx, query, args...)
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", "Query", err)
 	}
@@ -267,5 +301,9 @@ func (r *CategoryPostgres) GetCategoryID(ctx context.Context, ctgName string) (u
 	}
 	rows.Close()
 
+	err = tx.Commit(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("commit: %w", err)
+	}
 	return categoryID, nil
 }
