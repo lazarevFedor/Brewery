@@ -303,7 +303,7 @@ func (h *categoriesHandlers) GetBeersByCategory(c *gin.Context) {
 
 	id, err := getCategoryIDParam(c)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
+		log.Warn(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
 
 		return
 	}
