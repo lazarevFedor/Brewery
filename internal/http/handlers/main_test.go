@@ -22,7 +22,6 @@ type testEnv struct {
 
 // setupIntegrationRouter инициализирует тестовый сервер с моками и необходимыми middleware для интеграционных тестов.
 func setupIntegrationRouter(svc *mocks.BeerServiceMock) *gin.Engine {
-
 	gin.SetMode(gin.TestMode)
 
 	logCtx, err := logger.NewLoggerContext(context.Background(), true)
