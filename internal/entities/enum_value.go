@@ -29,6 +29,7 @@ type EnumValue struct {
 	Position    int    `json:"position,omitempty" info:"Позиция значения в перечислении"`
 }
 
+//easyjson:json
 type EnumValues []EnumValue
 
 func (e *EnumValue) ToRow() (*EnumValueRow, error) {

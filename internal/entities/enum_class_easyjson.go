@@ -17,7 +17,77 @@ var (
 	_ easyjson.Marshaler
 )
 
-func easyjsonDfa25e2eDecodeBreweryInternalEntities(in *jlexer.Lexer, out *EnumClass) {
+func easyjsonDfa25e2eDecodeBreweryInternalEntities(in *jlexer.Lexer, out *EnumClasses) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		in.Skip()
+		*out = nil
+	} else {
+		in.Delim('[')
+		if *out == nil {
+			if !in.IsDelim(']') {
+				*out = make(EnumClasses, 0, 1)
+			} else {
+				*out = EnumClasses{}
+			}
+		} else {
+			*out = (*out)[:0]
+		}
+		for !in.IsDelim(']') {
+			var v1 EnumClass
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				(v1).UnmarshalEasyJSON(in)
+			}
+			*out = append(*out, v1)
+			in.WantComma()
+		}
+		in.Delim(']')
+	}
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjsonDfa25e2eEncodeBreweryInternalEntities(out *jwriter.Writer, in EnumClasses) {
+	if in == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+		out.RawString("null")
+	} else {
+		out.RawByte('[')
+		for v2, v3 := range in {
+			if v2 > 0 {
+				out.RawByte(',')
+			}
+			(v3).MarshalEasyJSON(out)
+		}
+		out.RawByte(']')
+	}
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v EnumClasses) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjsonDfa25e2eEncodeBreweryInternalEntities(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v EnumClasses) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjsonDfa25e2eEncodeBreweryInternalEntities(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *EnumClasses) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjsonDfa25e2eDecodeBreweryInternalEntities(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *EnumClasses) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjsonDfa25e2eDecodeBreweryInternalEntities(l, v)
+}
+func easyjsonDfa25e2eDecodeBreweryInternalEntities1(in *jlexer.Lexer, out *EnumClass) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -65,7 +135,7 @@ func easyjsonDfa25e2eDecodeBreweryInternalEntities(in *jlexer.Lexer, out *EnumCl
 		in.Consumed()
 	}
 }
-func easyjsonDfa25e2eEncodeBreweryInternalEntities(out *jwriter.Writer, in EnumClass) {
+func easyjsonDfa25e2eEncodeBreweryInternalEntities1(out *jwriter.Writer, in EnumClass) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -111,23 +181,23 @@ func easyjsonDfa25e2eEncodeBreweryInternalEntities(out *jwriter.Writer, in EnumC
 // MarshalJSON supports json.Marshaler interface
 func (v EnumClass) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonDfa25e2eEncodeBreweryInternalEntities(&w, v)
+	easyjsonDfa25e2eEncodeBreweryInternalEntities1(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v EnumClass) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonDfa25e2eEncodeBreweryInternalEntities(w, v)
+	easyjsonDfa25e2eEncodeBreweryInternalEntities1(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *EnumClass) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonDfa25e2eDecodeBreweryInternalEntities(&r, v)
+	easyjsonDfa25e2eDecodeBreweryInternalEntities1(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *EnumClass) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonDfa25e2eDecodeBreweryInternalEntities(l, v)
+	easyjsonDfa25e2eDecodeBreweryInternalEntities1(l, v)
 }

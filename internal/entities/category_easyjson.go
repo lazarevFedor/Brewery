@@ -17,7 +17,77 @@ var (
 	_ easyjson.Marshaler
 )
 
-func easyjson6a91a67cDecodeBreweryInternalEntities(in *jlexer.Lexer, out *ProductCategory) {
+func easyjson6a91a67cDecodeBreweryInternalEntities(in *jlexer.Lexer, out *Products) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		in.Skip()
+		*out = nil
+	} else {
+		in.Delim('[')
+		if *out == nil {
+			if !in.IsDelim(']') {
+				*out = make(Products, 0, 2)
+			} else {
+				*out = Products{}
+			}
+		} else {
+			*out = (*out)[:0]
+		}
+		for !in.IsDelim(']') {
+			var v1 ProductCategory
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				(v1).UnmarshalEasyJSON(in)
+			}
+			*out = append(*out, v1)
+			in.WantComma()
+		}
+		in.Delim(']')
+	}
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson6a91a67cEncodeBreweryInternalEntities(out *jwriter.Writer, in Products) {
+	if in == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+		out.RawString("null")
+	} else {
+		out.RawByte('[')
+		for v2, v3 := range in {
+			if v2 > 0 {
+				out.RawByte(',')
+			}
+			(v3).MarshalEasyJSON(out)
+		}
+		out.RawByte(']')
+	}
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v Products) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson6a91a67cEncodeBreweryInternalEntities(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v Products) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson6a91a67cEncodeBreweryInternalEntities(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *Products) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjson6a91a67cDecodeBreweryInternalEntities(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *Products) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson6a91a67cDecodeBreweryInternalEntities(l, v)
+}
+func easyjson6a91a67cDecodeBreweryInternalEntities1(in *jlexer.Lexer, out *ProductCategory) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -59,7 +129,7 @@ func easyjson6a91a67cDecodeBreweryInternalEntities(in *jlexer.Lexer, out *Produc
 		in.Consumed()
 	}
 }
-func easyjson6a91a67cEncodeBreweryInternalEntities(out *jwriter.Writer, in ProductCategory) {
+func easyjson6a91a67cEncodeBreweryInternalEntities1(out *jwriter.Writer, in ProductCategory) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -90,23 +160,23 @@ func easyjson6a91a67cEncodeBreweryInternalEntities(out *jwriter.Writer, in Produ
 // MarshalJSON supports json.Marshaler interface
 func (v ProductCategory) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson6a91a67cEncodeBreweryInternalEntities(&w, v)
+	easyjson6a91a67cEncodeBreweryInternalEntities1(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v ProductCategory) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson6a91a67cEncodeBreweryInternalEntities(w, v)
+	easyjson6a91a67cEncodeBreweryInternalEntities1(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *ProductCategory) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson6a91a67cDecodeBreweryInternalEntities(&r, v)
+	easyjson6a91a67cDecodeBreweryInternalEntities1(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *ProductCategory) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson6a91a67cDecodeBreweryInternalEntities(l, v)
+	easyjson6a91a67cDecodeBreweryInternalEntities1(l, v)
 }

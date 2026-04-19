@@ -6,3 +6,6 @@ type EnumClass struct {
 	EntityName string `json:"entity_name,omitempty" info:"Имя сущности, к которой относится класс перечисления"`
 	FieldName  string `json:"field_name,omitempty" info:"Имя поля у сущности, к которому относится класс перечисления"`
 }
+
+//easyjson:json
+type EnumClasses []EnumClass

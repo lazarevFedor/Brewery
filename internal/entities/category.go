@@ -8,4 +8,6 @@ type ProductCategory struct {
 }
 
 // Products представляет собой срез категорий изделий.
+//
+//easyjson:json
 type Products []ProductCategory
