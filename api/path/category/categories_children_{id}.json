@@ -1,0 +1,23 @@
+{
+  "get": {
+    "tags": ["Categories"],
+    "summary": "Get child categories",
+    "operationId": "getChildren",
+    "parameters": [
+      { "$ref": "../../components/parameters/id.json#/Id" }
+    ],
+    "responses": {
+      "200": {
+        "description": "Children list",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "../../components/schemas/category.json#/Category" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

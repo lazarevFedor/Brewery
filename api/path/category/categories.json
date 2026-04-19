@@ -1,0 +1,43 @@
+{
+  "get": {
+    "tags": ["Categories"],
+    "summary": "Get all categories",
+    "operationId": "getCategories",
+    "responses": {
+      "200": {
+        "description": "List of categories",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "../../components/schemas/category.json#/Category" }
+            }
+          }
+        }
+      }
+    }
+  },
+  "post": {
+    "tags": ["Categories"],
+    "summary": "Create category",
+    "operationId": "createCategory",
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": { "$ref": "../../components/schemas/category.json#/CategoryCreate" }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Created",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "../../components/schemas/category.json#/Category" }
+          }
+        }
+      }
+    }
+  }
+}

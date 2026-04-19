@@ -1,0 +1,20 @@
+{
+    "Review": {
+        "type": "object",
+        "properties": {
+            "id": { "type": "integer" },
+            "body": { "type": "string" },
+            "rating": { "type": "number" }
+        }
+    },
+
+    "ReviewCreate": {
+        "type": "object",
+        "required": ["body", "rating"],
+        "properties": {
+            "body": { "type": "string" },
+            "rating": { "type": "number" }
+        }
+    }
+}
+

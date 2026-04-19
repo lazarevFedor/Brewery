@@ -1,0 +1,8 @@
+{    
+    "BeerId": {
+        "name": "beer_id",
+        "in": "path",
+        "required": true,
+        "schema": { "type": "integer" }
+    }
+}

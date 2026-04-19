@@ -1,0 +1,51 @@
+{
+  "patch": {
+    "tags": ["Beers"],
+    "summary": "Update beer",
+    "operationId": "updateBeer",
+    "parameters": [
+      { "$ref": "../../components/parameters/id.json#/Id" }
+    ],
+    "requestBody": {
+      "content": {
+        "application/json": {
+          "schema": { "$ref": "../../components/schemas/beer.json#/BeerUpdate" }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Updated beer",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "../../components/schemas/beer.json#/Beer" }
+          }
+        }
+      }
+    }
+  },
+
+  "delete": {
+    "tags": ["Beers"],
+    "summary": "Delete beer",
+    "operationId": "deleteBeer",
+    "parameters": [
+      { "$ref": "../../components/parameters/id.json#/Id" }
+    ],
+    "responses": {
+      "200": {
+        "description": "Delete status",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
