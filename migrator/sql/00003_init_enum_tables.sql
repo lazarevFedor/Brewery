@@ -6,7 +6,6 @@ CREATE TABLE IF NOT EXISTS enum_classes (
     entity_name VARCHAR(50) NOT NULL,
     field_name VARCHAR(50) NOT NULL,
     UNIQUE (entity_name, field_name)
-
 );
 
 CREATE TABLE IF NOT EXISTS enum_values (
@@ -17,6 +16,7 @@ CREATE TABLE IF NOT EXISTS enum_values (
     value_type VARCHAR(20) NOT NULL,   -- 'int', 'float', 'string', 'picture'
 
     position INT NOT NULL,
+    FOREIGN KEY (value_type) REFERENCES enum_classes(enum_type),
     FOREIGN KEY (enum_class_id) REFERENCES enum_classes(id) ON DELETE CASCADE
 );
 

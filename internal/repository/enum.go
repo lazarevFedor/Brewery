@@ -11,12 +11,12 @@ type EnumRepository interface {
 	InsertEnumClass(ctx context.Context, enumClass entities.EnumClass) (uint, error)
 	UpdateEnumClass(ctx context.Context, id uint, updates map[string]any) error
 	DeleteEnumClassByID(ctx context.Context, id uint) error
-	GetEnumClasses(ctx context.Context) ([]entities.EnumClass, error)
+	GetEnumClasses(ctx context.Context, entity, field string) ([]entities.EnumClass, error)
 
 	InsertEnumValue(ctx context.Context, enumValue entities.EnumValue) (uint, error)
-	UpdateEnumValue(ctx context.Context, id uint, updates map[string]any) error
+	UpdateEnumValue(ctx context.Context, id uint, value any, position *int) error
 	DeleteEnumValueByID(ctx context.Context, id uint) error
-	GetEnumValues(ctx context.Context) ([]entities.EnumValue, error)
+	GetEnumValues(ctx context.Context, entity, field, valueType string) ([]entities.EnumValue, error)
 }
 
 type EnumPostgres struct {
@@ -39,7 +39,7 @@ func (e *EnumPostgres) DeleteEnumClassByID(ctx context.Context, id uint) error {
 	return nil
 }
 
-func (e *EnumPostgres) GetEnumClasses(ctx context.Context) ([]entities.EnumClass, error) {
+func (e *EnumPostgres) GetEnumClasses(ctx context.Context, entity, field string) ([]entities.EnumClass, error) {
 	return nil, nil
 }
 
@@ -47,7 +47,7 @@ func (e *EnumPostgres) InsertEnumValue(ctx context.Context, enumValue entities.E
 	return 0, nil
 }
 
-func (e *EnumPostgres) UpdateEnumValue(ctx context.Context, id uint, updates map[string]any) error {
+func (e *EnumPostgres) UpdateEnumValue(ctx context.Context, id uint, value any, position *int) error {
 	return nil
 }
 
@@ -55,6 +55,6 @@ func (e *EnumPostgres) DeleteEnumValueByID(ctx context.Context, id uint) error {
 	return nil
 }
 
-func (e *EnumPostgres) GetEnumValues(ctx context.Context) ([]entities.EnumValue, error) {
+func (e *EnumPostgres) GetEnumValues(ctx context.Context, entity, field, valueType string) ([]entities.EnumValue, error) {
 	return nil, nil
 }
