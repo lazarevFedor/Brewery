@@ -10,20 +10,31 @@ import (
 func RegisterRoutes(e *gin.Engine, categoryHandler handlers.CategoriesHandlers, beersHandler handlers.BeersHandlers) {
 	api := e.Group("/api")
 	{
-		api.POST("/beers", beersHandler.CreateBeer)
-		api.PATCH("/beers/:id", beersHandler.UpdateBeer)
-		api.DELETE("/beers/:id", beersHandler.DeleteBeer)
-		api.GET("/beers", beersHandler.GetAllBeers)
-		api.POST("/beers/reviews/:beer_id", beersHandler.CreateBeerReview)
+		beers := api.Group("/beers")
+		{
+			beers.POST("", beersHandler.CreateBeer)
+			beers.PATCH("/:id", beersHandler.UpdateBeer)
+			beers.DELETE("/:id", beersHandler.DeleteBeer)
+			beers.GET("", beersHandler.GetAllBeers)
+			beers.POST("/reviews/:beer_id", beersHandler.CreateBeerReview)
+		}
 
-		api.POST("/categories", categoryHandler.CreateCategory)
-		api.GET("/categories/:id", categoryHandler.GetCategoryById)
-		api.PATCH("/categories/:id", categoryHandler.UpdateCategory)
-		api.DELETE("/categories/:id", categoryHandler.DeleteCategory)
-		api.GET("/categories", categoryHandler.GetAllCategories)
-		api.GET("/categories/beers/:category_id", categoryHandler.GetBeersByCategory)
-		api.GET("/categories/parent/:id", categoryHandler.GetParentCategory)
-		api.GET("/categories/children/:id", categoryHandler.GetChildCategory)
+		reviews := api.Group("/reviews")
+		{
+			reviews.POST("/:beer_id", beersHandler.CreateBeerReview)
+		}
+		
+		categories := api.Group("/categories")
+		{
+			categories.POST("", categoryHandler.CreateCategory)
+			categories.GET("/:id", categoryHandler.GetCategoryByID)
+			categories.PATCH("/:id", categoryHandler.UpdateCategory)
+			categories.DELETE("/:id", categoryHandler.DeleteCategory)
+			categories.GET("", categoryHandler.GetAllCategories)
+			categories.GET("/beers/:category_id", categoryHandler.GetBeersByCategory)
+			categories.GET("/parent/:id", categoryHandler.GetParentCategory)
+			categories.GET("/children/:id", categoryHandler.GetChildCategory)
+		}
 	}
 		
 	e.GET("/metrics", gin.WrapH(promhttp.Handler()))
