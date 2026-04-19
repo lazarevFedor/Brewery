@@ -1,0 +1,78 @@
+{
+    "Beer": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "abv": { "type": "number" },
+          "ibu": { "type": "number" },
+          "city": { "type": "string" },
+          "country": { "type": "string" },
+          "category": { "$ref": "./category.json#/Category" },
+          "amount": {"type": "integer"},
+          "units": {"type":  "string"},
+          "type": { "type": "string" }
+        }
+      },
+
+      "BeerCreate": {
+        "type": "object",
+        "required": ["name", "abv", "ibu", "city", "category", "type"],
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "abv": { "type": "number" },
+          "ibu": { "type": "number" },
+          "city": { "type": "string" },
+          "country": { "type": "string" },
+          "category": { "$ref": "./category.json#/Category" }, 
+          "amount": {"type": "integer"},
+          "units": {"type":  "string"},
+          "type": { "type": "string" }
+        }
+      },
+
+      "BeerUpdate": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "abv": { "type": "number" },
+          "ibu": { "type": "number" },
+          "city": { "type": "string" },
+          "country": { "type": "string" },
+          "category": { "$ref": "./category.json#/Category" },
+          "amount": {"type": "integer"},
+          "units": {"type":  "string"},
+          "type": { "type": "string" }
+        }
+      },
+
+      "BeerShort": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "rating": { "type": "number" },
+          "description": { "type": "string" }
+        }
+      },
+
+      "PaginatedBeers": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#BeerShort"
+            }
+          },
+          "offset": { "type": "integer" },
+          "limit": { "type": "integer" },
+          "total": { "type": "integer" },
+          "total_pages": { "type": "integer" },
+          "has_next": { "type": "boolean" },
+          "has_prev": { "type": "boolean" }
+       }
+    }
+}

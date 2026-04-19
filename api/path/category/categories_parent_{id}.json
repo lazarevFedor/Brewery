@@ -1,0 +1,20 @@
+{
+  "get": {
+    "tags": ["Categories"],
+    "summary": "Get parent category",
+    "operationId": "getParent",
+    "parameters": [
+      { "$ref": "../../components/parameters/id.json#/Id" }
+    ],
+    "responses": {
+      "200": {
+        "description": "Parent",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "../../components/schemas/category.json#/Category" }
+          }
+        }
+      }
+    }
+  }
+}

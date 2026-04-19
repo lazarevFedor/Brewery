@@ -1,0 +1,28 @@
+{
+    "Category": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+            "id": { "type": "integer" },
+            "name": { "type": "string" },
+            "parent_id": { "type": "integer", "nullable": true }
+        }
+    },
+
+    "CategoryCreate": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+            "name": { "type": "string" },
+            "parent_id": { "type": "integer" }
+        }
+    },
+
+    "CategoryUpdate": {
+        "type": "object",
+        "properties": {
+            "name": { "type": "string" },
+            "parent_id": { "type": "integer" }
+        }
+    }
+}
