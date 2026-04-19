@@ -2,12 +2,18 @@
 package routers
 
 import (
-	"github.com/gin-gonic/gin"
 	"Brewery/internal/http/handlers"
+
+	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-func RegisterRoutes(e *gin.Engine, categoryHandler handlers.CategoriesHandlers, beersHandler handlers.BeersHandlers) {
+func RegisterRoutes(
+	e *gin.Engine,
+	categoryHandler handlers.CategoriesHandlers,
+	beersHandler handlers.BeersHandlers,
+	reviewHandler handlers.ReviewsHandlers,
+) {
 	api := e.Group("/api")
 	{
 		beers := api.Group("/beers")
@@ -16,14 +22,16 @@ func RegisterRoutes(e *gin.Engine, categoryHandler handlers.CategoriesHandlers, 
 			beers.PATCH("/:id", beersHandler.UpdateBeer)
 			beers.DELETE("/:id", beersHandler.DeleteBeer)
 			beers.GET("", beersHandler.GetAllBeers)
-			beers.POST("/reviews/:beer_id", beersHandler.CreateBeerReview)
 		}
 
 		reviews := api.Group("/reviews")
 		{
-			reviews.POST("/:beer_id", beersHandler.CreateBeerReview)
+			reviews.POST("/:beer_id", reviewHandler.CreateReview)
+			reviews.GET("/:beer_id", reviewHandler.GetBeersReviews)
+			reviews.DELETE("/:id", reviewHandler.DeleteReview)
+			reviews.PATCH("/:id", reviewHandler.UpdateReview)
 		}
-		
+
 		categories := api.Group("/categories")
 		{
 			categories.POST("", categoryHandler.CreateCategory)
@@ -36,8 +44,6 @@ func RegisterRoutes(e *gin.Engine, categoryHandler handlers.CategoriesHandlers, 
 			categories.GET("/children/:id", categoryHandler.GetChildCategory)
 		}
 	}
-		
+
 	e.GET("/metrics", gin.WrapH(promhttp.Handler()))
 }
-
-
