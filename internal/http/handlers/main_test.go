@@ -46,8 +46,9 @@ func setupIntegrationRouter(svc *mocks.BeerServiceMock) *gin.Engine {
 
 	categoryHandler := handlers.NewCategoriesHandlers(svc)
 	beersHandler := handlers.NewBeersHandlers(svc)
+	reviewsHandler := handlers.NewReviewsHandlers(svc)
 
-	routers.RegisterRoutes(engine, categoryHandler, beersHandler)
+	routers.RegisterRoutes(engine, categoryHandler, beersHandler, reviewsHandler)
 	return engine
 }
 

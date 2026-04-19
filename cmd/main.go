@@ -54,6 +54,7 @@ func main() {
 	beerSrv := usecase.NewBeerService(beerRepo, ctgRepo)
 	beersHandler := handlers.NewBeersHandlers(beerSrv)
 	categoryHandler := handlers.NewCategoriesHandlers(beerSrv)
+	reviewHandler := handlers.NewReviewsHandlers(beerSrv)
 
 	engine := gin.New()
 	engine.Use(gin.Recovery())
@@ -82,7 +83,7 @@ func main() {
 	}
 	defer router.Close()
 
-	routers.RegisterRoutes(router.Engine, categoryHandler, beersHandler)
+	routers.RegisterRoutes(router.Engine, categoryHandler, beersHandler, reviewHandler)
 
 	log.Info(ctx, fmt.Sprintf("server listening on port %s", cfg.Port))
 

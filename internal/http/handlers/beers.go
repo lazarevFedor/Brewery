@@ -19,7 +19,6 @@ type BeersHandlers interface {
 	UpdateBeer(c *gin.Context)
 	DeleteBeer(c *gin.Context)
 	GetAllBeers(c *gin.Context)
-	CreateBeerReview(c *gin.Context)
 }
 
 // beersHandlers реализует интерфейс BeersHandlers и использует сервис BeerService для обработки бизнес-логики.
@@ -184,50 +183,4 @@ func (h *beersHandlers) GetAllBeers(c *gin.Context) {
 
 	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
 	log.Info(c.Request.Context(), fmt.Sprintf("action=list resource=beer status=success offset=%d limit=%d items=%d", offset, limit, len(beers)))
-}
-
-// CreateBeerReview обрабатывает HTTP-запрос на создание отзыва о пиве.
-func (h *beersHandlers) CreateBeerReview(c *gin.Context) {
-	reqCtx := c.Request.Context()
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
-	if !ok {
-		c.Status(http.StatusInternalServerError)
-
-		return
-	}
-
-	beerID, err := getBeerIDParam(c)
-	if err != nil {
-		log.Error(reqCtx, fmt.Sprintf("Invalid beer id: %v", err))
-
-		return
-	}
-
-	body, err := readRequestBody(c)
-	if err != nil {
-		log.Error(reqCtx, fmt.Sprintf("Failed to read review in the request body: %v", err))
-
-		return
-	}
-
-	var reviewReq entities.Review
-	if err = easyjson.Unmarshal(body, &reviewReq); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-
-		return
-	}
-
-	reviewReq.BeerID = beerID
-
-	reviewID, err := h.uc.CreateBeerReview(c.Request.Context(), &reviewReq)
-	if err != nil {
-		log.Error(reqCtx, fmt.Sprintf("Failed to create review: %v", err))
-		c.Status(http.StatusInternalServerError)
-
-		return
-	}
-
-	log.Debug(reqCtx, fmt.Sprintf("review_id = %d", reviewID))
-	log.Info(reqCtx, fmt.Sprintf("action=create resource=review status=success beer_id=%d", beerID))
-	c.Status(http.StatusOK)
 }
