@@ -3,4 +3,3 @@ configs/.env
 deployments/pgdata
 .vscode/
 .DS_Store
-class_diagram.md

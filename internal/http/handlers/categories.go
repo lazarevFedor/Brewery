@@ -16,7 +16,7 @@ import (
 // CategoriesHandlers определяет интерфейс для обработки HTTP-запросов, связанных с категориями продуктов.
 type CategoriesHandlers interface {
 	CreateCategory(c *gin.Context)
-	GetCategoryById(c *gin.Context)
+	GetCategoryByID(c *gin.Context)
 	UpdateCategory(c *gin.Context)
 	DeleteCategory(c *gin.Context)
 	GetAllCategories(c *gin.Context)
@@ -80,7 +80,7 @@ func (h *categoriesHandlers) CreateCategory(c *gin.Context) {
 // GetCategoryById обрабатывает HTTP-запрос на получение категории продукта по ее идентификатору.
 //
 //nolint:staticcheck, ineffassign, wastedassign
-func (h *categoriesHandlers) GetCategoryById(c *gin.Context) {
+func (h *categoriesHandlers) GetCategoryByID(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get logger from context"})
@@ -88,7 +88,7 @@ func (h *categoriesHandlers) GetCategoryById(c *gin.Context) {
 		return
 	}
 
-	categoryID, err := getIdParam(c)
+	categoryID, err := getIDParam(c)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
 
@@ -124,7 +124,7 @@ func (h *categoriesHandlers) UpdateCategory(c *gin.Context) {
 		return
 	}
 
-	id, err := getIdParam(c)
+	id, err := getIDParam(c)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
 
@@ -172,7 +172,7 @@ func (h *categoriesHandlers) DeleteCategory(c *gin.Context) {
 		return
 	}
 
-	id, err := getIdParam(c)
+	id, err := getIDParam(c)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
 
@@ -229,7 +229,7 @@ func (h *categoriesHandlers) GetParentCategory(c *gin.Context) {
 		return
 	}
 
-	id, err := getIdParam(c)
+	id, err := getIDParam(c)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
 
@@ -265,7 +265,7 @@ func (h *categoriesHandlers) GetChildCategory(c *gin.Context) {
 		return
 	}
 
-	id, err := getIdParam(c)
+	id, err := getIDParam(c)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
 
@@ -303,7 +303,7 @@ func (h *categoriesHandlers) GetBeersByCategory(c *gin.Context) {
 
 	id, err := getCategoryIDParam(c)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
+		log.Warn(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
 
 		return
 	}

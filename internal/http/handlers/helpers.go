@@ -19,8 +19,8 @@ const (
 	maxLimit = 100
 )
 
-// getIdParam извлекает и валидирует параметр id из URL.
-func getIdParam(c *gin.Context) (uint, error) {
+// getIDParam извлекает и валидирует параметр id из URL.
+func getIDParam(c *gin.Context) (uint, error) {
 	idStr := c.Param("id")
 
 	id, err := strconv.Atoi(idStr)

@@ -13,7 +13,6 @@ type Beer struct {
 	Unit        string          `json:"units" info:"Единица измерений"`
 	City        string          `json:"city" info:"Город производства"`
 	Country     string          `json:"country" info:"Страна производства"`
-	Type        string          `json:"type" info:"Тип напитка"`
 	Category    ProductCategory `json:"category" info:"Информация о категории товара"`
 	Features    []string        `json:"features,omitempty" info:"Список особенностей"`
 }

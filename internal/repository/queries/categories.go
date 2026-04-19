@@ -1,3 +1,4 @@
+// Package queries содержит функции для сборки запросов к базе данных
 package queries
 
 import (
@@ -39,8 +40,8 @@ func SelectCategoryByID(id uint) sq.SelectBuilder {
 
 func SelectCategoryByName(name string) sq.SelectBuilder {
 	return psql.Select(categoryIDCol).
-	From(tableCategories).
-	Where(sq.Eq{categoryNameCol:name})
+		From(tableCategories).
+		Where(sq.Eq{categoryNameCol: name})
 }
 
 func UpdateCategory(id uint, updates map[string]any) sq.UpdateBuilder {
@@ -53,9 +54,8 @@ func DeleteCategory(id uint) sq.DeleteBuilder {
 	return psql.Delete(tableCategories).Where(sq.Eq{categoryIDCol: id})
 }
 
-
-func SelectChildrenCategories(id uint) sq.SelectBuilder{
+func SelectChildrenCategories(id uint) sq.SelectBuilder {
 	return psql.Select(categoryIDCol).
-	From(tableCategories).
-	Where(sq.Eq{categoryParentIDCol: id})
+		From(tableCategories).
+		Where(sq.Eq{categoryParentIDCol: id})
 }
