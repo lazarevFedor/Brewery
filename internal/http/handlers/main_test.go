@@ -68,11 +68,10 @@ func newTestEnv(t *testing.T) *testEnv {
 
 func (e *testEnv) DoRequest(ctx context.Context, method, path string, body io.Reader) *httptest.ResponseRecorder {
 	req := httptest.NewRequestWithContext(ctx, method, path, body)
-	if body == nil{
+	if body == nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
 	w := httptest.NewRecorder()
 	e.Router.ServeHTTP(w, req)
 	return w
 }
-
