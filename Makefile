@@ -12,13 +12,21 @@ down:
 logs:
 	docker compose -f deployments/docker-compose.yml --env-file configs/.env logs server
 
-lint:
-	golangci-lint run
-
 monitor:
 	docker compose -f deployments/docker-compose.yml --env-file configs/.env up -d --build prometheus
 	docker compose -f deployments/docker-compose.yml --env-file configs/.env up -d --build node_exporter
 	docker compose -f deployments/docker-compose.yml --env-file configs/.env up -d --build grafana
+
+
+psqlup:
+	docker compose -f deployments/docker-compose.yml --env-file configs/.env up -d postgres
+  
+filldb:
+	go run scripts/fill/db_filler.go
+
+cleandb:
+	go run scripts/clean/db_cleaner.go
+
 
 genjson:
 	easyjson -all internal/entities/beer.go
@@ -27,14 +35,12 @@ genjson:
 	easyjson -all internal/entities/enum_class.go
 	easyjson -all internal/entities/enum_value.go
 
-psqlup:
-	docker compose -f deployments/docker-compose.yml --env-file configs/.env up -d postgres
-  
 genmock:
 	go generate ./internal/http/handlers/mocks
 
-filldb:
-	go run scripts/fill/db_filler.go
+genapi:
+	redocly bundle api/services.swagger.json --output api/gened.swagger.json
 
-cleandb:
-	go run scripts/clean/db_cleaner.go
+
+lint:
+	golangci-lint run

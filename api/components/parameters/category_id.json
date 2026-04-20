@@ -1,0 +1,8 @@
+{
+    "CategoryId": {
+        "name": "category_id",
+        "in": "path",
+        "required": true,
+        "schema": { "type": "integer" }
+    } 
+}

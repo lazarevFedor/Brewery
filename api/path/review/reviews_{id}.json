@@ -1,0 +1,51 @@
+{
+  "delete": {
+    "tags": ["Reviews"],
+    "summary": "Delete review",
+    "operationId": "deleteReview",
+    "parameters": [
+      { "$ref": "../../components/parameters/id.json#/Id" }
+    ],
+    "responses": {
+      "200": {
+        "description": "Delete status",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  
+  "patch": {
+    "tags": ["Reviews"],
+    "summary": "Update review",
+    "operationId": "updateReview",
+    "parameters": [
+      { "$ref": "../../components/parameters/id.json#/Id" }
+    ],
+    "requestBody": {
+      "content": {
+        "application/json": {
+          "schema": { "$ref": "../../components/schemas/review.json#/ReviewCreate" }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Updated",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "../../components/schemas/review.json#/Review" }
+          }
+        }
+      }
+    }
+  }
+}

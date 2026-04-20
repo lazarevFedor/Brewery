@@ -1,0 +1,59 @@
+{
+  "get": {
+    "tags": ["Categories"],
+    "summary": "Get category by ID",
+    "operationId": "getCategoryById",
+    "parameters": [
+      { "$ref": "../../components/parameters/id.json#/Id" }
+    ],
+    "responses": {
+      "200": {
+        "description": "Category",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "../../components/schemas/category.json#/Category" }
+          }
+        }
+      },
+      "404": { "description": "Not found" }
+    }
+  },
+
+  "patch": {
+    "tags": ["Categories"],
+    "summary": "Update category",
+    "operationId": "updateCategory",
+    "parameters": [
+      { "$ref": "../../components/parameters/id.json#/Id" }
+    ],
+    "requestBody": {
+      "content": {
+        "application/json": {
+          "schema": { "$ref": "../../components/schemas/category.json#/CategoryUpdate" }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Updated",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "../../components/schemas/category.json#/Category" }
+          }
+        }
+      }
+    }
+  },
+  
+  "delete": {
+    "tags": ["Categories"],
+    "summary": "Delete category",
+    "operationId": "deleteCategory",
+    "parameters": [
+      { "$ref": "../../components/parameters/id.json#/Id" }
+    ],
+    "responses": {
+      "204": { "description": "Deleted" }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "get": {
+    "tags": ["Beers"],
+    "summary": "Get beers by category",
+    "operationId": "getBeersByCategory",
+    "parameters": [
+      { "$ref": "../../components/parameters/category_id.json#/CategoryId" },
+      { "$ref": "../../components/parameters/limit_offset.json#/Offset" },
+      { "$ref": "../../components/parameters/limit_offset.json#/Limit" }
+    ],
+    "responses": {
+      "200": {
+        "description": "Beers list",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "../../components/schemas/beer.json#/Beer" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

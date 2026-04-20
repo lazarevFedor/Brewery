@@ -1,0 +1,55 @@
+{
+  "post": {
+    "tags": ["Reviews"],
+    "summary": "Add review",
+    "operationId": "addReview",
+    "parameters": [
+      { "$ref": "../../components/parameters/beer_id.json#/BeerId" }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": { "$ref": "../../components/schemas/review.json#/ReviewCreate" }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Result",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "get": {
+    "tags": ["Reviews"],
+    "summary": "Get beer's reviews",
+    "operationId": "getReviews",
+    "parameters": [
+      { "$ref": "../../components/parameters/beer_id.json#/BeerId" }
+    ],
+    "responses": {
+      "200": {
+        "description": "Beers list",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "../../components/schemas/review.json#/Review" }
+            }
+          }
+        }
+      }
+    }
+  }
+}
