@@ -4,7 +4,7 @@ package main
 import (
 	"Brewery/internal/config"
 	"Brewery/internal/http/handlers"
-	"Brewery/internal/http/handlers/routers"
+	"Brewery/internal/http/routers"
 	"Brewery/internal/http/middleware"
 	"Brewery/internal/repository"
 	"Brewery/internal/usecase"
