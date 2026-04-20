@@ -16,9 +16,6 @@ const (
 	beerFeaturesTable = "beer_features"
 )
 
-// psql - это экземпляр StatementBuilder, настроенный на использование формата плейсхолдеров для PostgreSQL.
-var psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-
 // FullBeerSelect возвращает базовый запрос для получения полной информации о пиве, включая его характеристики, город и страну производства, категорию и особенности.
 func FullBeerSelect() sq.SelectBuilder {
 	return psql.Select(
