@@ -32,6 +32,9 @@
 
     "/beers": { "$ref": "./path/beer/beers.json" },
     "/beers/{id}": { "$ref": "./path/beer/beers_id.json"},
+
+    "/beers/feats/{id}": { "$ref": "./path/beer/beers_feats_id.json" },
+
     "/categories/beers/{category_id}": { "$ref": "./path/beer/categories_beers_category_id.json"},
 
     "/reviews/{beer_id}": { "$ref": "./path/review/reviews_beer_id.json"},
