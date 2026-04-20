@@ -3,7 +3,7 @@ package handlers_test
 import (
 	"Brewery/internal/http/handlers"
 	"Brewery/internal/http/handlers/mocks"
-	"Brewery/internal/http/handlers/routers"
+	"Brewery/internal/http/routers"
 	"Brewery/internal/http/middleware"
 	"Brewery/pkg/logger"
 	"context"

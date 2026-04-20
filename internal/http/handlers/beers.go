@@ -19,6 +19,11 @@ type BeersHandlers interface {
 	UpdateBeer(c *gin.Context)
 	DeleteBeer(c *gin.Context)
 	GetAllBeers(c *gin.Context)
+
+	GetFeature(c *gin.Context)
+	CreateFeature(c *gin.Context)
+	UpdateFeature(c *gin.Context)
+	DeleteFeature(c *gin.Context)
 }
 
 // beersHandlers реализует интерфейс BeersHandlers и использует сервис BeerService для обработки бизнес-логики.
@@ -184,3 +189,9 @@ func (h *beersHandlers) GetAllBeers(c *gin.Context) {
 	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
 	log.Info(c.Request.Context(), fmt.Sprintf("action=list resource=beer status=success offset=%d limit=%d items=%d", offset, limit, len(beers)))
 }
+
+
+func (h *beersHandlers) GetFeature(c *gin.Context){}
+func (h *beersHandlers) CreateFeature(c *gin.Context){}
+func (h *beersHandlers) UpdateFeature(c *gin.Context){}
+func (h *beersHandlers) DeleteFeature(c *gin.Context){}
