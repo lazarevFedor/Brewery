@@ -430,7 +430,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Beers list",
+            "description": "Reviews list",
             "content": {
               "application/json": {
                 "schema": {
@@ -490,7 +490,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ReviewCreate"
+                "$ref": "#/components/schemas/ReviewUpdate"
               }
             }
           }
@@ -680,11 +680,30 @@
           "body": {
             "type": "string"
           },
+          "BeerID": {
+            "type": "integer"
+          },
           "rating": {
             "type": "number"
           }
         }
       },
+      "ReviewUpdate": {
+        "type": "object",
+
+        "properties": {
+          "body": {
+            "type": "string"
+          },
+          "beerId": {
+            "type": "integer"
+          },
+          "rating": {
+            "type": "number"
+          }
+        }
+      },
+
       "ReviewCreate": {
         "type": "object",
         "required": [
