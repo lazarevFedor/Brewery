@@ -51,7 +51,7 @@ func (e *EnumPostgres) InsertEnumClass(ctx context.Context, enumClass entities.E
 		return 0, fmt.Errorf("%s: %w", "QueryRow", err)
 	}
 
-	return 0, nil
+	return enumID, nil
 }
 
 func (e *EnumPostgres) UpdateEnumClass(ctx context.Context, id uint, updates map[string]any) error {
