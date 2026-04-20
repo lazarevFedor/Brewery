@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS enum_classes (
     enum_type VARCHAR(100) NOT NULL,
     entity_name VARCHAR(50) NOT NULL,
     field_name VARCHAR(50) NOT NULL,
-    UNIQUE (entity_name, field_name)
+    UNIQUE (entity_name, field_name, enum_type)
 );
 
 CREATE TABLE IF NOT EXISTS enum_values (
