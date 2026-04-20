@@ -1,5 +1,3 @@
-.PHONY: build
-
 up:
 	docker compose -f deployments/docker-compose.yml --env-file configs/.env up
 
@@ -12,12 +10,6 @@ down:
 logs:
 	docker compose -f deployments/docker-compose.yml --env-file configs/.env logs server
 
-monitor:
-	docker compose -f deployments/docker-compose.yml --env-file configs/.env up -d --build prometheus
-	docker compose -f deployments/docker-compose.yml --env-file configs/.env up -d --build node_exporter
-	docker compose -f deployments/docker-compose.yml --env-file configs/.env up -d --build grafana
-
-
 psqlup:
 	docker compose -f deployments/docker-compose.yml --env-file configs/.env up -d postgres
   
@@ -26,7 +18,6 @@ filldb:
 
 cleandb:
 	go run scripts/clean/db_cleaner.go
-
 
 genjson:
 	easyjson -all internal/entities/beer.go
@@ -40,7 +31,6 @@ genmock:
 
 genapi:
 	redocly bundle api/services.swagger.json --output api/gened.swagger.json
-
 
 lint:
 	golangci-lint run
