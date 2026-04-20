@@ -23,6 +23,7 @@ var (
 	testDB   *pgxpool.Pool
 	beerRepo *repository.BeerPostgres
 	ctgRepo  *repository.CategoryPostgres
+	enumRepo *repository.EnumPostgres
 )
 
 // TestMain запускает тестовую среду с помощью testcontainers, выполняет миграции и очищает ресурсы после тестов.
@@ -67,6 +68,7 @@ func TestMain(m *testing.M) {
 
 	beerRepo = repository.NewBeerPostgres(testDB)
 	ctgRepo = repository.NewCategoryPostgres(testDB)
+	enumRepo = repository.NewEnumPostgres(testDB)
 
 	if err = seedTestData(ctx); err != nil {
 		log.Fatalf("Failed to seed test data: %s", err)
