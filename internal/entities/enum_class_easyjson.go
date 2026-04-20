@@ -131,6 +131,12 @@ func easyjsonDfa25e2eDecodeBreweryInternalEntities1(in *jlexer.Lexer, out *EnumC
 			} else {
 				out.Unit = string(in.String())
 			}
+		case "is_active":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.IsActive = bool(in.Bool())
+			}
 		default:
 			in.SkipRecursive()
 		}
@@ -190,6 +196,16 @@ func easyjsonDfa25e2eEncodeBreweryInternalEntities1(out *jwriter.Writer, in Enum
 			out.RawString(prefix)
 		}
 		out.String(string(in.Unit))
+	}
+	if in.IsActive {
+		const prefix string = ",\"is_active\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Bool(bool(in.IsActive))
 	}
 	out.RawByte('}')
 }
