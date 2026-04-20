@@ -490,7 +490,6 @@ func (r *BeerPostgres) UpdateReview(ctx context.Context, id uint, updates map[st
 	}
 
 	return err
-
 }
 
 // GetReviews возвращает список всех отзывов к конкретному пиву, возвращает не более limit отзывов, начиная с позиции offset.
