@@ -16,6 +16,11 @@ func InsertEnumClass(enumClass entities.EnumClass) sq.InsertBuilder {
 		"enum_type":   enumClass.Type,
 		"entity_name": enumClass.EntityName,
 		"field_name":  enumClass.FieldName,
+		"is_active":   enumClass.IsActive,
+	}
+
+	if enumClass.Unit != "" {
+		data["unit"] = enumClass.Unit
 	}
 
 	return psql.
@@ -43,6 +48,8 @@ func SelectEnumClasses(entity, field string) sq.SelectBuilder {
 		"enum_type",
 		"entity_name",
 		"field_name",
+		"unit",
+		"is_active",
 	).From(enumClassesTable).
 		Where(sq.Eq{"entity_name": entity, "field_name": field})
 }

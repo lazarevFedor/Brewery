@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -130,11 +131,19 @@ func (e *EnumPostgres) GetEnumClasses(ctx context.Context, entity, field string)
 
 func scanEnumClass(row pgx.Row) (*entities.EnumClass, error) {
 	var class entities.EnumClass
+	var unit pgtype.Text
 
-	err := row.Scan(&class.ID, &class.Type, &class.EntityName, &class.FieldName, &class.Unit, &class.IsActive)
+	err := row.Scan(&class.ID, &class.Type, &class.EntityName, &class.FieldName, &unit, &class.IsActive)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Scan", err)
 	}
+
+	if unit.Valid {
+		class.Unit = unit.String
+	} else {
+		class.Unit = ""
+	}
+
 	return &class, nil
 }
 
