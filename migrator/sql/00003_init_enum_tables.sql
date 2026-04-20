@@ -1,7 +1,7 @@
 -- +goose Up
 
 CREATE TABLE IF NOT EXISTS enum_classes (
-    id INT PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     enum_type VARCHAR(100) NOT NULL,
     entity_name VARCHAR(50) NOT NULL,
     field_name VARCHAR(50) NOT NULL,
@@ -22,7 +22,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_enum_classes_single_active
     WHERE is_active;
 
 CREATE TABLE IF NOT EXISTS enum_values (
-    id INT PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     enum_class_id INT NOT NULL,
 
     value_raw VARCHAR(255) NOT NULL,   -- само значение

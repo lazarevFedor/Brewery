@@ -71,11 +71,35 @@ func InsertReview(review entities.Review) sq.InsertBuilder {
 		Suffix("RETURNING id")
 }
 
+// DeleteReview возвращает запрос для удаления отзыва из таблицы reviews по его ID.
+func DeleteReview(id uint) sq.DeleteBuilder {
+	return psql.
+		Delete(reviewsTable).
+		Where(sq.Eq{"id": id})
+}
+
 // DeleteBeer возвращает запрос для удаления пива из таблицы beers по его ID.
 func DeleteBeer(id uint) sq.DeleteBuilder {
 	return psql.
 		Delete(beersTable).
 		Where(sq.Eq{"id": id})
+}
+
+// UpdateReview возвращает запрос для обновления информации об отзыве в таблице reviews по его ID.
+func UpdateReview(id uint, updates map[string]any) sq.UpdateBuilder {
+	return psql.
+		Update(reviewsTable).
+		SetMap(updates).
+		Where(sq.Eq{"id": id}).
+		Suffix("RETURNING id")
+}
+
+func SelectReviewByBeerID(beerID uint) sq.SelectBuilder {
+	return psql.Select(
+		"id",
+		"body",
+		"beer_id",
+		"rating").From(reviewsTable).Where(sq.Eq{"beer_id": beerID}).OrderBy("id DESC")
 }
 
 // UpdateBeer возвращает запрос для обновления информации о пиве в таблице beers по его ID с использованием данных из переданной карты обновлений.

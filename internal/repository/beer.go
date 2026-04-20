@@ -35,6 +35,15 @@ type BeerRepository interface {
 	// InsertReview сохраняет новую сущность Review в хранилище.
 	InsertReview(ctx context.Context, review entities.Review) (uint, error)
 
+	// DeleteReview удаляет сущность Review из хранилища
+	DeleteReview(ctx context.Context, id uint) error
+
+	// UpdateReview обновляет поля у сущности Review в хранилище.
+	UpdateReview(ctx context.Context, id uint, updates map[string]any) error
+
+	// GetReviews возвращает список всех отзывов конкретного пива.
+	GetReviews(ctx context.Context, limit, offset uint64, beerID uint) ([]entities.Review, error)
+
 	// GetBeersByCategoryID возвращает список сортов пива, принадлежащих к определенной категории.
 	GetBeersByCategoryID(ctx context.Context, ctgID uint, limit, offset uint64) ([]entities.Beer, error)
 
@@ -415,10 +424,117 @@ func (r *BeerPostgres) InsertReview(ctx context.Context, review entities.Review)
 	return reviewID, nil
 }
 
+// DeleteReview удаляет сущность Review из хранилища. Если отзыв с таким id, не найден, возвращает ошибку.
+func (r *BeerPostgres) DeleteReview(ctx context.Context, id uint) error {
+	if r.Pool == nil {
+		return errors.New("pool is nill")
+	}
+
+	tx, err := r.Pool.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("%s: %w", "Begin", err)
+	}
+
+	defer func(tx pgx.Tx, ctx context.Context) {
+		rollbackErr := tx.Rollback(ctx)
+		log, ok := logger.GetLoggerFromCtx(ctx)
+		if ok {
+			if rollbackErr != nil && !errors.Is(rollbackErr, pgx.ErrTxClosed) {
+				log.Error(ctx, "InsertBeer: rollback error:", zap.Error(rollbackErr))
+			}
+		}
+	}(tx, ctx)
+
+	psql := queries.DeleteReview(id)
+
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: %w", "ToSql", err)
+	}
+
+	result, err := tx.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("%s: %w", "Exec", err)
+	}
+	if result.RowsAffected() == 0 {
+		return errors.New("failed to delete review")
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return fmt.Errorf("commit: %w", err)
+	}
+
+	return err
+}
+
+// UpdateReview обновляет поля у сущности Review в хранилище. Если отзыв с таким id, не найден, возвращает ошибку.
+func (r *BeerPostgres) UpdateReview(ctx context.Context, id uint, updates map[string]any) error {
+	if r.Pool == nil {
+		return errors.New("pool is nil")
+	}
+
+	psql := queries.UpdateReview(id, updates)
+
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: %w", "ToSql", err)
+	}
+
+	result, err := r.Pool.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("%s: %w", "Exec", err)
+	}
+	if result.RowsAffected() == 0 {
+		return errors.New("failed to update review")
+	}
+
+	return err
+}
+
+// GetReviews возвращает список всех отзывов к конкретному пиву, возвращает не более limit отзывов, начиная с позиции offset.
+func (r *BeerPostgres) GetReviews(ctx context.Context, limit, offset uint64, beerID uint) ([]entities.Review, error) {
+	if r.Pool == nil {
+		return nil, errors.New("pool is nil")
+	}
+
+	psql := queries.SelectReviewByBeerID(beerID).Offset(offset)
+	if limit != 0 {
+		psql = psql.Limit(limit)
+	}
+
+	query, _, err := psql.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ToSql", err)
+	}
+
+	rows, err := r.Pool.Query(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("query: %w", err)
+	}
+	defer rows.Close()
+
+	reviews := make([]entities.Review, 0)
+	for rows.Next() {
+		var review entities.Review
+
+		err = rows.Scan(&review.ID, &review.Body, &review.BeerID, &review.Rating)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan row: %w", err)
+		}
+
+		reviews = append(reviews, review)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows.Err: %w", err)
+	}
+
+	return reviews, nil
+}
+
 // GetBeersByCategoryID возвращает список сортов пива, принадлежащих к определенной категории. Если категория с таким ID не найдена, возвращает пустой список.
-func (r *BeerPostgres) GetBeersByCategoryID(
-	ctx context.Context, ctgID uint, limit, offset uint64,
-) ([]entities.Beer, error) {
+func (r *BeerPostgres) GetBeersByCategoryID(ctx context.Context, ctgID uint, limit, offset uint64) ([]entities.Beer, error) {
 	if r.Pool == nil {
 		return nil, errors.New("pool is nil")
 	}

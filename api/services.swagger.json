@@ -26,15 +26,15 @@
 
   "paths": {
     "/categories": { "$ref": "./path/category/categories.json" },
-    "/categories/{id}": { "$ref": "./path/category/categories_{id}.json" },
-    "/categories/parent/{id}": { "$ref": "./path/category/categories_parent_{id}.json" },
-    "/categories/children/{id}": { "$ref": "./path/category/categories_children_{id}.json" },
+    "/categories/{id}": { "$ref": "./path/category/categories_id.json"},
+    "/categories/parent/{id}": { "$ref": "./path/category/categories_parent_id.json"},
+    "/categories/children/{id}": { "$ref": "./path/category/categories_children_id.json"},
 
     "/beers": { "$ref": "./path/beer/beers.json" },
-    "/beers/{id}": { "$ref": "./path/beer/beers_{id}.json" },
-    "/categories/beers/{category_id}": { "$ref": "./path/beer/categories_beers_{category_id}.json" },
+    "/beers/{id}": { "$ref": "./path/beer/beers_id.json"},
+    "/categories/beers/{category_id}": { "$ref": "./path/beer/categories_beers_category_id.json"},
 
-    "/reviews/{beer_id}": { "$ref": "./path/review/reviews_{beer_id}.json" },
-    "/reviews/{id}":{ "$ref": "./path/review/reviews_{id}.json" }
+    "/reviews/{beer_id}": { "$ref": "./path/review/reviews_beer_id.json"},
+    "/reviews/{id}":{ "$ref": "./path/review/reviews_id.json"}
   }
 }
