@@ -7,12 +7,12 @@ import (
 	"fmt"
 )
 
-func (s *beerService) GetBeerReviews(ctx context.Context) ([]entities.ProductCategory, error) {
+func (s *beerService) GetBeerReviews(ctx context.Context, limit, offset uint64, beerid uint) ([]entities.Review, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	categories, err := s.categoryRepo.GetCategories(ctx)
+	categories, err := s.beerRepo.GetReviews(ctx, limit, offset, beerid)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get categories: %w", err)
 	}

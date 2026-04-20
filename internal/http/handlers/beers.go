@@ -22,7 +22,6 @@ type BeersHandlers interface {
 
 	GetFeature(c *gin.Context)
 	CreateFeature(c *gin.Context)
-	UpdateFeature(c *gin.Context)
 	DeleteFeature(c *gin.Context)
 }
 
@@ -190,8 +189,119 @@ func (h *beersHandlers) GetAllBeers(c *gin.Context) {
 	log.Info(c.Request.Context(), fmt.Sprintf("action=list resource=beer status=success offset=%d limit=%d items=%d", offset, limit, len(beers)))
 }
 
+func (h *beersHandlers) GetFeature(c *gin.Context) {
+	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+	if !ok {
+		c.Status(http.StatusInternalServerError)
 
-func (h *beersHandlers) GetFeature(c *gin.Context){}
-func (h *beersHandlers) CreateFeature(c *gin.Context){}
-func (h *beersHandlers) UpdateFeature(c *gin.Context){}
-func (h *beersHandlers) DeleteFeature(c *gin.Context){}
+		return
+	}
+
+	id, err := getIDParam(c)
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Invalid beer id: %v", err))
+
+		return
+	}
+
+	offset, limit, err := getPaginationParams(c)
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Invalid pagination params: %v", err))
+
+		return
+	}
+
+	feats, err := h.uc.GetFeatures(c.Request.Context(), id)
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get beers: %v", err))
+		c.Status(http.StatusInternalServerError)
+
+		return
+	}
+
+	rawBytes, err := json.Marshal(feats)
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal beers: %v", err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
+
+		return
+	}
+
+	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
+	log.Info(
+		c.Request.Context(),
+		fmt.Sprintf(
+			"action=list resource=beer status=success offset=%d limit=%d items=%d",
+			offset, limit, len(feats),
+		),
+	)
+}
+
+func (h *beersHandlers) CreateFeature(c *gin.Context) {
+	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+	if !ok {
+		c.Status(http.StatusInternalServerError)
+
+		return
+	}
+
+	body, err := readRequestBody(c)
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read beer in the request body: %v", err))
+
+		return
+	}
+
+	id, err := getIDParam(c)
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Invalid beer id: %v", err))
+
+		return
+	}
+
+	var featName string
+	if err = json.Unmarshal(body, &featName); err != nil {
+		log.Error(c.Request.Context(), "failed to Unmurshal JSON", zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
+
+		return
+	}
+
+	err = h.uc.CreateFeature(c.Request.Context(), id, featName)
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to create beer: %v", err))
+		c.Status(http.StatusInternalServerError)
+
+		return
+	}
+
+	log.Info(c.Request.Context(), fmt.Sprintf("action=create resource=beer status=success name=%q", featName))
+	c.Status(http.StatusCreated)
+}
+
+func (h *beersHandlers) DeleteFeature(c *gin.Context) {
+	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+	if !ok {
+		c.Status(http.StatusInternalServerError)
+
+		return
+	}
+
+	id, err := getIDParam(c)
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Invalid feature id: %v", err))
+
+		return
+	}
+
+	err = h.uc.DeleteFeature(c.Request.Context(), id)
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to delete beer: %v", err))
+		c.Status(http.StatusInternalServerError)
+
+		return
+	}
+
+	log.Info(c.Request.Context(), fmt.Sprintf("action=delete resource=beer status=success id=%d", id))
+	c.Status(http.StatusOK)
+}

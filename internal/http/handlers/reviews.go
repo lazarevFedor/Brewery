@@ -94,7 +94,14 @@ func (h *reviewsHandlers) GetBeersReviews(c *gin.Context) {
 		return
 	}
 
-	reviewID, err := h.uc.GetBeerReviews(c.Request.Context())
+	offset, limit, err := getPaginationParams(c)
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Invalid pagination params: %v", err))
+
+		return
+	}
+
+	reviews, err := h.uc.GetBeerReviews(c.Request.Context(), limit, offset, beerID)
 	if err != nil {
 		log.Error(reqCtx, fmt.Sprintf("Failed to get review: %v", err))
 		c.Status(http.StatusInternalServerError)
@@ -102,7 +109,15 @@ func (h *reviewsHandlers) GetBeersReviews(c *gin.Context) {
 		return
 	}
 
-	log.Debug(reqCtx, fmt.Sprintf("review_id = %d", reviewID))
+	rawBytes, err := easyjson.Marshal(entities.Reviews(reviews))
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal beers: %v", err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
+
+		return
+	}
+
+	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
 	log.Info(reqCtx, fmt.Sprintf("action=get resource=review status=success beer_id=%d", beerID))
 	c.Status(http.StatusOK)
 }

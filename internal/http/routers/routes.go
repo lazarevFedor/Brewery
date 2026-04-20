@@ -23,11 +23,11 @@ func RegisterRoutes(
 			beers.DELETE("/:id", beersHandler.DeleteBeer)
 			beers.GET("", beersHandler.GetAllBeers)
 
-			features := api.Group("/feats")
+			features := beers.Group("/feats")
 			{
 				features.GET("/:beer_id", beersHandler.GetFeature)
 				features.POST("/:beer_id", beersHandler.CreateFeature)
-				features.PATCH("/:beer_id", beersHandler.UpdateFeature)
+				features.PATCH("/:beer_id", beersHandler.UpdateBeer)
 				features.DELETE("/:beer_id", beersHandler.DeleteFeature)
 			}
 		}
