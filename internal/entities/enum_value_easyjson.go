@@ -121,7 +121,7 @@ func easyjson137310b9DecodeBreweryInternalEntities1(in *jlexer.Lexer, out *EnumV
 			} else {
 				out.Value = in.Interface()
 			}
-		case "value_type":
+		case "ValueType":
 			if in.IsNull() {
 				in.Skip()
 			} else {
@@ -179,8 +179,8 @@ func easyjson137310b9EncodeBreweryInternalEntities1(out *jwriter.Writer, in Enum
 			out.Raw(json.Marshal(in.Value))
 		}
 	}
-	if in.ValueType != "" {
-		const prefix string = ",\"value_type\":"
+	{
+		const prefix string = ",\"ValueType\":"
 		if first {
 			first = false
 			out.RawString(prefix[1:])
@@ -191,12 +191,7 @@ func easyjson137310b9EncodeBreweryInternalEntities1(out *jwriter.Writer, in Enum
 	}
 	if in.Position != 0 {
 		const prefix string = ",\"position\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
+		out.RawString(prefix)
 		out.Int(int(in.Position))
 	}
 	out.RawByte('}')

@@ -26,7 +26,7 @@ func easyjsonDfa25e2eDecodeBreweryInternalEntities(in *jlexer.Lexer, out *EnumCl
 		in.Delim('[')
 		if *out == nil {
 			if !in.IsDelim(']') {
-				*out = make(EnumClasses, 0, 1)
+				*out = make(EnumClasses, 0, 0)
 			} else {
 				*out = EnumClasses{}
 			}
@@ -125,6 +125,12 @@ func easyjsonDfa25e2eDecodeBreweryInternalEntities1(in *jlexer.Lexer, out *EnumC
 			} else {
 				out.FieldName = string(in.String())
 			}
+		case "unit":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Unit = string(in.String())
+			}
 		default:
 			in.SkipRecursive()
 		}
@@ -174,6 +180,16 @@ func easyjsonDfa25e2eEncodeBreweryInternalEntities1(out *jwriter.Writer, in Enum
 			out.RawString(prefix)
 		}
 		out.String(string(in.FieldName))
+	}
+	if in.Unit != "" {
+		const prefix string = ",\"unit\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(in.Unit))
 	}
 	out.RawByte('}')
 }
