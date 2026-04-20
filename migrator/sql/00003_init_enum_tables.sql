@@ -5,8 +5,16 @@ CREATE TABLE IF NOT EXISTS enum_classes (
     enum_type VARCHAR(100) NOT NULL,
     entity_name VARCHAR(50) NOT NULL,
     field_name VARCHAR(50) NOT NULL,
-    UNIQUE (entity_name, field_name, enum_type)
+    unit VARCHAR(16),
+    CHECK (
+        (enum_type IN ('int', 'float') AND (unit IS NULL OR BTRIM(unit) <> '')) OR
+        (enum_type NOT IN ('int', 'float') AND unit IS NULL)
+    )
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_enum_classes_numeric_field_type_unit
+    ON enum_classes (entity_name, field_name, enum_type, COALESCE(unit, ''))
+    WHERE enum_type IN ('int', 'float');
 
 CREATE TABLE IF NOT EXISTS enum_values (
     id INT PRIMARY KEY,
