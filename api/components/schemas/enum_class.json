@@ -1,0 +1,50 @@
+{
+    "EnumClassBase": {
+        "type": "object",
+        "properties": {
+            "type": { "type": "string" },
+            "entity_name": { "type": "string" },
+            "field_name": { "type": "string" },
+            "unit": { "type": "string" },
+            "is_active": { "type": "boolean" }
+        }
+    },
+
+    "EnumClass": {
+        "allOf": [
+            {"$ref": "#/EnumClassBase"}
+        ]
+    },
+
+    "EnumClassCreate": {
+        "allOf": [
+            {"$ref": "#/EnumClassBase"},
+            {
+                "required": ["type", "entityName", "field_name", "is_active"]
+            }
+        ]
+    },
+
+    "EnumClassUpdate": {
+        "allOf": [
+            { "$ref": "#/EnumClassBase" },
+            {
+                "type": "object",
+                "required": ["id"],
+                "properties": {
+                    "id": {"type": "integer"}
+                }
+            }
+        ]
+    },
+
+    "EnumClassWithFilter": {
+        "type" : "object",
+        "required": ["entity_name"],
+        "properties": {
+            "entity_name": {"type": "string"},
+            "field_name":  {"type": "string"}
+        }
+    }
+
+}
