@@ -387,13 +387,11 @@ func TestBeerRepository_DeleteBeer(t *testing.T) {
 	})
 }
 
-// TestBeerRepository_InsertReview содержит тесты для проверки функциональности вставки отзывов в репозиторий, включая успешную вставку отзыва, попытку вставки отзыва с неинициализированным репозиторием и вставку отзыва с отмененным контекстом.
 // TestBeerRepository_InsertReview содержит тесты для проверки функциональности вставки отзывов в репозиторий.
 func TestBeerRepository_InsertReview(t *testing.T) {
 	ctx := t.Context()
 
 	t.Run("Успешная вставка отзыва", func(t *testing.T) {
-		// Сначала создаем пиво, к которому будет привязан отзыв
 		beerID, err := beerRepo.InsertBeer(ctx, testBeers[0])
 		require.NoError(t, err)
 		require.NotZero(t, beerID)
@@ -408,12 +406,11 @@ func TestBeerRepository_InsertReview(t *testing.T) {
 		require.NoError(t, err)
 		require.NotZero(t, reviewID)
 
-		// Проверяем, что отзыв действительно сохранился
 		reviews, err := beerRepo.GetReviews(ctx, 0, 0, beerID)
 		require.NoError(t, err)
 		require.Len(t, reviews, 1)
 		require.Equal(t, review.Body, reviews[0].Body)
-		require.Equal(t, review.Rating, reviews[0].Rating)
+		require.InEpsilon(t, review.Rating, reviews[0].Rating, 0.0001)
 
 		t.Cleanup(func() {
 			cleanDB(t, ctx, "beers")
@@ -444,7 +441,7 @@ func TestBeerRepository_InsertReview(t *testing.T) {
 
 		review := entities.Review{
 			Body:   "Invalid rating",
-			Rating: 6.0, // Рейтинг выше 5
+			Rating: 6.0,
 			BeerID: beerID,
 		}
 
@@ -534,8 +531,8 @@ func TestBeerRepository_DeleteReview(t *testing.T) {
 	})
 }
 
-// TestBeerRepository_UpdateReview содержит тесты для проверки функциональности обновления отзывов в репозитории.
-func TestBeerRepository_UpdateReview(t *testing.T) {
+// TestBeerRepository_UpdateReview_Fields содержит тесты для обновления полей отзыва.
+func TestBeerRepository_UpdateReview_Fields(t *testing.T) {
 	ctx := t.Context()
 
 	t.Run("Успешное обновление отзыва", func(t *testing.T) {
@@ -564,7 +561,7 @@ func TestBeerRepository_UpdateReview(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, reviews, 1)
 		require.Equal(t, "Updated review text", reviews[0].Body)
-		require.Equal(t, 5.0, reviews[0].Rating)
+		require.InEpsilon(t, 5.0, reviews[0].Rating, 0.0001)
 
 		t.Cleanup(func() {
 			cleanDB(t, ctx, "beers")
@@ -586,7 +583,6 @@ func TestBeerRepository_UpdateReview(t *testing.T) {
 		require.NoError(t, err)
 		require.NotZero(t, reviewID)
 
-		// Обновляем только тело
 		updates := map[string]any{
 			"body": "Only body updated",
 		}
@@ -597,7 +593,7 @@ func TestBeerRepository_UpdateReview(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, reviews, 1)
 		require.Equal(t, "Only body updated", reviews[0].Body)
-		require.Equal(t, 4.2, reviews[0].Rating)
+		require.InEpsilon(t, 4.2, reviews[0].Rating, 0.0001)
 
 		t.Cleanup(func() {
 			cleanDB(t, ctx, "beers")
@@ -629,12 +625,17 @@ func TestBeerRepository_UpdateReview(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, reviews, 1)
 		require.Equal(t, "Original body", reviews[0].Body)
-		require.Equal(t, 4.9, reviews[0].Rating)
+		require.InEpsilon(t, 4.9, reviews[0].Rating, 0.0001)
 
 		t.Cleanup(func() {
 			cleanDB(t, ctx, "beers")
 		})
 	})
+}
+
+// TestBeerRepository_UpdateReview_Errors содержит тесты ошибок для обновления отзывов.
+func TestBeerRepository_UpdateReview_Errors(t *testing.T) {
+	ctx := t.Context()
 
 	t.Run("Обновление несуществующего отзыва", func(t *testing.T) {
 		updates := map[string]any{
@@ -684,7 +685,7 @@ func TestBeerRepository_UpdateReview(t *testing.T) {
 		require.NotZero(t, reviewID)
 
 		updates := map[string]any{
-			"rating": 5.5, // Рейтинг выше 5
+			"rating": 5.5,
 		}
 		err = beerRepo.UpdateReview(ctx, reviewID, updates)
 		require.Error(t, err)
@@ -706,8 +707,8 @@ func TestBeerRepository_UpdateReview(t *testing.T) {
 	})
 }
 
-// TestBeerRepository_GetReviews содержит тесты для проверки функциональности получения списка отзывов из репозитория.
-func TestBeerRepository_GetReviews(t *testing.T) {
+// TestBeerRepository_GetReviews_Basic содержит базовые тесты получения отзывов.
+func TestBeerRepository_GetReviews_Basic(t *testing.T) {
 	ctx := t.Context()
 
 	t.Run("Успешное получение всех отзывов к пиву", func(t *testing.T) {
@@ -736,54 +737,6 @@ func TestBeerRepository_GetReviews(t *testing.T) {
 		})
 	})
 
-	t.Run("Получение отзывов с лимитом", func(t *testing.T) {
-		beerID, err := beerRepo.InsertBeer(ctx, testBeers[0])
-		require.NoError(t, err)
-		require.NotZero(t, beerID)
-
-		for i := 0; i < 5; i++ {
-			review := entities.Review{
-				Body:   "Review limit test",
-				Rating: 4.0,
-				BeerID: beerID,
-			}
-			_, err := beerRepo.InsertReview(ctx, review)
-			require.NoError(t, err)
-		}
-
-		reviews, err := beerRepo.GetReviews(ctx, 2, 0, beerID)
-		require.NoError(t, err)
-		require.Len(t, reviews, 2)
-
-		t.Cleanup(func() {
-			cleanDB(t, ctx, "beers")
-		})
-	})
-
-	t.Run("Получение отзывов со смещением", func(t *testing.T) {
-		beerID, err := beerRepo.InsertBeer(ctx, testBeers[0])
-		require.NoError(t, err)
-		require.NotZero(t, beerID)
-
-		for i := 0; i < 3; i++ {
-			review := entities.Review{
-				Body:   "Review offset test",
-				Rating: 4.0,
-				BeerID: beerID,
-			}
-			_, err := beerRepo.InsertReview(ctx, review)
-			require.NoError(t, err)
-		}
-
-		reviews, err := beerRepo.GetReviews(ctx, 2, 1, beerID)
-		require.NoError(t, err)
-		require.Len(t, reviews, 2)
-
-		t.Cleanup(func() {
-			cleanDB(t, ctx, "beers")
-		})
-	})
-
 	t.Run("Получение отзывов к пиву без отзывов", func(t *testing.T) {
 		beerID, err := beerRepo.InsertBeer(ctx, testBeers[0])
 		require.NoError(t, err)
@@ -804,32 +757,6 @@ func TestBeerRepository_GetReviews(t *testing.T) {
 		require.Empty(t, reviews)
 	})
 
-	t.Run("Получение отзывов с нулевым лимитом", func(t *testing.T) {
-		beerID, err := beerRepo.InsertBeer(ctx, testBeers[0])
-		require.NoError(t, err)
-		require.NotZero(t, beerID)
-
-		// Создаем отзывы
-		for i := 0; i < 3; i++ {
-			review := entities.Review{
-				Body:   "Zero limit test",
-				Rating: 4.0,
-				BeerID: beerID,
-			}
-			_, err := beerRepo.InsertReview(ctx, review)
-			require.NoError(t, err)
-		}
-
-		// limit=0 о(должен вернуть все)
-		reviews, err := beerRepo.GetReviews(ctx, 0, 0, beerID)
-		require.NoError(t, err)
-		require.Len(t, reviews, 3)
-
-		t.Cleanup(func() {
-			cleanDB(t, ctx, "beers")
-		})
-	})
-
 	t.Run("Получение отзывов с неинициализированным репозиторием", func(t *testing.T) {
 		uninitializedBeerRepo := repository.BeerPostgres{}
 
@@ -837,6 +764,71 @@ func TestBeerRepository_GetReviews(t *testing.T) {
 		require.Error(t, err)
 		require.Nil(t, reviews)
 		require.EqualError(t, err, "pool is nil")
+	})
+}
+
+// TestBeerRepository_GetReviews_Pagination содержит тесты пагинации для получения отзывов.
+func TestBeerRepository_GetReviews_Pagination(t *testing.T) {
+	ctx := t.Context()
+
+	setupReviews := func(t *testing.T, beerID uint, count int) {
+		for range count {
+			review := entities.Review{
+				Body:   "Review pagination test",
+				Rating: 4.0,
+				BeerID: beerID,
+			}
+			_, err := beerRepo.InsertReview(ctx, review)
+			require.NoError(t, err)
+		}
+	}
+
+	t.Run("Получение отзывов с лимитом", func(t *testing.T) {
+		beerID, err := beerRepo.InsertBeer(ctx, testBeers[0])
+		require.NoError(t, err)
+		require.NotZero(t, beerID)
+
+		setupReviews(t, beerID, 5)
+
+		reviews, err := beerRepo.GetReviews(ctx, 2, 0, beerID)
+		require.NoError(t, err)
+		require.Len(t, reviews, 2)
+
+		t.Cleanup(func() {
+			cleanDB(t, ctx, "beers")
+		})
+	})
+
+	t.Run("Получение отзывов со смещением", func(t *testing.T) {
+		beerID, err := beerRepo.InsertBeer(ctx, testBeers[0])
+		require.NoError(t, err)
+		require.NotZero(t, beerID)
+
+		setupReviews(t, beerID, 3)
+
+		reviews, err := beerRepo.GetReviews(ctx, 2, 1, beerID)
+		require.NoError(t, err)
+		require.Len(t, reviews, 2)
+
+		t.Cleanup(func() {
+			cleanDB(t, ctx, "beers")
+		})
+	})
+
+	t.Run("Получение отзывов с нулевым лимитом", func(t *testing.T) {
+		beerID, err := beerRepo.InsertBeer(ctx, testBeers[0])
+		require.NoError(t, err)
+		require.NotZero(t, beerID)
+
+		setupReviews(t, beerID, 3)
+
+		reviews, err := beerRepo.GetReviews(ctx, 0, 0, beerID)
+		require.NoError(t, err)
+		require.Len(t, reviews, 3)
+
+		t.Cleanup(func() {
+			cleanDB(t, ctx, "beers")
+		})
 	})
 }
 
