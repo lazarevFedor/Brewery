@@ -427,23 +427,8 @@ func (r *BeerPostgres) InsertReview(ctx context.Context, review entities.Review)
 // DeleteReview удаляет сущность Review из хранилища. Если отзыв с таким id, не найден, возвращает ошибку.
 func (r *BeerPostgres) DeleteReview(ctx context.Context, id uint) error {
 	if r.Pool == nil {
-		return errors.New("pool is nill")
+		return errors.New("pool is nil")
 	}
-
-	tx, err := r.Pool.Begin(ctx)
-	if err != nil {
-		return fmt.Errorf("%s: %w", "Begin", err)
-	}
-
-	defer func(tx pgx.Tx, ctx context.Context) {
-		rollbackErr := tx.Rollback(ctx)
-		log, ok := logger.GetLoggerFromCtx(ctx)
-		if ok {
-			if rollbackErr != nil && !errors.Is(rollbackErr, pgx.ErrTxClosed) {
-				log.Error(ctx, "InsertBeer: rollback error:", zap.Error(rollbackErr))
-			}
-		}
-	}(tx, ctx)
 
 	psql := queries.DeleteReview(id)
 
@@ -452,17 +437,12 @@ func (r *BeerPostgres) DeleteReview(ctx context.Context, id uint) error {
 		return fmt.Errorf("%s: %w", "ToSql", err)
 	}
 
-	result, err := tx.Exec(ctx, query, args...)
+	result, err := r.Pool.Exec(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("%s: %w", "Exec", err)
 	}
 	if result.RowsAffected() == 0 {
 		return errors.New("failed to delete review")
-	}
-
-	err = tx.Commit(ctx)
-	if err != nil {
-		return fmt.Errorf("commit: %w", err)
 	}
 
 	return err
@@ -503,12 +483,12 @@ func (r *BeerPostgres) GetReviews(ctx context.Context, limit, offset uint64, bee
 		psql = psql.Limit(limit)
 	}
 
-	query, _, err := psql.ToSql()
+	query, args, err := psql.ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "ToSql", err)
 	}
 
-	rows, err := r.Pool.Query(ctx, query)
+	rows, err := r.Pool.Query(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("query: %w", err)
 	}
