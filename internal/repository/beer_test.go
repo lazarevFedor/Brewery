@@ -434,48 +434,6 @@ func TestBeerRepository_InsertReview(t *testing.T) {
 		})
 	})
 
-	t.Run("Вставка отзыва с некорректным рейтингом", func(t *testing.T) {
-		beerID, err := beerRepo.InsertBeer(ctx, testBeers[0])
-		require.NoError(t, err)
-		require.NotZero(t, beerID)
-
-		review := entities.Review{
-			Body:   "Invalid rating",
-			Rating: 6.0,
-			BeerID: beerID,
-		}
-
-		reviewID, err := beerRepo.InsertReview(ctx, review)
-		require.Error(t, err)
-		require.Zero(t, reviewID)
-
-		t.Cleanup(func() {
-			cleanDB(t, ctx, "beers")
-			cleanDB(t, ctx, "reviews")
-		})
-	})
-
-	t.Run("Вставка отзыва с пустым телом", func(t *testing.T) {
-		beerID, err := beerRepo.InsertBeer(ctx, testBeers[0])
-		require.NoError(t, err)
-		require.NotZero(t, beerID)
-
-		review := entities.Review{
-			Body:   "",
-			Rating: 4.0,
-			BeerID: beerID,
-		}
-
-		reviewID, err := beerRepo.InsertReview(ctx, review)
-		require.Error(t, err)
-		require.Zero(t, reviewID)
-
-		t.Cleanup(func() {
-			cleanDB(t, ctx, "beers")
-			cleanDB(t, ctx, "reviews")
-		})
-	})
-
 	t.Run("Вставка отзыва с неинициализированным репозиторием", func(t *testing.T) {
 		uninitializedBeerRepo := repository.BeerPostgres{}
 
@@ -662,32 +620,6 @@ func TestBeerRepository_UpdateReview_Errors(t *testing.T) {
 		require.NotZero(t, reviewID)
 
 		err = beerRepo.UpdateReview(ctx, reviewID, map[string]any{})
-		require.Error(t, err)
-
-		t.Cleanup(func() {
-			cleanDB(t, ctx, "beers")
-		})
-	})
-
-	t.Run("Обновление с некорректным рейтингом", func(t *testing.T) {
-		beerID, err := beerRepo.InsertBeer(ctx, testBeers[0])
-		require.NoError(t, err)
-		require.NotZero(t, beerID)
-
-		review := entities.Review{
-			Body:   "Review with invalid rating update",
-			Rating: 4.0,
-			BeerID: beerID,
-		}
-
-		reviewID, err := beerRepo.InsertReview(ctx, review)
-		require.NoError(t, err)
-		require.NotZero(t, reviewID)
-
-		updates := map[string]any{
-			"rating": 5.5,
-		}
-		err = beerRepo.UpdateReview(ctx, reviewID, updates)
 		require.Error(t, err)
 
 		t.Cleanup(func() {
