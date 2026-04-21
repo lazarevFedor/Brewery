@@ -15,7 +15,7 @@ import (
 func Test_GetCategoryByID_UsesPathParam(t *testing.T) {
 	ctx := t.Context()
 	testEnv := newTestEnv(t)
-	serviceMock := testEnv.Mock
+	serviceMock := testEnv.BeerMock
 
 	serviceMock.GetCategoryByIDMock.
 		Expect(minimock.AnyContext, 123).
@@ -30,7 +30,7 @@ func Test_GetCategoryByID_UsesPathParam(t *testing.T) {
 func Test_CreateCategory_ReturnsCreated(t *testing.T) {
 	ctx := t.Context()
 	testEnv := newTestEnv(t)
-	serviceMock := testEnv.Mock
+	serviceMock := testEnv.BeerMock
 
 	serviceMock.CreateCategoryMock.Set(func(ctx context.Context, ctg *entities.ProductCategory) (uint, error) {
 		require.Equal(t, "lager", ctg.Name)
@@ -49,7 +49,7 @@ func Test_CreateCategory_ReturnsCreated(t *testing.T) {
 func Test_UpdateCategory_UsesPathParam(t *testing.T) {
 	ctx := t.Context()
 	testEnv := newTestEnv(t)
-	serviceMock := testEnv.Mock
+	serviceMock := testEnv.BeerMock
 
 	serviceMock.UpdateCategoryMock.
 		Expect(minimock.AnyContext, uint(12), map[string]any{"name": "ale"}).
@@ -65,7 +65,7 @@ func Test_UpdateCategory_UsesPathParam(t *testing.T) {
 func Test_DeleteCategory_UsesPathParam(t *testing.T) {
 	ctx := t.Context()
 	testEnv := newTestEnv(t)
-	serviceMock := testEnv.Mock
+	serviceMock := testEnv.BeerMock
 
 	serviceMock.DeleteCategoryMock.
 		Expect(minimock.AnyContext, 13).
@@ -80,7 +80,7 @@ func Test_DeleteCategory_UsesPathParam(t *testing.T) {
 func Test_GetAllCategories_ReturnsOK(t *testing.T) {
 	ctx := t.Context()
 	testEnv := newTestEnv(t)
-	serviceMock := testEnv.Mock
+	serviceMock := testEnv.BeerMock
 
 	serviceMock.GetAllCategoriesMock.
 		Expect(minimock.AnyContext).
@@ -95,7 +95,7 @@ func Test_GetAllCategories_ReturnsOK(t *testing.T) {
 func Test_GetParentCategory_UsesPathParam(t *testing.T) {
 	ctx := t.Context()
 	testEnv := newTestEnv(t)
-	serviceMock := testEnv.Mock
+	serviceMock := testEnv.BeerMock
 
 	serviceMock.GetParentCategoryMock.
 		Expect(minimock.AnyContext, 14).
@@ -110,7 +110,7 @@ func Test_GetParentCategory_UsesPathParam(t *testing.T) {
 func Test_GetChildCategory_UsesPathParam(t *testing.T) {
 	ctx := t.Context()
 	testEnv := newTestEnv(t)
-	serviceMock := testEnv.Mock
+	serviceMock := testEnv.BeerMock
 
 	serviceMock.GetChildCategoriesMock.
 		Expect(minimock.AnyContext, 15).
