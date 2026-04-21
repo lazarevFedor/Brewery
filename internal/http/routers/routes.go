@@ -8,48 +8,59 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-func RegisterRoutes(
-	e *gin.Engine,
-	categoryHandler handlers.CategoriesHandlers,
-	beersHandler handlers.BeersHandlers,
-	reviewHandler handlers.ReviewsHandlers,
-) {
+func RegisterRoutes(e *gin.Engine, h handlers.Handlers) {
 	api := e.Group("/api")
 	{
 		beers := api.Group("/beers")
 		{
-			beers.POST("", beersHandler.CreateBeer)
-			beers.PATCH("/:id", beersHandler.UpdateBeer)
-			beers.DELETE("/:id", beersHandler.DeleteBeer)
-			beers.GET("", beersHandler.GetAllBeers)
+			beers.POST("", h.BeersHandler.CreateBeer)
+			beers.PATCH("/:id", h.BeersHandler.UpdateBeer)
+			beers.DELETE("/:id", h.BeersHandler.DeleteBeer)
+			beers.GET("", h.BeersHandler.GetAllBeers)
 
 			features := beers.Group("/feats")
 			{
-				features.GET("/:beer_id", beersHandler.GetFeature)
-				features.POST("/:beer_id", beersHandler.CreateFeature)
-				features.PATCH("/:beer_id", beersHandler.UpdateBeer)
-				features.DELETE("/:beer_id", beersHandler.DeleteFeature)
+				features.GET("/:beer_id", h.BeersHandler.GetFeature)
+				features.POST("/:beer_id", h.BeersHandler.CreateFeature)
+				features.PATCH("/:beer_id", h.BeersHandler.UpdateBeer)
+				features.DELETE("/:beer_id", h.BeersHandler.DeleteFeature)
 			}
 		}
 
 		reviews := api.Group("/reviews")
 		{
-			reviews.POST("/:beer_id", reviewHandler.CreateReview)
-			reviews.GET("/:beer_id", reviewHandler.GetBeersReviews)
-			reviews.DELETE("/:id", reviewHandler.DeleteReview)
-			reviews.PATCH("/:id", reviewHandler.UpdateReview)
+			reviews.POST("/:beer_id", h.ReviewHandler.CreateReview)
+			reviews.GET("/:beer_id", h.ReviewHandler.GetBeersReviews)
+			reviews.DELETE("/:id", h.ReviewHandler.DeleteReview)
+			reviews.PATCH("/:id", h.ReviewHandler.UpdateReview)
 		}
 
 		categories := api.Group("/categories")
 		{
-			categories.POST("", categoryHandler.CreateCategory)
-			categories.GET("/:id", categoryHandler.GetCategoryByID)
-			categories.PATCH("/:id", categoryHandler.UpdateCategory)
-			categories.DELETE("/:id", categoryHandler.DeleteCategory)
-			categories.GET("", categoryHandler.GetAllCategories)
-			categories.GET("/beers/:category_id", categoryHandler.GetBeersByCategory)
-			categories.GET("/parent/:id", categoryHandler.GetParentCategory)
-			categories.GET("/children/:id", categoryHandler.GetChildCategory)
+			categories.POST("", h.CategoryHandler.CreateCategory)
+			categories.GET("/:id", h.CategoryHandler.GetCategoryByID)
+			categories.PATCH("/:id", h.CategoryHandler.UpdateCategory)
+			categories.DELETE("/:id", h.CategoryHandler.DeleteCategory)
+			categories.GET("", h.CategoryHandler.GetAllCategories)
+			categories.GET("/beers/:category_id", h.CategoryHandler.GetBeersByCategory)
+			categories.GET("/parent/:id", h.CategoryHandler.GetParentCategory)
+			categories.GET("/children/:id", h.CategoryHandler.GetChildCategory)
+		}
+
+		enums := api.Group("/enums")
+		{
+			enums.POST("", h.EnumClassHandler.CreateEnum)
+			enums.GET("", h.EnumClassHandler.GetEnum)
+			enums.PATCH(":id", h.EnumClassHandler.UpdateEnum)
+			enums.DELETE(":id", h.EnumClassHandler.DeleteEnum)
+
+			value := enums.Group("value")
+			{
+				value.POST("", h.EnumValueHandler.CreateValue)
+				value.GET("", h.EnumValueHandler.GetValue)
+				value.PATCH(":id", h.EnumValueHandler.UpdateValue)
+				value.DELETE(":id", h.EnumValueHandler.DeleteValue)
+			}
 		}
 	}
 

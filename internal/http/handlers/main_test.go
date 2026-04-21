@@ -44,11 +44,16 @@ func setupIntegrationRouter(svc *mocks.BeerServiceMock) *gin.Engine {
 	engine.Use(middleware.RequestContextMiddleware())
 	engine.Use(middleware.MetricsMiddleware())
 
-	categoryHandler := handlers.NewCategoriesHandlers(svc)
-	beersHandler := handlers.NewBeersHandlers(svc)
-	reviewsHandler := handlers.NewReviewsHandlers(svc)
 
-	routers.RegisterRoutes(engine, categoryHandler, beersHandler, reviewsHandler)
+	h := handlers.Handlers{
+		CategoryHandler: handlers.NewCategoriesHandlers(svc),
+		BeersHandler: handlers.NewBeersHandlers(svc),
+		ReviewHandler: handlers.NewReviewsHandlers(svc),
+		EnumClassHandler: handlers.NewEnumClassHandlers(svc),
+		EnumValueHandler: handlers.NewEnumValueHandlers(svc),
+	}
+	routers.RegisterRoutes(engine, h)
+
 	return engine
 }
 
