@@ -4,7 +4,7 @@ package main
 import (
 	"Brewery/internal/config"
 	"Brewery/internal/http/handlers"
-	"Brewery/internal/http/handlers/routers"
+	"Brewery/internal/http/routers"
 	"Brewery/internal/http/middleware"
 	"Brewery/internal/repository"
 	"Brewery/internal/usecase"
@@ -52,9 +52,7 @@ func main() {
 	ctgRepo := repository.NewCategoryPostgres(pool)
 
 	beerSrv := usecase.NewBeerService(beerRepo, ctgRepo)
-	beersHandler := handlers.NewBeersHandlers(beerSrv)
-	categoryHandler := handlers.NewCategoriesHandlers(beerSrv)
-	reviewHandler := handlers.NewReviewsHandlers(beerSrv)
+	
 
 	engine := gin.New()
 	engine.Use(gin.Recovery())
@@ -83,7 +81,15 @@ func main() {
 	}
 	defer router.Close()
 
-	routers.RegisterRoutes(router.Engine, categoryHandler, beersHandler, reviewHandler)
+	h := handlers.Handlers{
+		CategoryHandler: handlers.NewCategoriesHandlers(beerSrv),
+		BeersHandler: handlers.NewBeersHandlers(beerSrv),
+		ReviewHandler: handlers.NewReviewsHandlers(beerSrv),
+		EnumClassHandler: handlers.NewEnumClassHandlers(beerSrv),
+		EnumValueHandler: handlers.NewEnumValueHandlers(beerSrv),
+	}
+	
+	routers.RegisterRoutes(router.Engine, h)
 
 	log.Info(ctx, fmt.Sprintf("server listening on port %s", cfg.Port))
 

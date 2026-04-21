@@ -56,6 +56,9 @@ type BeerRepository interface {
 	// GetFeatureID возвращает ID характеристики по ее названию. Если характеристики нет, она будет добавлена в базу данных.
 	GetFeatureID(ctx context.Context, featName string) (uint, error)
 
+	// GetBeerFeature и тд
+	GetBeerFeature(ctx context.Context, beerID uint) ([]string, error)
+
 	// InsertBeerFeature связывает характеристику с сортом пива. Если связь уже существует, она не будет добавлена повторно.
 	InsertBeerFeature(ctx context.Context, featID, beerID uint) error
 }
@@ -640,6 +643,37 @@ func (r *BeerPostgres) GetFeatureID(ctx context.Context, name string) (uint, err
 	return featID, nil
 }
 
+// GetBeerFeature возвращает список и тд
+func (r *BeerPostgres) GetBeerFeature(ctx context.Context, beerID uint) ([]string, error) {
+	if r.Pool == nil {
+		return nil, errors.New("pool is nil")
+	}
+
+	psql := queries.SelectBeersFeature(beerID)
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ToSql", err)
+	}
+
+	rows, err := r.Pool.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("QueryRow: %w", err)
+	}
+	defer rows.Close()
+
+	features := make([]string, 0)
+	var featName string
+	for rows.Next() {
+		err := rows.Scan(&featName)
+		if err != nil {
+			return nil, fmt.Errorf("scan: %w", err)
+		}
+		features = append(features, featName)
+	}
+
+	return features, nil
+}
+
 // InsertBeerFeature связывает характеристику с сортом пива. Если связь уже существует, она не будет добавлена повторно. Если featID или beerID равны 0, возвращает ошибку.
 func (r *BeerPostgres) InsertBeerFeature(ctx context.Context, featID, beerID uint) error {
 	if r.Pool == nil {
@@ -654,7 +688,7 @@ func (r *BeerPostgres) InsertBeerFeature(ctx context.Context, featID, beerID uin
 
 	_, err = r.Pool.Exec(ctx, query, args...)
 	if err != nil {
-		return fmt.Errorf("QueryRow: %w", err)
+		return fmt.Errorf("exec: %w", err)
 	}
 
 	return nil

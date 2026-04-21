@@ -1,0 +1,70 @@
+{
+    "delete": {
+    "tags": ["EnumsValue"],
+    "summary": "Delete beer",
+    "operationId": "deleteBeer",
+    "parameters": [
+      { "$ref": "../../components/parameters/id.json#/Id" }
+    ],
+    "responses": {
+      "200": {
+        "description": "Deleted",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": { "type": "boolean" }
+              }
+            }
+          } 
+        }
+      },
+      "404": {
+        "description": "Beer or Feat Not Found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "patch": {
+    "tags": ["EnumsValue"],
+    "summary": "Update beer's features",
+    "operationId": "updateFeats",
+    "parameters": [
+      { "$ref": "../../components/parameters/id.json#/Id" }
+    ],
+    "requestBody": {
+      "content": {
+        "application/json": {
+          "schema": {"$ref": "../../components/schemas/enum_value.json#/EnumValueUpdate"}
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Updated beer",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
+}

@@ -3,7 +3,7 @@ package handlers_test
 import (
 	"Brewery/internal/http/handlers"
 	"Brewery/internal/http/handlers/mocks"
-	"Brewery/internal/http/handlers/routers"
+	"Brewery/internal/http/routers"
 	"Brewery/internal/http/middleware"
 	"Brewery/pkg/logger"
 	"context"
@@ -44,11 +44,16 @@ func setupIntegrationRouter(svc *mocks.BeerServiceMock) *gin.Engine {
 	engine.Use(middleware.RequestContextMiddleware())
 	engine.Use(middleware.MetricsMiddleware())
 
-	categoryHandler := handlers.NewCategoriesHandlers(svc)
-	beersHandler := handlers.NewBeersHandlers(svc)
-	reviewsHandler := handlers.NewReviewsHandlers(svc)
 
-	routers.RegisterRoutes(engine, categoryHandler, beersHandler, reviewsHandler)
+	h := handlers.Handlers{
+		CategoryHandler: handlers.NewCategoriesHandlers(svc),
+		BeersHandler: handlers.NewBeersHandlers(svc),
+		ReviewHandler: handlers.NewReviewsHandlers(svc),
+		EnumClassHandler: handlers.NewEnumClassHandlers(svc),
+		EnumValueHandler: handlers.NewEnumValueHandlers(svc),
+	}
+	routers.RegisterRoutes(engine, h)
+
 	return engine
 }
 

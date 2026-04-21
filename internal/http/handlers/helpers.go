@@ -19,6 +19,15 @@ const (
 	maxLimit = 100
 )
 
+
+type Handlers struct{
+	CategoryHandler CategoriesHandlers
+	BeersHandler BeersHandlers
+	ReviewHandler ReviewsHandlers
+	EnumClassHandler EnumClassHandlers
+	EnumValueHandler EnumValueHandlers
+}
+
 // getIDParam извлекает и валидирует параметр id из URL.
 func getIDParam(c *gin.Context) (uint, error) {
 	idStr := c.Param("id")

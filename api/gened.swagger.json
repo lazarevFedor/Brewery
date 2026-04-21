@@ -22,6 +22,14 @@
     {
       "name": "Reviews",
       "description": "Операции связанные с отзывами на пиво"
+    },
+    {
+      "name": "EnumsClass",
+      "description": "Операции, связанные с классами перечислений "
+    },
+    {
+      "name": "EnumsValue",
+      "description": "Операции связанные с перечислениями"
     }
   ],
   "paths": {
@@ -342,6 +350,149 @@
         }
       }
     },
+    "/beers/feats/{id}": {
+      "get": {
+        "tags": [
+          "Beers"
+        ],
+        "summary": "Get beer's features",
+        "operationId": "getBeersFeats",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BeerId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Beers feats list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Feature"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Beers"
+        ],
+        "summary": "Create beer's feature",
+        "operationId": "createBeersFeat",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Feature"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Beers"
+        ],
+        "summary": "Update beer's features",
+        "operationId": "updateFeats",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BeerId"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BeerUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated beer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Beer"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Beers"
+        ],
+        "summary": "Delete beer",
+        "operationId": "deleteBeer",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BeerId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Beer or Feat Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/categories/beers/{category_id}": {
       "get": {
         "tags": [
@@ -430,7 +581,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Reviews list",
+            "description": "Beers list",
             "content": {
               "application/json": {
                 "schema": {
@@ -490,7 +641,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ReviewUpdate"
+                "$ref": "#/components/schemas/ReviewCreate"
               }
             }
           }
@@ -502,6 +653,295 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Review"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/enums": {
+      "post": {
+        "tags": [
+          "EnumsClass"
+        ],
+        "summary": "Create enum",
+        "operationId": "createEnum",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnumClassCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "EnumsClass"
+        ],
+        "summary": "Get enum",
+        "operationId": "getEnum",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnumClassWithFilter"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Enum list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EnumClass"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/enums/{id}": {
+      "delete": {
+        "tags": [
+          "EnumsClass"
+        ],
+        "summary": "Delete beer",
+        "operationId": "deleteBeer",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Beer or Feat Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "EnumsClass"
+        ],
+        "summary": "Update beer's features",
+        "operationId": "updateFeats",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnumClassUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated beer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Beer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/enums/value": {
+      "post": {
+        "tags": [
+          "EnumsValue"
+        ],
+        "summary": "Create enum",
+        "operationId": "createEnum",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnumValue"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "EnumsValue"
+        ],
+        "summary": "Get enum",
+        "operationId": "getEnum",
+        "responses": {
+          "200": {
+            "description": "Enum list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EnumValueGet"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/enums/value/{id}": {
+      "delete": {
+        "tags": [
+          "EnumsValue"
+        ],
+        "summary": "Delete beer",
+        "operationId": "deleteBeer",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Beer or Feat Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "EnumsValue"
+        ],
+        "summary": "Update beer's features",
+        "operationId": "updateFeats",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnumValueUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated beer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    }
+                  }
                 }
               }
             }
@@ -555,6 +995,17 @@
           }
         }
       },
+      "Feature": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
       "Beer": {
         "type": "object",
         "properties": {
@@ -581,6 +1032,12 @@
           },
           "category": {
             "$ref": "#/components/schemas/Category"
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Feature"
+            }
           },
           "amount": {
             "type": "integer"
@@ -624,6 +1081,12 @@
           },
           "category": {
             "$ref": "#/components/schemas/Category"
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Feature"
+            }
           },
           "amount": {
             "type": "integer"
@@ -680,30 +1143,11 @@
           "body": {
             "type": "string"
           },
-          "BeerID": {
-            "type": "integer"
-          },
           "rating": {
             "type": "number"
           }
         }
       },
-      "ReviewUpdate": {
-        "type": "object",
-
-        "properties": {
-          "body": {
-            "type": "string"
-          },
-          "beerId": {
-            "type": "integer"
-          },
-          "rating": {
-            "type": "number"
-          }
-        }
-      },
-
       "ReviewCreate": {
         "type": "object",
         "required": [
@@ -718,6 +1162,137 @@
             "type": "number"
           }
         }
+      },
+      "EnumClassWithFilter": {
+        "type": "object",
+        "required": [
+          "entity_name"
+        ],
+        "properties": {
+          "entity_name": {
+            "type": "string"
+          },
+          "field_name": {
+            "type": "string"
+          }
+        }
+      },
+      "EnumClassBase": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "entity_name": {
+            "type": "string"
+          },
+          "field_name": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "is_active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "EnumClass": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumClassBase"
+          }
+        ]
+      },
+      "EnumClassCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumClassBase"
+          },
+          {
+            "required": [
+              "type",
+              "entityName",
+              "field_name",
+              "is_active"
+            ]
+          }
+        ]
+      },
+      "EnumClassUpdate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumClassBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              }
+            }
+          }
+        ]
+      },
+      "EnumValueGet": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumClassWithFilter"
+          },
+          {
+            "type": "object",
+            "required": [
+              "entity_name",
+              "field_name"
+            ],
+            "properties": {
+              "type": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "EnumValueBase": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "position": {
+            "type": "integer"
+          }
+        }
+      },
+      "EnumValue": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumValueBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "class_id",
+              "value",
+              "position"
+            ],
+            "properties": {
+              "class_id": {
+                "type": "integer"
+              }
+            }
+          }
+        ]
+      },
+      "EnumValueUpdate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumValueBase"
+          }
+        ]
       }
     },
     "parameters": {
@@ -748,16 +1323,16 @@
           "maximum": 100
         }
       },
-      "CategoryId": {
-        "name": "category_id",
+      "BeerId": {
+        "name": "beer_id",
         "in": "path",
         "required": true,
         "schema": {
           "type": "integer"
         }
       },
-      "BeerId": {
-        "name": "beer_id",
+      "CategoryId": {
+        "name": "category_id",
         "in": "path",
         "required": true,
         "schema": {
