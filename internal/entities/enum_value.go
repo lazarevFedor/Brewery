@@ -91,6 +91,8 @@ func enumValueToRaw(valueType string, value any) (string, error) {
 		switch v := value.(type) {
 		case float32:
 			return strconv.FormatFloat(float64(v), 'f', -1, 32), nil
+		case float64:
+			return strconv.FormatFloat(v, 'f', -1, 64), nil
 		default:
 			return "", fmt.Errorf("invalid enum value type %s: expected float, got %T", valueType, value)
 		}

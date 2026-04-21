@@ -57,3 +57,49 @@ func SelectEnumClasses(entity, field string) sq.SelectBuilder {
 	).From(enumClassesTable).
 		Where(sq.Eq{"entity_name": entity, "field_name": field})
 }
+
+// InsertEnumValue возвращает запрос на вставку значения перечисления.
+func InsertEnumValue(enumValue entities.EnumValueRow) sq.InsertBuilder {
+	data := map[string]any{
+		"enum_class_id": enumValue.EnumClassID,
+		"value_raw":     enumValue.ValueRaw,
+		"value_type":    enumValue.ValueType,
+		"position":      enumValue.Position,
+	}
+
+	return psql.
+		Insert(enumValuesTable).
+		SetMap(data).
+		Suffix("RETURNING id")
+}
+
+// SelectEnumValues возвращает запрос на получение значений перечисления по имени таблицы, поля и типа значения.
+func SelectEnumValues(entity, field, valueType string) sq.SelectBuilder {
+	return psql.
+		Select(
+			"val.id",
+			"enum_class_id",
+			"value_raw",
+			"value_type",
+			"position",
+		).
+		From(enumValuesTable + " val").
+		Join("enum_classes cls ON val.enum_class_id = cls.id").
+		Where(sq.Eq{"cls.entity_name": entity, "cls.field_name": field, "val.value_type": valueType}).
+		OrderBy("val.position ASC")
+}
+
+// UpdateEnumValue возвращает запрос на обновление значения перечисления.
+func UpdateEnumValue(id uint, updates map[string]any) sq.UpdateBuilder {
+	return psql.
+		Update(enumValuesTable).
+		SetMap(updates).
+		Where(sq.Eq{"id": id})
+}
+
+// DeleteEnumValue возвращает запрос на удаление значения перечисления.
+func DeleteEnumValue(id uint) sq.DeleteBuilder {
+	return psql.
+		Delete(enumValuesTable).
+		Where(sq.Eq{"id": id})
+}
