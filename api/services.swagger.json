@@ -21,20 +21,35 @@
     {
       "name": "Reviews",
       "description": "Операции связанные с отзывами на пиво"
+    },
+    {
+      "name": "EnumsClass",
+      "description": "Операции, связанные с классами перечислений "
+    },
+    {
+      "name": "EnumsValue",
+      "description": "Операции связанные с перечислениями"
     }
   ],
 
   "paths": {
     "/categories": { "$ref": "./path/category/categories.json" },
-    "/categories/{id}": { "$ref": "./path/category/categories_id.json"},
-    "/categories/parent/{id}": { "$ref": "./path/category/categories_parent_id.json"},
-    "/categories/children/{id}": { "$ref": "./path/category/categories_children_id.json"},
+    "/categories/{id}": { "$ref": "./path/category/categories_id.json" },
+    "/categories/parent/{id}": { "$ref": "./path/category/categories_parent_id.json" },
+    "/categories/children/{id}": { "$ref": "./path/category/categories_children_id.json" },
 
     "/beers": { "$ref": "./path/beer/beers.json" },
-    "/beers/{id}": { "$ref": "./path/beer/beers_id.json"},
-    "/categories/beers/{category_id}": { "$ref": "./path/beer/categories_beers_category_id.json"},
+    "/beers/{id}": { "$ref": "./path/beer/beers_id.json" },
+    "/beers/feats/{id}": { "$ref": "./path/beer/beers_feats_id.json" },
+    "/categories/beers/{category_id}": { "$ref": "./path/beer/categories_beers_category_id.json" },
 
-    "/reviews/{beer_id}": { "$ref": "./path/review/reviews_beer_id.json"},
-    "/reviews/{id}":{ "$ref": "./path/review/reviews_id.json"}
+    "/reviews/{beer_id}": { "$ref": "./path/review/reviews_beer_id.json" },
+    "/reviews/{id}": { "$ref": "./path/review/reviews_id.json" },
+
+    "/enums": { "$ref": "./path/enum/enums.json" },
+    "/enums/{id}": { "$ref": "./path/enum/enums_id.json" },
+
+    "/enums/value": { "$ref": "./path/enum/enums_value.json" },
+    "/enums/value/{id}": { "$ref": "./path/enum/enums_value_id.json" }
   }
 }

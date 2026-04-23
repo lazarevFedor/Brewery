@@ -12,10 +12,6 @@ func (s *beerService) GetBeerReviews(ctx context.Context, limit, offset uint64, 
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	if beerid == 0 {
-		return nil, errors.New("invalid beer id")
-	}
-
 	categories, err := s.beerRepo.GetReviews(ctx, limit, offset, beerid)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get categories: %w", err)

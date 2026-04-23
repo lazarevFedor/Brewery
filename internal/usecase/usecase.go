@@ -24,6 +24,11 @@ type BeerService interface {
 	UpdateBeer(ctx context.Context, id uint, updates map[string]any) (uint, error)
 	DeleteBeer(ctx context.Context, id uint) error
 	GetAllBeers(ctx context.Context, limit, offset uint64) ([]entities.Beer, error)
+
+	GetFeatures(ctx context.Context, id uint) ([]string, error) 
+	CreateFeature(ctx context.Context, id uint, feat string) error
+	DeleteFeature(ctx context.Context, id uint) error
+
 	GetBeerReviews(ctx context.Context, limit, offset uint64, beerid uint) ([]entities.Review, error)
 	CreateReview(ctx context.Context, review *entities.Review) (uint, error)
 	UpdateReview(ctx context.Context, id uint, updates map[string]any) error

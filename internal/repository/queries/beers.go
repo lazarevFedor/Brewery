@@ -157,6 +157,24 @@ func SelectOrInsertFeature(featName string) sq.InsertBuilder {
 			"RETURNING id")
 }
 
+// SelectBeersFeature возвращает запрос для получения списка особенностей пива
+func SelectBeersFeature(beerID uint) sq.SelectBuilder {
+	return psql.
+		Select("name").
+		From(featuresTable).
+		Where(sq.Eq{"beer_id": beerID})
+}
+
+// InsertFeature возвращает запрос для втавки особенности пива
+func InsertFeature(name string) sq.InsertBuilder {
+	data := map[string]any{
+		"name": name,
+	}
+	return psql.
+		Insert(featuresTable).
+		SetMap(data)
+}
+
 // SelectOrInsertBeerFeature возвращает запрос для вставки новой связи между пивом и особенностью в таблицу beer_features, если такая связь еще не существует, или ничего не делает, если связь уже есть. Запрос использует конструкцию ON CONFLICT для обработки конфликтов по идентификаторам пива и особенности.
 func SelectOrInsertBeerFeature(featID, beerID uint) sq.InsertBuilder {
 	data := map[string]any{

@@ -1,0 +1,61 @@
+{
+  "post": {
+    "tags": ["EnumsClass"],
+    "summary": "Create enum",
+    "operationId": "createEnum",
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../../components/schemas/enum_class.json#/EnumClassCreate"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Created",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "get": {
+    "tags": ["EnumsClass"],
+    "summary": "Get enum",
+    "operationId": "getEnum",
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../../components/schemas/enum_class.json#/EnumClassWithFilter"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Enum list",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {"$ref": "../../components/schemas/enum_class.json#/EnumClass"}
+            }
+          }
+        }
+      }
+    }
+  }
+}

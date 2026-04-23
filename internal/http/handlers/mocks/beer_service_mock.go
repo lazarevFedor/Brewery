@@ -33,6 +33,13 @@ type BeerServiceMock struct {
 	beforeCreateCategoryCounter uint64
 	CreateCategoryMock          mBeerServiceMockCreateCategory
 
+	funcCreateFeature          func(ctx context.Context, id uint, feat string) (err error)
+	funcCreateFeatureOrigin    string
+	inspectFuncCreateFeature   func(ctx context.Context, id uint, feat string)
+	afterCreateFeatureCounter  uint64
+	beforeCreateFeatureCounter uint64
+	CreateFeatureMock          mBeerServiceMockCreateFeature
+
 	funcCreateReview          func(ctx context.Context, review *entities.Review) (u1 uint, err error)
 	funcCreateReviewOrigin    string
 	inspectFuncCreateReview   func(ctx context.Context, review *entities.Review)
@@ -53,6 +60,13 @@ type BeerServiceMock struct {
 	afterDeleteCategoryCounter  uint64
 	beforeDeleteCategoryCounter uint64
 	DeleteCategoryMock          mBeerServiceMockDeleteCategory
+
+	funcDeleteFeature          func(ctx context.Context, id uint) (err error)
+	funcDeleteFeatureOrigin    string
+	inspectFuncDeleteFeature   func(ctx context.Context, id uint)
+	afterDeleteFeatureCounter  uint64
+	beforeDeleteFeatureCounter uint64
+	DeleteFeatureMock          mBeerServiceMockDeleteFeature
 
 	funcDeleteReview          func(ctx context.Context, id uint) (err error)
 	funcDeleteReviewOrigin    string
@@ -103,6 +117,13 @@ type BeerServiceMock struct {
 	beforeGetChildCategoriesCounter uint64
 	GetChildCategoriesMock          mBeerServiceMockGetChildCategories
 
+	funcGetFeatures          func(ctx context.Context, id uint) (sa1 []string, err error)
+	funcGetFeaturesOrigin    string
+	inspectFuncGetFeatures   func(ctx context.Context, id uint)
+	afterGetFeaturesCounter  uint64
+	beforeGetFeaturesCounter uint64
+	GetFeaturesMock          mBeerServiceMockGetFeatures
+
 	funcGetParentCategory          func(ctx context.Context, id uint) (pp1 *entities.ProductCategory, err error)
 	funcGetParentCategoryOrigin    string
 	inspectFuncGetParentCategory   func(ctx context.Context, id uint)
@@ -146,6 +167,9 @@ func NewBeerServiceMock(t minimock.Tester) *BeerServiceMock {
 	m.CreateCategoryMock = mBeerServiceMockCreateCategory{mock: m}
 	m.CreateCategoryMock.callArgs = []*BeerServiceMockCreateCategoryParams{}
 
+	m.CreateFeatureMock = mBeerServiceMockCreateFeature{mock: m}
+	m.CreateFeatureMock.callArgs = []*BeerServiceMockCreateFeatureParams{}
+
 	m.CreateReviewMock = mBeerServiceMockCreateReview{mock: m}
 	m.CreateReviewMock.callArgs = []*BeerServiceMockCreateReviewParams{}
 
@@ -154,6 +178,9 @@ func NewBeerServiceMock(t minimock.Tester) *BeerServiceMock {
 
 	m.DeleteCategoryMock = mBeerServiceMockDeleteCategory{mock: m}
 	m.DeleteCategoryMock.callArgs = []*BeerServiceMockDeleteCategoryParams{}
+
+	m.DeleteFeatureMock = mBeerServiceMockDeleteFeature{mock: m}
+	m.DeleteFeatureMock.callArgs = []*BeerServiceMockDeleteFeatureParams{}
 
 	m.DeleteReviewMock = mBeerServiceMockDeleteReview{mock: m}
 	m.DeleteReviewMock.callArgs = []*BeerServiceMockDeleteReviewParams{}
@@ -175,6 +202,9 @@ func NewBeerServiceMock(t minimock.Tester) *BeerServiceMock {
 
 	m.GetChildCategoriesMock = mBeerServiceMockGetChildCategories{mock: m}
 	m.GetChildCategoriesMock.callArgs = []*BeerServiceMockGetChildCategoriesParams{}
+
+	m.GetFeaturesMock = mBeerServiceMockGetFeatures{mock: m}
+	m.GetFeaturesMock.callArgs = []*BeerServiceMockGetFeaturesParams{}
 
 	m.GetParentCategoryMock = mBeerServiceMockGetParentCategory{mock: m}
 	m.GetParentCategoryMock.callArgs = []*BeerServiceMockGetParentCategoryParams{}
@@ -876,6 +906,379 @@ func (m *BeerServiceMock) MinimockCreateCategoryInspect() {
 	if !m.CreateCategoryMock.invocationsDone() && afterCreateCategoryCounter > 0 {
 		m.t.Errorf("Expected %d calls to BeerServiceMock.CreateCategory at\n%s but found %d calls",
 			mm_atomic.LoadUint64(&m.CreateCategoryMock.expectedInvocations), m.CreateCategoryMock.expectedInvocationsOrigin, afterCreateCategoryCounter)
+	}
+}
+
+type mBeerServiceMockCreateFeature struct {
+	optional           bool
+	mock               *BeerServiceMock
+	defaultExpectation *BeerServiceMockCreateFeatureExpectation
+	expectations       []*BeerServiceMockCreateFeatureExpectation
+
+	callArgs []*BeerServiceMockCreateFeatureParams
+	mutex    sync.RWMutex
+
+	expectedInvocations       uint64
+	expectedInvocationsOrigin string
+}
+
+// BeerServiceMockCreateFeatureExpectation specifies expectation struct of the BeerService.CreateFeature
+type BeerServiceMockCreateFeatureExpectation struct {
+	mock               *BeerServiceMock
+	params             *BeerServiceMockCreateFeatureParams
+	paramPtrs          *BeerServiceMockCreateFeatureParamPtrs
+	expectationOrigins BeerServiceMockCreateFeatureExpectationOrigins
+	results            *BeerServiceMockCreateFeatureResults
+	returnOrigin       string
+	Counter            uint64
+}
+
+// BeerServiceMockCreateFeatureParams contains parameters of the BeerService.CreateFeature
+type BeerServiceMockCreateFeatureParams struct {
+	ctx  context.Context
+	id   uint
+	feat string
+}
+
+// BeerServiceMockCreateFeatureParamPtrs contains pointers to parameters of the BeerService.CreateFeature
+type BeerServiceMockCreateFeatureParamPtrs struct {
+	ctx  *context.Context
+	id   *uint
+	feat *string
+}
+
+// BeerServiceMockCreateFeatureResults contains results of the BeerService.CreateFeature
+type BeerServiceMockCreateFeatureResults struct {
+	err error
+}
+
+// BeerServiceMockCreateFeatureOrigins contains origins of expectations of the BeerService.CreateFeature
+type BeerServiceMockCreateFeatureExpectationOrigins struct {
+	origin     string
+	originCtx  string
+	originId   string
+	originFeat string
+}
+
+// Marks this method to be optional. The default behavior of any method with Return() is '1 or more', meaning
+// the test will fail minimock's automatic final call check if the mocked method was not called at least once.
+// Optional() makes method check to work in '0 or more' mode.
+// It is NOT RECOMMENDED to use this option unless you really need it, as default behaviour helps to
+// catch the problems when the expected method call is totally skipped during test run.
+func (mmCreateFeature *mBeerServiceMockCreateFeature) Optional() *mBeerServiceMockCreateFeature {
+	mmCreateFeature.optional = true
+	return mmCreateFeature
+}
+
+// Expect sets up expected params for BeerService.CreateFeature
+func (mmCreateFeature *mBeerServiceMockCreateFeature) Expect(ctx context.Context, id uint, feat string) *mBeerServiceMockCreateFeature {
+	if mmCreateFeature.mock.funcCreateFeature != nil {
+		mmCreateFeature.mock.t.Fatalf("BeerServiceMock.CreateFeature mock is already set by Set")
+	}
+
+	if mmCreateFeature.defaultExpectation == nil {
+		mmCreateFeature.defaultExpectation = &BeerServiceMockCreateFeatureExpectation{}
+	}
+
+	if mmCreateFeature.defaultExpectation.paramPtrs != nil {
+		mmCreateFeature.mock.t.Fatalf("BeerServiceMock.CreateFeature mock is already set by ExpectParams functions")
+	}
+
+	mmCreateFeature.defaultExpectation.params = &BeerServiceMockCreateFeatureParams{ctx, id, feat}
+	mmCreateFeature.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
+	for _, e := range mmCreateFeature.expectations {
+		if minimock.Equal(e.params, mmCreateFeature.defaultExpectation.params) {
+			mmCreateFeature.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmCreateFeature.defaultExpectation.params)
+		}
+	}
+
+	return mmCreateFeature
+}
+
+// ExpectCtxParam1 sets up expected param ctx for BeerService.CreateFeature
+func (mmCreateFeature *mBeerServiceMockCreateFeature) ExpectCtxParam1(ctx context.Context) *mBeerServiceMockCreateFeature {
+	if mmCreateFeature.mock.funcCreateFeature != nil {
+		mmCreateFeature.mock.t.Fatalf("BeerServiceMock.CreateFeature mock is already set by Set")
+	}
+
+	if mmCreateFeature.defaultExpectation == nil {
+		mmCreateFeature.defaultExpectation = &BeerServiceMockCreateFeatureExpectation{}
+	}
+
+	if mmCreateFeature.defaultExpectation.params != nil {
+		mmCreateFeature.mock.t.Fatalf("BeerServiceMock.CreateFeature mock is already set by Expect")
+	}
+
+	if mmCreateFeature.defaultExpectation.paramPtrs == nil {
+		mmCreateFeature.defaultExpectation.paramPtrs = &BeerServiceMockCreateFeatureParamPtrs{}
+	}
+	mmCreateFeature.defaultExpectation.paramPtrs.ctx = &ctx
+	mmCreateFeature.defaultExpectation.expectationOrigins.originCtx = minimock.CallerInfo(1)
+
+	return mmCreateFeature
+}
+
+// ExpectIdParam2 sets up expected param id for BeerService.CreateFeature
+func (mmCreateFeature *mBeerServiceMockCreateFeature) ExpectIdParam2(id uint) *mBeerServiceMockCreateFeature {
+	if mmCreateFeature.mock.funcCreateFeature != nil {
+		mmCreateFeature.mock.t.Fatalf("BeerServiceMock.CreateFeature mock is already set by Set")
+	}
+
+	if mmCreateFeature.defaultExpectation == nil {
+		mmCreateFeature.defaultExpectation = &BeerServiceMockCreateFeatureExpectation{}
+	}
+
+	if mmCreateFeature.defaultExpectation.params != nil {
+		mmCreateFeature.mock.t.Fatalf("BeerServiceMock.CreateFeature mock is already set by Expect")
+	}
+
+	if mmCreateFeature.defaultExpectation.paramPtrs == nil {
+		mmCreateFeature.defaultExpectation.paramPtrs = &BeerServiceMockCreateFeatureParamPtrs{}
+	}
+	mmCreateFeature.defaultExpectation.paramPtrs.id = &id
+	mmCreateFeature.defaultExpectation.expectationOrigins.originId = minimock.CallerInfo(1)
+
+	return mmCreateFeature
+}
+
+// ExpectFeatParam3 sets up expected param feat for BeerService.CreateFeature
+func (mmCreateFeature *mBeerServiceMockCreateFeature) ExpectFeatParam3(feat string) *mBeerServiceMockCreateFeature {
+	if mmCreateFeature.mock.funcCreateFeature != nil {
+		mmCreateFeature.mock.t.Fatalf("BeerServiceMock.CreateFeature mock is already set by Set")
+	}
+
+	if mmCreateFeature.defaultExpectation == nil {
+		mmCreateFeature.defaultExpectation = &BeerServiceMockCreateFeatureExpectation{}
+	}
+
+	if mmCreateFeature.defaultExpectation.params != nil {
+		mmCreateFeature.mock.t.Fatalf("BeerServiceMock.CreateFeature mock is already set by Expect")
+	}
+
+	if mmCreateFeature.defaultExpectation.paramPtrs == nil {
+		mmCreateFeature.defaultExpectation.paramPtrs = &BeerServiceMockCreateFeatureParamPtrs{}
+	}
+	mmCreateFeature.defaultExpectation.paramPtrs.feat = &feat
+	mmCreateFeature.defaultExpectation.expectationOrigins.originFeat = minimock.CallerInfo(1)
+
+	return mmCreateFeature
+}
+
+// Inspect accepts an inspector function that has same arguments as the BeerService.CreateFeature
+func (mmCreateFeature *mBeerServiceMockCreateFeature) Inspect(f func(ctx context.Context, id uint, feat string)) *mBeerServiceMockCreateFeature {
+	if mmCreateFeature.mock.inspectFuncCreateFeature != nil {
+		mmCreateFeature.mock.t.Fatalf("Inspect function is already set for BeerServiceMock.CreateFeature")
+	}
+
+	mmCreateFeature.mock.inspectFuncCreateFeature = f
+
+	return mmCreateFeature
+}
+
+// Return sets up results that will be returned by BeerService.CreateFeature
+func (mmCreateFeature *mBeerServiceMockCreateFeature) Return(err error) *BeerServiceMock {
+	if mmCreateFeature.mock.funcCreateFeature != nil {
+		mmCreateFeature.mock.t.Fatalf("BeerServiceMock.CreateFeature mock is already set by Set")
+	}
+
+	if mmCreateFeature.defaultExpectation == nil {
+		mmCreateFeature.defaultExpectation = &BeerServiceMockCreateFeatureExpectation{mock: mmCreateFeature.mock}
+	}
+	mmCreateFeature.defaultExpectation.results = &BeerServiceMockCreateFeatureResults{err}
+	mmCreateFeature.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
+	return mmCreateFeature.mock
+}
+
+// Set uses given function f to mock the BeerService.CreateFeature method
+func (mmCreateFeature *mBeerServiceMockCreateFeature) Set(f func(ctx context.Context, id uint, feat string) (err error)) *BeerServiceMock {
+	if mmCreateFeature.defaultExpectation != nil {
+		mmCreateFeature.mock.t.Fatalf("Default expectation is already set for the BeerService.CreateFeature method")
+	}
+
+	if len(mmCreateFeature.expectations) > 0 {
+		mmCreateFeature.mock.t.Fatalf("Some expectations are already set for the BeerService.CreateFeature method")
+	}
+
+	mmCreateFeature.mock.funcCreateFeature = f
+	mmCreateFeature.mock.funcCreateFeatureOrigin = minimock.CallerInfo(1)
+	return mmCreateFeature.mock
+}
+
+// When sets expectation for the BeerService.CreateFeature which will trigger the result defined by the following
+// Then helper
+func (mmCreateFeature *mBeerServiceMockCreateFeature) When(ctx context.Context, id uint, feat string) *BeerServiceMockCreateFeatureExpectation {
+	if mmCreateFeature.mock.funcCreateFeature != nil {
+		mmCreateFeature.mock.t.Fatalf("BeerServiceMock.CreateFeature mock is already set by Set")
+	}
+
+	expectation := &BeerServiceMockCreateFeatureExpectation{
+		mock:               mmCreateFeature.mock,
+		params:             &BeerServiceMockCreateFeatureParams{ctx, id, feat},
+		expectationOrigins: BeerServiceMockCreateFeatureExpectationOrigins{origin: minimock.CallerInfo(1)},
+	}
+	mmCreateFeature.expectations = append(mmCreateFeature.expectations, expectation)
+	return expectation
+}
+
+// Then sets up BeerService.CreateFeature return parameters for the expectation previously defined by the When method
+func (e *BeerServiceMockCreateFeatureExpectation) Then(err error) *BeerServiceMock {
+	e.results = &BeerServiceMockCreateFeatureResults{err}
+	return e.mock
+}
+
+// Times sets number of times BeerService.CreateFeature should be invoked
+func (mmCreateFeature *mBeerServiceMockCreateFeature) Times(n uint64) *mBeerServiceMockCreateFeature {
+	if n == 0 {
+		mmCreateFeature.mock.t.Fatalf("Times of BeerServiceMock.CreateFeature mock can not be zero")
+	}
+	mm_atomic.StoreUint64(&mmCreateFeature.expectedInvocations, n)
+	mmCreateFeature.expectedInvocationsOrigin = minimock.CallerInfo(1)
+	return mmCreateFeature
+}
+
+func (mmCreateFeature *mBeerServiceMockCreateFeature) invocationsDone() bool {
+	if len(mmCreateFeature.expectations) == 0 && mmCreateFeature.defaultExpectation == nil && mmCreateFeature.mock.funcCreateFeature == nil {
+		return true
+	}
+
+	totalInvocations := mm_atomic.LoadUint64(&mmCreateFeature.mock.afterCreateFeatureCounter)
+	expectedInvocations := mm_atomic.LoadUint64(&mmCreateFeature.expectedInvocations)
+
+	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
+}
+
+// CreateFeature implements mm_usecase.BeerService
+func (mmCreateFeature *BeerServiceMock) CreateFeature(ctx context.Context, id uint, feat string) (err error) {
+	mm_atomic.AddUint64(&mmCreateFeature.beforeCreateFeatureCounter, 1)
+	defer mm_atomic.AddUint64(&mmCreateFeature.afterCreateFeatureCounter, 1)
+
+	mmCreateFeature.t.Helper()
+
+	if mmCreateFeature.inspectFuncCreateFeature != nil {
+		mmCreateFeature.inspectFuncCreateFeature(ctx, id, feat)
+	}
+
+	mm_params := BeerServiceMockCreateFeatureParams{ctx, id, feat}
+
+	// Record call args
+	mmCreateFeature.CreateFeatureMock.mutex.Lock()
+	mmCreateFeature.CreateFeatureMock.callArgs = append(mmCreateFeature.CreateFeatureMock.callArgs, &mm_params)
+	mmCreateFeature.CreateFeatureMock.mutex.Unlock()
+
+	for _, e := range mmCreateFeature.CreateFeatureMock.expectations {
+		if minimock.Equal(*e.params, mm_params) {
+			mm_atomic.AddUint64(&e.Counter, 1)
+			return e.results.err
+		}
+	}
+
+	if mmCreateFeature.CreateFeatureMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmCreateFeature.CreateFeatureMock.defaultExpectation.Counter, 1)
+		mm_want := mmCreateFeature.CreateFeatureMock.defaultExpectation.params
+		mm_want_ptrs := mmCreateFeature.CreateFeatureMock.defaultExpectation.paramPtrs
+
+		mm_got := BeerServiceMockCreateFeatureParams{ctx, id, feat}
+
+		if mm_want_ptrs != nil {
+
+			if mm_want_ptrs.ctx != nil && !minimock.Equal(*mm_want_ptrs.ctx, mm_got.ctx) {
+				mmCreateFeature.t.Errorf("BeerServiceMock.CreateFeature got unexpected parameter ctx, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmCreateFeature.CreateFeatureMock.defaultExpectation.expectationOrigins.originCtx, *mm_want_ptrs.ctx, mm_got.ctx, minimock.Diff(*mm_want_ptrs.ctx, mm_got.ctx))
+			}
+
+			if mm_want_ptrs.id != nil && !minimock.Equal(*mm_want_ptrs.id, mm_got.id) {
+				mmCreateFeature.t.Errorf("BeerServiceMock.CreateFeature got unexpected parameter id, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmCreateFeature.CreateFeatureMock.defaultExpectation.expectationOrigins.originId, *mm_want_ptrs.id, mm_got.id, minimock.Diff(*mm_want_ptrs.id, mm_got.id))
+			}
+
+			if mm_want_ptrs.feat != nil && !minimock.Equal(*mm_want_ptrs.feat, mm_got.feat) {
+				mmCreateFeature.t.Errorf("BeerServiceMock.CreateFeature got unexpected parameter feat, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmCreateFeature.CreateFeatureMock.defaultExpectation.expectationOrigins.originFeat, *mm_want_ptrs.feat, mm_got.feat, minimock.Diff(*mm_want_ptrs.feat, mm_got.feat))
+			}
+
+		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
+			mmCreateFeature.t.Errorf("BeerServiceMock.CreateFeature got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+				mmCreateFeature.CreateFeatureMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+		}
+
+		mm_results := mmCreateFeature.CreateFeatureMock.defaultExpectation.results
+		if mm_results == nil {
+			mmCreateFeature.t.Fatal("No results are set for the BeerServiceMock.CreateFeature")
+		}
+		return (*mm_results).err
+	}
+	if mmCreateFeature.funcCreateFeature != nil {
+		return mmCreateFeature.funcCreateFeature(ctx, id, feat)
+	}
+	mmCreateFeature.t.Fatalf("Unexpected call to BeerServiceMock.CreateFeature. %v %v %v", ctx, id, feat)
+	return
+}
+
+// CreateFeatureAfterCounter returns a count of finished BeerServiceMock.CreateFeature invocations
+func (mmCreateFeature *BeerServiceMock) CreateFeatureAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmCreateFeature.afterCreateFeatureCounter)
+}
+
+// CreateFeatureBeforeCounter returns a count of BeerServiceMock.CreateFeature invocations
+func (mmCreateFeature *BeerServiceMock) CreateFeatureBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmCreateFeature.beforeCreateFeatureCounter)
+}
+
+// Calls returns a list of arguments used in each call to BeerServiceMock.CreateFeature.
+// The list is in the same order as the calls were made (i.e. recent calls have a higher index)
+func (mmCreateFeature *mBeerServiceMockCreateFeature) Calls() []*BeerServiceMockCreateFeatureParams {
+	mmCreateFeature.mutex.RLock()
+
+	argCopy := make([]*BeerServiceMockCreateFeatureParams, len(mmCreateFeature.callArgs))
+	copy(argCopy, mmCreateFeature.callArgs)
+
+	mmCreateFeature.mutex.RUnlock()
+
+	return argCopy
+}
+
+// MinimockCreateFeatureDone returns true if the count of the CreateFeature invocations corresponds
+// the number of defined expectations
+func (m *BeerServiceMock) MinimockCreateFeatureDone() bool {
+	if m.CreateFeatureMock.optional {
+		// Optional methods provide '0 or more' call count restriction.
+		return true
+	}
+
+	for _, e := range m.CreateFeatureMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			return false
+		}
+	}
+
+	return m.CreateFeatureMock.invocationsDone()
+}
+
+// MinimockCreateFeatureInspect logs each unmet expectation
+func (m *BeerServiceMock) MinimockCreateFeatureInspect() {
+	for _, e := range m.CreateFeatureMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			m.t.Errorf("Expected call to BeerServiceMock.CreateFeature at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
+		}
+	}
+
+	afterCreateFeatureCounter := mm_atomic.LoadUint64(&m.afterCreateFeatureCounter)
+	// if default expectation was set then invocations count should be greater than zero
+	if m.CreateFeatureMock.defaultExpectation != nil && afterCreateFeatureCounter < 1 {
+		if m.CreateFeatureMock.defaultExpectation.params == nil {
+			m.t.Errorf("Expected call to BeerServiceMock.CreateFeature at\n%s", m.CreateFeatureMock.defaultExpectation.returnOrigin)
+		} else {
+			m.t.Errorf("Expected call to BeerServiceMock.CreateFeature at\n%s with params: %#v", m.CreateFeatureMock.defaultExpectation.expectationOrigins.origin, *m.CreateFeatureMock.defaultExpectation.params)
+		}
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcCreateFeature != nil && afterCreateFeatureCounter < 1 {
+		m.t.Errorf("Expected call to BeerServiceMock.CreateFeature at\n%s", m.funcCreateFeatureOrigin)
+	}
+
+	if !m.CreateFeatureMock.invocationsDone() && afterCreateFeatureCounter > 0 {
+		m.t.Errorf("Expected %d calls to BeerServiceMock.CreateFeature at\n%s but found %d calls",
+			mm_atomic.LoadUint64(&m.CreateFeatureMock.expectedInvocations), m.CreateFeatureMock.expectedInvocationsOrigin, afterCreateFeatureCounter)
 	}
 }
 
@@ -1903,6 +2306,348 @@ func (m *BeerServiceMock) MinimockDeleteCategoryInspect() {
 	if !m.DeleteCategoryMock.invocationsDone() && afterDeleteCategoryCounter > 0 {
 		m.t.Errorf("Expected %d calls to BeerServiceMock.DeleteCategory at\n%s but found %d calls",
 			mm_atomic.LoadUint64(&m.DeleteCategoryMock.expectedInvocations), m.DeleteCategoryMock.expectedInvocationsOrigin, afterDeleteCategoryCounter)
+	}
+}
+
+type mBeerServiceMockDeleteFeature struct {
+	optional           bool
+	mock               *BeerServiceMock
+	defaultExpectation *BeerServiceMockDeleteFeatureExpectation
+	expectations       []*BeerServiceMockDeleteFeatureExpectation
+
+	callArgs []*BeerServiceMockDeleteFeatureParams
+	mutex    sync.RWMutex
+
+	expectedInvocations       uint64
+	expectedInvocationsOrigin string
+}
+
+// BeerServiceMockDeleteFeatureExpectation specifies expectation struct of the BeerService.DeleteFeature
+type BeerServiceMockDeleteFeatureExpectation struct {
+	mock               *BeerServiceMock
+	params             *BeerServiceMockDeleteFeatureParams
+	paramPtrs          *BeerServiceMockDeleteFeatureParamPtrs
+	expectationOrigins BeerServiceMockDeleteFeatureExpectationOrigins
+	results            *BeerServiceMockDeleteFeatureResults
+	returnOrigin       string
+	Counter            uint64
+}
+
+// BeerServiceMockDeleteFeatureParams contains parameters of the BeerService.DeleteFeature
+type BeerServiceMockDeleteFeatureParams struct {
+	ctx context.Context
+	id  uint
+}
+
+// BeerServiceMockDeleteFeatureParamPtrs contains pointers to parameters of the BeerService.DeleteFeature
+type BeerServiceMockDeleteFeatureParamPtrs struct {
+	ctx *context.Context
+	id  *uint
+}
+
+// BeerServiceMockDeleteFeatureResults contains results of the BeerService.DeleteFeature
+type BeerServiceMockDeleteFeatureResults struct {
+	err error
+}
+
+// BeerServiceMockDeleteFeatureOrigins contains origins of expectations of the BeerService.DeleteFeature
+type BeerServiceMockDeleteFeatureExpectationOrigins struct {
+	origin    string
+	originCtx string
+	originId  string
+}
+
+// Marks this method to be optional. The default behavior of any method with Return() is '1 or more', meaning
+// the test will fail minimock's automatic final call check if the mocked method was not called at least once.
+// Optional() makes method check to work in '0 or more' mode.
+// It is NOT RECOMMENDED to use this option unless you really need it, as default behaviour helps to
+// catch the problems when the expected method call is totally skipped during test run.
+func (mmDeleteFeature *mBeerServiceMockDeleteFeature) Optional() *mBeerServiceMockDeleteFeature {
+	mmDeleteFeature.optional = true
+	return mmDeleteFeature
+}
+
+// Expect sets up expected params for BeerService.DeleteFeature
+func (mmDeleteFeature *mBeerServiceMockDeleteFeature) Expect(ctx context.Context, id uint) *mBeerServiceMockDeleteFeature {
+	if mmDeleteFeature.mock.funcDeleteFeature != nil {
+		mmDeleteFeature.mock.t.Fatalf("BeerServiceMock.DeleteFeature mock is already set by Set")
+	}
+
+	if mmDeleteFeature.defaultExpectation == nil {
+		mmDeleteFeature.defaultExpectation = &BeerServiceMockDeleteFeatureExpectation{}
+	}
+
+	if mmDeleteFeature.defaultExpectation.paramPtrs != nil {
+		mmDeleteFeature.mock.t.Fatalf("BeerServiceMock.DeleteFeature mock is already set by ExpectParams functions")
+	}
+
+	mmDeleteFeature.defaultExpectation.params = &BeerServiceMockDeleteFeatureParams{ctx, id}
+	mmDeleteFeature.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
+	for _, e := range mmDeleteFeature.expectations {
+		if minimock.Equal(e.params, mmDeleteFeature.defaultExpectation.params) {
+			mmDeleteFeature.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmDeleteFeature.defaultExpectation.params)
+		}
+	}
+
+	return mmDeleteFeature
+}
+
+// ExpectCtxParam1 sets up expected param ctx for BeerService.DeleteFeature
+func (mmDeleteFeature *mBeerServiceMockDeleteFeature) ExpectCtxParam1(ctx context.Context) *mBeerServiceMockDeleteFeature {
+	if mmDeleteFeature.mock.funcDeleteFeature != nil {
+		mmDeleteFeature.mock.t.Fatalf("BeerServiceMock.DeleteFeature mock is already set by Set")
+	}
+
+	if mmDeleteFeature.defaultExpectation == nil {
+		mmDeleteFeature.defaultExpectation = &BeerServiceMockDeleteFeatureExpectation{}
+	}
+
+	if mmDeleteFeature.defaultExpectation.params != nil {
+		mmDeleteFeature.mock.t.Fatalf("BeerServiceMock.DeleteFeature mock is already set by Expect")
+	}
+
+	if mmDeleteFeature.defaultExpectation.paramPtrs == nil {
+		mmDeleteFeature.defaultExpectation.paramPtrs = &BeerServiceMockDeleteFeatureParamPtrs{}
+	}
+	mmDeleteFeature.defaultExpectation.paramPtrs.ctx = &ctx
+	mmDeleteFeature.defaultExpectation.expectationOrigins.originCtx = minimock.CallerInfo(1)
+
+	return mmDeleteFeature
+}
+
+// ExpectIdParam2 sets up expected param id for BeerService.DeleteFeature
+func (mmDeleteFeature *mBeerServiceMockDeleteFeature) ExpectIdParam2(id uint) *mBeerServiceMockDeleteFeature {
+	if mmDeleteFeature.mock.funcDeleteFeature != nil {
+		mmDeleteFeature.mock.t.Fatalf("BeerServiceMock.DeleteFeature mock is already set by Set")
+	}
+
+	if mmDeleteFeature.defaultExpectation == nil {
+		mmDeleteFeature.defaultExpectation = &BeerServiceMockDeleteFeatureExpectation{}
+	}
+
+	if mmDeleteFeature.defaultExpectation.params != nil {
+		mmDeleteFeature.mock.t.Fatalf("BeerServiceMock.DeleteFeature mock is already set by Expect")
+	}
+
+	if mmDeleteFeature.defaultExpectation.paramPtrs == nil {
+		mmDeleteFeature.defaultExpectation.paramPtrs = &BeerServiceMockDeleteFeatureParamPtrs{}
+	}
+	mmDeleteFeature.defaultExpectation.paramPtrs.id = &id
+	mmDeleteFeature.defaultExpectation.expectationOrigins.originId = minimock.CallerInfo(1)
+
+	return mmDeleteFeature
+}
+
+// Inspect accepts an inspector function that has same arguments as the BeerService.DeleteFeature
+func (mmDeleteFeature *mBeerServiceMockDeleteFeature) Inspect(f func(ctx context.Context, id uint)) *mBeerServiceMockDeleteFeature {
+	if mmDeleteFeature.mock.inspectFuncDeleteFeature != nil {
+		mmDeleteFeature.mock.t.Fatalf("Inspect function is already set for BeerServiceMock.DeleteFeature")
+	}
+
+	mmDeleteFeature.mock.inspectFuncDeleteFeature = f
+
+	return mmDeleteFeature
+}
+
+// Return sets up results that will be returned by BeerService.DeleteFeature
+func (mmDeleteFeature *mBeerServiceMockDeleteFeature) Return(err error) *BeerServiceMock {
+	if mmDeleteFeature.mock.funcDeleteFeature != nil {
+		mmDeleteFeature.mock.t.Fatalf("BeerServiceMock.DeleteFeature mock is already set by Set")
+	}
+
+	if mmDeleteFeature.defaultExpectation == nil {
+		mmDeleteFeature.defaultExpectation = &BeerServiceMockDeleteFeatureExpectation{mock: mmDeleteFeature.mock}
+	}
+	mmDeleteFeature.defaultExpectation.results = &BeerServiceMockDeleteFeatureResults{err}
+	mmDeleteFeature.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
+	return mmDeleteFeature.mock
+}
+
+// Set uses given function f to mock the BeerService.DeleteFeature method
+func (mmDeleteFeature *mBeerServiceMockDeleteFeature) Set(f func(ctx context.Context, id uint) (err error)) *BeerServiceMock {
+	if mmDeleteFeature.defaultExpectation != nil {
+		mmDeleteFeature.mock.t.Fatalf("Default expectation is already set for the BeerService.DeleteFeature method")
+	}
+
+	if len(mmDeleteFeature.expectations) > 0 {
+		mmDeleteFeature.mock.t.Fatalf("Some expectations are already set for the BeerService.DeleteFeature method")
+	}
+
+	mmDeleteFeature.mock.funcDeleteFeature = f
+	mmDeleteFeature.mock.funcDeleteFeatureOrigin = minimock.CallerInfo(1)
+	return mmDeleteFeature.mock
+}
+
+// When sets expectation for the BeerService.DeleteFeature which will trigger the result defined by the following
+// Then helper
+func (mmDeleteFeature *mBeerServiceMockDeleteFeature) When(ctx context.Context, id uint) *BeerServiceMockDeleteFeatureExpectation {
+	if mmDeleteFeature.mock.funcDeleteFeature != nil {
+		mmDeleteFeature.mock.t.Fatalf("BeerServiceMock.DeleteFeature mock is already set by Set")
+	}
+
+	expectation := &BeerServiceMockDeleteFeatureExpectation{
+		mock:               mmDeleteFeature.mock,
+		params:             &BeerServiceMockDeleteFeatureParams{ctx, id},
+		expectationOrigins: BeerServiceMockDeleteFeatureExpectationOrigins{origin: minimock.CallerInfo(1)},
+	}
+	mmDeleteFeature.expectations = append(mmDeleteFeature.expectations, expectation)
+	return expectation
+}
+
+// Then sets up BeerService.DeleteFeature return parameters for the expectation previously defined by the When method
+func (e *BeerServiceMockDeleteFeatureExpectation) Then(err error) *BeerServiceMock {
+	e.results = &BeerServiceMockDeleteFeatureResults{err}
+	return e.mock
+}
+
+// Times sets number of times BeerService.DeleteFeature should be invoked
+func (mmDeleteFeature *mBeerServiceMockDeleteFeature) Times(n uint64) *mBeerServiceMockDeleteFeature {
+	if n == 0 {
+		mmDeleteFeature.mock.t.Fatalf("Times of BeerServiceMock.DeleteFeature mock can not be zero")
+	}
+	mm_atomic.StoreUint64(&mmDeleteFeature.expectedInvocations, n)
+	mmDeleteFeature.expectedInvocationsOrigin = minimock.CallerInfo(1)
+	return mmDeleteFeature
+}
+
+func (mmDeleteFeature *mBeerServiceMockDeleteFeature) invocationsDone() bool {
+	if len(mmDeleteFeature.expectations) == 0 && mmDeleteFeature.defaultExpectation == nil && mmDeleteFeature.mock.funcDeleteFeature == nil {
+		return true
+	}
+
+	totalInvocations := mm_atomic.LoadUint64(&mmDeleteFeature.mock.afterDeleteFeatureCounter)
+	expectedInvocations := mm_atomic.LoadUint64(&mmDeleteFeature.expectedInvocations)
+
+	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
+}
+
+// DeleteFeature implements mm_usecase.BeerService
+func (mmDeleteFeature *BeerServiceMock) DeleteFeature(ctx context.Context, id uint) (err error) {
+	mm_atomic.AddUint64(&mmDeleteFeature.beforeDeleteFeatureCounter, 1)
+	defer mm_atomic.AddUint64(&mmDeleteFeature.afterDeleteFeatureCounter, 1)
+
+	mmDeleteFeature.t.Helper()
+
+	if mmDeleteFeature.inspectFuncDeleteFeature != nil {
+		mmDeleteFeature.inspectFuncDeleteFeature(ctx, id)
+	}
+
+	mm_params := BeerServiceMockDeleteFeatureParams{ctx, id}
+
+	// Record call args
+	mmDeleteFeature.DeleteFeatureMock.mutex.Lock()
+	mmDeleteFeature.DeleteFeatureMock.callArgs = append(mmDeleteFeature.DeleteFeatureMock.callArgs, &mm_params)
+	mmDeleteFeature.DeleteFeatureMock.mutex.Unlock()
+
+	for _, e := range mmDeleteFeature.DeleteFeatureMock.expectations {
+		if minimock.Equal(*e.params, mm_params) {
+			mm_atomic.AddUint64(&e.Counter, 1)
+			return e.results.err
+		}
+	}
+
+	if mmDeleteFeature.DeleteFeatureMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmDeleteFeature.DeleteFeatureMock.defaultExpectation.Counter, 1)
+		mm_want := mmDeleteFeature.DeleteFeatureMock.defaultExpectation.params
+		mm_want_ptrs := mmDeleteFeature.DeleteFeatureMock.defaultExpectation.paramPtrs
+
+		mm_got := BeerServiceMockDeleteFeatureParams{ctx, id}
+
+		if mm_want_ptrs != nil {
+
+			if mm_want_ptrs.ctx != nil && !minimock.Equal(*mm_want_ptrs.ctx, mm_got.ctx) {
+				mmDeleteFeature.t.Errorf("BeerServiceMock.DeleteFeature got unexpected parameter ctx, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmDeleteFeature.DeleteFeatureMock.defaultExpectation.expectationOrigins.originCtx, *mm_want_ptrs.ctx, mm_got.ctx, minimock.Diff(*mm_want_ptrs.ctx, mm_got.ctx))
+			}
+
+			if mm_want_ptrs.id != nil && !minimock.Equal(*mm_want_ptrs.id, mm_got.id) {
+				mmDeleteFeature.t.Errorf("BeerServiceMock.DeleteFeature got unexpected parameter id, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmDeleteFeature.DeleteFeatureMock.defaultExpectation.expectationOrigins.originId, *mm_want_ptrs.id, mm_got.id, minimock.Diff(*mm_want_ptrs.id, mm_got.id))
+			}
+
+		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
+			mmDeleteFeature.t.Errorf("BeerServiceMock.DeleteFeature got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+				mmDeleteFeature.DeleteFeatureMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+		}
+
+		mm_results := mmDeleteFeature.DeleteFeatureMock.defaultExpectation.results
+		if mm_results == nil {
+			mmDeleteFeature.t.Fatal("No results are set for the BeerServiceMock.DeleteFeature")
+		}
+		return (*mm_results).err
+	}
+	if mmDeleteFeature.funcDeleteFeature != nil {
+		return mmDeleteFeature.funcDeleteFeature(ctx, id)
+	}
+	mmDeleteFeature.t.Fatalf("Unexpected call to BeerServiceMock.DeleteFeature. %v %v", ctx, id)
+	return
+}
+
+// DeleteFeatureAfterCounter returns a count of finished BeerServiceMock.DeleteFeature invocations
+func (mmDeleteFeature *BeerServiceMock) DeleteFeatureAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmDeleteFeature.afterDeleteFeatureCounter)
+}
+
+// DeleteFeatureBeforeCounter returns a count of BeerServiceMock.DeleteFeature invocations
+func (mmDeleteFeature *BeerServiceMock) DeleteFeatureBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmDeleteFeature.beforeDeleteFeatureCounter)
+}
+
+// Calls returns a list of arguments used in each call to BeerServiceMock.DeleteFeature.
+// The list is in the same order as the calls were made (i.e. recent calls have a higher index)
+func (mmDeleteFeature *mBeerServiceMockDeleteFeature) Calls() []*BeerServiceMockDeleteFeatureParams {
+	mmDeleteFeature.mutex.RLock()
+
+	argCopy := make([]*BeerServiceMockDeleteFeatureParams, len(mmDeleteFeature.callArgs))
+	copy(argCopy, mmDeleteFeature.callArgs)
+
+	mmDeleteFeature.mutex.RUnlock()
+
+	return argCopy
+}
+
+// MinimockDeleteFeatureDone returns true if the count of the DeleteFeature invocations corresponds
+// the number of defined expectations
+func (m *BeerServiceMock) MinimockDeleteFeatureDone() bool {
+	if m.DeleteFeatureMock.optional {
+		// Optional methods provide '0 or more' call count restriction.
+		return true
+	}
+
+	for _, e := range m.DeleteFeatureMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			return false
+		}
+	}
+
+	return m.DeleteFeatureMock.invocationsDone()
+}
+
+// MinimockDeleteFeatureInspect logs each unmet expectation
+func (m *BeerServiceMock) MinimockDeleteFeatureInspect() {
+	for _, e := range m.DeleteFeatureMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			m.t.Errorf("Expected call to BeerServiceMock.DeleteFeature at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
+		}
+	}
+
+	afterDeleteFeatureCounter := mm_atomic.LoadUint64(&m.afterDeleteFeatureCounter)
+	// if default expectation was set then invocations count should be greater than zero
+	if m.DeleteFeatureMock.defaultExpectation != nil && afterDeleteFeatureCounter < 1 {
+		if m.DeleteFeatureMock.defaultExpectation.params == nil {
+			m.t.Errorf("Expected call to BeerServiceMock.DeleteFeature at\n%s", m.DeleteFeatureMock.defaultExpectation.returnOrigin)
+		} else {
+			m.t.Errorf("Expected call to BeerServiceMock.DeleteFeature at\n%s with params: %#v", m.DeleteFeatureMock.defaultExpectation.expectationOrigins.origin, *m.DeleteFeatureMock.defaultExpectation.params)
+		}
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcDeleteFeature != nil && afterDeleteFeatureCounter < 1 {
+		m.t.Errorf("Expected call to BeerServiceMock.DeleteFeature at\n%s", m.funcDeleteFeatureOrigin)
+	}
+
+	if !m.DeleteFeatureMock.invocationsDone() && afterDeleteFeatureCounter > 0 {
+		m.t.Errorf("Expected %d calls to BeerServiceMock.DeleteFeature at\n%s but found %d calls",
+			mm_atomic.LoadUint64(&m.DeleteFeatureMock.expectedInvocations), m.DeleteFeatureMock.expectedInvocationsOrigin, afterDeleteFeatureCounter)
 	}
 }
 
@@ -4430,6 +5175,349 @@ func (m *BeerServiceMock) MinimockGetChildCategoriesInspect() {
 	}
 }
 
+type mBeerServiceMockGetFeatures struct {
+	optional           bool
+	mock               *BeerServiceMock
+	defaultExpectation *BeerServiceMockGetFeaturesExpectation
+	expectations       []*BeerServiceMockGetFeaturesExpectation
+
+	callArgs []*BeerServiceMockGetFeaturesParams
+	mutex    sync.RWMutex
+
+	expectedInvocations       uint64
+	expectedInvocationsOrigin string
+}
+
+// BeerServiceMockGetFeaturesExpectation specifies expectation struct of the BeerService.GetFeatures
+type BeerServiceMockGetFeaturesExpectation struct {
+	mock               *BeerServiceMock
+	params             *BeerServiceMockGetFeaturesParams
+	paramPtrs          *BeerServiceMockGetFeaturesParamPtrs
+	expectationOrigins BeerServiceMockGetFeaturesExpectationOrigins
+	results            *BeerServiceMockGetFeaturesResults
+	returnOrigin       string
+	Counter            uint64
+}
+
+// BeerServiceMockGetFeaturesParams contains parameters of the BeerService.GetFeatures
+type BeerServiceMockGetFeaturesParams struct {
+	ctx context.Context
+	id  uint
+}
+
+// BeerServiceMockGetFeaturesParamPtrs contains pointers to parameters of the BeerService.GetFeatures
+type BeerServiceMockGetFeaturesParamPtrs struct {
+	ctx *context.Context
+	id  *uint
+}
+
+// BeerServiceMockGetFeaturesResults contains results of the BeerService.GetFeatures
+type BeerServiceMockGetFeaturesResults struct {
+	sa1 []string
+	err error
+}
+
+// BeerServiceMockGetFeaturesOrigins contains origins of expectations of the BeerService.GetFeatures
+type BeerServiceMockGetFeaturesExpectationOrigins struct {
+	origin    string
+	originCtx string
+	originId  string
+}
+
+// Marks this method to be optional. The default behavior of any method with Return() is '1 or more', meaning
+// the test will fail minimock's automatic final call check if the mocked method was not called at least once.
+// Optional() makes method check to work in '0 or more' mode.
+// It is NOT RECOMMENDED to use this option unless you really need it, as default behaviour helps to
+// catch the problems when the expected method call is totally skipped during test run.
+func (mmGetFeatures *mBeerServiceMockGetFeatures) Optional() *mBeerServiceMockGetFeatures {
+	mmGetFeatures.optional = true
+	return mmGetFeatures
+}
+
+// Expect sets up expected params for BeerService.GetFeatures
+func (mmGetFeatures *mBeerServiceMockGetFeatures) Expect(ctx context.Context, id uint) *mBeerServiceMockGetFeatures {
+	if mmGetFeatures.mock.funcGetFeatures != nil {
+		mmGetFeatures.mock.t.Fatalf("BeerServiceMock.GetFeatures mock is already set by Set")
+	}
+
+	if mmGetFeatures.defaultExpectation == nil {
+		mmGetFeatures.defaultExpectation = &BeerServiceMockGetFeaturesExpectation{}
+	}
+
+	if mmGetFeatures.defaultExpectation.paramPtrs != nil {
+		mmGetFeatures.mock.t.Fatalf("BeerServiceMock.GetFeatures mock is already set by ExpectParams functions")
+	}
+
+	mmGetFeatures.defaultExpectation.params = &BeerServiceMockGetFeaturesParams{ctx, id}
+	mmGetFeatures.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
+	for _, e := range mmGetFeatures.expectations {
+		if minimock.Equal(e.params, mmGetFeatures.defaultExpectation.params) {
+			mmGetFeatures.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmGetFeatures.defaultExpectation.params)
+		}
+	}
+
+	return mmGetFeatures
+}
+
+// ExpectCtxParam1 sets up expected param ctx for BeerService.GetFeatures
+func (mmGetFeatures *mBeerServiceMockGetFeatures) ExpectCtxParam1(ctx context.Context) *mBeerServiceMockGetFeatures {
+	if mmGetFeatures.mock.funcGetFeatures != nil {
+		mmGetFeatures.mock.t.Fatalf("BeerServiceMock.GetFeatures mock is already set by Set")
+	}
+
+	if mmGetFeatures.defaultExpectation == nil {
+		mmGetFeatures.defaultExpectation = &BeerServiceMockGetFeaturesExpectation{}
+	}
+
+	if mmGetFeatures.defaultExpectation.params != nil {
+		mmGetFeatures.mock.t.Fatalf("BeerServiceMock.GetFeatures mock is already set by Expect")
+	}
+
+	if mmGetFeatures.defaultExpectation.paramPtrs == nil {
+		mmGetFeatures.defaultExpectation.paramPtrs = &BeerServiceMockGetFeaturesParamPtrs{}
+	}
+	mmGetFeatures.defaultExpectation.paramPtrs.ctx = &ctx
+	mmGetFeatures.defaultExpectation.expectationOrigins.originCtx = minimock.CallerInfo(1)
+
+	return mmGetFeatures
+}
+
+// ExpectIdParam2 sets up expected param id for BeerService.GetFeatures
+func (mmGetFeatures *mBeerServiceMockGetFeatures) ExpectIdParam2(id uint) *mBeerServiceMockGetFeatures {
+	if mmGetFeatures.mock.funcGetFeatures != nil {
+		mmGetFeatures.mock.t.Fatalf("BeerServiceMock.GetFeatures mock is already set by Set")
+	}
+
+	if mmGetFeatures.defaultExpectation == nil {
+		mmGetFeatures.defaultExpectation = &BeerServiceMockGetFeaturesExpectation{}
+	}
+
+	if mmGetFeatures.defaultExpectation.params != nil {
+		mmGetFeatures.mock.t.Fatalf("BeerServiceMock.GetFeatures mock is already set by Expect")
+	}
+
+	if mmGetFeatures.defaultExpectation.paramPtrs == nil {
+		mmGetFeatures.defaultExpectation.paramPtrs = &BeerServiceMockGetFeaturesParamPtrs{}
+	}
+	mmGetFeatures.defaultExpectation.paramPtrs.id = &id
+	mmGetFeatures.defaultExpectation.expectationOrigins.originId = minimock.CallerInfo(1)
+
+	return mmGetFeatures
+}
+
+// Inspect accepts an inspector function that has same arguments as the BeerService.GetFeatures
+func (mmGetFeatures *mBeerServiceMockGetFeatures) Inspect(f func(ctx context.Context, id uint)) *mBeerServiceMockGetFeatures {
+	if mmGetFeatures.mock.inspectFuncGetFeatures != nil {
+		mmGetFeatures.mock.t.Fatalf("Inspect function is already set for BeerServiceMock.GetFeatures")
+	}
+
+	mmGetFeatures.mock.inspectFuncGetFeatures = f
+
+	return mmGetFeatures
+}
+
+// Return sets up results that will be returned by BeerService.GetFeatures
+func (mmGetFeatures *mBeerServiceMockGetFeatures) Return(sa1 []string, err error) *BeerServiceMock {
+	if mmGetFeatures.mock.funcGetFeatures != nil {
+		mmGetFeatures.mock.t.Fatalf("BeerServiceMock.GetFeatures mock is already set by Set")
+	}
+
+	if mmGetFeatures.defaultExpectation == nil {
+		mmGetFeatures.defaultExpectation = &BeerServiceMockGetFeaturesExpectation{mock: mmGetFeatures.mock}
+	}
+	mmGetFeatures.defaultExpectation.results = &BeerServiceMockGetFeaturesResults{sa1, err}
+	mmGetFeatures.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
+	return mmGetFeatures.mock
+}
+
+// Set uses given function f to mock the BeerService.GetFeatures method
+func (mmGetFeatures *mBeerServiceMockGetFeatures) Set(f func(ctx context.Context, id uint) (sa1 []string, err error)) *BeerServiceMock {
+	if mmGetFeatures.defaultExpectation != nil {
+		mmGetFeatures.mock.t.Fatalf("Default expectation is already set for the BeerService.GetFeatures method")
+	}
+
+	if len(mmGetFeatures.expectations) > 0 {
+		mmGetFeatures.mock.t.Fatalf("Some expectations are already set for the BeerService.GetFeatures method")
+	}
+
+	mmGetFeatures.mock.funcGetFeatures = f
+	mmGetFeatures.mock.funcGetFeaturesOrigin = minimock.CallerInfo(1)
+	return mmGetFeatures.mock
+}
+
+// When sets expectation for the BeerService.GetFeatures which will trigger the result defined by the following
+// Then helper
+func (mmGetFeatures *mBeerServiceMockGetFeatures) When(ctx context.Context, id uint) *BeerServiceMockGetFeaturesExpectation {
+	if mmGetFeatures.mock.funcGetFeatures != nil {
+		mmGetFeatures.mock.t.Fatalf("BeerServiceMock.GetFeatures mock is already set by Set")
+	}
+
+	expectation := &BeerServiceMockGetFeaturesExpectation{
+		mock:               mmGetFeatures.mock,
+		params:             &BeerServiceMockGetFeaturesParams{ctx, id},
+		expectationOrigins: BeerServiceMockGetFeaturesExpectationOrigins{origin: minimock.CallerInfo(1)},
+	}
+	mmGetFeatures.expectations = append(mmGetFeatures.expectations, expectation)
+	return expectation
+}
+
+// Then sets up BeerService.GetFeatures return parameters for the expectation previously defined by the When method
+func (e *BeerServiceMockGetFeaturesExpectation) Then(sa1 []string, err error) *BeerServiceMock {
+	e.results = &BeerServiceMockGetFeaturesResults{sa1, err}
+	return e.mock
+}
+
+// Times sets number of times BeerService.GetFeatures should be invoked
+func (mmGetFeatures *mBeerServiceMockGetFeatures) Times(n uint64) *mBeerServiceMockGetFeatures {
+	if n == 0 {
+		mmGetFeatures.mock.t.Fatalf("Times of BeerServiceMock.GetFeatures mock can not be zero")
+	}
+	mm_atomic.StoreUint64(&mmGetFeatures.expectedInvocations, n)
+	mmGetFeatures.expectedInvocationsOrigin = minimock.CallerInfo(1)
+	return mmGetFeatures
+}
+
+func (mmGetFeatures *mBeerServiceMockGetFeatures) invocationsDone() bool {
+	if len(mmGetFeatures.expectations) == 0 && mmGetFeatures.defaultExpectation == nil && mmGetFeatures.mock.funcGetFeatures == nil {
+		return true
+	}
+
+	totalInvocations := mm_atomic.LoadUint64(&mmGetFeatures.mock.afterGetFeaturesCounter)
+	expectedInvocations := mm_atomic.LoadUint64(&mmGetFeatures.expectedInvocations)
+
+	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
+}
+
+// GetFeatures implements mm_usecase.BeerService
+func (mmGetFeatures *BeerServiceMock) GetFeatures(ctx context.Context, id uint) (sa1 []string, err error) {
+	mm_atomic.AddUint64(&mmGetFeatures.beforeGetFeaturesCounter, 1)
+	defer mm_atomic.AddUint64(&mmGetFeatures.afterGetFeaturesCounter, 1)
+
+	mmGetFeatures.t.Helper()
+
+	if mmGetFeatures.inspectFuncGetFeatures != nil {
+		mmGetFeatures.inspectFuncGetFeatures(ctx, id)
+	}
+
+	mm_params := BeerServiceMockGetFeaturesParams{ctx, id}
+
+	// Record call args
+	mmGetFeatures.GetFeaturesMock.mutex.Lock()
+	mmGetFeatures.GetFeaturesMock.callArgs = append(mmGetFeatures.GetFeaturesMock.callArgs, &mm_params)
+	mmGetFeatures.GetFeaturesMock.mutex.Unlock()
+
+	for _, e := range mmGetFeatures.GetFeaturesMock.expectations {
+		if minimock.Equal(*e.params, mm_params) {
+			mm_atomic.AddUint64(&e.Counter, 1)
+			return e.results.sa1, e.results.err
+		}
+	}
+
+	if mmGetFeatures.GetFeaturesMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmGetFeatures.GetFeaturesMock.defaultExpectation.Counter, 1)
+		mm_want := mmGetFeatures.GetFeaturesMock.defaultExpectation.params
+		mm_want_ptrs := mmGetFeatures.GetFeaturesMock.defaultExpectation.paramPtrs
+
+		mm_got := BeerServiceMockGetFeaturesParams{ctx, id}
+
+		if mm_want_ptrs != nil {
+
+			if mm_want_ptrs.ctx != nil && !minimock.Equal(*mm_want_ptrs.ctx, mm_got.ctx) {
+				mmGetFeatures.t.Errorf("BeerServiceMock.GetFeatures got unexpected parameter ctx, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmGetFeatures.GetFeaturesMock.defaultExpectation.expectationOrigins.originCtx, *mm_want_ptrs.ctx, mm_got.ctx, minimock.Diff(*mm_want_ptrs.ctx, mm_got.ctx))
+			}
+
+			if mm_want_ptrs.id != nil && !minimock.Equal(*mm_want_ptrs.id, mm_got.id) {
+				mmGetFeatures.t.Errorf("BeerServiceMock.GetFeatures got unexpected parameter id, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmGetFeatures.GetFeaturesMock.defaultExpectation.expectationOrigins.originId, *mm_want_ptrs.id, mm_got.id, minimock.Diff(*mm_want_ptrs.id, mm_got.id))
+			}
+
+		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
+			mmGetFeatures.t.Errorf("BeerServiceMock.GetFeatures got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+				mmGetFeatures.GetFeaturesMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+		}
+
+		mm_results := mmGetFeatures.GetFeaturesMock.defaultExpectation.results
+		if mm_results == nil {
+			mmGetFeatures.t.Fatal("No results are set for the BeerServiceMock.GetFeatures")
+		}
+		return (*mm_results).sa1, (*mm_results).err
+	}
+	if mmGetFeatures.funcGetFeatures != nil {
+		return mmGetFeatures.funcGetFeatures(ctx, id)
+	}
+	mmGetFeatures.t.Fatalf("Unexpected call to BeerServiceMock.GetFeatures. %v %v", ctx, id)
+	return
+}
+
+// GetFeaturesAfterCounter returns a count of finished BeerServiceMock.GetFeatures invocations
+func (mmGetFeatures *BeerServiceMock) GetFeaturesAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmGetFeatures.afterGetFeaturesCounter)
+}
+
+// GetFeaturesBeforeCounter returns a count of BeerServiceMock.GetFeatures invocations
+func (mmGetFeatures *BeerServiceMock) GetFeaturesBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmGetFeatures.beforeGetFeaturesCounter)
+}
+
+// Calls returns a list of arguments used in each call to BeerServiceMock.GetFeatures.
+// The list is in the same order as the calls were made (i.e. recent calls have a higher index)
+func (mmGetFeatures *mBeerServiceMockGetFeatures) Calls() []*BeerServiceMockGetFeaturesParams {
+	mmGetFeatures.mutex.RLock()
+
+	argCopy := make([]*BeerServiceMockGetFeaturesParams, len(mmGetFeatures.callArgs))
+	copy(argCopy, mmGetFeatures.callArgs)
+
+	mmGetFeatures.mutex.RUnlock()
+
+	return argCopy
+}
+
+// MinimockGetFeaturesDone returns true if the count of the GetFeatures invocations corresponds
+// the number of defined expectations
+func (m *BeerServiceMock) MinimockGetFeaturesDone() bool {
+	if m.GetFeaturesMock.optional {
+		// Optional methods provide '0 or more' call count restriction.
+		return true
+	}
+
+	for _, e := range m.GetFeaturesMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			return false
+		}
+	}
+
+	return m.GetFeaturesMock.invocationsDone()
+}
+
+// MinimockGetFeaturesInspect logs each unmet expectation
+func (m *BeerServiceMock) MinimockGetFeaturesInspect() {
+	for _, e := range m.GetFeaturesMock.expectations {
+		if mm_atomic.LoadUint64(&e.Counter) < 1 {
+			m.t.Errorf("Expected call to BeerServiceMock.GetFeatures at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
+		}
+	}
+
+	afterGetFeaturesCounter := mm_atomic.LoadUint64(&m.afterGetFeaturesCounter)
+	// if default expectation was set then invocations count should be greater than zero
+	if m.GetFeaturesMock.defaultExpectation != nil && afterGetFeaturesCounter < 1 {
+		if m.GetFeaturesMock.defaultExpectation.params == nil {
+			m.t.Errorf("Expected call to BeerServiceMock.GetFeatures at\n%s", m.GetFeaturesMock.defaultExpectation.returnOrigin)
+		} else {
+			m.t.Errorf("Expected call to BeerServiceMock.GetFeatures at\n%s with params: %#v", m.GetFeaturesMock.defaultExpectation.expectationOrigins.origin, *m.GetFeaturesMock.defaultExpectation.params)
+		}
+	}
+	// if func was set then invocations count should be greater than zero
+	if m.funcGetFeatures != nil && afterGetFeaturesCounter < 1 {
+		m.t.Errorf("Expected call to BeerServiceMock.GetFeatures at\n%s", m.funcGetFeaturesOrigin)
+	}
+
+	if !m.GetFeaturesMock.invocationsDone() && afterGetFeaturesCounter > 0 {
+		m.t.Errorf("Expected %d calls to BeerServiceMock.GetFeatures at\n%s but found %d calls",
+			mm_atomic.LoadUint64(&m.GetFeaturesMock.expectedInvocations), m.GetFeaturesMock.expectedInvocationsOrigin, afterGetFeaturesCounter)
+	}
+}
+
 type mBeerServiceMockGetParentCategory struct {
 	optional           bool
 	mock               *BeerServiceMock
@@ -5901,11 +6989,15 @@ func (m *BeerServiceMock) MinimockFinish() {
 
 			m.MinimockCreateCategoryInspect()
 
+			m.MinimockCreateFeatureInspect()
+
 			m.MinimockCreateReviewInspect()
 
 			m.MinimockDeleteBeerInspect()
 
 			m.MinimockDeleteCategoryInspect()
+
+			m.MinimockDeleteFeatureInspect()
 
 			m.MinimockDeleteReviewInspect()
 
@@ -5920,6 +7012,8 @@ func (m *BeerServiceMock) MinimockFinish() {
 			m.MinimockGetCategoryByIDInspect()
 
 			m.MinimockGetChildCategoriesInspect()
+
+			m.MinimockGetFeaturesInspect()
 
 			m.MinimockGetParentCategoryInspect()
 
@@ -5953,9 +7047,11 @@ func (m *BeerServiceMock) minimockDone() bool {
 	return done &&
 		m.MinimockCreateBeerDone() &&
 		m.MinimockCreateCategoryDone() &&
+		m.MinimockCreateFeatureDone() &&
 		m.MinimockCreateReviewDone() &&
 		m.MinimockDeleteBeerDone() &&
 		m.MinimockDeleteCategoryDone() &&
+		m.MinimockDeleteFeatureDone() &&
 		m.MinimockDeleteReviewDone() &&
 		m.MinimockGetAllBeersDone() &&
 		m.MinimockGetAllCategoriesDone() &&
@@ -5963,6 +7059,7 @@ func (m *BeerServiceMock) minimockDone() bool {
 		m.MinimockGetBeersByCategoryDone() &&
 		m.MinimockGetCategoryByIDDone() &&
 		m.MinimockGetChildCategoriesDone() &&
+		m.MinimockGetFeaturesDone() &&
 		m.MinimockGetParentCategoryDone() &&
 		m.MinimockUpdateBeerDone() &&
 		m.MinimockUpdateCategoryDone() &&

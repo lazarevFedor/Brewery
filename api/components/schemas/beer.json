@@ -1,4 +1,12 @@
 {
+    "Feature": {
+      "type": "object",
+      "properties": {
+        "id": {"type": "integer"},
+        "name": {"type": "string"}
+      }
+    },
+
     "Beer": {
         "type": "object",
         "properties": {
@@ -10,6 +18,10 @@
           "city": { "type": "string" },
           "country": { "type": "string" },
           "category": { "$ref": "./category.json#/Category" },
+          "features": {
+            "type": "array",
+            "items": {"$ref": "#/Feature"}
+          },
           "amount": {"type": "integer"},
           "units": {"type":  "string"},
           "type": { "type": "string" }
@@ -27,6 +39,10 @@
           "city": { "type": "string" },
           "country": { "type": "string" },
           "category": { "$ref": "./category.json#/Category" }, 
+          "features": {
+            "type": "array",
+            "items": {"$ref": "#/Feature"}
+          },
           "amount": {"type": "integer"},
           "units": {"type":  "string"},
           "type": { "type": "string" }
@@ -64,7 +80,7 @@
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#BeerShort"
+              "$ref": "#/BeerShort"
             }
           },
           "offset": { "type": "integer" },
