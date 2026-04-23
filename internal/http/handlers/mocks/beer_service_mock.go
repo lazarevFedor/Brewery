@@ -75,9 +75,9 @@ type BeerServiceMock struct {
 	beforeGetAllCategoriesCounter uint64
 	GetAllCategoriesMock          mBeerServiceMockGetAllCategories
 
-	funcGetBeerReviews          func(ctx context.Context) (pa1 []entities.ProductCategory, err error)
+	funcGetBeerReviews          func(ctx context.Context, limit uint64, offset uint64, beerid uint) (ra1 []entities.Review, err error)
 	funcGetBeerReviewsOrigin    string
-	inspectFuncGetBeerReviews   func(ctx context.Context)
+	inspectFuncGetBeerReviews   func(ctx context.Context, limit uint64, offset uint64, beerid uint)
 	afterGetBeerReviewsCounter  uint64
 	beforeGetBeerReviewsCounter uint64
 	GetBeerReviewsMock          mBeerServiceMockGetBeerReviews
@@ -124,7 +124,7 @@ type BeerServiceMock struct {
 	beforeUpdateCategoryCounter uint64
 	UpdateCategoryMock          mBeerServiceMockUpdateCategory
 
-	funcUpdateReview          func(ctx context.Context, id uint, updates map[string]any) (u1 uint, err error)
+	funcUpdateReview          func(ctx context.Context, id uint, updates map[string]any) (err error)
 	funcUpdateReviewOrigin    string
 	inspectFuncUpdateReview   func(ctx context.Context, id uint, updates map[string]any)
 	afterUpdateReviewCounter  uint64
@@ -2960,24 +2960,33 @@ type BeerServiceMockGetBeerReviewsExpectation struct {
 
 // BeerServiceMockGetBeerReviewsParams contains parameters of the BeerService.GetBeerReviews
 type BeerServiceMockGetBeerReviewsParams struct {
-	ctx context.Context
+	ctx    context.Context
+	limit  uint64
+	offset uint64
+	beerid uint
 }
 
 // BeerServiceMockGetBeerReviewsParamPtrs contains pointers to parameters of the BeerService.GetBeerReviews
 type BeerServiceMockGetBeerReviewsParamPtrs struct {
-	ctx *context.Context
+	ctx    *context.Context
+	limit  *uint64
+	offset *uint64
+	beerid *uint
 }
 
 // BeerServiceMockGetBeerReviewsResults contains results of the BeerService.GetBeerReviews
 type BeerServiceMockGetBeerReviewsResults struct {
-	pa1 []entities.ProductCategory
+	ra1 []entities.Review
 	err error
 }
 
 // BeerServiceMockGetBeerReviewsOrigins contains origins of expectations of the BeerService.GetBeerReviews
 type BeerServiceMockGetBeerReviewsExpectationOrigins struct {
-	origin    string
-	originCtx string
+	origin       string
+	originCtx    string
+	originLimit  string
+	originOffset string
+	originBeerid string
 }
 
 // Marks this method to be optional. The default behavior of any method with Return() is '1 or more', meaning
@@ -2991,7 +3000,7 @@ func (mmGetBeerReviews *mBeerServiceMockGetBeerReviews) Optional() *mBeerService
 }
 
 // Expect sets up expected params for BeerService.GetBeerReviews
-func (mmGetBeerReviews *mBeerServiceMockGetBeerReviews) Expect(ctx context.Context) *mBeerServiceMockGetBeerReviews {
+func (mmGetBeerReviews *mBeerServiceMockGetBeerReviews) Expect(ctx context.Context, limit uint64, offset uint64, beerid uint) *mBeerServiceMockGetBeerReviews {
 	if mmGetBeerReviews.mock.funcGetBeerReviews != nil {
 		mmGetBeerReviews.mock.t.Fatalf("BeerServiceMock.GetBeerReviews mock is already set by Set")
 	}
@@ -3004,7 +3013,7 @@ func (mmGetBeerReviews *mBeerServiceMockGetBeerReviews) Expect(ctx context.Conte
 		mmGetBeerReviews.mock.t.Fatalf("BeerServiceMock.GetBeerReviews mock is already set by ExpectParams functions")
 	}
 
-	mmGetBeerReviews.defaultExpectation.params = &BeerServiceMockGetBeerReviewsParams{ctx}
+	mmGetBeerReviews.defaultExpectation.params = &BeerServiceMockGetBeerReviewsParams{ctx, limit, offset, beerid}
 	mmGetBeerReviews.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
 	for _, e := range mmGetBeerReviews.expectations {
 		if minimock.Equal(e.params, mmGetBeerReviews.defaultExpectation.params) {
@@ -3038,8 +3047,77 @@ func (mmGetBeerReviews *mBeerServiceMockGetBeerReviews) ExpectCtxParam1(ctx cont
 	return mmGetBeerReviews
 }
 
+// ExpectLimitParam2 sets up expected param limit for BeerService.GetBeerReviews
+func (mmGetBeerReviews *mBeerServiceMockGetBeerReviews) ExpectLimitParam2(limit uint64) *mBeerServiceMockGetBeerReviews {
+	if mmGetBeerReviews.mock.funcGetBeerReviews != nil {
+		mmGetBeerReviews.mock.t.Fatalf("BeerServiceMock.GetBeerReviews mock is already set by Set")
+	}
+
+	if mmGetBeerReviews.defaultExpectation == nil {
+		mmGetBeerReviews.defaultExpectation = &BeerServiceMockGetBeerReviewsExpectation{}
+	}
+
+	if mmGetBeerReviews.defaultExpectation.params != nil {
+		mmGetBeerReviews.mock.t.Fatalf("BeerServiceMock.GetBeerReviews mock is already set by Expect")
+	}
+
+	if mmGetBeerReviews.defaultExpectation.paramPtrs == nil {
+		mmGetBeerReviews.defaultExpectation.paramPtrs = &BeerServiceMockGetBeerReviewsParamPtrs{}
+	}
+	mmGetBeerReviews.defaultExpectation.paramPtrs.limit = &limit
+	mmGetBeerReviews.defaultExpectation.expectationOrigins.originLimit = minimock.CallerInfo(1)
+
+	return mmGetBeerReviews
+}
+
+// ExpectOffsetParam3 sets up expected param offset for BeerService.GetBeerReviews
+func (mmGetBeerReviews *mBeerServiceMockGetBeerReviews) ExpectOffsetParam3(offset uint64) *mBeerServiceMockGetBeerReviews {
+	if mmGetBeerReviews.mock.funcGetBeerReviews != nil {
+		mmGetBeerReviews.mock.t.Fatalf("BeerServiceMock.GetBeerReviews mock is already set by Set")
+	}
+
+	if mmGetBeerReviews.defaultExpectation == nil {
+		mmGetBeerReviews.defaultExpectation = &BeerServiceMockGetBeerReviewsExpectation{}
+	}
+
+	if mmGetBeerReviews.defaultExpectation.params != nil {
+		mmGetBeerReviews.mock.t.Fatalf("BeerServiceMock.GetBeerReviews mock is already set by Expect")
+	}
+
+	if mmGetBeerReviews.defaultExpectation.paramPtrs == nil {
+		mmGetBeerReviews.defaultExpectation.paramPtrs = &BeerServiceMockGetBeerReviewsParamPtrs{}
+	}
+	mmGetBeerReviews.defaultExpectation.paramPtrs.offset = &offset
+	mmGetBeerReviews.defaultExpectation.expectationOrigins.originOffset = minimock.CallerInfo(1)
+
+	return mmGetBeerReviews
+}
+
+// ExpectBeeridParam4 sets up expected param beerid for BeerService.GetBeerReviews
+func (mmGetBeerReviews *mBeerServiceMockGetBeerReviews) ExpectBeeridParam4(beerid uint) *mBeerServiceMockGetBeerReviews {
+	if mmGetBeerReviews.mock.funcGetBeerReviews != nil {
+		mmGetBeerReviews.mock.t.Fatalf("BeerServiceMock.GetBeerReviews mock is already set by Set")
+	}
+
+	if mmGetBeerReviews.defaultExpectation == nil {
+		mmGetBeerReviews.defaultExpectation = &BeerServiceMockGetBeerReviewsExpectation{}
+	}
+
+	if mmGetBeerReviews.defaultExpectation.params != nil {
+		mmGetBeerReviews.mock.t.Fatalf("BeerServiceMock.GetBeerReviews mock is already set by Expect")
+	}
+
+	if mmGetBeerReviews.defaultExpectation.paramPtrs == nil {
+		mmGetBeerReviews.defaultExpectation.paramPtrs = &BeerServiceMockGetBeerReviewsParamPtrs{}
+	}
+	mmGetBeerReviews.defaultExpectation.paramPtrs.beerid = &beerid
+	mmGetBeerReviews.defaultExpectation.expectationOrigins.originBeerid = minimock.CallerInfo(1)
+
+	return mmGetBeerReviews
+}
+
 // Inspect accepts an inspector function that has same arguments as the BeerService.GetBeerReviews
-func (mmGetBeerReviews *mBeerServiceMockGetBeerReviews) Inspect(f func(ctx context.Context)) *mBeerServiceMockGetBeerReviews {
+func (mmGetBeerReviews *mBeerServiceMockGetBeerReviews) Inspect(f func(ctx context.Context, limit uint64, offset uint64, beerid uint)) *mBeerServiceMockGetBeerReviews {
 	if mmGetBeerReviews.mock.inspectFuncGetBeerReviews != nil {
 		mmGetBeerReviews.mock.t.Fatalf("Inspect function is already set for BeerServiceMock.GetBeerReviews")
 	}
@@ -3050,7 +3128,7 @@ func (mmGetBeerReviews *mBeerServiceMockGetBeerReviews) Inspect(f func(ctx conte
 }
 
 // Return sets up results that will be returned by BeerService.GetBeerReviews
-func (mmGetBeerReviews *mBeerServiceMockGetBeerReviews) Return(pa1 []entities.ProductCategory, err error) *BeerServiceMock {
+func (mmGetBeerReviews *mBeerServiceMockGetBeerReviews) Return(ra1 []entities.Review, err error) *BeerServiceMock {
 	if mmGetBeerReviews.mock.funcGetBeerReviews != nil {
 		mmGetBeerReviews.mock.t.Fatalf("BeerServiceMock.GetBeerReviews mock is already set by Set")
 	}
@@ -3058,13 +3136,13 @@ func (mmGetBeerReviews *mBeerServiceMockGetBeerReviews) Return(pa1 []entities.Pr
 	if mmGetBeerReviews.defaultExpectation == nil {
 		mmGetBeerReviews.defaultExpectation = &BeerServiceMockGetBeerReviewsExpectation{mock: mmGetBeerReviews.mock}
 	}
-	mmGetBeerReviews.defaultExpectation.results = &BeerServiceMockGetBeerReviewsResults{pa1, err}
+	mmGetBeerReviews.defaultExpectation.results = &BeerServiceMockGetBeerReviewsResults{ra1, err}
 	mmGetBeerReviews.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
 	return mmGetBeerReviews.mock
 }
 
 // Set uses given function f to mock the BeerService.GetBeerReviews method
-func (mmGetBeerReviews *mBeerServiceMockGetBeerReviews) Set(f func(ctx context.Context) (pa1 []entities.ProductCategory, err error)) *BeerServiceMock {
+func (mmGetBeerReviews *mBeerServiceMockGetBeerReviews) Set(f func(ctx context.Context, limit uint64, offset uint64, beerid uint) (ra1 []entities.Review, err error)) *BeerServiceMock {
 	if mmGetBeerReviews.defaultExpectation != nil {
 		mmGetBeerReviews.mock.t.Fatalf("Default expectation is already set for the BeerService.GetBeerReviews method")
 	}
@@ -3080,14 +3158,14 @@ func (mmGetBeerReviews *mBeerServiceMockGetBeerReviews) Set(f func(ctx context.C
 
 // When sets expectation for the BeerService.GetBeerReviews which will trigger the result defined by the following
 // Then helper
-func (mmGetBeerReviews *mBeerServiceMockGetBeerReviews) When(ctx context.Context) *BeerServiceMockGetBeerReviewsExpectation {
+func (mmGetBeerReviews *mBeerServiceMockGetBeerReviews) When(ctx context.Context, limit uint64, offset uint64, beerid uint) *BeerServiceMockGetBeerReviewsExpectation {
 	if mmGetBeerReviews.mock.funcGetBeerReviews != nil {
 		mmGetBeerReviews.mock.t.Fatalf("BeerServiceMock.GetBeerReviews mock is already set by Set")
 	}
 
 	expectation := &BeerServiceMockGetBeerReviewsExpectation{
 		mock:               mmGetBeerReviews.mock,
-		params:             &BeerServiceMockGetBeerReviewsParams{ctx},
+		params:             &BeerServiceMockGetBeerReviewsParams{ctx, limit, offset, beerid},
 		expectationOrigins: BeerServiceMockGetBeerReviewsExpectationOrigins{origin: minimock.CallerInfo(1)},
 	}
 	mmGetBeerReviews.expectations = append(mmGetBeerReviews.expectations, expectation)
@@ -3095,8 +3173,8 @@ func (mmGetBeerReviews *mBeerServiceMockGetBeerReviews) When(ctx context.Context
 }
 
 // Then sets up BeerService.GetBeerReviews return parameters for the expectation previously defined by the When method
-func (e *BeerServiceMockGetBeerReviewsExpectation) Then(pa1 []entities.ProductCategory, err error) *BeerServiceMock {
-	e.results = &BeerServiceMockGetBeerReviewsResults{pa1, err}
+func (e *BeerServiceMockGetBeerReviewsExpectation) Then(ra1 []entities.Review, err error) *BeerServiceMock {
+	e.results = &BeerServiceMockGetBeerReviewsResults{ra1, err}
 	return e.mock
 }
 
@@ -3122,17 +3200,17 @@ func (mmGetBeerReviews *mBeerServiceMockGetBeerReviews) invocationsDone() bool {
 }
 
 // GetBeerReviews implements mm_usecase.BeerService
-func (mmGetBeerReviews *BeerServiceMock) GetBeerReviews(ctx context.Context) (pa1 []entities.ProductCategory, err error) {
+func (mmGetBeerReviews *BeerServiceMock) GetBeerReviews(ctx context.Context, limit uint64, offset uint64, beerid uint) (ra1 []entities.Review, err error) {
 	mm_atomic.AddUint64(&mmGetBeerReviews.beforeGetBeerReviewsCounter, 1)
 	defer mm_atomic.AddUint64(&mmGetBeerReviews.afterGetBeerReviewsCounter, 1)
 
 	mmGetBeerReviews.t.Helper()
 
 	if mmGetBeerReviews.inspectFuncGetBeerReviews != nil {
-		mmGetBeerReviews.inspectFuncGetBeerReviews(ctx)
+		mmGetBeerReviews.inspectFuncGetBeerReviews(ctx, limit, offset, beerid)
 	}
 
-	mm_params := BeerServiceMockGetBeerReviewsParams{ctx}
+	mm_params := BeerServiceMockGetBeerReviewsParams{ctx, limit, offset, beerid}
 
 	// Record call args
 	mmGetBeerReviews.GetBeerReviewsMock.mutex.Lock()
@@ -3142,7 +3220,7 @@ func (mmGetBeerReviews *BeerServiceMock) GetBeerReviews(ctx context.Context) (pa
 	for _, e := range mmGetBeerReviews.GetBeerReviewsMock.expectations {
 		if minimock.Equal(*e.params, mm_params) {
 			mm_atomic.AddUint64(&e.Counter, 1)
-			return e.results.pa1, e.results.err
+			return e.results.ra1, e.results.err
 		}
 	}
 
@@ -3151,13 +3229,28 @@ func (mmGetBeerReviews *BeerServiceMock) GetBeerReviews(ctx context.Context) (pa
 		mm_want := mmGetBeerReviews.GetBeerReviewsMock.defaultExpectation.params
 		mm_want_ptrs := mmGetBeerReviews.GetBeerReviewsMock.defaultExpectation.paramPtrs
 
-		mm_got := BeerServiceMockGetBeerReviewsParams{ctx}
+		mm_got := BeerServiceMockGetBeerReviewsParams{ctx, limit, offset, beerid}
 
 		if mm_want_ptrs != nil {
 
 			if mm_want_ptrs.ctx != nil && !minimock.Equal(*mm_want_ptrs.ctx, mm_got.ctx) {
 				mmGetBeerReviews.t.Errorf("BeerServiceMock.GetBeerReviews got unexpected parameter ctx, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
 					mmGetBeerReviews.GetBeerReviewsMock.defaultExpectation.expectationOrigins.originCtx, *mm_want_ptrs.ctx, mm_got.ctx, minimock.Diff(*mm_want_ptrs.ctx, mm_got.ctx))
+			}
+
+			if mm_want_ptrs.limit != nil && !minimock.Equal(*mm_want_ptrs.limit, mm_got.limit) {
+				mmGetBeerReviews.t.Errorf("BeerServiceMock.GetBeerReviews got unexpected parameter limit, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmGetBeerReviews.GetBeerReviewsMock.defaultExpectation.expectationOrigins.originLimit, *mm_want_ptrs.limit, mm_got.limit, minimock.Diff(*mm_want_ptrs.limit, mm_got.limit))
+			}
+
+			if mm_want_ptrs.offset != nil && !minimock.Equal(*mm_want_ptrs.offset, mm_got.offset) {
+				mmGetBeerReviews.t.Errorf("BeerServiceMock.GetBeerReviews got unexpected parameter offset, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmGetBeerReviews.GetBeerReviewsMock.defaultExpectation.expectationOrigins.originOffset, *mm_want_ptrs.offset, mm_got.offset, minimock.Diff(*mm_want_ptrs.offset, mm_got.offset))
+			}
+
+			if mm_want_ptrs.beerid != nil && !minimock.Equal(*mm_want_ptrs.beerid, mm_got.beerid) {
+				mmGetBeerReviews.t.Errorf("BeerServiceMock.GetBeerReviews got unexpected parameter beerid, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmGetBeerReviews.GetBeerReviewsMock.defaultExpectation.expectationOrigins.originBeerid, *mm_want_ptrs.beerid, mm_got.beerid, minimock.Diff(*mm_want_ptrs.beerid, mm_got.beerid))
 			}
 
 		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
@@ -3169,12 +3262,12 @@ func (mmGetBeerReviews *BeerServiceMock) GetBeerReviews(ctx context.Context) (pa
 		if mm_results == nil {
 			mmGetBeerReviews.t.Fatal("No results are set for the BeerServiceMock.GetBeerReviews")
 		}
-		return (*mm_results).pa1, (*mm_results).err
+		return (*mm_results).ra1, (*mm_results).err
 	}
 	if mmGetBeerReviews.funcGetBeerReviews != nil {
-		return mmGetBeerReviews.funcGetBeerReviews(ctx)
+		return mmGetBeerReviews.funcGetBeerReviews(ctx, limit, offset, beerid)
 	}
-	mmGetBeerReviews.t.Fatalf("Unexpected call to BeerServiceMock.GetBeerReviews. %v", ctx)
+	mmGetBeerReviews.t.Fatalf("Unexpected call to BeerServiceMock.GetBeerReviews. %v %v %v %v", ctx, limit, offset, beerid)
 	return
 }
 
@@ -5467,7 +5560,6 @@ type BeerServiceMockUpdateReviewParamPtrs struct {
 
 // BeerServiceMockUpdateReviewResults contains results of the BeerService.UpdateReview
 type BeerServiceMockUpdateReviewResults struct {
-	u1  uint
 	err error
 }
 
@@ -5595,7 +5687,7 @@ func (mmUpdateReview *mBeerServiceMockUpdateReview) Inspect(f func(ctx context.C
 }
 
 // Return sets up results that will be returned by BeerService.UpdateReview
-func (mmUpdateReview *mBeerServiceMockUpdateReview) Return(u1 uint, err error) *BeerServiceMock {
+func (mmUpdateReview *mBeerServiceMockUpdateReview) Return(err error) *BeerServiceMock {
 	if mmUpdateReview.mock.funcUpdateReview != nil {
 		mmUpdateReview.mock.t.Fatalf("BeerServiceMock.UpdateReview mock is already set by Set")
 	}
@@ -5603,13 +5695,13 @@ func (mmUpdateReview *mBeerServiceMockUpdateReview) Return(u1 uint, err error) *
 	if mmUpdateReview.defaultExpectation == nil {
 		mmUpdateReview.defaultExpectation = &BeerServiceMockUpdateReviewExpectation{mock: mmUpdateReview.mock}
 	}
-	mmUpdateReview.defaultExpectation.results = &BeerServiceMockUpdateReviewResults{u1, err}
+	mmUpdateReview.defaultExpectation.results = &BeerServiceMockUpdateReviewResults{err}
 	mmUpdateReview.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
 	return mmUpdateReview.mock
 }
 
 // Set uses given function f to mock the BeerService.UpdateReview method
-func (mmUpdateReview *mBeerServiceMockUpdateReview) Set(f func(ctx context.Context, id uint, updates map[string]any) (u1 uint, err error)) *BeerServiceMock {
+func (mmUpdateReview *mBeerServiceMockUpdateReview) Set(f func(ctx context.Context, id uint, updates map[string]any) (err error)) *BeerServiceMock {
 	if mmUpdateReview.defaultExpectation != nil {
 		mmUpdateReview.mock.t.Fatalf("Default expectation is already set for the BeerService.UpdateReview method")
 	}
@@ -5640,8 +5732,8 @@ func (mmUpdateReview *mBeerServiceMockUpdateReview) When(ctx context.Context, id
 }
 
 // Then sets up BeerService.UpdateReview return parameters for the expectation previously defined by the When method
-func (e *BeerServiceMockUpdateReviewExpectation) Then(u1 uint, err error) *BeerServiceMock {
-	e.results = &BeerServiceMockUpdateReviewResults{u1, err}
+func (e *BeerServiceMockUpdateReviewExpectation) Then(err error) *BeerServiceMock {
+	e.results = &BeerServiceMockUpdateReviewResults{err}
 	return e.mock
 }
 
@@ -5667,7 +5759,7 @@ func (mmUpdateReview *mBeerServiceMockUpdateReview) invocationsDone() bool {
 }
 
 // UpdateReview implements mm_usecase.BeerService
-func (mmUpdateReview *BeerServiceMock) UpdateReview(ctx context.Context, id uint, updates map[string]any) (u1 uint, err error) {
+func (mmUpdateReview *BeerServiceMock) UpdateReview(ctx context.Context, id uint, updates map[string]any) (err error) {
 	mm_atomic.AddUint64(&mmUpdateReview.beforeUpdateReviewCounter, 1)
 	defer mm_atomic.AddUint64(&mmUpdateReview.afterUpdateReviewCounter, 1)
 
@@ -5687,7 +5779,7 @@ func (mmUpdateReview *BeerServiceMock) UpdateReview(ctx context.Context, id uint
 	for _, e := range mmUpdateReview.UpdateReviewMock.expectations {
 		if minimock.Equal(*e.params, mm_params) {
 			mm_atomic.AddUint64(&e.Counter, 1)
-			return e.results.u1, e.results.err
+			return e.results.err
 		}
 	}
 
@@ -5724,7 +5816,7 @@ func (mmUpdateReview *BeerServiceMock) UpdateReview(ctx context.Context, id uint
 		if mm_results == nil {
 			mmUpdateReview.t.Fatal("No results are set for the BeerServiceMock.UpdateReview")
 		}
-		return (*mm_results).u1, (*mm_results).err
+		return (*mm_results).err
 	}
 	if mmUpdateReview.funcUpdateReview != nil {
 		return mmUpdateReview.funcUpdateReview(ctx, id, updates)
