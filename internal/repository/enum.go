@@ -151,6 +151,7 @@ func (e *EnumPostgres) GetEnumClasses(ctx context.Context, entity, field string)
 	return enumClasses, nil
 }
 
+// scanEnumClass сканирует строку результата запроса и преобразует ее в сущность EnumClass.
 func scanEnumClass(row pgx.Row) (*entities.EnumClass, error) {
 	var class entities.EnumClass
 	var unit pgtype.Text
@@ -171,20 +172,137 @@ func scanEnumClass(row pgx.Row) (*entities.EnumClass, error) {
 
 // InsertEnumValue сохраняет новую сущность EnumValue в хранилище.
 func (e *EnumPostgres) InsertEnumValue(ctx context.Context, enumValue entities.EnumValue) (uint, error) {
-	return 0, nil
+	if e.Pool == nil {
+		return 0, errors.New("pool is nil")
+	}
+
+	var valID uint
+
+	enumValueRow, err := enumValue.ToRow()
+	if err != nil || enumValueRow == nil {
+		return 0, fmt.Errorf("%s: %w", "ToRow", err)
+	}
+
+	psql := queries.InsertEnumValue(*enumValueRow)
+
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", "ToSql", err)
+	}
+
+	err = e.Pool.QueryRow(ctx, query, args...).Scan(&valID)
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", "QueryRow", err)
+	}
+
+	if valID == 0 {
+		return 0, errors.New("failed to insert enum value")
+	}
+
+	return valID, nil
 }
 
 // UpdateEnumValue обновляет сущность EnumValue в хранилище.
 func (e *EnumPostgres) UpdateEnumValue(ctx context.Context, id uint, value any, position *int) error {
+	if e.Pool == nil {
+		return errors.New("pool is nil")
+	}
+
+	const numArgs = 2
+
+	updates := make(map[string]any, numArgs)
+
+	if position != nil {
+		updates["position"] = *position
+	}
+	if value != nil {
+		updates["value_raw"] = fmt.Sprint(value)
+	}
+
+	psql := queries.UpdateEnumValue(id, updates)
+
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: %w", "ToSql", err)
+	}
+
+	_, err = e.Pool.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("%s: %w", "Exec", err)
+	}
+
 	return nil
 }
 
 // DeleteEnumValueByID удаляет сущность EnumValue из хранилища.
 func (e *EnumPostgres) DeleteEnumValueByID(ctx context.Context, id uint) error {
+	if e.Pool == nil {
+		return errors.New("pool is nil")
+	}
+
+	psql := queries.DeleteEnumValue(id)
+
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: %w", "ToSql", err)
+	}
+
+	_, err = e.Pool.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("%s: %w", "Exec", err)
+	}
 	return nil
 }
 
 // GetEnumValues получает список сущностей EnumClass по заданным имени таблицы, поля и типу значения.
 func (e *EnumPostgres) GetEnumValues(ctx context.Context, entity, field, valueType string) ([]entities.EnumValue, error) {
-	return nil, nil
+	if e.Pool == nil {
+		return nil, errors.New("pool is nil")
+	}
+
+	psql := queries.SelectEnumValues(entity, field, valueType)
+
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ToSql", err)
+	}
+
+	rows, err := e.Pool.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Query", err)
+	}
+	defer rows.Close()
+
+	enumValues := make([]entities.EnumValue, 0)
+
+	for rows.Next() {
+		val, err := scanEnumValue(rows)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan row: %w", err)
+		}
+		enumValues = append(enumValues, *val)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows.Err: %w", err)
+	}
+
+	return enumValues, nil
+}
+
+// scanEnumValue сканирует строку результата запроса и преобразует ее в сущность EnumValue.
+func scanEnumValue(row pgx.Row) (*entities.EnumValue, error) {
+	var valRow entities.EnumValueRow
+
+	err := row.Scan(&valRow.ID, &valRow.EnumClassID, &valRow.ValueRaw, &valRow.ValueType, &valRow.Position)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Scan", err)
+	}
+
+	val, err := valRow.FromRow()
+	if err != nil || val == nil {
+		return nil, fmt.Errorf("%s: %w", "FromRow", err)
+	}
+
+	return val, nil
 }

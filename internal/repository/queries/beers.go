@@ -99,7 +99,10 @@ func SelectReviewByBeerID(beerID uint) sq.SelectBuilder {
 		"id",
 		"body",
 		"beer_id",
-		"rating").From(reviewsTable).Where(sq.Eq{"beer_id": beerID}).OrderBy("id DESC")
+		"rating").
+		From(reviewsTable).
+		Where(sq.Eq{"beer_id": beerID}).
+		OrderBy("id DESC")
 }
 
 // UpdateBeer возвращает запрос для обновления информации о пиве в таблице beers по его ID с использованием данных из переданной карты обновлений.
