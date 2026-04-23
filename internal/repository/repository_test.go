@@ -20,9 +20,16 @@ import (
 )
 
 var (
-	testDB   *pgxpool.Pool
+	// testDB - глобальная переменная для хранения подключения к тестовой базе данных, которая будет использоваться во всех тестах.
+	testDB *pgxpool.Pool
+
+	// beerRepo - глобальная переменная для хранения экземпляра BeerPostgres, который будет использоваться в тестах для взаимодействия с таблицей пива.
 	beerRepo *repository.BeerPostgres
-	ctgRepo  *repository.CategoryPostgres
+
+	// ctgRepo - глобальная переменная для хранения экземпляра CategoryPostgres, который будет использоваться в тестах для взаимодействия с таблицей категорий.
+	ctgRepo *repository.CategoryPostgres
+
+	// enumRepo - глобальная переменная для хранения экземпляра EnumPostgres, который будет использоваться в тестах для взаимодействия с таблицей перечислений.
 	enumRepo *repository.EnumPostgres
 )
 
