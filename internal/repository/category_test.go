@@ -11,8 +11,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// testCtg - глобальная переменная для хранения тестовой категории, которая будет использоваться в нескольких тестах.
 var testCtg = entities.ProductCategory{Name: "test"}
 
+// TestCategoryRepository_InsertCategory проверяет, что метод InsertCategory корректно вставляет категорию в базу данных и возвращает её ID.
 func TestCategoryRepository_InsertCategory(t *testing.T) {
 	ctx := t.Context()
 
@@ -68,6 +70,7 @@ func TestCategoryRepository_InsertCategory(t *testing.T) {
 	})
 }
 
+// TestCategoryRepository_GetCategories проверяет, что метод GetCategories корректно возвращает список всех категорий из базы данных, а также обрабатывает случай, когда база данных пуста.
 func TestCategoryRepository_GetCategories(t *testing.T) {
 	ctx := t.Context()
 
@@ -100,6 +103,7 @@ func TestCategoryRepository_GetCategories(t *testing.T) {
 	})
 }
 
+// TestCategoryRepository_UpdateCategory проверяет, что метод UpdateCategory корректно обновляет информацию о категории по её ID.
 func TestCategoryRepository_UpdateCategory(t *testing.T) {
 	ctx := t.Context()
 
@@ -133,6 +137,7 @@ func TestCategoryRepository_UpdateCategory(t *testing.T) {
 	})
 }
 
+// TestCategoryRepository_DeleteCategoryByID проверяет, что метод DeleteCategoryByID корректно удаляет категорию по её ID.
 func TestCategoryRepository_DeleteCategoryByID(t *testing.T) {
 	ctx := t.Context()
 
@@ -162,6 +167,7 @@ func TestCategoryRepository_DeleteCategoryByID(t *testing.T) {
 	})
 }
 
+// TestCategoryRepository_GetCategoryID проверяет, что метод GetCategoryID корректно возвращает ID категории по её имени.
 func TestCategoryRepository_GetCategoryID(t *testing.T) {
 	ctx := t.Context()
 
