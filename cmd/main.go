@@ -4,8 +4,8 @@ package main
 import (
 	"Brewery/internal/config"
 	"Brewery/internal/http/handlers"
-	"Brewery/internal/http/routers"
 	"Brewery/internal/http/middleware"
+	"Brewery/internal/http/routers"
 	"Brewery/internal/repository"
 	"Brewery/internal/usecase"
 	"Brewery/pkg/logger"
@@ -48,11 +48,10 @@ func main() {
 		panic(fmt.Errorf("failed to create postgres pool: %w", err))
 	}
 
-	beerRepo := repository.NewBeerPostgres(pool)
-	ctgRepo := repository.NewCategoryPostgres(pool)
+	beerRepo := repository.NewBeerRepository(pool)
+	ctgRepo := repository.NewCategoryRepository(pool)
 
 	beerSrv := usecase.NewBeerService(beerRepo, ctgRepo)
-	
 
 	engine := gin.New()
 	engine.Use(gin.Recovery())
@@ -82,13 +81,13 @@ func main() {
 	defer router.Close()
 
 	h := handlers.Handlers{
-		CategoryHandler: handlers.NewCategoriesHandlers(beerSrv),
-		BeersHandler: handlers.NewBeersHandlers(beerSrv),
-		ReviewHandler: handlers.NewReviewsHandlers(beerSrv),
+		CategoryHandler:  handlers.NewCategoriesHandlers(beerSrv),
+		BeersHandler:     handlers.NewBeersHandlers(beerSrv),
+		ReviewHandler:    handlers.NewReviewsHandlers(beerSrv),
 		EnumClassHandler: handlers.NewEnumClassHandlers(beerSrv),
 		EnumValueHandler: handlers.NewEnumValueHandlers(beerSrv),
 	}
-	
+
 	routers.RegisterRoutes(router.Engine, h)
 
 	log.Info(ctx, fmt.Sprintf("server listening on port %s", cfg.Port))

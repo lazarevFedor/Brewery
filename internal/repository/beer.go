@@ -68,6 +68,11 @@ type BeerPostgres struct {
 	Pool *pgxpool.Pool
 }
 
+// NewBeerRepository создает новый экземпляр BeerRepository с переданным пулом соединений.
+func NewBeerRepository(pgPool *pgxpool.Pool) BeerRepository {
+	return &BeerPostgres{Pool: pgPool}
+}
+
 // NewBeerPostgres создает новый репозиторий БД
 func NewBeerPostgres(pgPool *pgxpool.Pool) *BeerPostgres {
 	return &BeerPostgres{Pool: pgPool}

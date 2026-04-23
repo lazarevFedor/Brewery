@@ -40,6 +40,11 @@ type CategoryPostgres struct {
 	Pool *pgxpool.Pool
 }
 
+// NewCategoryRepository создает новый экземпляр CategoryRepository с переданным пулом соединений.
+func NewCategoryRepository(pool *pgxpool.Pool) CategoryRepository {
+	return &CategoryPostgres{Pool: pool}
+}
+
 // NewCategoryPostgres создает новый экземпляр CategoryPostgres с переданным пулом соединений.
 // Если пул равен nil, методы будут возвращать ошибку при попытке доступа к базе данных.
 func NewCategoryPostgres(pool *pgxpool.Pool) *CategoryPostgres {
