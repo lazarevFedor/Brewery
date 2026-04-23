@@ -8,6 +8,7 @@ import (
 )
 
 const (
+	// Константы с именами таблиц, используемых в запросах
 	beersTable        = "beers"
 	reviewsTable      = "reviews"
 	citiesTable       = "cities"
@@ -94,6 +95,7 @@ func UpdateReview(id uint, updates map[string]any) sq.UpdateBuilder {
 		Suffix("RETURNING id")
 }
 
+// SelectReviewByBeerID возвращает запрос для получения списка отзывов, связанных с определенным пивом, с сортировкой по убыванию ID.
 func SelectReviewByBeerID(beerID uint) sq.SelectBuilder {
 	return psql.Select(
 		"id",
