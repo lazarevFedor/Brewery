@@ -14,7 +14,7 @@ type EnumService interface {
 	DeleteEnum(ctx context.Context, id uint) error
 
 	CreateEnumValue(ctx context.Context, enum entities.EnumValue) (uint, error)
-	GetEnumValue(ctx context.Context, entityName, fieldName, valueType string) ([]entities.EnumValue, error)
+	GetEnumValue(ctx context.Context, entity, field string, valueType entities.EnumType) ([]entities.EnumValue, error)
 	UpdateEnumValue(ctx context.Context, id uint, updates map[string]any) error
 	DeleteEnumValue(ctx context.Context, id uint) error
 }
@@ -96,7 +96,7 @@ func (s *enumService) CreateEnumValue(ctx context.Context, enum entities.EnumVal
 	return id, nil
 }
 
-func (s *enumService) GetEnumValue(ctx context.Context, entityName, fieldName, valueType string) ([]entities.EnumValue, error) {
+func (s *enumService) GetEnumValue(ctx context.Context, entityName, fieldName string, valueType entities.EnumType) ([]entities.EnumValue, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}

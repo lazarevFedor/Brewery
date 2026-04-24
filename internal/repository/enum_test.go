@@ -481,7 +481,7 @@ func TestEnumRepository_GetEnumValues(t *testing.T) {
 		require.NoError(t, err)
 		require.NotZero(t, secondValID)
 
-		intValues, err := enumRepo.GetEnumValues(ctx, intClass.EntityName, intClass.FieldName, intClass.Type)
+		intValues, err := enumRepo.GetEnumValues(ctx, intClass.EntityName, intClass.FieldName, entities.EnumType(intClass.Type))
 		require.NoError(t, err)
 		require.Len(t, intValues, 1)
 		require.Equal(t, firstValID, uint(intValues[0].ID))
@@ -489,7 +489,7 @@ func TestEnumRepository_GetEnumValues(t *testing.T) {
 		require.Equal(t, firstVal.Value, intValues[0].Value)
 		require.Equal(t, firstVal.Position, intValues[0].Position)
 
-		floatValues, err := enumRepo.GetEnumValues(ctx, floatClass.EntityName, floatClass.FieldName, floatClass.Type)
+		floatValues, err := enumRepo.GetEnumValues(ctx, floatClass.EntityName, floatClass.FieldName, entities.EnumType(floatClass.Type))
 		require.NoError(t, err)
 		require.Len(t, floatValues, 1)
 		require.Equal(t, secondValID, uint(floatValues[0].ID))
@@ -521,7 +521,7 @@ func TestEnumRepository_UpdateEnumValue(t *testing.T) {
 	ctx := t.Context()
 
 	t.Run("Успешное обновление значения перечисления", func(t *testing.T) {
-		enumClass := entities.EnumClass{Type: entities.EnumValueTypeInt, EntityName: "enum_update_beers_value", FieldName: "amount", Unit: "ml", IsActive: true}
+		enumClass := entities.EnumClass{Type: string(entities.EnumValueTypeInt), EntityName: "enum_update_beers_value", FieldName: "amount", Unit: "ml", IsActive: true}
 
 		enumID, err := enumRepo.InsertEnumClass(ctx, enumClass)
 		require.NoError(t, err)
@@ -550,7 +550,7 @@ func TestEnumRepository_UpdateEnumValue(t *testing.T) {
 	})
 
 	t.Run("Успешное обновление только позиции значения перечисления", func(t *testing.T) {
-		enumClass := entities.EnumClass{Type: entities.EnumValueTypeInt, EntityName: "enum_update_beers_position", FieldName: "amount", Unit: "L", IsActive: true}
+		enumClass := entities.EnumClass{Type: string(entities.EnumValueTypeInt), EntityName: "enum_update_beers_position", FieldName: "amount", Unit: "L", IsActive: true}
 
 		enumID, err := enumRepo.InsertEnumClass(ctx, enumClass)
 		require.NoError(t, err)
@@ -581,7 +581,7 @@ func TestEnumRepository_UpdateEnumValue(t *testing.T) {
 	t.Run("Обновление значения перечисления с использованием неинициализированного пула коннектов", func(t *testing.T) {
 		uninitializedRepo := &repository.EnumPostgres{}
 
-		enumClass := entities.EnumClass{Type: entities.EnumValueTypeInt, EntityName: "enum_update_uninit", FieldName: "amount", Unit: "kg", IsActive: true}
+		enumClass := entities.EnumClass{Type: string(entities.EnumValueTypeInt), EntityName: "enum_update_uninit", FieldName: "amount", Unit: "kg", IsActive: true}
 
 		enumID, err := enumRepo.InsertEnumClass(ctx, enumClass)
 		require.NoError(t, err)
@@ -608,7 +608,7 @@ func TestEnumRepository_DeleteEnumValueByID(t *testing.T) {
 	ctx := t.Context()
 
 	t.Run("Успешное удаление значения перечисления", func(t *testing.T) {
-		enumClass := entities.EnumClass{Type: entities.EnumValueTypeInt, EntityName: "enum_delete_beers", FieldName: "amount", Unit: "ml", IsActive: true}
+		enumClass := entities.EnumClass{Type: string(entities.EnumValueTypeInt), EntityName: "enum_delete_beers", FieldName: "amount", Unit: "ml", IsActive: true}
 
 		enumID, err := enumRepo.InsertEnumClass(ctx, enumClass)
 		require.NoError(t, err)
