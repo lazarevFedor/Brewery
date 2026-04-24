@@ -847,6 +847,17 @@
         ],
         "summary": "Get enum",
         "operationId": "getEnum",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/EnumType"
+          },
+          {
+            "$ref": "#/components/parameters/EntityName"
+          },
+          {
+            "$ref": "#/components/parameters/FieldName"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Enum list",
@@ -855,7 +866,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/EnumValueGet"
+                    "$ref": "#/components/schemas/EnumValue"
                   }
                 }
               }
@@ -1197,42 +1208,12 @@
           }
         ]
       },
-      "EnumClassWithFilter": {
-        "type": "object",
-        "required": [
-          "entity_name"
-        ],
-        "properties": {
-          "entity_name": {
-            "type": "string"
-          },
-          "field_name": {
-            "type": "string"
-          }
-        }
-      },
-      "EnumValueGet": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/EnumClassWithFilter"
-          },
-          {
-            "type": "object",
-            "required": [
-              "entity_name",
-              "field_name"
-            ],
-            "properties": {
-              "type": {
-                "type": "string"
-              }
-            }
-          }
-        ]
-      },
       "EnumValueBase": {
         "type": "object",
         "properties": {
+          "enum_type": {
+            "type": "string"
+          },
           "value": {
             "type": "string"
           },
@@ -1323,6 +1304,14 @@
       },
       "FieldName": {
         "name": "field_name",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "EnumType": {
+        "name": "enum_type",
         "in": "query",
         "required": true,
         "schema": {

@@ -34,6 +34,11 @@
     "tags": ["EnumsValue"],
     "summary": "Get enum",
     "operationId": "getEnum",
+    "parameters":[
+      {"$ref": "../../components/parameters/enum_type.json#/EnumType"},
+      {"$ref": "../../components/parameters/entity_name.json#/EntityName"},
+      {"$ref": "../../components/parameters/field_name.json#/FieldName"}
+    ],
     "responses": {
       "200": {
         "description": "Enum list",
@@ -41,7 +46,7 @@
           "application/json": {
             "schema": {
               "type": "array",
-              "items": {"$ref": "../../components/schemas/enum_value.json#/EnumValueGet"}
+              "items": {"$ref": "../../components/schemas/enum_value.json#/EnumValue"}
             }
           }
         }

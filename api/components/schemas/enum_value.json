@@ -2,6 +2,7 @@
     "EnumValueBase": {
         "type": "object",
         "properties": {
+            "enum_type": { "type": "string" },
             "value": {"type": "string"},
             "position": {"type": "integer"}
         }
@@ -15,19 +16,6 @@
                 "required": ["class_id", "value", "position"],
                 "properties":{
                     "class_id": {"type": "integer"}
-                }
-            }
-        ]
-    },
-
-    "EnumValueGet": {
-        "allOf": [
-            { "$ref": "./enum_class.json#/EnumClassWithFilter" },
-            {
-                "type": "object",
-                "required": ["entity_name", "field_name"],
-                "properties": {
-                    "type": {"type": "string"}
                 }
             }
         ]
