@@ -88,7 +88,7 @@ func (h *categoriesHandlers) GetCategoryByID(c *gin.Context) {
 		return
 	}
 
-	categoryID, err := getIDParam(c)
+	categoryID, err := getUintParam(c, "id")
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
 
@@ -124,7 +124,7 @@ func (h *categoriesHandlers) UpdateCategory(c *gin.Context) {
 		return
 	}
 
-	id, err := getIDParam(c)
+	id, err := getUintParam(c, "id")
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
 
@@ -172,7 +172,7 @@ func (h *categoriesHandlers) DeleteCategory(c *gin.Context) {
 		return
 	}
 
-	id, err := getIDParam(c)
+	id, err := getUintParam(c, "id")
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
 
@@ -229,7 +229,7 @@ func (h *categoriesHandlers) GetParentCategory(c *gin.Context) {
 		return
 	}
 
-	id, err := getIDParam(c)
+	id, err := getUintParam(c, "id")
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
 
@@ -265,7 +265,7 @@ func (h *categoriesHandlers) GetChildCategory(c *gin.Context) {
 		return
 	}
 
-	id, err := getIDParam(c)
+	id, err := getUintParam(c, "id")
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
 
@@ -301,7 +301,7 @@ func (h *categoriesHandlers) GetBeersByCategory(c *gin.Context) {
 		return
 	}
 
-	id, err := getCategoryIDParam(c)
+	id, err := getUintParam(c, "category_id")
 	if err != nil {
 		log.Warn(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
 

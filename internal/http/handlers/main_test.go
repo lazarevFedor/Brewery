@@ -3,8 +3,8 @@ package handlers_test
 import (
 	"Brewery/internal/http/handlers"
 	"Brewery/internal/http/handlers/mocks"
-	"Brewery/internal/http/routers"
 	"Brewery/internal/http/middleware"
+	"Brewery/internal/http/routers"
 	"Brewery/pkg/logger"
 	"context"
 	"io"
@@ -16,12 +16,13 @@ import (
 )
 
 type testEnv struct {
-	Router *gin.Engine
-	Mock   *mocks.BeerServiceMock
+	Router   *gin.Engine
+	BeerMock *mocks.BeerServiceMock
+	EnumMock *mocks.EnumServiceMock
 }
 
 // setupIntegrationRouter инициализирует тестовый сервер с моками и необходимыми middleware для интеграционных тестов.
-func setupIntegrationRouter(svc *mocks.BeerServiceMock) *gin.Engine {
+func setupIntegrationRouter(beerServiceM *mocks.BeerServiceMock, enumServiceM *mocks.EnumServiceMock) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 
 	logCtx, err := logger.NewLoggerContext(context.Background(), true)
@@ -44,13 +45,12 @@ func setupIntegrationRouter(svc *mocks.BeerServiceMock) *gin.Engine {
 	engine.Use(middleware.RequestContextMiddleware())
 	engine.Use(middleware.MetricsMiddleware())
 
-
 	h := handlers.Handlers{
-		CategoryHandler: handlers.NewCategoriesHandlers(svc),
-		BeersHandler: handlers.NewBeersHandlers(svc),
-		ReviewHandler: handlers.NewReviewsHandlers(svc),
-		EnumClassHandler: handlers.NewEnumClassHandlers(svc),
-		EnumValueHandler: handlers.NewEnumValueHandlers(svc),
+		CategoryHandler:  handlers.NewCategoriesHandlers(beerServiceM),
+		BeersHandler:     handlers.NewBeersHandlers(beerServiceM),
+		ReviewHandler:    handlers.NewReviewsHandlers(beerServiceM),
+		EnumClassHandler: handlers.NewEnumClassHandlers(enumServiceM),
+		EnumValueHandler: handlers.NewEnumValueHandlers(enumServiceM),
 	}
 	routers.RegisterRoutes(engine, h)
 
@@ -61,13 +61,15 @@ func newTestEnv(t *testing.T) *testEnv {
 	t.Helper()
 
 	mc := minimock.NewController(t)
-	serviceMock := mocks.NewBeerServiceMock(mc)
+	beerServiceMock := mocks.NewBeerServiceMock(mc)
+	enumServiceMock := mocks.NewEnumServiceMock(mc)
 
-	router := setupIntegrationRouter(serviceMock)
+	router := setupIntegrationRouter(beerServiceMock, enumServiceMock)
 
 	return &testEnv{
-		Router: router,
-		Mock:   serviceMock,
+		Router:   router,
+		BeerMock: beerServiceMock,
+		EnumMock: enumServiceMock,
 	}
 }
 

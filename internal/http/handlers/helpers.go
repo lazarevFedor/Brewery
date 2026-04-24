@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -19,53 +18,31 @@ const (
 	maxLimit = 100
 )
 
-
-type Handlers struct{
-	CategoryHandler CategoriesHandlers
-	BeersHandler BeersHandlers
-	ReviewHandler ReviewsHandlers
+type Handlers struct {
+	CategoryHandler  CategoriesHandlers
+	BeersHandler     BeersHandlers
+	ReviewHandler    ReviewsHandlers
 	EnumClassHandler EnumClassHandlers
 	EnumValueHandler EnumValueHandlers
 }
 
-// getIDParam извлекает и валидирует параметр id из URL.
-func getIDParam(c *gin.Context) (uint, error) {
-	idStr := c.Param("id")
+// getUintParam извлекает и валидирует целочисленный ненулевой параметр из URL, например id.
+func getUintParam(c *gin.Context, name string) (uint, error) {
+	param := c.Param(name)
 
-	id, err := strconv.Atoi(idStr)
-	if err != nil || id <= 0 {
+	uintParam, err := strconv.Atoi(param)
+	if err != nil || uintParam <= 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 
 		return 0, errors.New("invalid id")
 	}
 
-	return uint(id), nil
+	return uint(uintParam), nil
 }
 
-func getBeerIDParam(c *gin.Context) (uint, error) {
-	beerIDStr := c.Param("beer_id")
-
-	beerID, err := strconv.Atoi(beerIDStr)
-	if err != nil || beerID <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid beer id"})
-
-		return 0, fmt.Errorf("invalid beer id: %w", err)
-	}
-
-	return uint(beerID), nil
-}
-
-func getCategoryIDParam(c *gin.Context) (uint, error) {
-	ctgIDStr := c.Param("category_id")
-
-	beerID, err := strconv.Atoi(ctgIDStr)
-	if err != nil || beerID <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid category id"})
-
-		return 0, fmt.Errorf("invalid category id: %w", err)
-	}
-
-	return uint(beerID), nil
+// getQueryParam извлекает строковый параметр из URL, например field_name.
+func getQueryParam(c *gin.Context, name string) string {
+	return c.Query(name)
 }
 
 // readRequestBody читает тело HTTP-запроса и возвращает его в виде байтового среза.

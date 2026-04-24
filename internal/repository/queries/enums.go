@@ -74,7 +74,7 @@ func InsertEnumValue(enumValue entities.EnumValueRow) sq.InsertBuilder {
 }
 
 // SelectEnumValues возвращает запрос на получение значений перечисления по имени таблицы, поля и типа значения.
-func SelectEnumValues(entity, field, valueType string) sq.SelectBuilder {
+func SelectEnumValues(entity, field string, valueType entities.EnumType)  sq.SelectBuilder {
 	return psql.
 		Select(
 			"val.id",

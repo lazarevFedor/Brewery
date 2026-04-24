@@ -701,16 +701,14 @@
         ],
         "summary": "Get enum",
         "operationId": "getEnum",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EnumClassWithFilter"
-              }
-            }
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/EntityName"
+          },
+          {
+            "$ref": "#/components/parameters/FieldName"
           }
-        },
+        ],
         "responses": {
           "200": {
             "description": "Enum list",
@@ -729,12 +727,46 @@
       }
     },
     "/enums/{id}": {
+      "patch": {
+        "tags": [
+          "EnumsClass"
+        ],
+        "summary": "Update enum",
+        "operationId": "updateEnums",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnumClass"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated enum",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Beer"
+                }
+              }
+            }
+          }
+        }
+      },
       "delete": {
         "tags": [
           "EnumsClass"
         ],
-        "summary": "Delete beer",
-        "operationId": "deleteBeer",
+        "summary": "Delete enum class",
+        "operationId": "deleteEnum",
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
@@ -757,7 +789,7 @@
             }
           },
           "404": {
-            "description": "Beer or Feat Not Found",
+            "description": "Enum Not Found",
             "content": {
               "application/json": {
                 "schema": {
@@ -767,39 +799,6 @@
                       "type": "boolean"
                     }
                   }
-                }
-              }
-            }
-          }
-        }
-      },
-      "patch": {
-        "tags": [
-          "EnumsClass"
-        ],
-        "summary": "Update beer's features",
-        "operationId": "updateFeats",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/Id"
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EnumClassUpdate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Updated beer",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Beer"
                 }
               }
             }
@@ -1163,24 +1162,10 @@
           }
         }
       },
-      "EnumClassWithFilter": {
-        "type": "object",
-        "required": [
-          "entity_name"
-        ],
-        "properties": {
-          "entity_name": {
-            "type": "string"
-          },
-          "field_name": {
-            "type": "string"
-          }
-        }
-      },
-      "EnumClassBase": {
+      "EnumClass": {
         "type": "object",
         "properties": {
-          "type": {
+          "enum_type": {
             "type": "string"
           },
           "entity_name": {
@@ -1197,45 +1182,34 @@
           }
         }
       },
-      "EnumClass": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/EnumClassBase"
-          }
-        ]
-      },
       "EnumClassCreate": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/EnumClassBase"
+            "$ref": "#/components/schemas/EnumClass"
           },
           {
             "required": [
-              "type",
-              "entityName",
+              "enum_type",
+              "entity_name",
               "field_name",
               "is_active"
             ]
           }
         ]
       },
-      "EnumClassUpdate": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/EnumClassBase"
+      "EnumClassWithFilter": {
+        "type": "object",
+        "required": [
+          "entity_name"
+        ],
+        "properties": {
+          "entity_name": {
+            "type": "string"
           },
-          {
-            "type": "object",
-            "required": [
-              "id"
-            ],
-            "properties": {
-              "id": {
-                "type": "integer"
-              }
-            }
+          "field_name": {
+            "type": "string"
           }
-        ]
+        }
       },
       "EnumValueGet": {
         "allOf": [
@@ -1337,6 +1311,22 @@
         "required": true,
         "schema": {
           "type": "integer"
+        }
+      },
+      "EntityName": {
+        "name": "entity_name",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "FieldName": {
+        "name": "field_name",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string"
         }
       }
     }

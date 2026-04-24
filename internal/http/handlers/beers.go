@@ -85,7 +85,7 @@ func (h *beersHandlers) UpdateBeer(c *gin.Context) {
 		return
 	}
 
-	id, err := getIDParam(c)
+	id, err := getUintParam(c, "id")
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid beer id: %v", err))
 
@@ -134,7 +134,7 @@ func (h *beersHandlers) DeleteBeer(c *gin.Context) {
 		return
 	}
 
-	id, err := getIDParam(c)
+	id, err := getUintParam(c, "id")
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
 
@@ -197,7 +197,7 @@ func (h *beersHandlers) GetFeature(c *gin.Context) {
 		return
 	}
 
-	id, err := getIDParam(c)
+	id, err := getUintParam(c, "id")
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid beer id: %v", err))
 
@@ -252,7 +252,7 @@ func (h *beersHandlers) CreateFeature(c *gin.Context) {
 		return
 	}
 
-	id, err := getIDParam(c)
+	id, err := getUintParam(c, "id")
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid beer id: %v", err))
 
@@ -287,7 +287,7 @@ func (h *beersHandlers) DeleteFeature(c *gin.Context) {
 		return
 	}
 
-	id, err := getIDParam(c)
+	id, err := getUintParam(c, "id")
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid feature id: %v", err))
 

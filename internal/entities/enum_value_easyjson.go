@@ -125,7 +125,7 @@ func easyjson137310b9DecodeBreweryInternalEntities1(in *jlexer.Lexer, out *EnumV
 			if in.IsNull() {
 				in.Skip()
 			} else {
-				out.ValueType = string(in.String())
+				out.ValueType = EnumType(in.String())
 			}
 		case "position":
 			if in.IsNull() {

@@ -48,10 +48,12 @@ func main() {
 		panic(fmt.Errorf("failed to create postgres pool: %w", err))
 	}
 
-	beerRepo := repository.NewBeerRepository(pool)
-	ctgRepo := repository.NewCategoryRepository(pool)
+	beerRepo := repository.NewBeerPostgres(pool)
+	ctgRepo := repository.NewCategoryPostgres(pool)
+	enumRepo := repository.NewEnumPostgres(pool)
 
-	beerSrv := usecase.NewBeerService(beerRepo, ctgRepo)
+	beerService := usecase.NewBeerService(beerRepo, ctgRepo)
+	enumService := usecase.NewEnumService(enumRepo)
 
 	engine := gin.New()
 	engine.Use(gin.Recovery())
@@ -81,11 +83,11 @@ func main() {
 	defer router.Close()
 
 	h := handlers.Handlers{
-		CategoryHandler:  handlers.NewCategoriesHandlers(beerSrv),
-		BeersHandler:     handlers.NewBeersHandlers(beerSrv),
-		ReviewHandler:    handlers.NewReviewsHandlers(beerSrv),
-		EnumClassHandler: handlers.NewEnumClassHandlers(beerSrv),
-		EnumValueHandler: handlers.NewEnumValueHandlers(beerSrv),
+		CategoryHandler:  handlers.NewCategoriesHandlers(beerService),
+		BeersHandler:     handlers.NewBeersHandlers(beerService),
+		ReviewHandler:    handlers.NewReviewsHandlers(beerService),
+		EnumClassHandler: handlers.NewEnumClassHandlers(enumService),
+		EnumValueHandler: handlers.NewEnumValueHandlers(enumService),
 	}
 
 	routers.RegisterRoutes(router.Engine, h)

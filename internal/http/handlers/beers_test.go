@@ -17,7 +17,7 @@ import (
 func TestGetBeersByCategory_NewRoute_WorksWithIDAndPagination(t *testing.T) {
 	ctx := t.Context()
 	testEnv := newTestEnv(t)
-	serviceMock := testEnv.Mock
+	serviceMock := testEnv.BeerMock
 
 	serviceMock.GetBeersByCategoryMock.
 		Expect(minimock.AnyContext, uint(42), uint64(1), uint64(1)).
@@ -56,7 +56,7 @@ func TestGetBeersByCategory_InvalidID_ReturnsBadRequest(t *testing.T) {
 func TestUpdateBeer_UsesPathParam(t *testing.T) {
 	ctx := t.Context()
 	testEnv := newTestEnv(t)
-	serviceMock := testEnv.Mock
+	serviceMock := testEnv.BeerMock
 
 	serviceMock.UpdateBeerMock.
 		Expect(minimock.AnyContext, uint(77), map[string]any{"name": "ipa"}).
@@ -72,7 +72,7 @@ func TestUpdateBeer_UsesPathParam(t *testing.T) {
 func TestCreateBeer_ReturnsCreated(t *testing.T) {
 	ctx := t.Context()
 	testEnv := newTestEnv(t)
-	serviceMock := testEnv.Mock
+	serviceMock := testEnv.BeerMock
 
 	serviceMock.CreateBeerMock.Set(
 		func(ctx context.Context, beer *entities.Beer) (uint, error) {
@@ -91,7 +91,7 @@ func TestCreateBeer_ReturnsCreated(t *testing.T) {
 func TestDeleteBeer_UsesPathParam(t *testing.T) {
 	ctx := t.Context()
 	testEnv := newTestEnv(t)
-	serviceMock := testEnv.Mock
+	serviceMock := testEnv.BeerMock
 
 	serviceMock.DeleteBeerMock.
 		Expect(minimock.AnyContext, 16).
@@ -106,7 +106,7 @@ func TestDeleteBeer_UsesPathParam(t *testing.T) {
 func TestGetAllBeers_ReturnsOK(t *testing.T) {
 	ctx := t.Context()
 	testEnv := newTestEnv(t)
-	serviceMock := testEnv.Mock
+	serviceMock := testEnv.BeerMock
 
 	serviceMock.GetAllBeersMock.
 		Expect(minimock.AnyContext, uint64(10), uint64(0)).
@@ -126,7 +126,7 @@ func TestGetAllBeers_ReturnsOK(t *testing.T) {
 func TestCreateBeerReview_UsesPathParam(t *testing.T) {
 	ctx := t.Context()
 	testEnv := newTestEnv(t)
-	serviceMock := testEnv.Mock
+	serviceMock := testEnv.BeerMock
 
 	serviceMock.CreateReviewMock.Set(func(ctx context.Context, review *entities.Review) (uint, error) {
 		require.Equal(t, uint(17), review.BeerID)
@@ -150,7 +150,7 @@ func TestCreateBeerReview_UsesPathParam(t *testing.T) {
 // func TestGetBeersByCategory(t *testing.T) {
 // 	ctx := t.Context()
 // 	testEnv := newTestEnv(t)
-// 	serviceMock := testEnv.Mock
+// 	serviceMock := testEnv.BeerMock
 
 // 	tests := []struct {
 // 		name       string

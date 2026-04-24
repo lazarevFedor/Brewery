@@ -7,18 +7,20 @@ import (
 )
 
 const (
-	EnumValueTypeString  = "string"
-	EnumValueTypeInt     = "int"
-	EnumValueTypeFloat   = "float"
-	EnumValueTypePicture = "picture"
+	EnumValueTypeString  EnumType = "string"
+	EnumValueTypeInt     EnumType = "int"
+	EnumValueTypeFloat   EnumType = "float"
+	EnumValueTypePicture EnumType = "picture"
 )
+
+type EnumType string
 
 //easyjson:skip
 type EnumValueRow struct {
 	ID          int
 	EnumClassID int
 	ValueRaw    string
-	ValueType   string
+	ValueType   EnumType
 	Position    int
 }
 
@@ -26,7 +28,7 @@ type EnumValue struct {
 	ID          int `json:"id,omitempty" info:"ID значения перечисления"`
 	EnumClassID int `json:"enum_class_id,omitempty" info:"ID класса перечисления"`
 	Value       any `json:"value,omitempty" info:"Значение перечисления"`
-	ValueType   string
+	ValueType   EnumType
 	Position    int `json:"position,omitempty" info:"Позиция значения в перечислении"`
 }
 
@@ -71,7 +73,7 @@ func (e *EnumValueRow) FromRow() (*EnumValue, error) {
 	}, nil
 }
 
-func enumValueToRaw(valueType string, value any) (string, error) {
+func enumValueToRaw(valueType EnumType, value any) (string, error) {
 	switch valueType {
 	case EnumValueTypeString, EnumValueTypePicture:
 		str, ok := value.(string)
@@ -101,7 +103,7 @@ func enumValueToRaw(valueType string, value any) (string, error) {
 	}
 }
 
-func enumValueFromRaw(valueType, valueRaw string) (any, error) {
+func enumValueFromRaw(valueType EnumType, valueRaw string) (any, error) {
 	switch valueType {
 	case EnumValueTypeString, EnumValueTypePicture:
 		return valueRaw, nil

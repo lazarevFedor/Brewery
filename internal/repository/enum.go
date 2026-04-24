@@ -37,7 +37,7 @@ type EnumRepository interface {
 	DeleteEnumValueByID(ctx context.Context, id uint) error
 
 	// GetEnumValues получает список сущностей EnumClass по заданным имени таблицы, поля и типу значения.
-	GetEnumValues(ctx context.Context, entity, field, valueType string) ([]entities.EnumValue, error)
+	GetEnumValues(ctx context.Context, entity, field string, valueType entities.EnumType) ([]entities.EnumValue, error)
 }
 
 // EnumPostgres хранит в себе пул подключений к БД
@@ -255,7 +255,7 @@ func (e *EnumPostgres) DeleteEnumValueByID(ctx context.Context, id uint) error {
 }
 
 // GetEnumValues получает список сущностей EnumClass по заданным имени таблицы, поля и типу значения.
-func (e *EnumPostgres) GetEnumValues(ctx context.Context, entity, field, valueType string) ([]entities.EnumValue, error) {
+func (e *EnumPostgres) GetEnumValues(ctx context.Context, entity, field string, valueType entities.EnumType)  ([]entities.EnumValue, error) {
 	if e.Pool == nil {
 		return nil, errors.New("pool is nil")
 	}
