@@ -40,11 +40,6 @@ func getUintParam(c *gin.Context, name string) (uint, error) {
 	return uint(uintParam), nil
 }
 
-// getQueryParam извлекает строковый параметр из URL, например field_name.
-func getQueryParam(c *gin.Context, name string) string {
-	return c.Query(name)
-}
-
 // readRequestBody читает тело HTTP-запроса и возвращает его в виде байтового среза.
 func readRequestBody(c *gin.Context) ([]byte, error) {
 	body, err := io.ReadAll(c.Request.Body)

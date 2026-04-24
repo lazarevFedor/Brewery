@@ -208,6 +208,15 @@ func (e *EnumPostgres) UpdateEnumValue(ctx context.Context, id uint, updates map
 		return errors.New("pool is nil")
 	}
 
+	if value, ok := updates["value_raw"]; ok {
+		if value == nil {
+			delete(updates, "value_raw")
+		} else {
+			valueStr := fmt.Sprintf("%v", value)
+			updates["value_raw"] = valueStr
+		}
+	}
+
 	psql := queries.UpdateEnumValue(id, updates)
 
 	query, args, err := psql.ToSql()
@@ -244,7 +253,7 @@ func (e *EnumPostgres) DeleteEnumValueByID(ctx context.Context, id uint) error {
 }
 
 // GetEnumValues получает список сущностей EnumClass по заданным имени таблицы, поля и типу значения.
-func (e *EnumPostgres) GetEnumValues(ctx context.Context, entity, field string, valueType entities.EnumType)  ([]entities.EnumValue, error) {
+func (e *EnumPostgres) GetEnumValues(ctx context.Context, entity, field string, valueType entities.EnumType) ([]entities.EnumValue, error) {
 	if e.Pool == nil {
 		return nil, errors.New("pool is nil")
 	}

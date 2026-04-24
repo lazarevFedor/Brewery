@@ -532,8 +532,11 @@ func TestEnumRepository_UpdateEnumValue(t *testing.T) {
 		require.NoError(t, err)
 		require.NotZero(t, valueID)
 
-		newPosition := 2
-		err = enumRepo.UpdateEnumValue(ctx, valueID, 20, &newPosition)
+		updates := map[string]any{
+			"value_raw": 20,
+			"position": 2,
+		}
+		err = enumRepo.UpdateEnumValue(ctx, valueID, updates)
 		require.NoError(t, err)
 
 		values, err := enumRepo.GetEnumValues(ctx, enumClass.EntityName, enumClass.FieldName, entities.EnumValueTypeInt)
@@ -541,7 +544,7 @@ func TestEnumRepository_UpdateEnumValue(t *testing.T) {
 		require.Len(t, values, 1)
 		require.Equal(t, valueID, uint(values[0].ID))
 		require.Equal(t, 20, values[0].Value)
-		require.Equal(t, newPosition, values[0].Position)
+		require.Equal(t, updates["position"], values[0].Position)
 
 		t.Cleanup(func() {
 			cleanDB(t, ctx, "enum_values")
@@ -561,8 +564,11 @@ func TestEnumRepository_UpdateEnumValue(t *testing.T) {
 		require.NoError(t, err)
 		require.NotZero(t, valueID)
 
-		newPosition := 5
-		err = enumRepo.UpdateEnumValue(ctx, valueID, nil, &newPosition)
+		updates := map[string]any{
+			"value_raw": nil,
+			"position": 5,
+		}
+		err = enumRepo.UpdateEnumValue(ctx, valueID, updates)
 		require.NoError(t, err)
 
 		values, err := enumRepo.GetEnumValues(ctx, enumClass.EntityName, enumClass.FieldName, entities.EnumValueTypeInt)
@@ -570,7 +576,7 @@ func TestEnumRepository_UpdateEnumValue(t *testing.T) {
 		require.Len(t, values, 1)
 		require.Equal(t, valueID, uint(values[0].ID))
 		require.Equal(t, testVal.Value, values[0].Value)
-		require.Equal(t, newPosition, values[0].Position)
+		require.Equal(t, updates["position"], values[0].Position)
 
 		t.Cleanup(func() {
 			cleanDB(t, ctx, "enum_values")
@@ -592,8 +598,11 @@ func TestEnumRepository_UpdateEnumValue(t *testing.T) {
 		require.NoError(t, err)
 		require.NotZero(t, valueID)
 
-		newPosition := 2
-		err = uninitializedRepo.UpdateEnumValue(ctx, valueID, 20, new(newPosition))
+		updates := map[string]any{
+			"value_raw": 20,
+			"position": 2,
+		}
+		err = uninitializedRepo.UpdateEnumValue(ctx, valueID, updates)
 		require.Error(t, err)
 
 		t.Cleanup(func() {
