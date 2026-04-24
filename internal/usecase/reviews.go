@@ -25,8 +25,8 @@ func (s *beerService) CreateReview(ctx context.Context, review *entities.Review)
 		return 0, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	if review == nil {
-		return 0, errors.New("review is nil")
+	if review.Rating >= 0 && review.Rating <= 5 {
+		return 0, errors.New("review rating is out of range")
 	}
 
 	if review.BeerID == 0 {
@@ -54,8 +54,15 @@ func (s *beerService) UpdateReview(ctx context.Context, id uint, updates map[str
 		return fmt.Errorf("request cancelled: %w", err)
 	}
 
-	if updates == nil {
-		return errors.New("updates map is nil")
+	rating, ok := updates["rating"]
+	if ok {
+		ratingFloat, ok := rating.(float32)
+		if !ok{
+			return errors.New("invalid review rating datatype")
+		}
+		if ratingFloat >= 0 && ratingFloat <= 5 {
+			return errors.New("review rating is out of range")
+		}
 	}
 
 	if id == 0 {

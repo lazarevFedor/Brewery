@@ -5,6 +5,7 @@ import (
 	"Brewery/internal/usecase"
 	"Brewery/pkg/logger"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -38,21 +39,21 @@ func (h *enumClassHandlers) CreateEnum(c *gin.Context) {
 
 	body, err := readRequestBody(c)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read category in the request body: %v", err))
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read enum class in the request body: %v", err))
 		return
 	}
 
 	var req entities.EnumClass
 	if err = easyjson.Unmarshal(body, &req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to unmarshal category: %v", err))
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to unmarshal enum class: %v", err))
 		return
 	}
 
 	enumID, err := h.uc.CreateEnum(c.Request.Context(), req)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get category: %v", err))
-		c.JSON(http.StatusNotFound, gin.H{"error": "category not found"})
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to create enum class: %v", err))
+		c.JSON(http.StatusNotFound, gin.H{"error": "enum class not found"})
 		return
 	}
 
@@ -74,36 +75,23 @@ func (h *enumClassHandlers) GetEnum(c *gin.Context) {
 		return
 	}
 
-	body, err := readRequestBody(c)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read category in the request body: %v", err))
+	entityName := c.Query("entity_name")
+	if entityName == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
+		log.Error(c.Request.Context(), errors.New("entity_name is empty").Error())
 		return
 	}
 
-	req := make(map[string]string)
-	if err = json.Unmarshal(body, &req); err != nil {
+	fieldName := c.Query("field_name")
+	if fieldName == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to unmarshal enum get data: %v", err))
-		return
-	}
-
-	entityName, ok := req["entity_name"]
-	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-		log.Error(c.Request.Context(), fmt.Sprintf("entity_name is empty: %v", err))
-		return
-	}
-
-	fieldName, ok := req["field_name"]
-	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-		log.Error(c.Request.Context(), fmt.Sprintf("field_name is empty: %v", err))
+		log.Error(c.Request.Context(), errors.New("field_name is empty").Error())
 		return
 	}
 
 	enums, err := h.uc.GetEnum(c.Request.Context(), entityName, fieldName)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get beers: %v", err))
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get enum classes: %v", err))
 		c.Status(http.StatusInternalServerError)
 
 		return
@@ -111,7 +99,7 @@ func (h *enumClassHandlers) GetEnum(c *gin.Context) {
 
 	rawBytes, err := json.Marshal(enums)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal enums: %v", err))
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal enum class: %v", err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
 
 		return
@@ -134,7 +122,7 @@ func (h *enumClassHandlers) UpdateEnum(c *gin.Context) {
 		return
 	}
 
-	id, err := getIDParam(c)
+	id, err := getUintParam(c, "id")
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid enum id: %v", err))
 
@@ -181,7 +169,7 @@ func (h *enumClassHandlers) DeleteEnum(c *gin.Context) {
 		return
 	}
 
-	id, err := getIDParam(c)
+	id, err := getUintParam(c, "id")
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid enum id: %v", err))
 

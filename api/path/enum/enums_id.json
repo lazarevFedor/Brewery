@@ -1,8 +1,35 @@
 {
-    "delete": {
+  "patch": {
     "tags": ["EnumsClass"],
-    "summary": "Delete beer",
-    "operationId": "deleteBeer",
+    "summary": "Update enum",
+    "operationId": "updateEnums",
+    "parameters": [
+      { "$ref": "../../components/parameters/id.json#/Id" }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {"$ref": "../../components/schemas/enum_class.json#/EnumClass"}
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Updated enum",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "../../components/schemas/beer.json#/Beer" }
+          }
+        }
+      }
+    }
+  },
+
+  "delete": {
+    "tags": ["EnumsClass"],
+    "summary": "Delete enum class",
+    "operationId": "deleteEnum",
     "parameters": [
       { "$ref": "../../components/parameters/id.json#/Id" }
     ],
@@ -21,7 +48,7 @@
         }
       },
       "404": {
-        "description": "Beer or Feat Not Found",
+        "description": "Enum Not Found",
         "content": {
           "application/json": {
             "schema": {
@@ -34,32 +61,5 @@
         }
       }
     }
-  },
-
-  "patch": {
-    "tags": ["EnumsClass"],
-    "summary": "Update beer's features",
-    "operationId": "updateFeats",
-    "parameters": [
-      { "$ref": "../../components/parameters/id.json#/Id" }
-    ],
-    "requestBody": {
-      "content": {
-        "application/json": {
-          "schema": {"$ref": "../../components/schemas/enum_class.json#/EnumClassUpdate"}
-        }
-      }
-    },
-    "responses": {
-      "200": {
-        "description": "Updated beer",
-        "content": {
-          "application/json": {
-            "schema": { "$ref": "../../components/schemas/beer.json#/Beer" }
-          }
-        }
-      }
-    }
   }
-  
 }

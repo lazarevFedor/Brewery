@@ -1,0 +1,8 @@
+{
+    "FieldName": {
+        "name": "field_name",
+        "in": "query",
+        "required": true,
+        "schema": { "type": "string" }
+    } 
+}

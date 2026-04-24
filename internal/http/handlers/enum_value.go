@@ -144,7 +144,7 @@ func (h *enumValueHandlers) UpdateValue(c *gin.Context) {
 		return
 	}
 
-	id, err := getIDParam(c)
+	id, err := getUintParam(c, "id")
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid enum value id: %v", err))
 
@@ -191,7 +191,7 @@ func (h *enumValueHandlers) DeleteValue(c *gin.Context) {
 		return
 	}
 
-	id, err := getIDParam(c)
+	id, err := getUintParam(c, "id")
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid enum value id: %v", err))
 
