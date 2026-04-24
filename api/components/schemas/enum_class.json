@@ -1,8 +1,8 @@
 {
-    "EnumClassBase": {
+    "EnumClass": {
         "type": "object",
         "properties": {
-            "type": { "type": "string" },
+            "enum_type": { "type": "string" },
             "entity_name": { "type": "string" },
             "field_name": { "type": "string" },
             "unit": { "type": "string" },
@@ -10,30 +10,11 @@
         }
     },
 
-    "EnumClass": {
-        "allOf": [
-            {"$ref": "#/EnumClassBase"}
-        ]
-    },
-
     "EnumClassCreate": {
         "allOf": [
-            {"$ref": "#/EnumClassBase"},
+            {"$ref": "#/EnumClass"},
             {
-                "required": ["type", "entityName", "field_name", "is_active"]
-            }
-        ]
-    },
-
-    "EnumClassUpdate": {
-        "allOf": [
-            { "$ref": "#/EnumClassBase" },
-            {
-                "type": "object",
-                "required": ["id"],
-                "properties": {
-                    "id": {"type": "integer"}
-                }
+                "required": ["enum_type", "entity_name", "field_name", "is_active"]
             }
         ]
     },

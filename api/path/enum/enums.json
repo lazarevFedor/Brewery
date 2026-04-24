@@ -34,16 +34,10 @@
     "tags": ["EnumsClass"],
     "summary": "Get enum",
     "operationId": "getEnum",
-    "requestBody": {
-      "required": true,
-      "content": {
-        "application/json": {
-          "schema": {
-            "$ref": "../../components/schemas/enum_class.json#/EnumClassWithFilter"
-          }
-        }
-      }
-    },
+    "parameters": [
+      { "$ref": "../../components/parameters/entity_name.json#/EntityName" },
+      { "$ref": "../../components/parameters/field_name.json#/FieldName" }
+    ],
     "responses": {
       "200": {
         "description": "Enum list",
