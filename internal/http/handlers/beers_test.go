@@ -49,7 +49,7 @@ func TestGetBeersByCategory_InvalidID_ReturnsBadRequest(t *testing.T) {
 
 	var got map[string]string
 	require.NoError(t, json.Unmarshal(resp.Body.Bytes(), &got))
-	assert.Equal(t, "invalid category id", got["error"])
+	assert.Equal(t, "invalid id", got["error"])
 }
 
 // TestUpdateBeer_UsesPathParam проверяет, что при обновлении пива используется правильный путь и передается правильный ID в сервис.
