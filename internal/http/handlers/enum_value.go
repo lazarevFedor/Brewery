@@ -5,6 +5,7 @@ import (
 	"Brewery/internal/usecase"
 	"Brewery/pkg/logger"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -51,17 +52,23 @@ func (h *enumValueHandlers) CreateValue(c *gin.Context) {
 	var req entities.EnumValue
 	if err = easyjson.Unmarshal(body, &req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to unmarshal category: %v", err))
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to unmarshal value: %v", err))
 		return
 	}
 
+	if req.EnumClassID == 0{
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
+		log.Error(c.Request.Context(), errors.New("class_id is empty").Error())
+		return
+	}
+	
 	log.Debug(c.Request.Context(), "Unmarshaled Create")
 
 
 	enumValueID, err := h.uc.CreateEnumValue(c.Request.Context(), req)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get category: %v", err))
-		c.JSON(http.StatusNotFound, gin.H{"error": "category not found"})
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to create enum value: %v", err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "value not created"})
 		return
 	}
 
@@ -85,43 +92,11 @@ func (h *enumValueHandlers) GetValue(c *gin.Context) {
 		return
 	}
 
-	body, err := readRequestBody(c)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read category in the request body: %v", err))
-		return
-	}
+	entityName := c.Query("entity_name")
+	fieldName := c.Query("field_name")
+	valueType := c.Query("enum_type")
 
-	req := make(map[string]string)
-	if err = json.Unmarshal(body, &req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to unmarshal enum get data: %v", err))
-		return
-	}
-
-	entityName, ok := req["entity_name"]
-	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-		log.Error(c.Request.Context(), fmt.Sprintf("entity_name is empty: %v", err))
-		return
-	}
-
-	fieldName, ok := req["field_name"]
-	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-		log.Error(c.Request.Context(), fmt.Sprintf("field_name is empty: %v", err))
-		return
-	}
-
-	valueType, ok := req["type"]
-	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-		log.Error(c.Request.Context(), fmt.Sprintf("type is empty: %v", err))
-		return
-	}
-
-	valueTypeType := entities.EnumType(valueType)
-
-	values, err := h.uc.GetEnumValue(c.Request.Context(), entityName, fieldName, valueTypeType)
+	values, err := h.uc.GetEnumValue(c.Request.Context(), entityName, fieldName, entities.EnumType(valueType))
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get enum values: %v", err))
 		c.Status(http.StatusInternalServerError)

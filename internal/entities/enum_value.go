@@ -25,11 +25,11 @@ type EnumValueRow struct {
 }
 
 type EnumValue struct {
-	ID          int `json:"id,omitempty" info:"ID значения перечисления"`
-	EnumClassID int `json:"enum_class_id,omitempty" info:"ID класса перечисления"`
-	Value       any `json:"value,omitempty" info:"Значение перечисления"`
-	ValueType   EnumType
-	Position    int `json:"position,omitempty" info:"Позиция значения в перечислении"`
+	ID          int      `json:"id,omitempty" info:"ID значения перечисления"`
+	EnumClassID int      `json:"class_id,omitempty" info:"ID класса перечисления"`
+	Value       any      `json:"value,omitempty" info:"Значение перечисления"`
+	ValueType   EnumType `json:"enum_type,omitempty" info:"Тип класса перечисления"`
+	Position    int      `json:"position,omitempty" info:"Позиция значения в перечислении"`
 }
 
 //easyjson:json

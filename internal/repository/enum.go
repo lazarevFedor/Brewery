@@ -31,7 +31,7 @@ type EnumRepository interface {
 	InsertEnumValue(ctx context.Context, enumValue entities.EnumValue) (uint, error)
 
 	// UpdateEnumValue обновляет сущность EnumValue в хранилище.
-	UpdateEnumValue(ctx context.Context, id uint, value any, position *int) error
+	UpdateEnumValue(ctx context.Context, id uint, updates map[string]any) error
 
 	// DeleteEnumValueByID удаляет сущность EnumValue из хранилища.
 	DeleteEnumValueByID(ctx context.Context, id uint) error
@@ -203,20 +203,9 @@ func (e *EnumPostgres) InsertEnumValue(ctx context.Context, enumValue entities.E
 }
 
 // UpdateEnumValue обновляет сущность EnumValue в хранилище.
-func (e *EnumPostgres) UpdateEnumValue(ctx context.Context, id uint, value any, position *int) error {
+func (e *EnumPostgres) UpdateEnumValue(ctx context.Context, id uint, updates map[string]any) error {
 	if e.Pool == nil {
 		return errors.New("pool is nil")
-	}
-
-	const numArgs = 2
-
-	updates := make(map[string]any, numArgs)
-
-	if position != nil {
-		updates["position"] = *position
-	}
-	if value != nil {
-		updates["value_raw"] = fmt.Sprint(value)
 	}
 
 	psql := queries.UpdateEnumValue(id, updates)
