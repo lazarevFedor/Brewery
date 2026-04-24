@@ -37,11 +37,16 @@ func (h *enumValueHandlers) CreateValue(c *gin.Context) {
 		return
 	}
 
+	log.Debug(c.Request.Context(), "Start Create")
+
 	body, err := readRequestBody(c)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read category in the request body: %v", err))
 		return
 	}
+
+	log.Debug(c.Request.Context(), "Bode read Create")
+
 
 	var req entities.EnumValue
 	if err = easyjson.Unmarshal(body, &req); err != nil {
@@ -50,12 +55,17 @@ func (h *enumValueHandlers) CreateValue(c *gin.Context) {
 		return
 	}
 
+	log.Debug(c.Request.Context(), "Unmarshaled Create")
+
+
 	enumValueID, err := h.uc.CreateEnumValue(c.Request.Context(), req)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get category: %v", err))
 		c.JSON(http.StatusNotFound, gin.H{"error": "category not found"})
 		return
 	}
+
+	log.Debug(c.Request.Context(), "End Create")
 
 	log.Debug(c.Request.Context(), fmt.Sprintf("enum_value_id=%d", enumValueID))
 	log.Info(
@@ -142,7 +152,7 @@ func (h *enumValueHandlers) UpdateValue(c *gin.Context) {
 		return
 	}
 
-	id, err := getIDParam(c)
+	id, err := getUintParam(c, "id")
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid enum value id: %v", err))
 
@@ -189,7 +199,7 @@ func (h *enumValueHandlers) DeleteValue(c *gin.Context) {
 		return
 	}
 
-	id, err := getIDParam(c)
+	id, err := getUintParam(c, "id")
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid enum value id: %v", err))
 

@@ -41,7 +41,7 @@ func (h *reviewsHandlers) CreateReview(c *gin.Context) {
 		return
 	}
 
-	beerID, err := getBeerIDParam(c)
+	beerID, err := getUintParam(c, "beer_id")
 	if err != nil {
 		log.Error(reqCtx, fmt.Sprintf("Invalid beer id: %v", err))
 
@@ -87,7 +87,7 @@ func (h *reviewsHandlers) GetBeersReviews(c *gin.Context) {
 		return
 	}
 
-	beerID, err := getBeerIDParam(c)
+	beerID, err := getUintParam(c, "beer_id")
 	if err != nil {
 		log.Error(reqCtx, fmt.Sprintf("Invalid beer id: %v", err))
 
@@ -132,7 +132,7 @@ func (h *reviewsHandlers) UpdateReview(c *gin.Context) {
 		return
 	}
 
-	beerID, err := getIDParam(c)
+	beerID, err := getUintParam(c, "id")
 	if err != nil {
 		log.Error(reqCtx, fmt.Sprintf("Invalid beer id: %v", err))
 
@@ -174,7 +174,7 @@ func (h *reviewsHandlers) DeleteReview(c *gin.Context) {
 		return
 	}
 
-	id, err := getIDParam(c)
+	id, err := getUintParam(c, "id")
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
 

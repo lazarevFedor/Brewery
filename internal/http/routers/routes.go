@@ -51,15 +51,15 @@ func RegisterRoutes(e *gin.Engine, h handlers.Handlers) {
 		{
 			enums.POST("", h.EnumClassHandler.CreateEnum)
 			enums.GET("", h.EnumClassHandler.GetEnum)
-			enums.PATCH(":id", h.EnumClassHandler.UpdateEnum)
-			enums.DELETE(":id", h.EnumClassHandler.DeleteEnum)
+			enums.PATCH("/:id", h.EnumClassHandler.UpdateEnum)
+			enums.DELETE("/:id", h.EnumClassHandler.DeleteEnum)
 
 			value := enums.Group("value")
 			{
 				value.POST("", h.EnumValueHandler.CreateValue)
 				value.GET("", h.EnumValueHandler.GetValue)
-				value.PATCH(":id", h.EnumValueHandler.UpdateValue)
-				value.DELETE(":id", h.EnumValueHandler.DeleteValue)
+				value.PATCH("/:id", h.EnumValueHandler.UpdateValue)
+				value.DELETE("/:id", h.EnumValueHandler.DeleteValue)
 			}
 		}
 	}
