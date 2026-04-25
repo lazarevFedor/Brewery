@@ -2,7 +2,7 @@
   "patch": {
     "tags": ["EnumsClass"],
     "summary": "Update enum",
-    "operationId": "updateEnums",
+    "operationId": "updateEnumClass",
     "parameters": [
       { "$ref": "../../components/parameters/id.json#/Id" }
     ],
@@ -29,7 +29,7 @@
   "delete": {
     "tags": ["EnumsClass"],
     "summary": "Delete enum class",
-    "operationId": "deleteEnum",
+    "operationId": "deleteEnumClass",
     "parameters": [
       { "$ref": "../../components/parameters/id.json#/Id" }
     ],

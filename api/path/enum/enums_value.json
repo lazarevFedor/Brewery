@@ -1,8 +1,8 @@
 {
     "post": {
     "tags": ["EnumsValue"],
-    "summary": "Create enum",
-    "operationId": "createEnum",
+    "summary": "Create enum value",
+    "operationId": "createEnumValue",
     "requestBody": {
       "required": true,
       "content": {
@@ -33,7 +33,7 @@
   "get": {
     "tags": ["EnumsValue"],
     "summary": "Get enum",
-    "operationId": "getEnum",
+    "operationId": "listEnumValues",
     "parameters":[
       {"$ref": "../../components/parameters/enum_type.json#/EnumType"},
       {"$ref": "../../components/parameters/entity_name.json#/EntityName"},

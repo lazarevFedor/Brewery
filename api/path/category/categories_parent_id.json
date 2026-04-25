@@ -2,7 +2,7 @@
   "get": {
     "tags": ["Categories"],
     "summary": "Get parent category",
-    "operationId": "getParent",
+    "operationId": "getCategoryParent",
     "parameters": [
       { "$ref": "../../components/parameters/id.json#/Id" }
     ],

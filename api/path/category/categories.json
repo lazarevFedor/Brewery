@@ -2,7 +2,7 @@
   "get": {
     "tags": ["Categories"],
     "summary": "Get all categories",
-    "operationId": "getCategories",
+    "operationId": "listCategories",
     "responses": {
       "200": {
         "description": "List of categories",

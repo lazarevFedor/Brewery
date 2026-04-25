@@ -2,7 +2,7 @@
   "post": {
     "tags": ["Reviews"],
     "summary": "Add review",
-    "operationId": "addReview",
+    "operationId": "createReview",
     "parameters": [
       { "$ref": "../../components/parameters/beer_id.json#/BeerId" }
     ],
@@ -34,7 +34,7 @@
   "get": {
     "tags": ["Reviews"],
     "summary": "Get beer's reviews",
-    "operationId": "getReviews",
+    "operationId": "listReviews",
     "parameters": [
       { "$ref": "../../components/parameters/beer_id.json#/BeerId" }
     ],

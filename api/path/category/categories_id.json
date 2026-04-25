@@ -2,7 +2,7 @@
   "get": {
     "tags": ["Categories"],
     "summary": "Get category by ID",
-    "operationId": "getCategoryById",
+    "operationId": "getCategory",
     "parameters": [
       { "$ref": "../../components/parameters/id.json#/Id" }
     ],

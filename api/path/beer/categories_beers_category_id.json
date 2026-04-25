@@ -2,7 +2,7 @@
   "get": {
     "tags": ["Beers"],
     "summary": "Get beers by category",
-    "operationId": "getBeersByCategory",
+    "operationId": "listBeersByCategory",
     "parameters": [
       { "$ref": "../../components/parameters/category_id.json#/CategoryId" },
       { "$ref": "../../components/parameters/limit_offset.json#/Offset" },

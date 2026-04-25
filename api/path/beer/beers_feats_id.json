@@ -2,7 +2,7 @@
   "get": {
       "tags": ["Beers"],
       "summary": "Get beer's features",
-      "operationId": "getBeersFeats",
+      "operationId": "listFeatures",
       "parameters": [
         { "$ref": "../../components/parameters/beer_id.json#/BeerId" }
       ],
@@ -24,7 +24,7 @@
   "post": {
     "tags": ["Beers"],
     "summary": "Create beer's feature",
-    "operationId": "createBeersFeat",
+    "operationId": "createFeature",
     "requestBody": {
       "required": true,
       "content": {
@@ -56,7 +56,7 @@
   "patch": {
     "tags": ["Beers"],
     "summary": "Update beer's features",
-    "operationId": "updateFeats",
+    "operationId": "updateFeatures",
     "parameters": [
       { "$ref": "../../components/parameters/beer_id.json#/BeerId" }
     ],
@@ -82,7 +82,7 @@
   "delete": {
     "tags": ["Beers"],
     "summary": "Delete beer",
-    "operationId": "deleteBeer",
+    "operationId": "deleteFeature",
     "parameters": [
       { "$ref": "../../components/parameters/beer_id.json#/BeerId" }
     ],
