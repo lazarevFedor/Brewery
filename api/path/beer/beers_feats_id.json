@@ -17,7 +17,10 @@
               }
             }
           }
-        }
+        },
+        "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+        "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
+        "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
       }
     },
 
@@ -38,50 +41,25 @@
     },
     "responses": {
       "201": {
-        "description": "Created",
+        "description": "Beer's feature created",
         "content": {
           "application/json": {
             "schema": {
-              "type": "object",
-              "properties": {
-                "message": { "type": "string" }
-              }
+              "type": "array",
+              "items": { "$ref": "../../components/schemas/beer.json#/Feature" }
             }
           }
         }
-      }
-    }
-  },
-
-  "patch": {
-    "tags": ["Beers"],
-    "summary": "Update beer's features",
-    "operationId": "updateFeatures",
-    "parameters": [
-      { "$ref": "../../components/parameters/beer_id.json#/BeerId" }
-    ],
-    "requestBody": {
-      "content": {
-        "application/json": {
-          "schema": { "$ref": "../../components/schemas/beer.json#/BeerUpdate" }
-        }
-      }
-    },
-    "responses": {
-      "200": {
-        "description": "Updated beer",
-        "content": {
-          "application/json": {
-            "schema": { "$ref": "../../components/schemas/beer.json#/Beer" }
-          }
-        }
-      }
+      },
+      "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+      "409": { "$ref": "../../components/schemas/responses/409_conflict.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
     }
   },
 
   "delete": {
     "tags": ["Beers"],
-    "summary": "Delete beer",
+    "summary": "Delete beer' feature",
     "operationId": "deleteFeature",
     "parameters": [
       { "$ref": "../../components/parameters/beer_id.json#/BeerId" }
@@ -90,14 +68,9 @@
       "204": {
         "description": "Success deleted"
       },
-      "404": {
-        "description": "Not Found",
-        "content": {
-          "application/json": {
-            "schema": {"$ref": "../../components/schemas/error_response.json#/ErrorResponse"}
-          }
-        }
-      }
+      "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+      "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
     }
   }
 }

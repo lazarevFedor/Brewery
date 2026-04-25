@@ -42,7 +42,7 @@
         "operationId": "listCategories",
         "responses": {
           "200": {
-            "description": "List of categories",
+            "description": "Categories List",
             "content": {
               "application/json": {
                 "schema": {
@@ -53,6 +53,9 @@
                 }
               }
             }
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       },
@@ -74,7 +77,7 @@
         },
         "responses": {
           "201": {
-            "description": "Created",
+            "description": "Category created",
             "content": {
               "application/json": {
                 "schema": {
@@ -82,6 +85,15 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       }
@@ -109,8 +121,14 @@
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
           "404": {
-            "description": "Not found"
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       },
@@ -136,7 +154,7 @@
         },
         "responses": {
           "200": {
-            "description": "Updated",
+            "description": "Updated category",
             "content": {
               "application/json": {
                 "schema": {
@@ -144,6 +162,15 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       },
@@ -162,15 +189,14 @@
           "204": {
             "description": "Success deleted"
           },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
           "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       }
@@ -189,7 +215,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Parent",
+            "description": "Parent category",
             "content": {
               "application/json": {
                 "schema": {
@@ -197,6 +223,15 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       }
@@ -215,7 +250,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Children list",
+            "description": "Children categories list",
             "content": {
               "application/json": {
                 "schema": {
@@ -226,6 +261,15 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       }
@@ -258,6 +302,15 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       },
@@ -279,19 +332,23 @@
         },
         "responses": {
           "201": {
-            "description": "Created",
+            "description": "Beer created",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/Beer"
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       }
@@ -327,6 +384,15 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       },
@@ -345,15 +411,14 @@
           "204": {
             "description": "Success deleted"
           },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
           "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       }
@@ -383,6 +448,15 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       },
@@ -407,52 +481,26 @@
         },
         "responses": {
           "201": {
-            "description": "Created",
+            "description": "Beer's feature created",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Feature"
                   }
                 }
               }
             }
-          }
-        }
-      },
-      "patch": {
-        "tags": [
-          "Beers"
-        ],
-        "summary": "Update beer's features",
-        "operationId": "updateFeatures",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/BeerId"
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BeerUpdate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Updated beer",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Beer"
-                }
-              }
-            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       },
@@ -460,7 +508,7 @@
         "tags": [
           "Beers"
         ],
-        "summary": "Delete beer",
+        "summary": "Delete beer' feature",
         "operationId": "deleteFeature",
         "parameters": [
           {
@@ -471,15 +519,14 @@
           "204": {
             "description": "Success deleted"
           },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
           "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       }
@@ -515,6 +562,15 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       }
@@ -543,19 +599,23 @@
         },
         "responses": {
           "200": {
-            "description": "Result",
+            "description": "Review created",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    }
-                  }
+                  "$ref": "#/components/schemas/Review"
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       },
@@ -572,7 +632,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Beers list",
+            "description": "Reviews list",
             "content": {
               "application/json": {
                 "schema": {
@@ -583,6 +643,15 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       }
@@ -603,15 +672,14 @@
           "204": {
             "description": "Success deleted"
           },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
           "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       },
@@ -630,14 +698,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ReviewCreate"
+                "$ref": "#/components/schemas/ReviewBase"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Updated",
+            "description": "Updated review",
             "content": {
               "application/json": {
                 "schema": {
@@ -645,6 +713,15 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       }
@@ -668,19 +745,23 @@
         },
         "responses": {
           "201": {
-            "description": "Created",
+            "description": "Enum class created",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/EnumClass"
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       },
@@ -700,7 +781,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Enum list",
+            "description": "Enum class list",
             "content": {
               "application/json": {
                 "schema": {
@@ -711,6 +792,15 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       }
@@ -739,7 +829,7 @@
         },
         "responses": {
           "200": {
-            "description": "Updated enum",
+            "description": "Updated enum class",
             "content": {
               "application/json": {
                 "schema": {
@@ -747,6 +837,15 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       },
@@ -765,15 +864,14 @@
           "204": {
             "description": "Success deleted"
           },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
           "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       }
@@ -797,19 +895,23 @@
         },
         "responses": {
           "201": {
-            "description": "Created",
+            "description": "Enum value created",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/EnumValue"
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       },
@@ -832,7 +934,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Enum list",
+            "description": "Enum values list",
             "content": {
               "application/json": {
                 "schema": {
@@ -843,6 +945,15 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       }
@@ -863,15 +974,14 @@
           "204": {
             "description": "Success deleted"
           },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
           "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       },
@@ -897,19 +1007,23 @@
         },
         "responses": {
           "200": {
-            "description": "Updated beer",
+            "description": "Updated enum value",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    }
-                  }
+                  "$ref": "#/components/schemas/EnumValue"
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       }
@@ -935,6 +1049,23 @@
           }
         }
       },
+      "ErrorResponse": {
+        "type": "object",
+        "required": [
+          "error",
+          "message"
+        ],
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "VALIDATION_ERROR"
+          },
+          "message": {
+            "type": "string",
+            "example": "Invalid request"
+          }
+        }
+      },
       "CategoryCreate": {
         "type": "object",
         "required": [
@@ -946,14 +1077,6 @@
           },
           "parent_id": {
             "type": "integer"
-          }
-        }
-      },
-      "ErrorResponse": {
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string"
           }
         }
       },
@@ -1107,12 +1230,9 @@
           }
         }
       },
-      "Review": {
+      "ReviewBase": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "integer"
-          },
           "body": {
             "type": "string"
           },
@@ -1121,20 +1241,38 @@
           }
         }
       },
-      "ReviewCreate": {
-        "type": "object",
-        "required": [
-          "body",
-          "rating"
-        ],
-        "properties": {
-          "body": {
-            "type": "string"
+      "Review": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ReviewBase"
           },
-          "rating": {
-            "type": "number"
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "body",
+              "rating"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              }
+            }
           }
-        }
+        ]
+      },
+      "ReviewCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ReviewBase"
+          },
+          {
+            "required": [
+              "body",
+              "rating"
+            ]
+          }
+        ]
       },
       "EnumClass": {
         "type": "object",
@@ -1211,6 +1349,64 @@
             "$ref": "#/components/schemas/EnumValueBase"
           }
         ]
+      }
+    },
+    "responses": {
+      "500_internal_server_error": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": "INTERNAL_SERVER_ERROR",
+              "message": "Unexpected error occurred"
+            }
+          }
+        }
+      },
+      "400_bad_request": {
+        "description": "Invalid request data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": "VALIDATION_ERROR",
+              "message": "Invalid id"
+            }
+          }
+        }
+      },
+      "409_conflict": {
+        "description": "Conflict",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": "CONFLICT",
+              "message": "resource duplicate"
+            }
+          }
+        }
+      },
+      "404_not_found": {
+        "description": "Not Found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": "NOT_FOUND",
+              "message": "Resourse with id=1 not found"
+            }
+          }
+        }
       }
     },
     "parameters": {

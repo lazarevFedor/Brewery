@@ -18,7 +18,10 @@
               }
             }
           }
-        }
+        },
+        "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+        "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
+        "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
       }
     },
 
@@ -36,18 +39,16 @@
     },
     "responses": {
       "201": {
-        "description": "Created",
+        "description": "Beer created",
         "content": {
           "application/json": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "message": { "type": "string" }
-              }
-            }
+            "schema": { "$ref": "../../components/schemas/beer.json#/Beer" }
           }
         }
-      }
+      },
+      "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+      "409": { "$ref": "../../components/schemas/responses/409_conflict.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
     }
   }
 }

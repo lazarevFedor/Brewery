@@ -16,18 +16,16 @@
     },
     "responses": {
       "200": {
-        "description": "Result",
+        "description": "Review created",
         "content": {
           "application/json": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "success": { "type": "boolean" }
-              }
-            }
+            "schema": { "$ref": "../../components/schemas/review.json#/Review" }
           }
         }
-      }
+      },
+      "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+      "409": { "$ref": "../../components/schemas/responses/409_conflict.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
     }
   },
 
@@ -40,7 +38,7 @@
     ],
     "responses": {
       "200": {
-        "description": "Beers list",
+        "description": "Reviews list",
         "content": {
           "application/json": {
             "schema": {
@@ -49,7 +47,10 @@
             }
           }
         }
-      }
+      },
+      "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+      "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
     }
   }
 }

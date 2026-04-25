@@ -21,7 +21,10 @@
             "schema": { "$ref": "../../components/schemas/beer.json#/Beer" }
           }
         }
-      }
+      },
+      "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+      "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
     }
   },
 
@@ -36,14 +39,9 @@
       "204": {
         "description": "Success deleted"
       },
-      "404": {
-        "description": "Not Found",
-        "content": {
-          "application/json": {
-            "schema": {"$ref": "../../components/schemas/error_response.json#/ErrorResponse"}
-          }
-        }
-      }
+      "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+      "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
     }
   }
 }

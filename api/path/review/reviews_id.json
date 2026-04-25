@@ -10,14 +10,9 @@
       "204": {
         "description": "Success deleted"
       },
-      "404": {
-        "description": "Not Found",
-        "content": {
-          "application/json": {
-            "schema": {"$ref": "../../components/schemas/error_response.json#/ErrorResponse"}
-          }
-        }
-      }
+      "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+      "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
     }
   },
   
@@ -31,19 +26,22 @@
     "requestBody": {
       "content": {
         "application/json": {
-          "schema": { "$ref": "../../components/schemas/review.json#/ReviewCreate" }
+          "schema": { "$ref": "../../components/schemas/review.json#/ReviewBase" }
         }
       }
     },
     "responses": {
       "200": {
-        "description": "Updated",
+        "description": "Updated review",
         "content": {
           "application/json": {
             "schema": { "$ref": "../../components/schemas/review.json#/Review" }
           }
         }
-      }
+      },
+      "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+      "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
     }
   }
 }
