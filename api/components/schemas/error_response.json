@@ -1,0 +1,8 @@
+{
+    "ErrorResponse": {
+        "type": "object",
+        "properties": {
+            "message": { "type": "string" }
+        }
+    }
+}

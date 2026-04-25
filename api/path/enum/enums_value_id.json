@@ -7,29 +7,14 @@
       { "$ref": "../../components/parameters/id.json#/Id" }
     ],
     "responses": {
-      "200": {
-        "description": "Deleted",
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "success": { "type": "boolean" }
-              }
-            }
-          } 
-        }
+      "204": {
+        "description": "Success deleted"
       },
       "404": {
-        "description": "Beer or Feat Not Found",
+        "description": "Not Found",
         "content": {
           "application/json": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "success": { "type": "boolean" }
-              }
-            }
+            "schema": {"$ref": "../../components/schemas/error_response.json#/ErrorResponse"}
           }
         }
       }

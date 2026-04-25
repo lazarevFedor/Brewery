@@ -53,7 +53,17 @@
       { "$ref": "../../components/parameters/id.json#/Id" }
     ],
     "responses": {
-      "204": { "description": "Deleted" }
+      "204": {
+        "description": "Success deleted"
+      },
+      "404": {
+        "description": "Not Found",
+        "content": {
+          "application/json": {
+            "schema": {"$ref": "../../components/schemas/error_response.json#/ErrorResponse"}
+          }
+        }
+      }
     }
   }
 }
