@@ -471,10 +471,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/FeatureBase"
-                }
+                "$ref": "#/components/schemas/FeatureBase"
               }
             }
           }
@@ -485,10 +482,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Feature"
-                  }
+                  "$ref": "#/components/schemas/Feature"
                 }
               }
             }
