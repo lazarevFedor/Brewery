@@ -54,14 +54,14 @@
 
   "delete": {
     "tags": ["Beers"],
-    "summary": "Delete beer' feature",
+    "summary": "Delete beer feature",
     "operationId": "deleteBeerFeature",
     "parameters": [
       { "$ref": "../../components/parameters/beer_id.json#/BeerId" }
     ],
     "responses": {
       "204": {
-        "description": "Success deleted"
+        "description": "Successfully deleted"
       },
       "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
       "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },

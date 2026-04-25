@@ -8,7 +8,7 @@
     ],
     "responses": {
       "204": {
-        "description": "Success deleted"
+        "description": "Successfully deleted"
       },
       "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
       "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
@@ -24,6 +24,7 @@
       { "$ref": "../../components/parameters/id.json#/Id" }
     ],
     "requestBody": {
+      "required": true,
       "content": {
         "application/json": {
           "schema": { "$ref": "../../components/schemas/review.json#/ReviewBase" }

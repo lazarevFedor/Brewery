@@ -2,7 +2,6 @@
     "EnumValueBase": {
         "type": "object",
         "properties": {
-            "enum_type": { "type": "string" },
             "value": {"type": "string"},
             "position": {"type": "integer"}
         }
@@ -13,8 +12,9 @@
             { "$ref": "#/EnumValueBase" },
             {
                 "type": "object",
-                "required": ["class_id", "value", "position"],
+                "required": ["class_id", "enum_type", "value", "position"],
                 "properties":{
+                    "enum_type": { "type": "string" },
                     "class_id": {"type": "integer"}
                 }
             }

@@ -39,7 +39,7 @@
             { "$ref": "#/CategoryBase" },
             {
                 "type": "object",
-                "required": ["name"],
+                "required": [],
                 "properties": {
                     "parent_id": { "type": "integer", "nullable": true }
                 }

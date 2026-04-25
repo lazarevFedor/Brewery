@@ -144,6 +144,7 @@
           }
         ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
@@ -187,7 +188,7 @@
         ],
         "responses": {
           "204": {
-            "description": "Success deleted"
+            "description": "Successfully deleted"
           },
           "400": {
             "$ref": "#/components/responses/400_bad_request"
@@ -306,9 +307,6 @@
           "400": {
             "$ref": "#/components/responses/400_bad_request"
           },
-          "404": {
-            "$ref": "#/components/responses/404_not_found"
-          },
           "500": {
             "$ref": "#/components/responses/500_internal_server_error"
           }
@@ -366,6 +364,7 @@
           }
         ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
@@ -409,7 +408,7 @@
         ],
         "responses": {
           "204": {
-            "description": "Success deleted"
+            "description": "Successfully deleted"
           },
           "400": {
             "$ref": "#/components/responses/400_bad_request"
@@ -505,7 +504,7 @@
         "tags": [
           "Beers"
         ],
-        "summary": "Delete beer' feature",
+        "summary": "Delete beer feature",
         "operationId": "deleteBeerFeature",
         "parameters": [
           {
@@ -514,7 +513,7 @@
         ],
         "responses": {
           "204": {
-            "description": "Success deleted"
+            "description": "Successfully deleted"
           },
           "400": {
             "$ref": "#/components/responses/400_bad_request"
@@ -667,7 +666,7 @@
         ],
         "responses": {
           "204": {
-            "description": "Success deleted"
+            "description": "Successfully deleted"
           },
           "400": {
             "$ref": "#/components/responses/400_bad_request"
@@ -692,6 +691,7 @@
           }
         ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
@@ -859,7 +859,7 @@
         ],
         "responses": {
           "204": {
-            "description": "Success deleted"
+            "description": "Successfully deleted"
           },
           "400": {
             "$ref": "#/components/responses/400_bad_request"
@@ -969,7 +969,7 @@
         ],
         "responses": {
           "204": {
-            "description": "Success deleted"
+            "description": "Successfully deleted"
           },
           "400": {
             "$ref": "#/components/responses/400_bad_request"
@@ -994,6 +994,7 @@
           }
         ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
@@ -1107,9 +1108,7 @@
           },
           {
             "type": "object",
-            "required": [
-              "name"
-            ],
+            "required": [],
             "properties": {
               "parent_id": {
                 "type": "integer",
@@ -1330,9 +1329,6 @@
       "EnumValueBase": {
         "type": "object",
         "properties": {
-          "enum_type": {
-            "type": "string"
-          },
           "value": {
             "type": "string"
           },
@@ -1350,10 +1346,14 @@
             "type": "object",
             "required": [
               "class_id",
+              "enum_type",
               "value",
               "position"
             ],
             "properties": {
+              "enum_type": {
+                "type": "string"
+              },
               "class_id": {
                 "type": "integer"
               }
@@ -1421,7 +1421,7 @@
             },
             "example": {
               "error": "NOT_FOUND",
-              "message": "Resourse with id=1 not found"
+              "message": "Resource with id=1 not found"
             }
           }
         }

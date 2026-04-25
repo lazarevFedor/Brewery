@@ -38,7 +38,7 @@
     ],
     "responses": {
       "204": {
-        "description": "Success deleted"
+        "description": "Successfully deleted"
       },
       "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
       "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
