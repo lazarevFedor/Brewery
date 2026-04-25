@@ -1,7 +1,7 @@
 {
   "delete": {
     "tags": ["Reviews"],
-    "summary": "Delete review",
+    "summary": "Delete beer's review",
     "operationId": "deleteReview",
     "parameters": [
       { "$ref": "../../components/parameters/id.json#/Id" }
@@ -23,7 +23,7 @@
   
   "patch": {
     "tags": ["Reviews"],
-    "summary": "Update review",
+    "summary": "Update beer's review",
     "operationId": "updateReview",
     "parameters": [
       { "$ref": "../../components/parameters/id.json#/Id" }

@@ -1,7 +1,7 @@
 {
   "post": {
     "tags": ["Reviews"],
-    "summary": "Add review",
+    "summary": "Create beer's review",
     "operationId": "createReview",
     "parameters": [
       { "$ref": "../../components/parameters/beer_id.json#/BeerId" }

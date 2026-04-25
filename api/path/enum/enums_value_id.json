@@ -1,7 +1,7 @@
 {
     "delete": {
     "tags": ["EnumsValue"],
-    "summary": "Delete beer",
+    "summary": "Delete enum's value",
     "operationId": "deleteEnumValue",
     "parameters": [
       { "$ref": "../../components/parameters/id.json#/Id" }
@@ -23,7 +23,7 @@
 
   "patch": {
     "tags": ["EnumsValue"],
-    "summary": "Update beer's features",
+    "summary": "Update enum's value",
     "operationId": "updateEnumValue",
     "parameters": [
       { "$ref": "../../components/parameters/id.json#/Id" }

@@ -1,7 +1,7 @@
 {
   "get": {
     "tags": ["Categories"],
-    "summary": "Get child categories",
+    "summary": "Get category's children",
     "operationId": "listCategoryChildren",
     "parameters": [
       { "$ref": "../../components/parameters/id.json#/Id" }

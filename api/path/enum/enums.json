@@ -1,7 +1,7 @@
 {
   "post": {
     "tags": ["EnumsClass"],
-    "summary": "Create enum",
+    "summary": "Create enum class",
     "operationId": "createEnumClass",
     "requestBody": {
       "required": true,
@@ -32,7 +32,7 @@
 
   "get": {
     "tags": ["EnumsClass"],
-    "summary": "Get enum",
+    "summary": "Get enum classes",
     "operationId": "listEnumClasses",
     "parameters": [
       { "$ref": "../../components/parameters/entity_name.json#/EntityName" },

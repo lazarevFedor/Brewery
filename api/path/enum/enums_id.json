@@ -1,7 +1,7 @@
 {
   "patch": {
     "tags": ["EnumsClass"],
-    "summary": "Update enum",
+    "summary": "Update enum class",
     "operationId": "updateEnumClass",
     "parameters": [
       { "$ref": "../../components/parameters/id.json#/Id" }

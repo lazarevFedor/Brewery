@@ -39,7 +39,7 @@
           "Categories"
         ],
         "summary": "Get all categories",
-        "operationId": "getCategories",
+        "operationId": "listCategories",
         "responses": {
           "200": {
             "description": "List of categories",
@@ -92,7 +92,7 @@
           "Categories"
         ],
         "summary": "Get category by ID",
-        "operationId": "getCategoryById",
+        "operationId": "getCategory",
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
@@ -181,7 +181,7 @@
           "Categories"
         ],
         "summary": "Get parent category",
-        "operationId": "getParent",
+        "operationId": "getCategoryParent",
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
@@ -206,8 +206,8 @@
         "tags": [
           "Categories"
         ],
-        "summary": "Get child categories",
-        "operationId": "getChildren",
+        "summary": "Get category's children",
+        "operationId": "listCategoryChildren",
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
@@ -236,7 +236,7 @@
           "Beers"
         ],
         "summary": "Get all beers",
-        "operationId": "getAllBeers",
+        "operationId": "listBeers",
         "parameters": [
           {
             "$ref": "#/components/parameters/Offset"
@@ -364,7 +364,7 @@
           "Beers"
         ],
         "summary": "Get beer's features",
-        "operationId": "getBeersFeats",
+        "operationId": "listFeatures",
         "parameters": [
           {
             "$ref": "#/components/parameters/BeerId"
@@ -391,7 +391,7 @@
           "Beers"
         ],
         "summary": "Create beer's feature",
-        "operationId": "createBeersFeat",
+        "operationId": "createFeature",
         "requestBody": {
           "required": true,
           "content": {
@@ -428,7 +428,7 @@
           "Beers"
         ],
         "summary": "Update beer's features",
-        "operationId": "updateFeats",
+        "operationId": "updateFeatures",
         "parameters": [
           {
             "$ref": "#/components/parameters/BeerId"
@@ -461,7 +461,7 @@
           "Beers"
         ],
         "summary": "Delete beer",
-        "operationId": "deleteBeer",
+        "operationId": "deleteFeature",
         "parameters": [
           {
             "$ref": "#/components/parameters/BeerId"
@@ -490,7 +490,7 @@
           "Beers"
         ],
         "summary": "Get beers by category",
-        "operationId": "getBeersByCategory",
+        "operationId": "listBeersByCategory",
         "parameters": [
           {
             "$ref": "#/components/parameters/CategoryId"
@@ -524,8 +524,8 @@
         "tags": [
           "Reviews"
         ],
-        "summary": "Add review",
-        "operationId": "addReview",
+        "summary": "Create beer's review",
+        "operationId": "createReview",
         "parameters": [
           {
             "$ref": "#/components/parameters/BeerId"
@@ -564,7 +564,7 @@
           "Reviews"
         ],
         "summary": "Get beer's reviews",
-        "operationId": "getReviews",
+        "operationId": "listReviews",
         "parameters": [
           {
             "$ref": "#/components/parameters/BeerId"
@@ -592,7 +592,7 @@
         "tags": [
           "Reviews"
         ],
-        "summary": "Delete review",
+        "summary": "Delete beer's review",
         "operationId": "deleteReview",
         "parameters": [
           {
@@ -619,7 +619,7 @@
         "tags": [
           "Reviews"
         ],
-        "summary": "Update review",
+        "summary": "Update beer's review",
         "operationId": "updateReview",
         "parameters": [
           {
@@ -654,8 +654,8 @@
         "tags": [
           "EnumsClass"
         ],
-        "summary": "Create enum",
-        "operationId": "createEnum",
+        "summary": "Create enum class",
+        "operationId": "createEnumClass",
         "requestBody": {
           "required": true,
           "content": {
@@ -688,8 +688,8 @@
         "tags": [
           "EnumsClass"
         ],
-        "summary": "Get enum",
-        "operationId": "getEnum",
+        "summary": "Get enum classes",
+        "operationId": "listEnumClasses",
         "parameters": [
           {
             "$ref": "#/components/parameters/EntityName"
@@ -720,8 +720,8 @@
         "tags": [
           "EnumsClass"
         ],
-        "summary": "Update enum",
-        "operationId": "updateEnums",
+        "summary": "Update enum class",
+        "operationId": "updateEnumClass",
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
@@ -755,7 +755,7 @@
           "EnumsClass"
         ],
         "summary": "Delete enum class",
-        "operationId": "deleteEnum",
+        "operationId": "deleteEnumClass",
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
@@ -783,8 +783,8 @@
         "tags": [
           "EnumsValue"
         ],
-        "summary": "Create enum",
-        "operationId": "createEnum",
+        "summary": "Create enum's value",
+        "operationId": "createEnumValue",
         "requestBody": {
           "required": true,
           "content": {
@@ -817,8 +817,8 @@
         "tags": [
           "EnumsValue"
         ],
-        "summary": "Get enum",
-        "operationId": "getEnum",
+        "summary": "Get enum's values",
+        "operationId": "listEnumValues",
         "parameters": [
           {
             "$ref": "#/components/parameters/EnumType"
@@ -852,8 +852,8 @@
         "tags": [
           "EnumsValue"
         ],
-        "summary": "Delete beer",
-        "operationId": "deleteBeer",
+        "summary": "Delete enum's value",
+        "operationId": "deleteEnumValue",
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
@@ -879,8 +879,8 @@
         "tags": [
           "EnumsValue"
         ],
-        "summary": "Update beer's features",
-        "operationId": "updateFeats",
+        "summary": "Update enum's value",
+        "operationId": "updateEnumValue",
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
