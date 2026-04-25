@@ -1,0 +1,12 @@
+{
+    "description": "Invalid request data",
+    "content": {
+        "application/json": {
+            "schema": { "$ref": "./error_response.json#/ErrorResponse" },
+            "example": {
+                "error": "VALIDATION_ERROR",
+                "message": "Invalid id"
+            }
+        }
+    }
+}
