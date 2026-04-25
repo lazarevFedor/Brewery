@@ -26,7 +26,6 @@ CREATE TABLE IF NOT EXISTS enum_values (
     enum_class_id INT NOT NULL,
 
     value_raw VARCHAR(255) NOT NULL,   -- само значение
-    value_type VARCHAR(20) NOT NULL,   -- 'int', 'float', 'string', 'picture'
 
     position INT NOT NULL,
     FOREIGN KEY (enum_class_id) REFERENCES enum_classes(id) ON DELETE CASCADE

@@ -3,6 +3,7 @@ package entities
 import (
 	"errors"
 	"fmt"
+	"math"
 	"strconv"
 )
 
@@ -86,6 +87,43 @@ func enumValueToRaw(valueType EnumType, value any) (string, error) {
 		switch v := value.(type) {
 		case int:
 			return strconv.Itoa(v), nil
+		case int8:
+			return strconv.FormatInt(int64(v), 10), nil
+		case int16:
+			return strconv.FormatInt(int64(v), 10), nil
+		case int32:
+			return strconv.FormatInt(int64(v), 10), nil
+		case int64:
+			return strconv.FormatInt(v, 10), nil
+		case uint:
+			return strconv.FormatUint(uint64(v), 10), nil
+		case uint8:
+			return strconv.FormatUint(uint64(v), 10), nil
+		case uint16:
+			return strconv.FormatUint(uint64(v), 10), nil
+		case uint32:
+			return strconv.FormatUint(uint64(v), 10), nil
+		case uint64:
+			return strconv.FormatUint(v, 10), nil
+		case float32:
+			if float32(int64(v)) != v {
+				return "", fmt.Errorf("invalid enum value type %s: expected integer, got non-integer float32", valueType)
+			}
+
+			return strconv.FormatInt(int64(v), 10), nil
+		case float64:
+			if math.Trunc(v) != v {
+				return "", fmt.Errorf("invalid enum value type %s: expected integer, got non-integer float64", valueType)
+			}
+
+			return strconv.FormatInt(int64(v), 10), nil
+		case string:
+			parsed, err := strconv.Atoi(v)
+			if err != nil {
+				return "", fmt.Errorf("invalid enum value type %s: expected integer string, got %q", valueType, v)
+			}
+
+			return strconv.Itoa(parsed), nil
 		default:
 			return "", fmt.Errorf("invalid enum value type %s: expected integer, got %T", valueType, value)
 		}
@@ -95,6 +133,33 @@ func enumValueToRaw(valueType EnumType, value any) (string, error) {
 			return strconv.FormatFloat(float64(v), 'f', -1, 32), nil
 		case float64:
 			return strconv.FormatFloat(v, 'f', -1, 64), nil
+		case int:
+			return strconv.FormatFloat(float64(v), 'f', -1, 64), nil
+		case int8:
+			return strconv.FormatFloat(float64(v), 'f', -1, 64), nil
+		case int16:
+			return strconv.FormatFloat(float64(v), 'f', -1, 64), nil
+		case int32:
+			return strconv.FormatFloat(float64(v), 'f', -1, 64), nil
+		case int64:
+			return strconv.FormatFloat(float64(v), 'f', -1, 64), nil
+		case uint:
+			return strconv.FormatFloat(float64(v), 'f', -1, 64), nil
+		case uint8:
+			return strconv.FormatFloat(float64(v), 'f', -1, 64), nil
+		case uint16:
+			return strconv.FormatFloat(float64(v), 'f', -1, 64), nil
+		case uint32:
+			return strconv.FormatFloat(float64(v), 'f', -1, 64), nil
+		case uint64:
+			return strconv.FormatFloat(float64(v), 'f', -1, 64), nil
+		case string:
+			parsed, err := strconv.ParseFloat(v, 64)
+			if err != nil {
+				return "", fmt.Errorf("invalid enum value type %s: expected float string, got %q", valueType, v)
+			}
+
+			return strconv.FormatFloat(parsed, 'f', -1, 64), nil
 		default:
 			return "", fmt.Errorf("invalid enum value type %s: expected float, got %T", valueType, value)
 		}
