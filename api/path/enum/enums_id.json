@@ -19,7 +19,7 @@
         "description": "Updated enum class",
         "content": {
           "application/json": {
-            "schema": { "$ref": "../../components/schemas/beer.json#/Beer" }
+            "schema": { "$ref": "../../components/schemas/enum_class.json#/EnumClass" }
           }
         }
       },

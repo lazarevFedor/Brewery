@@ -429,7 +429,7 @@
           "Beers"
         ],
         "summary": "Get beer's features",
-        "operationId": "listFeatures",
+        "operationId": "listBeerFeatures",
         "parameters": [
           {
             "$ref": "#/components/parameters/BeerId"
@@ -465,7 +465,7 @@
           "Beers"
         ],
         "summary": "Create beer's feature",
-        "operationId": "createFeature",
+        "operationId": "createBeerFeature",
         "requestBody": {
           "required": true,
           "content": {
@@ -473,7 +473,7 @@
               "schema": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/components/schemas/Feature"
+                  "$ref": "#/components/schemas/FeatureBase"
                 }
               }
             }
@@ -496,6 +496,9 @@
           "400": {
             "$ref": "#/components/responses/400_bad_request"
           },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
           "409": {
             "$ref": "#/components/responses/409_conflict"
           },
@@ -509,7 +512,7 @@
           "Beers"
         ],
         "summary": "Delete beer' feature",
-        "operationId": "deleteFeature",
+        "operationId": "deleteBeerFeature",
         "parameters": [
           {
             "$ref": "#/components/parameters/BeerId"
@@ -598,7 +601,7 @@
           }
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "Review created",
             "content": {
               "application/json": {
@@ -833,7 +836,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Beer"
+                  "$ref": "#/components/schemas/EnumClass"
                 }
               }
             }
@@ -1031,23 +1034,40 @@
   },
   "components": {
     "schemas": {
-      "Category": {
+      "CategoryBase": {
         "type": "object",
         "required": [
           "name"
         ],
         "properties": {
-          "id": {
-            "type": "integer"
-          },
           "name": {
             "type": "string"
-          },
-          "parent_id": {
-            "type": "integer",
-            "nullable": true
           }
         }
+      },
+      "Category": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/CategoryBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "parent_id"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "parent_id": {
+                "type": "integer",
+                "nullable": true
+              }
+            }
+          }
+        ]
       },
       "ErrorResponse": {
         "type": "object",
@@ -1067,168 +1087,172 @@
         }
       },
       "CategoryCreate": {
-        "type": "object",
-        "required": [
-          "name"
-        ],
-        "properties": {
-          "name": {
-            "type": "string"
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/CategoryBase"
           },
-          "parent_id": {
-            "type": "integer"
+          {
+            "type": "object",
+            "required": [
+              "name",
+              "parent_id"
+            ],
+            "properties": {
+              "parent_id": {
+                "type": "integer",
+                "nullable": true
+              }
+            }
           }
-        }
+        ]
       },
       "CategoryUpdate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/CategoryBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "parent_id": {
+                "type": "integer",
+                "nullable": true
+              }
+            }
+          }
+        ]
+      },
+      "BeerBase": {
         "type": "object",
         "properties": {
           "name": {
             "type": "string"
           },
-          "parent_id": {
-            "type": "integer"
+          "rating": {
+            "type": "number"
+          },
+          "description": {
+            "type": "string"
           }
         }
       },
-      "Feature": {
+      "FeatureBase": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "integer"
-          },
           "name": {
             "type": "string"
           }
         }
       },
       "Beer": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BeerBase"
           },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "abv": {
-            "type": "number"
-          },
-          "ibu": {
-            "type": "number"
-          },
-          "city": {
-            "type": "string"
-          },
-          "country": {
-            "type": "string"
-          },
-          "category": {
-            "$ref": "#/components/schemas/Category"
-          },
-          "features": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Feature"
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "rating",
+              "description",
+              "ibu",
+              "abv",
+              "city",
+              "country",
+              "category",
+              "features",
+              "amount",
+              "units",
+              "type"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "abv": {
+                "type": "number"
+              },
+              "ibu": {
+                "type": "number"
+              },
+              "city": {
+                "type": "string"
+              },
+              "country": {
+                "type": "string"
+              },
+              "category": {
+                "$ref": "#/components/schemas/CategoryBase"
+              },
+              "features": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/FeatureBase"
+                }
+              },
+              "amount": {
+                "type": "integer"
+              },
+              "units": {
+                "type": "string"
+              }
             }
-          },
-          "amount": {
-            "type": "integer"
-          },
-          "units": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string"
           }
-        }
+        ]
       },
       "BeerCreate": {
-        "type": "object",
-        "required": [
-          "name",
-          "abv",
-          "ibu",
-          "city",
-          "category",
-          "type"
-        ],
-        "properties": {
-          "name": {
-            "type": "string"
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Beer"
           },
-          "description": {
-            "type": "string"
-          },
-          "abv": {
-            "type": "number"
-          },
-          "ibu": {
-            "type": "number"
-          },
-          "city": {
-            "type": "string"
-          },
-          "country": {
-            "type": "string"
-          },
-          "category": {
-            "$ref": "#/components/schemas/Category"
-          },
-          "features": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Feature"
-            }
-          },
-          "amount": {
-            "type": "integer"
-          },
-          "units": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string"
+          {
+            "required": [
+              "name",
+              "description",
+              "ibu",
+              "abv",
+              "city",
+              "country",
+              "category",
+              "features",
+              "amount",
+              "units"
+            ]
           }
-        }
+        ]
       },
       "BeerUpdate": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Beer"
           },
-          "description": {
-            "type": "string"
-          },
-          "abv": {
-            "type": "number"
-          },
-          "ibu": {
-            "type": "number"
-          },
-          "city": {
-            "type": "string"
-          },
-          "country": {
-            "type": "string"
-          },
-          "category": {
-            "$ref": "#/components/schemas/Category"
-          },
-          "amount": {
-            "type": "integer"
-          },
-          "units": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string"
+          {
+            "required": []
           }
-        }
+        ]
+      },
+      "Feature": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FeatureBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "name"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              }
+            }
+          }
+        ]
       },
       "ReviewBase": {
         "type": "object",
