@@ -18,14 +18,6 @@ const (
 	maxLimit = 100
 )
 
-type Handlers struct {
-	CategoryHandler  CategoriesHandlers
-	BeersHandler     BeersHandlers
-	ReviewHandler    ReviewsHandlers
-	EnumClassHandler EnumClassHandlers
-	EnumValueHandler EnumValueHandlers
-}
-
 // getUintParam извлекает и валидирует целочисленный ненулевой параметр из URL, например id.
 func getUintParam(c *gin.Context, name string) (uint, error) {
 	param := c.Param(name)
