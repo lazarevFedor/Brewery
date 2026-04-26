@@ -27,7 +27,7 @@ type BeerRepository interface {
 	GetBeers(ctx context.Context, limit, offset uint64) ([]entities.Beer, error)
 
 	// UpdateBeer обновляет поля у сущности Beer в хранилище
-	UpdateBeer(ctx context.Context, id uint, updates map[string]any) (uint, error)
+	UpdateBeer(ctx context.Context, id uint, updates map[string]any) (*entities.Beer, error)
 
 	// DeleteBeer удаляет сущность Beer из хранилища
 	DeleteBeer(ctx context.Context, id uint) error
@@ -338,42 +338,24 @@ func (r *BeerPostgres) GetBeerByID(ctx context.Context, id uint) (*entities.Beer
 }
 
 // UpdateBeer обновляет поля у сущности Beer в хранилище. Если сорт пива с таким ID не найден, возвращает ошибку. Если updates пустой, возвращает ID без изменений.
-func (r *BeerPostgres) UpdateBeer(ctx context.Context, id uint, updates map[string]any) (uint, error) {
+func (r *BeerPostgres) UpdateBeer(ctx context.Context, id uint, updates map[string]any) (*entities.Beer, error) {
 	if r.Pool == nil {
-		return 0, errors.New("pool is nil")
+		return nil, errors.New("pool is nil")
 	}
-
-	tx, err := r.Pool.Begin(ctx)
-	if err != nil {
-		return 0, fmt.Errorf("%s: %w", "Begin", err)
-	}
-	defer func(tx pgx.Tx, ctx context.Context) {
-		rollbackErr := tx.Rollback(ctx)
-		log, ok := logger.GetLoggerFromCtx(ctx)
-		if ok {
-			if rollbackErr != nil && !errors.Is(rollbackErr, pgx.ErrTxClosed) {
-				log.Error(ctx, "InsertBeer: rollback error:", zap.Error(rollbackErr))
-			}
-		}
-	}(tx, ctx)
 
 	psql := queries.UpdateBeer(id, updates)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return 0, fmt.Errorf("%s: %w", "ToSql", err)
+		return nil, fmt.Errorf("%s: %w", "ToSql", err)
 	}
 
-	var beerID uint
-	err = tx.QueryRow(ctx, query, args...).Scan(&beerID)
+	row := r.Pool.QueryRow(ctx, query, args...)
+	beer, err := scanBeerBase(row)
 	if err != nil {
-		return 0, fmt.Errorf("%s: %w", "Scan", err)
+		return nil, fmt.Errorf("%s: %w", "Scan", err)
 	}
 
-	err = tx.Commit(ctx)
-	if err != nil {
-		return 0, fmt.Errorf("commit: %w", err)
-	}
-	return beerID, nil
+	return beer, nil
 }
 
 // DeleteBeer удаляет сущность Beer из хранилища. Если сорт пива с таким ID не найден, возвращает ошибку.

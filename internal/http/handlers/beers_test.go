@@ -2,6 +2,7 @@ package handlers_test
 
 import (
 	"Brewery/internal/entities"
+	"Brewery/internal/http/handlers"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -49,7 +50,7 @@ func TestGetBeersByCategory_InvalidID_ReturnsBadRequest(t *testing.T) {
 
 	var got map[string]string
 	require.NoError(t, json.Unmarshal(resp.Body.Bytes(), &got))
-	assert.Equal(t, "invalid id", got["error"])
+	assert.Equal(t, handlers.InvalidID, got["error"])
 }
 
 // TestUpdateBeer_UsesPathParam проверяет, что при обновлении пива используется правильный путь и передается правильный ID в сервис.
@@ -60,7 +61,7 @@ func TestUpdateBeer_UsesPathParam(t *testing.T) {
 
 	serviceMock.UpdateBeerMock.
 		Expect(minimock.AnyContext, uint(77), map[string]any{"name": "ipa"}).
-		Return(uint(77), nil)
+		Return(&entities.Beer{}, nil)
 
 	body := strings.NewReader(`{"name":"ipa"}`)
 	resp := testEnv.DoRequest(ctx, http.MethodPatch, "/api/beers/77", body)
@@ -99,7 +100,7 @@ func TestDeleteBeer_UsesPathParam(t *testing.T) {
 
 	resp := testEnv.DoRequest(ctx, http.MethodDelete, "/api/beers/16", nil)
 
-	require.Equal(t, http.StatusOK, resp.Code)
+	require.Equal(t, http.StatusNoContent, resp.Code)
 }
 
 // TestGetAllBeers_ReturnsOK проверяет, что при запросе всех изделий пива возвращается статус 200 OK и что сервис вызывается с правильными параметрами пагинации.

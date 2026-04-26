@@ -1,10 +1,11 @@
 package handlers
 
 const (
-	BadRequest   = "BAD_REQUEST"
-	invalidJSON  = "INVALID_JSON"
-	intenalError = "INTERNAL_ERROR"
-	invalidID    = "INVALID_ID"
+	BadRequest        = "BAD_REQUEST"
+	InvalidJSON       = "INVALID_JSON"
+	IntenalError      = "INTERNAL_ERROR"
+	InvalidID         = "INVALID_ID"
+	InvalidParameters = "INVALID_PARAMETERS"
 )
 
 type Handlers struct {

@@ -113,7 +113,7 @@ func UpdateBeer(id uint, updates map[string]any) sq.UpdateBuilder {
 		Update(beersTable).
 		SetMap(updates).
 		Where(sq.Eq{"id": id}).
-		Suffix("RETURNING id")
+		Suffix("RETURNING *")
 }
 
 // SelectOrInsertCountry возвращает запрос для вставки новой страны в таблицу countries, если страна с таким именем еще не существует, или возвращает ID существующей страны, если она уже есть. Запрос использует конструкцию ON CONFLICT для обработки конфликтов по имени страны.

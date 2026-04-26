@@ -3,7 +3,6 @@ package handlers
 import (
 	"errors"
 	"io"
-	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -12,8 +11,10 @@ import (
 const (
 	// defaultOffset это дефолтное значение для смещения при пагинации.
 	defaultOffset = 0
+
 	// defaultLimit это дефолтное значения для лимита при пагинации.
 	defaultLimit = 20
+
 	// maxLimit это максимальное значение для лимита при пагинации.
 	maxLimit = 100
 )
@@ -31,8 +32,6 @@ func getUintParam(c *gin.Context, name string) (uint, error) {
 
 	uintParam, err := strconv.Atoi(param)
 	if err != nil || uintParam <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
-
 		return 0, errors.New("invalid id")
 	}
 
@@ -43,8 +42,6 @@ func getUintParam(c *gin.Context, name string) (uint, error) {
 func readRequestBody(c *gin.Context) ([]byte, error) {
 	body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
-
 		return nil, errors.New("invalid request body")
 	}
 
@@ -59,8 +56,6 @@ func getPaginationParams(c *gin.Context) (uint64, uint64, error) {
 	if rawOffset := c.Query("offset"); rawOffset != "" {
 		parsedOffset, err := strconv.Atoi(rawOffset)
 		if err != nil || parsedOffset < 0 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid offset"})
-
 			return 0, 0, errors.New("invalid offset")
 		}
 
@@ -70,8 +65,6 @@ func getPaginationParams(c *gin.Context) (uint64, uint64, error) {
 	if rawLimit := c.Query("limit"); rawLimit != "" {
 		parsedLimit, err := strconv.Atoi(rawLimit)
 		if err != nil || parsedLimit <= 0 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid limit"})
-
 			return 0, 0, errors.New("invalid limit")
 		}
 

@@ -131,7 +131,7 @@ type BeerServiceMock struct {
 	beforeGetParentCategoryCounter uint64
 	GetParentCategoryMock          mBeerServiceMockGetParentCategory
 
-	funcUpdateBeer          func(ctx context.Context, id uint, updates map[string]any) (u1 uint, err error)
+	funcUpdateBeer          func(ctx context.Context, id uint, updates map[string]any) (bp1 *entities.Beer, err error)
 	funcUpdateBeerOrigin    string
 	inspectFuncUpdateBeer   func(ctx context.Context, id uint, updates map[string]any)
 	afterUpdateBeerCounter  uint64
@@ -5901,7 +5901,7 @@ type BeerServiceMockUpdateBeerParamPtrs struct {
 
 // BeerServiceMockUpdateBeerResults contains results of the BeerService.UpdateBeer
 type BeerServiceMockUpdateBeerResults struct {
-	u1  uint
+	bp1 *entities.Beer
 	err error
 }
 
@@ -6029,7 +6029,7 @@ func (mmUpdateBeer *mBeerServiceMockUpdateBeer) Inspect(f func(ctx context.Conte
 }
 
 // Return sets up results that will be returned by BeerService.UpdateBeer
-func (mmUpdateBeer *mBeerServiceMockUpdateBeer) Return(u1 uint, err error) *BeerServiceMock {
+func (mmUpdateBeer *mBeerServiceMockUpdateBeer) Return(bp1 *entities.Beer, err error) *BeerServiceMock {
 	if mmUpdateBeer.mock.funcUpdateBeer != nil {
 		mmUpdateBeer.mock.t.Fatalf("BeerServiceMock.UpdateBeer mock is already set by Set")
 	}
@@ -6037,13 +6037,13 @@ func (mmUpdateBeer *mBeerServiceMockUpdateBeer) Return(u1 uint, err error) *Beer
 	if mmUpdateBeer.defaultExpectation == nil {
 		mmUpdateBeer.defaultExpectation = &BeerServiceMockUpdateBeerExpectation{mock: mmUpdateBeer.mock}
 	}
-	mmUpdateBeer.defaultExpectation.results = &BeerServiceMockUpdateBeerResults{u1, err}
+	mmUpdateBeer.defaultExpectation.results = &BeerServiceMockUpdateBeerResults{bp1, err}
 	mmUpdateBeer.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
 	return mmUpdateBeer.mock
 }
 
 // Set uses given function f to mock the BeerService.UpdateBeer method
-func (mmUpdateBeer *mBeerServiceMockUpdateBeer) Set(f func(ctx context.Context, id uint, updates map[string]any) (u1 uint, err error)) *BeerServiceMock {
+func (mmUpdateBeer *mBeerServiceMockUpdateBeer) Set(f func(ctx context.Context, id uint, updates map[string]any) (bp1 *entities.Beer, err error)) *BeerServiceMock {
 	if mmUpdateBeer.defaultExpectation != nil {
 		mmUpdateBeer.mock.t.Fatalf("Default expectation is already set for the BeerService.UpdateBeer method")
 	}
@@ -6074,8 +6074,8 @@ func (mmUpdateBeer *mBeerServiceMockUpdateBeer) When(ctx context.Context, id uin
 }
 
 // Then sets up BeerService.UpdateBeer return parameters for the expectation previously defined by the When method
-func (e *BeerServiceMockUpdateBeerExpectation) Then(u1 uint, err error) *BeerServiceMock {
-	e.results = &BeerServiceMockUpdateBeerResults{u1, err}
+func (e *BeerServiceMockUpdateBeerExpectation) Then(bp1 *entities.Beer, err error) *BeerServiceMock {
+	e.results = &BeerServiceMockUpdateBeerResults{bp1, err}
 	return e.mock
 }
 
@@ -6101,7 +6101,7 @@ func (mmUpdateBeer *mBeerServiceMockUpdateBeer) invocationsDone() bool {
 }
 
 // UpdateBeer implements mm_usecase.BeerService
-func (mmUpdateBeer *BeerServiceMock) UpdateBeer(ctx context.Context, id uint, updates map[string]any) (u1 uint, err error) {
+func (mmUpdateBeer *BeerServiceMock) UpdateBeer(ctx context.Context, id uint, updates map[string]any) (bp1 *entities.Beer, err error) {
 	mm_atomic.AddUint64(&mmUpdateBeer.beforeUpdateBeerCounter, 1)
 	defer mm_atomic.AddUint64(&mmUpdateBeer.afterUpdateBeerCounter, 1)
 
@@ -6121,7 +6121,7 @@ func (mmUpdateBeer *BeerServiceMock) UpdateBeer(ctx context.Context, id uint, up
 	for _, e := range mmUpdateBeer.UpdateBeerMock.expectations {
 		if minimock.Equal(*e.params, mm_params) {
 			mm_atomic.AddUint64(&e.Counter, 1)
-			return e.results.u1, e.results.err
+			return e.results.bp1, e.results.err
 		}
 	}
 
@@ -6158,7 +6158,7 @@ func (mmUpdateBeer *BeerServiceMock) UpdateBeer(ctx context.Context, id uint, up
 		if mm_results == nil {
 			mmUpdateBeer.t.Fatal("No results are set for the BeerServiceMock.UpdateBeer")
 		}
-		return (*mm_results).u1, (*mm_results).err
+		return (*mm_results).bp1, (*mm_results).err
 	}
 	if mmUpdateBeer.funcUpdateBeer != nil {
 		return mmUpdateBeer.funcUpdateBeer(ctx, id, updates)

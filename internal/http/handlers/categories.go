@@ -296,22 +296,21 @@ func (h *categoriesHandlers) GetChildCategory(c *gin.Context) {
 func (h *categoriesHandlers) GetBeersByCategory(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
-		c.Status(http.StatusInternalServerError)
-
+		writeError(c, http.StatusInternalServerError, IntenalError, "Unexpected error occurred")
 		return
 	}
 
 	id, err := getUintParam(c, "category_id")
 	if err != nil {
-		log.Warn(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
-
+		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
+		writeError(c, http.StatusBadRequest, InvalidID, "Invalid category id")
 		return
 	}
 
 	offset, limit, err := getPaginationParams(c)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid pagination params: %v", err))
-
+		writeError(c, http.StatusBadRequest, InvalidParameters, "Invalid pagination parameters")
 		return
 	}
 

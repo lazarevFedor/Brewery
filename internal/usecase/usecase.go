@@ -21,7 +21,7 @@ type BeerService interface {
 
 	CreateBeer(ctx context.Context, beer *entities.Beer) (*entities.Beer, error)
 	GetBeersByCategory(ctx context.Context, id uint, limit, offset uint64) ([]entities.Beer, error)
-	UpdateBeer(ctx context.Context, id uint, updates map[string]any) (uint, error)
+	UpdateBeer(ctx context.Context, id uint, updates map[string]any) (*entities.Beer, error)
 	DeleteBeer(ctx context.Context, id uint) error
 	GetAllBeers(ctx context.Context, limit, offset uint64) ([]entities.Beer, error)
 
@@ -290,27 +290,96 @@ func (s *beerService) GetBeersByCategory(ctx context.Context, id uint, limit, of
 	return beers, nil
 }
 
-func validation(ctx context.Context, id uint, updates map[string]any) error {
-	if err := ctx.Err(); err != nil {
-		return fmt.Errorf("request cancelled: %w", err)
-	}
+func (s *beerService) validateUpdates(ctx context.Context, updates map[string]any) (map[string]any, error) {
+	validatedUpdates := make(map[string]any)
 
-	if id == 0 {
-		return errors.New("invalid beer id")
-	}
+	for k, v := range updates {
+		switch k {
+		case "city":
+			cityID, err := s.resolveCityUpdate(ctx, updates)
+			if err != nil {
+				return nil, err
+			}
+			validatedUpdates["city_id"] = cityID
 
-	if len(updates) == 0 {
-		return errors.New("no fields to update")
+		case "category":
+			categoryUpdates, ok := v.(map[string]any)
+			if !ok {
+				return nil, errors.New("category datatype error")
+			}
+
+			updateCtgID, ok := categoryUpdates["id"]
+			if ok {
+				updateCtgIDFLoat, ok := updateCtgID.(float64)
+				if !ok {
+					return nil, errors.New("category id datatype error")
+				}
+
+				ctg, err := s.categoryRepo.GetCategoryByID(ctx, uint(updateCtgIDFLoat))
+				if err != nil {
+					return nil, fmt.Errorf("failed to get ctg by id: %w", err)
+				}
+				validatedUpdates["category_id"] = uint(ctg.ID)
+			} else {
+				ctgName, ok := categoryUpdates["name"]
+				if !ok {
+					return nil, errors.New("category name needs to update category")
+				}
+
+				ctgNameStr, ok := ctgName.(string)
+				if !ok {
+					return nil, errors.New("category name datatype error")
+				}
+
+				ctgID, err := s.categoryRepo.GetCategoryID(ctx, ctgNameStr)
+				if err != nil {
+					return nil, fmt.Errorf("failed to get Category ID: %w", err)
+				}
+				if ctgID == 0 {
+					parentID, ok := categoryUpdates["parent_id"]
+					if !ok {
+						return nil, errors.New("category name needs to update category")
+					}
+
+					parentIDFloat, ok := parentID.(int)
+					if !ok {
+						return nil, errors.New("parent_id datatype error")
+					}
+					ctgID, err = s.categoryRepo.InsertCategory(ctx, entities.ProductCategory{
+						Name:     ctgNameStr,
+						ParentID: parentIDFloat,
+					})
+					if err != nil {
+						return nil, fmt.Errorf("insertcategory: %w", err)
+					}
+				}
+				validatedUpdates["category_id"] = ctgID
+			}
+
+		default:
+			if k != "country" {
+				validatedUpdates[k] = v
+			}
+		}
 	}
-	return nil
+	return validatedUpdates, nil
 }
 
 func (s *beerService) resolveCityUpdate(ctx context.Context, updates map[string]any) (uint, error) {
-	countryName, ok := updates["country"].(string)
+	if err := ctx.Err(); err != nil {
+		return 0, fmt.Errorf("request canceled: %w", err)
+	}
+
+	country, ok := updates["country"]
+	if !ok {
+		return 0, errors.New("country needs to change city")
+	}
+
+	countryName, ok := country.(string)
 	if !ok {
 		return 0, errors.New("country Datatype error")
 	}
-	ctrID, err := s.beerRepo.GetCountryID(ctx, countryName)
+	countryID, err := s.beerRepo.GetCountryID(ctx, countryName)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get Country ID: %w", err)
 	}
@@ -320,7 +389,7 @@ func (s *beerService) resolveCityUpdate(ctx context.Context, updates map[string]
 	if !ok {
 		return 0, errors.New("cityName Datatype error")
 	}
-	cityID, err := s.beerRepo.GetCityID(ctx, cityName, ctrID)
+	cityID, err := s.beerRepo.GetCityID(ctx, cityName, countryID)
 	if err != nil {
 		return 0, err
 	}
@@ -328,88 +397,18 @@ func (s *beerService) resolveCityUpdate(ctx context.Context, updates map[string]
 	return cityID, nil
 }
 
-func (s *beerService) UpdateBeer(ctx context.Context, id uint, updates map[string]any) (uint, error) {
-	if err := validation(ctx, id, updates); err != nil {
-		return 0, err
-	}
-	finalUpdates := make(map[string]any)
-
-	for k, v := range updates {
-		switch k {
-		case "city":
-			cityID, err := s.resolveCityUpdate(ctx, updates)
-			if err != nil {
-				return 0, err
-			}
-			finalUpdates["city_id"] = cityID
-
-		case "category":
-			categoryUpdates, ok := v.(map[string]any)
-			if !ok {
-				return 0, errors.New("category datatype error")
-			}
-
-			updateCtgID, ok := categoryUpdates["id"]
-			if ok {
-				updateCtgIDFLoat, ok := updateCtgID.(float64)
-				if !ok {
-					return 0, errors.New("category id datatype error")
-				}
-
-				ctg, err := s.categoryRepo.GetCategoryByID(ctx, uint(updateCtgIDFLoat))
-				if err != nil {
-					return 0, fmt.Errorf("failed to get ctg by id: %w", err)
-				}
-				finalUpdates["category_id"] = uint(ctg.ID)
-			} else {
-				ctgName, ok := categoryUpdates["name"]
-				if !ok {
-					return 0, errors.New("category name needs to update category")
-				}
-
-				ctgNameStr, ok := ctgName.(string)
-				if !ok {
-					return 0, errors.New("category name datatype error")
-				}
-
-				ctgID, err := s.categoryRepo.GetCategoryID(ctx, ctgNameStr)
-				if err != nil {
-					return 0, fmt.Errorf("failed to get Category ID: %w", err)
-				}
-				if ctgID == 0 {
-					parentID, ok := categoryUpdates["parent_id"]
-					if !ok {
-						return 0, errors.New("category name needs to update category")
-					}
-
-					parentIDFloat, ok := parentID.(float64)
-					if !ok {
-						return 0, errors.New("parent_id datatype error")
-					}
-					ctgID, err = s.categoryRepo.InsertCategory(ctx, entities.ProductCategory{
-						Name:     ctgNameStr,
-						ParentID: int(parentIDFloat),
-					})
-					if err != nil {
-						return 0, fmt.Errorf("insertcategory: %w", err)
-					}
-				}
-				finalUpdates["category_id"] = ctgID
-			}
-
-		default:
-			if k != "country" {
-				finalUpdates[k] = v
-			}
-		}
-	}
-
-	beerID, err := s.beerRepo.UpdateBeer(ctx, id, finalUpdates)
+func (s *beerService) UpdateBeer(ctx context.Context, id uint, updates map[string]any) (*entities.Beer, error) {
+	validatedUpdates, err := s.validateUpdates(ctx, updates)
 	if err != nil {
-		return 0, fmt.Errorf("failed to update beer: %w", err)
+		return nil, fmt.Errorf("failed to validate updates: %w", err)
 	}
 
-	return beerID, nil
+	beer, err := s.beerRepo.UpdateBeer(ctx, id, validatedUpdates)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update beer: %w", err)
+	}
+
+	return beer, nil
 }
 
 func (s *beerService) DeleteBeer(ctx context.Context, id uint) error {
