@@ -998,7 +998,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/EnumValueUpdate"
+                "$ref": "#/components/schemas/EnumValueBase"
               }
             }
           }
@@ -1291,38 +1291,76 @@
           }
         ]
       },
-      "EnumClass": {
+      "EnumClassBase": {
         "type": "object",
+        "required": [
+          "entity_name",
+          "field_name"
+        ],
         "properties": {
-          "enum_type": {
-            "type": "string"
-          },
           "entity_name": {
             "type": "string"
           },
           "field_name": {
             "type": "string"
-          },
-          "unit": {
-            "type": "string"
-          },
-          "is_active": {
-            "type": "boolean"
           }
         }
+      },
+      "EnumClass": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumClassBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "enum_type",
+              "entity_name",
+              "field_name",
+              "is_active"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "enum_type": {
+                "type": "string"
+              },
+              "unit": {
+                "type": "string"
+              },
+              "is_active": {
+                "type": "boolean"
+              }
+            }
+          }
+        ]
       },
       "EnumClassCreate": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/EnumClass"
+            "$ref": "#/components/schemas/EnumClassBase"
           },
           {
+            "type": "object",
             "required": [
               "enum_type",
               "entity_name",
               "field_name",
               "is_active"
-            ]
+            ],
+            "properties": {
+              "enum_type": {
+                "type": "string"
+              },
+              "unit": {
+                "type": "string"
+              },
+              "is_active": {
+                "type": "boolean"
+              }
+            }
           }
         ]
       },
@@ -1351,6 +1389,9 @@
               "position"
             ],
             "properties": {
+              "id": {
+                "type": "integer"
+              },
               "enum_type": {
                 "type": "string"
               },
@@ -1358,13 +1399,6 @@
                 "type": "integer"
               }
             }
-          }
-        ]
-      },
-      "EnumValueUpdate": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/EnumValueBase"
           }
         ]
       }

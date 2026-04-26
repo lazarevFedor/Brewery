@@ -10,7 +10,7 @@
       "required": true,
       "content": {
         "application/json": {
-          "schema": {"$ref": "../../components/schemas/enum_class.json#/EnumClass"}
+          "schema": {"$ref": "../../components/schemas/enum_class.json#/EnumClassUpdate"}
         }
       }
     },

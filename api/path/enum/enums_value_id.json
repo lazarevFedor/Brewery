@@ -27,7 +27,7 @@
       "required": true,
       "content": {
         "application/json": {
-          "schema": {"$ref": "../../components/schemas/enum_value.json#/EnumValueUpdate"}
+          "schema": {"$ref": "../../components/schemas/enum_value.json#/EnumValueBase"}
         }
       }
     },

@@ -54,7 +54,7 @@
 
   "delete": {
     "tags": ["Beers"],
-    "summary": "Delete beer feature",
+    "summary": "Delete beer's feature",
     "operationId": "deleteBeerFeature",
     "parameters": [
       { "$ref": "../../components/parameters/beer_id.json#/BeerId" }

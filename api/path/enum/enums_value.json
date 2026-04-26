@@ -8,7 +8,7 @@
       "content": {
         "application/json": {
           "schema": {
-            "$ref": "../../components/schemas/enum_value.json#/EnumValue"
+            "$ref": "../../components/schemas/enum_value.json#/EnumValueCreate"
           }
         }
       }
