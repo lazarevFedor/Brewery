@@ -75,10 +75,10 @@ func TestCreateBeer_ReturnsCreated(t *testing.T) {
 	serviceMock := testEnv.BeerMock
 
 	serviceMock.CreateBeerMock.Set(
-		func(ctx context.Context, beer *entities.Beer) (uint, error) {
+		func(ctx context.Context, beer *entities.Beer) (*entities.Beer, error) {
 			require.Equal(t, "ipa", beer.Name)
 
-			return 1, nil
+			return beer, nil
 		})
 
 	body := strings.NewReader(`{"name":"ipa"}`)

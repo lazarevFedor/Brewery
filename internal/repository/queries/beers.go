@@ -188,7 +188,7 @@ func SelectOrInsertBeerFeature(featID, beerID uint) sq.InsertBuilder {
 		Insert(beerFeaturesTable).
 		SetMap(data).
 		Suffix("ON CONFLICT DO NOTHING")
-}
+	}
 
 // InsertBeer возвращает запрос для вставки нового пива в таблицу beers с использованием данных из переданной структуры beer и идентификаторов города и категории. Запрос возвращает ID вставленного пива.
 func InsertBeer(beer entities.Beer, cityID, categoryID uint) sq.InsertBuilder {
@@ -207,5 +207,5 @@ func InsertBeer(beer entities.Beer, cityID, categoryID uint) sq.InsertBuilder {
 	return psql.
 		Insert(beersTable).
 		SetMap(data).
-		Suffix("RETURNING id")
+		Suffix("RETURNING *")
 }

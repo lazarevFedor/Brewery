@@ -18,6 +18,13 @@ const (
 	maxLimit = 100
 )
 
+func writeError(c *gin.Context, code int, errType, message string) {
+	c.JSON(code, gin.H{
+		"error":   errType,
+		"message": message,
+	})
+}
+
 // getUintParam извлекает и валидирует целочисленный ненулевой параметр из URL, например id.
 func getUintParam(c *gin.Context, name string) (uint, error) {
 	param := c.Param(name)

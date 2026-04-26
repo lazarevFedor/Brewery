@@ -21,7 +21,7 @@ import (
 type BeerRepository interface {
 
 	// InsertBeer сохраняет новую сущность Beer в хранилище.
-	InsertBeer(ctx context.Context, beer entities.Beer) (uint, error)
+	InsertBeer(ctx context.Context, beer entities.Beer) (*entities.Beer, error)
 
 	// GetBeers возвращает список всех сортов пива.
 	GetBeers(ctx context.Context, limit, offset uint64) ([]entities.Beer, error)
@@ -79,14 +79,14 @@ func NewBeerPostgres(pgPool *pgxpool.Pool) *BeerPostgres {
 }
 
 // InsertBeer сохраняет новую сущность Beer в хранилище. Если страна, город, категория или характеристика не существуют, они будут добавлены в базу данных.
-func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (uint, error) {
+func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (*entities.Beer, error) {
 	if r.Pool == nil {
-		return 0, errors.New("pool is nil")
+		return nil, errors.New("pool is nil")
 	}
 
 	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
-		return 0, fmt.Errorf("%s: %w", "Begin", err)
+		return nil, fmt.Errorf("%s: %w", "Begin", err)
 	}
 	defer func(tx pgx.Tx, ctx context.Context) {
 		rollbackErr := tx.Rollback(ctx)
@@ -100,55 +100,61 @@ func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (uint
 
 	countryID, err := r.getCountryIDTx(ctx, tx, beer.Country)
 	if err != nil {
-		return 0, fmt.Errorf("country QueryRow: %w", err)
+		return nil, fmt.Errorf("country QueryRow: %w", err)
 	}
 
 	cityID, err := r.getCityIDTx(ctx, tx, beer.City, countryID)
 	if err != nil {
-		return 0, fmt.Errorf("city QueryRow: %w", err)
+		return nil, fmt.Errorf("city QueryRow: %w", err)
 	}
 
 	categoryID, err := r.getCategoryIDTx(ctx, tx, beer.Category.Name)
 	if err != nil {
-		return 0, fmt.Errorf("getCategoryID: %w", err)
+		return nil, fmt.Errorf("getCategoryID: %w", err)
 	}
 
 	if categoryID == 0 {
 		categoryID, err = r.insertCategoryTx(ctx, tx, beer.Category)
 		if err != nil {
-			return 0, fmt.Errorf("insertCategory: %w", err)
+			return nil, fmt.Errorf("insertCategory: %w", err)
 		}
 	}
 
-	var beerID uint
 	psql := queries.InsertBeer(beer, cityID, categoryID)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return 0, fmt.Errorf("ToSql: %w", err)
+		return nil, fmt.Errorf("ToSql: %w", err)
 	}
 
-	err = tx.QueryRow(ctx, query, args...).Scan(&beerID)
+	row := tx.QueryRow(ctx, query, args...)
+	createdBeer, err := scanBeerBase(row)
+
 	if err != nil {
-		return 0, fmt.Errorf("beer QueryRow: %w", err)
+		return nil, fmt.Errorf("beer QueryRow: %w", err)
 	}
+
+	createdBeer.City = beer.City
+	createdBeer.Country = beer.Country
+	createdBeer.Category.Name = beer.Category.Name
 
 	for _, featName := range beer.Features {
 		featID, err := r.getFeatureIDTx(ctx, tx, featName)
 		if err != nil {
-			return 0, fmt.Errorf("feature QueryRow: %w", err)
+			return nil, fmt.Errorf("feature QueryRow: %w", err)
 		}
 
-		err = r.insertBeerFeatureTx(ctx, tx, featID, beerID)
+		err = r.insertBeerFeatureTx(ctx, tx, featID, createdBeer.ID)
 		if err != nil {
-			return 0, fmt.Errorf("exec: %w", err)
+			return nil, fmt.Errorf("exec: %w", err)
 		}
 	}
+	createdBeer.Features = beer.Features
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		return 0, fmt.Errorf("commit: %w", err)
+		return nil, fmt.Errorf("commit: %w", err)
 	}
-	return beerID, nil
+	return createdBeer, nil
 }
 
 // getCountryIDTx возвращает ID страны по ее названию в рамках транзакции. Если страны нет, она будет добавлена в базу данных. Если name пустой, возвращает ошибку.
@@ -686,6 +692,21 @@ func scanBeer(row pgx.Row) (*entities.Beer, error) {
 		&beer.Description, &beer.ABV, &beer.IBU, &beer.Amount,
 		&beer.Unit, &beer.City, &beer.Country,
 		&beer.Category.Name, &beer.Features)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Scan", err)
+	}
+
+	return &beer, nil
+}
+
+// scanBeer сканирует строку из базы данных в сущность Beer. Если строка не соответствует структуре сущности, возвращает ошибку.
+func scanBeerBase(row pgx.Row) (*entities.Beer, error) {
+	var beer entities.Beer
+	var cityID, categoryID uint
+	err := row.Scan(&beer.ID, &beer.Name, &beer.Rating,
+		&beer.Description, &beer.ABV, &beer.IBU,
+		&beer.Amount, &beer.Unit, &cityID, &categoryID,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Scan", err)
 	}

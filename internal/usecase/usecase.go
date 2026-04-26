@@ -19,7 +19,7 @@ type BeerService interface {
 	GetParentCategory(ctx context.Context, id uint) (*entities.ProductCategory, error)
 	GetChildCategories(ctx context.Context, id uint) ([]entities.ProductCategory, error)
 
-	CreateBeer(ctx context.Context, beer *entities.Beer) (uint, error)
+	CreateBeer(ctx context.Context, beer *entities.Beer) (*entities.Beer, error)
 	GetBeersByCategory(ctx context.Context, id uint, limit, offset uint64) ([]entities.Beer, error)
 	UpdateBeer(ctx context.Context, id uint, updates map[string]any) (uint, error)
 	DeleteBeer(ctx context.Context, id uint) error
@@ -239,25 +239,25 @@ func (s *beerService) GetChildCategories(ctx context.Context, id uint) ([]entiti
 	return children, nil
 }
 
-func (s *beerService) CreateBeer(ctx context.Context, beer *entities.Beer) (uint, error) {
+func (s *beerService) CreateBeer(ctx context.Context, beer *entities.Beer) (*entities.Beer, error) {
 	if err := ctx.Err(); err != nil {
-		return 0, fmt.Errorf("request cancelled: %w", err)
+		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
 	if beer == nil {
-		return 0, errors.New("beer is nil")
+		return nil, errors.New("beer is nil")
 	}
 
 	if beer.Name == "" {
-		return 0, errors.New("beer name is required")
+		return nil, errors.New("beer name is required")
 	}
 
-	id, err := s.beerRepo.InsertBeer(ctx, *beer)
+	beer, err := s.beerRepo.InsertBeer(ctx, *beer)
 	if err != nil {
-		return 0, fmt.Errorf("failed to create beer: %w", err)
+		return nil, fmt.Errorf("failed to create beer: %w", err)
 	}
 
-	return id, nil
+	return beer, nil
 }
 
 func (s *beerService) GetAllBeers(ctx context.Context, limit, offset uint64) ([]entities.Beer, error) {

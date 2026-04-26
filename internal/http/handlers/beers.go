@@ -41,39 +41,35 @@ func NewBeersHandlers(useCase usecase.BeerService) BeersHandlers {
 func (h *beersHandlers) CreateBeer(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
-		c.Status(http.StatusInternalServerError)
-
+		writeError(c, http.StatusInternalServerError, intenalError, "Unexpected error occurred")
 		return
 	}
 
-	log.Debug(c.Request.Context(), "Working")
-
 	body, err := readRequestBody(c)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read beer in the request body: %v", err))
-
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read the request body: %v", err))
+		writeError(c, http.StatusBadRequest, BadRequest, "Failed to read request body")
 		return
 	}
 
 	var req entities.Beer
 	if err = easyjson.Unmarshal(body, &req); err != nil {
 		log.Error(c.Request.Context(), "failed to Unmurshal JSON", zap.Error(err))
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-
+		writeError(c, http.StatusBadRequest, invalidJSON, "Request body is not valid JSON")
 		return
 	}
 
-	beerID, err := h.uc.CreateBeer(c.Request.Context(), &req)
+	beer, err := h.uc.CreateBeer(c.Request.Context(), &req)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to create beer: %v", err))
-		c.Status(http.StatusInternalServerError)
+		writeError(c, http.StatusInternalServerError, intenalError, "Unexpected error occurred")
 
 		return
 	}
 
-	log.Debug(c.Request.Context(), fmt.Sprintf("beer_id = %d", beerID))
+	log.Debug(c.Request.Context(), fmt.Sprintf("beer_id = %d", beer.ID))
 	log.Info(c.Request.Context(), fmt.Sprintf("action=create resource=beer status=success name=%q", req.Name))
-	c.Status(http.StatusCreated)
+	c.JSON(http.StatusCreated, beer)
 }
 
 // UpdateBeer обрабатывает HTTP-запрос на обновление пива.
