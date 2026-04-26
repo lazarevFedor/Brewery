@@ -1,28 +1,49 @@
 {
-    "Category": {
+    "CategoryBase": {
         "type": "object",
         "required": ["name"],
         "properties": {
-            "id": { "type": "integer" },
-            "name": { "type": "string" },
-            "parent_id": { "type": "integer", "nullable": true }
+            "name": { "type": "string" }
         }
+    },
+    
+    "Category": {
+        "allOf": [
+            { "$ref": "#/CategoryBase" },
+            {
+                "type": "object",
+                "required": ["id", "name", "parent_id"],
+                "properties": {
+                    "id": { "type": "integer" },
+                    "parent_id": { "type": "integer", "nullable": true }
+                }
+            }
+        ]   
     },
 
     "CategoryCreate": {
-        "type": "object",
-        "required": ["name"],
-        "properties": {
-            "name": { "type": "string" },
-            "parent_id": { "type": "integer" }
-        }
+        "allOf": [
+            { "$ref": "#/CategoryBase" },
+            {
+                "type": "object",
+                "required": ["name", "parent_id"],
+                "properties": {
+                    "parent_id": { "type": "integer", "nullable": true }
+                }
+            }
+        ]   
     },
 
     "CategoryUpdate": {
-        "type": "object",
-        "properties": {
-            "name": { "type": "string" },
-            "parent_id": { "type": "integer" }
-        }
+        "allOf": [
+            { "$ref": "#/CategoryBase" },
+            {
+                "type": "object",
+                "required": [],
+                "properties": {
+                    "parent_id": { "type": "integer", "nullable": true }
+                }
+            }
+        ]   
     }
 }

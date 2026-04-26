@@ -2,10 +2,10 @@
   "get": {
     "tags": ["Categories"],
     "summary": "Get all categories",
-    "operationId": "getCategories",
+    "operationId": "listCategories",
     "responses": {
       "200": {
-        "description": "List of categories",
+        "description": "Categories List",
         "content": {
           "application/json": {
             "schema": {
@@ -14,9 +14,11 @@
             }
           }
         }
-      }
+      },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
     }
   },
+
   "post": {
     "tags": ["Categories"],
     "summary": "Create category",
@@ -31,13 +33,16 @@
     },
     "responses": {
       "201": {
-        "description": "Created",
+        "description": "Category created",
         "content": {
           "application/json": {
             "schema": { "$ref": "../../components/schemas/category.json#/Category" }
           }
         }
-      }
+      },
+      "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+      "409": { "$ref": "../../components/schemas/responses/409_conflict.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
     }
   }
 }

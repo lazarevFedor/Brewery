@@ -7,6 +7,7 @@
       { "$ref": "../../components/parameters/id.json#/Id" }
     ],
     "requestBody": {
+      "required": true,
       "content": {
         "application/json": {
           "schema": { "$ref": "../../components/schemas/beer.json#/BeerUpdate" }
@@ -21,7 +22,10 @@
             "schema": { "$ref": "../../components/schemas/beer.json#/Beer" }
           }
         }
-      }
+      },
+      "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+      "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
     }
   },
 
@@ -33,19 +37,12 @@
       { "$ref": "../../components/parameters/id.json#/Id" }
     ],
     "responses": {
-      "200": {
-        "description": "Delete status",
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "success": { "type": "boolean" }
-              }
-            }
-          }
-        }
-      }
+      "204": {
+        "description": "Successfully deleted"
+      },
+      "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+      "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
     }
   }
 }

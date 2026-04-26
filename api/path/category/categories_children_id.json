@@ -1,14 +1,14 @@
 {
   "get": {
     "tags": ["Categories"],
-    "summary": "Get child categories",
-    "operationId": "getChildren",
+    "summary": "Get category's children",
+    "operationId": "listCategoryChildren",
     "parameters": [
       { "$ref": "../../components/parameters/id.json#/Id" }
     ],
     "responses": {
       "200": {
-        "description": "Children list",
+        "description": "Children categories list",
         "content": {
           "application/json": {
             "schema": {
@@ -17,7 +17,10 @@
             }
           }
         }
-      }
+      },
+      "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+      "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
     }
   }
 }

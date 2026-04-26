@@ -1,0 +1,16 @@
+{
+    "ErrorResponse": {
+        "type": "object",
+        "required": ["error", "message"],
+        "properties": {
+            "error": {
+                "type": "string",
+                "example": "VALIDATION_ERROR"
+            },
+            "message": {
+                "type": "string",
+                "example": "Invalid request"
+            }
+        }
+    }
+}

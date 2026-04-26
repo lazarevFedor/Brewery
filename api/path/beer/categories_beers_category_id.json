@@ -2,7 +2,7 @@
   "get": {
     "tags": ["Beers"],
     "summary": "Get beers by category",
-    "operationId": "getBeersByCategory",
+    "operationId": "listBeersByCategory",
     "parameters": [
       { "$ref": "../../components/parameters/category_id.json#/CategoryId" },
       { "$ref": "../../components/parameters/limit_offset.json#/Offset" },
@@ -19,7 +19,10 @@
             }
           }
         }
-      }
+      },
+      "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+      "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
     }
   }
 }

@@ -2,7 +2,7 @@
   "get": {
     "tags": ["Categories"],
     "summary": "Get category by ID",
-    "operationId": "getCategoryById",
+    "operationId": "getCategory",
     "parameters": [
       { "$ref": "../../components/parameters/id.json#/Id" }
     ],
@@ -15,7 +15,9 @@
           }
         }
       },
-      "404": { "description": "Not found" }
+      "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+      "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
     }
   },
 
@@ -27,6 +29,7 @@
       { "$ref": "../../components/parameters/id.json#/Id" }
     ],
     "requestBody": {
+      "required": true,
       "content": {
         "application/json": {
           "schema": { "$ref": "../../components/schemas/category.json#/CategoryUpdate" }
@@ -35,13 +38,16 @@
     },
     "responses": {
       "200": {
-        "description": "Updated",
+        "description": "Updated category",
         "content": {
           "application/json": {
             "schema": { "$ref": "../../components/schemas/category.json#/Category" }
           }
         }
-      }
+      },
+      "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+      "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
     }
   },
   
@@ -53,7 +59,12 @@
       { "$ref": "../../components/parameters/id.json#/Id" }
     ],
     "responses": {
-      "204": { "description": "Deleted" }
+      "204": {
+        "description": "Successfully deleted"
+      },
+      "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+      "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
     }
   }
 }

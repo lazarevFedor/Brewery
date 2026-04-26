@@ -1,20 +1,32 @@
 {
-    "Review": {
+    "ReviewBase": {
         "type": "object",
         "properties": {
-            "id": { "type": "integer" },
             "body": { "type": "string" },
             "rating": { "type": "number" }
         }
     },
 
+    "Review": {
+        "allOf": [
+            { "$ref": "#/ReviewBase" },
+            {
+                "type": "object",
+                "required": ["id", "body", "rating"],
+                "properties": {
+                    "id": { "type": "integer" }
+                }
+            }
+        ]
+    },
+
     "ReviewCreate": {
-        "type": "object",
-        "required": ["body", "rating"],
-        "properties": {
-            "body": { "type": "string" },
-            "rating": { "type": "number" }
-        }
+        "allOf": [
+            { "$ref": "#/ReviewBase" },
+            {
+                "required": ["body", "rating"] 
+            }
+        ]
     }
 }
 

@@ -39,10 +39,10 @@
           "Categories"
         ],
         "summary": "Get all categories",
-        "operationId": "getCategories",
+        "operationId": "listCategories",
         "responses": {
           "200": {
-            "description": "List of categories",
+            "description": "Categories List",
             "content": {
               "application/json": {
                 "schema": {
@@ -53,6 +53,9 @@
                 }
               }
             }
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       },
@@ -74,7 +77,7 @@
         },
         "responses": {
           "201": {
-            "description": "Created",
+            "description": "Category created",
             "content": {
               "application/json": {
                 "schema": {
@@ -82,6 +85,15 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       }
@@ -92,7 +104,7 @@
           "Categories"
         ],
         "summary": "Get category by ID",
-        "operationId": "getCategoryById",
+        "operationId": "getCategory",
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
@@ -109,8 +121,14 @@
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
           "404": {
-            "description": "Not found"
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       },
@@ -126,6 +144,7 @@
           }
         ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
@@ -136,7 +155,7 @@
         },
         "responses": {
           "200": {
-            "description": "Updated",
+            "description": "Updated category",
             "content": {
               "application/json": {
                 "schema": {
@@ -144,6 +163,15 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       },
@@ -160,7 +188,16 @@
         ],
         "responses": {
           "204": {
-            "description": "Deleted"
+            "description": "Successfully deleted"
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       }
@@ -171,7 +208,7 @@
           "Categories"
         ],
         "summary": "Get parent category",
-        "operationId": "getParent",
+        "operationId": "getCategoryParent",
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
@@ -179,7 +216,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Parent",
+            "description": "Parent category",
             "content": {
               "application/json": {
                 "schema": {
@@ -187,6 +224,15 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       }
@@ -196,8 +242,8 @@
         "tags": [
           "Categories"
         ],
-        "summary": "Get child categories",
-        "operationId": "getChildren",
+        "summary": "Get category's children",
+        "operationId": "listCategoryChildren",
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
@@ -205,7 +251,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Children list",
+            "description": "Children categories list",
             "content": {
               "application/json": {
                 "schema": {
@@ -216,6 +262,15 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       }
@@ -226,7 +281,7 @@
           "Beers"
         ],
         "summary": "Get all beers",
-        "operationId": "getAllBeers",
+        "operationId": "listBeers",
         "parameters": [
           {
             "$ref": "#/components/parameters/Offset"
@@ -248,6 +303,12 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       },
@@ -269,19 +330,23 @@
         },
         "responses": {
           "201": {
-            "description": "Created",
+            "description": "Beer created",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/Beer"
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       }
@@ -299,6 +364,7 @@
           }
         ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
@@ -317,6 +383,15 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       },
@@ -332,20 +407,17 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Delete status",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    }
-                  }
-                }
-              }
-            }
+          "204": {
+            "description": "Successfully deleted"
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       }
@@ -356,7 +428,7 @@
           "Beers"
         ],
         "summary": "Get beer's features",
-        "operationId": "getBeersFeats",
+        "operationId": "listBeerFeatures",
         "parameters": [
           {
             "$ref": "#/components/parameters/BeerId"
@@ -375,6 +447,15 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       },
@@ -383,68 +464,39 @@
           "Beers"
         ],
         "summary": "Create beer's feature",
-        "operationId": "createBeersFeat",
+        "operationId": "createBeerFeature",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/Feature"
-                }
+                "$ref": "#/components/schemas/FeatureBase"
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Created",
+            "description": "Beer's feature created",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/Feature"
                 }
               }
             }
-          }
-        }
-      },
-      "patch": {
-        "tags": [
-          "Beers"
-        ],
-        "summary": "Update beer's features",
-        "operationId": "updateFeats",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/BeerId"
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BeerUpdate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Updated beer",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Beer"
-                }
-              }
-            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       },
@@ -452,43 +504,25 @@
         "tags": [
           "Beers"
         ],
-        "summary": "Delete beer",
-        "operationId": "deleteBeer",
+        "summary": "Delete beer's feature",
+        "operationId": "deleteBeerFeature",
         "parameters": [
           {
             "$ref": "#/components/parameters/BeerId"
           }
         ],
         "responses": {
-          "200": {
-            "description": "Deleted",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    }
-                  }
-                }
-              }
-            }
+          "204": {
+            "description": "Successfully deleted"
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
           },
           "404": {
-            "description": "Beer or Feat Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    }
-                  }
-                }
-              }
-            }
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       }
@@ -499,7 +533,7 @@
           "Beers"
         ],
         "summary": "Get beers by category",
-        "operationId": "getBeersByCategory",
+        "operationId": "listBeersByCategory",
         "parameters": [
           {
             "$ref": "#/components/parameters/CategoryId"
@@ -524,6 +558,15 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       }
@@ -533,8 +576,8 @@
         "tags": [
           "Reviews"
         ],
-        "summary": "Add review",
-        "operationId": "addReview",
+        "summary": "Create beer's review",
+        "operationId": "createReview",
         "parameters": [
           {
             "$ref": "#/components/parameters/BeerId"
@@ -551,20 +594,24 @@
           }
         },
         "responses": {
-          "200": {
-            "description": "Result",
+          "201": {
+            "description": "Review created",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    }
-                  }
+                  "$ref": "#/components/schemas/Review"
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       },
@@ -573,7 +620,7 @@
           "Reviews"
         ],
         "summary": "Get beer's reviews",
-        "operationId": "getReviews",
+        "operationId": "listReviews",
         "parameters": [
           {
             "$ref": "#/components/parameters/BeerId"
@@ -581,7 +628,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Beers list",
+            "description": "Reviews list",
             "content": {
               "application/json": {
                 "schema": {
@@ -592,6 +639,15 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       }
@@ -601,7 +657,7 @@
         "tags": [
           "Reviews"
         ],
-        "summary": "Delete review",
+        "summary": "Delete beer's review",
         "operationId": "deleteReview",
         "parameters": [
           {
@@ -609,20 +665,17 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Delete status",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    }
-                  }
-                }
-              }
-            }
+          "204": {
+            "description": "Successfully deleted"
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       },
@@ -630,7 +683,7 @@
         "tags": [
           "Reviews"
         ],
-        "summary": "Update review",
+        "summary": "Update beer's review",
         "operationId": "updateReview",
         "parameters": [
           {
@@ -638,17 +691,18 @@
           }
         ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ReviewCreate"
+                "$ref": "#/components/schemas/ReviewBase"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Updated",
+            "description": "Updated review",
             "content": {
               "application/json": {
                 "schema": {
@@ -656,6 +710,15 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       }
@@ -665,8 +728,8 @@
         "tags": [
           "EnumsClass"
         ],
-        "summary": "Create enum",
-        "operationId": "createEnum",
+        "summary": "Create enum class",
+        "operationId": "createEnumClass",
         "requestBody": {
           "required": true,
           "content": {
@@ -679,19 +742,23 @@
         },
         "responses": {
           "201": {
-            "description": "Created",
+            "description": "Enum class created",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/EnumClass"
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       },
@@ -699,8 +766,8 @@
         "tags": [
           "EnumsClass"
         ],
-        "summary": "Get enum",
-        "operationId": "getEnum",
+        "summary": "Get enum classes",
+        "operationId": "listEnumClasses",
         "parameters": [
           {
             "$ref": "#/components/parameters/EntityName"
@@ -711,7 +778,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Enum list",
+            "description": "Enum class list",
             "content": {
               "application/json": {
                 "schema": {
@@ -722,6 +789,15 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       }
@@ -731,8 +807,8 @@
         "tags": [
           "EnumsClass"
         ],
-        "summary": "Update enum",
-        "operationId": "updateEnums",
+        "summary": "Update enum class",
+        "operationId": "updateEnumClass",
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
@@ -743,21 +819,30 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/EnumClass"
+                "$ref": "#/components/schemas/EnumClassUpdate"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Updated enum",
+            "description": "Updated enum class",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Beer"
+                  "$ref": "#/components/schemas/EnumClass"
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       },
@@ -766,42 +851,24 @@
           "EnumsClass"
         ],
         "summary": "Delete enum class",
-        "operationId": "deleteEnum",
+        "operationId": "deleteEnumClass",
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
           }
         ],
         "responses": {
-          "200": {
-            "description": "Deleted",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    }
-                  }
-                }
-              }
-            }
+          "204": {
+            "description": "Successfully deleted"
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
           },
           "404": {
-            "description": "Enum Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    }
-                  }
-                }
-              }
-            }
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       }
@@ -811,33 +878,37 @@
         "tags": [
           "EnumsValue"
         ],
-        "summary": "Create enum",
-        "operationId": "createEnum",
+        "summary": "Create enum's value",
+        "operationId": "createEnumValue",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/EnumValue"
+                "$ref": "#/components/schemas/EnumValueCreate"
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Created",
+            "description": "Enum value created",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/EnumValue"
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       },
@@ -845,21 +916,41 @@
         "tags": [
           "EnumsValue"
         ],
-        "summary": "Get enum",
-        "operationId": "getEnum",
+        "summary": "Get enum's values",
+        "operationId": "listEnumValues",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/EnumType"
+          },
+          {
+            "$ref": "#/components/parameters/EntityName"
+          },
+          {
+            "$ref": "#/components/parameters/FieldName"
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Enum list",
+            "description": "Enum values list",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/EnumValueGet"
+                    "$ref": "#/components/schemas/EnumValue"
                   }
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       }
@@ -869,43 +960,25 @@
         "tags": [
           "EnumsValue"
         ],
-        "summary": "Delete beer",
-        "operationId": "deleteBeer",
+        "summary": "Delete enum's value",
+        "operationId": "deleteEnumValue",
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
           }
         ],
         "responses": {
-          "200": {
-            "description": "Deleted",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    }
-                  }
-                }
-              }
-            }
+          "204": {
+            "description": "Successfully deleted"
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
           },
           "404": {
-            "description": "Beer or Feat Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    }
-                  }
-                }
-              }
-            }
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       },
@@ -913,37 +986,42 @@
         "tags": [
           "EnumsValue"
         ],
-        "summary": "Update beer's features",
-        "operationId": "updateFeats",
+        "summary": "Update enum's value",
+        "operationId": "updateEnumValue",
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
           }
         ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/EnumValueUpdate"
+                "$ref": "#/components/schemas/EnumValueBase"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Updated beer",
+            "description": "Updated enum value",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    }
-                  }
+                  "$ref": "#/components/schemas/EnumValue"
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
           }
         }
       }
@@ -951,282 +1029,348 @@
   },
   "components": {
     "schemas": {
-      "Category": {
+      "CategoryBase": {
         "type": "object",
         "required": [
           "name"
         ],
         "properties": {
-          "id": {
-            "type": "integer"
-          },
           "name": {
             "type": "string"
+          }
+        }
+      },
+      "Category": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/CategoryBase"
           },
-          "parent_id": {
-            "type": "integer",
-            "nullable": true
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "parent_id"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "parent_id": {
+                "type": "integer",
+                "nullable": true
+              }
+            }
+          }
+        ]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": [
+          "error",
+          "message"
+        ],
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "VALIDATION_ERROR"
+          },
+          "message": {
+            "type": "string",
+            "example": "Invalid request"
           }
         }
       },
       "CategoryCreate": {
-        "type": "object",
-        "required": [
-          "name"
-        ],
-        "properties": {
-          "name": {
-            "type": "string"
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/CategoryBase"
           },
-          "parent_id": {
-            "type": "integer"
+          {
+            "type": "object",
+            "required": [
+              "name",
+              "parent_id"
+            ],
+            "properties": {
+              "parent_id": {
+                "type": "integer",
+                "nullable": true
+              }
+            }
           }
-        }
+        ]
       },
       "CategoryUpdate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/CategoryBase"
+          },
+          {
+            "type": "object",
+            "required": [],
+            "properties": {
+              "parent_id": {
+                "type": "integer",
+                "nullable": true
+              }
+            }
+          }
+        ]
+      },
+      "BeerBase": {
         "type": "object",
         "properties": {
           "name": {
             "type": "string"
           },
-          "parent_id": {
-            "type": "integer"
+          "rating": {
+            "type": "number"
+          },
+          "description": {
+            "type": "string"
           }
         }
       },
-      "Feature": {
+      "FeatureBase": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "integer"
-          },
           "name": {
             "type": "string"
           }
         }
       },
       "Beer": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BeerBase"
           },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "abv": {
-            "type": "number"
-          },
-          "ibu": {
-            "type": "number"
-          },
-          "city": {
-            "type": "string"
-          },
-          "country": {
-            "type": "string"
-          },
-          "category": {
-            "$ref": "#/components/schemas/Category"
-          },
-          "features": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Feature"
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "rating",
+              "description",
+              "ibu",
+              "abv",
+              "city",
+              "country",
+              "category",
+              "features",
+              "amount",
+              "units",
+              "type"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "abv": {
+                "type": "number"
+              },
+              "ibu": {
+                "type": "number"
+              },
+              "city": {
+                "type": "string"
+              },
+              "country": {
+                "type": "string"
+              },
+              "category": {
+                "$ref": "#/components/schemas/CategoryBase"
+              },
+              "features": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/FeatureBase"
+                }
+              },
+              "amount": {
+                "type": "integer"
+              },
+              "units": {
+                "type": "string"
+              }
             }
-          },
-          "amount": {
-            "type": "integer"
-          },
-          "units": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string"
           }
-        }
+        ]
       },
       "BeerCreate": {
-        "type": "object",
-        "required": [
-          "name",
-          "abv",
-          "ibu",
-          "city",
-          "category",
-          "type"
-        ],
-        "properties": {
-          "name": {
-            "type": "string"
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Beer"
           },
-          "description": {
-            "type": "string"
-          },
-          "abv": {
-            "type": "number"
-          },
-          "ibu": {
-            "type": "number"
-          },
-          "city": {
-            "type": "string"
-          },
-          "country": {
-            "type": "string"
-          },
-          "category": {
-            "$ref": "#/components/schemas/Category"
-          },
-          "features": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Feature"
-            }
-          },
-          "amount": {
-            "type": "integer"
-          },
-          "units": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string"
+          {
+            "required": [
+              "name",
+              "description",
+              "ibu",
+              "abv",
+              "city",
+              "country",
+              "category",
+              "features",
+              "amount",
+              "units"
+            ]
           }
-        }
+        ]
       },
       "BeerUpdate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Beer"
+          },
+          {
+            "required": []
+          }
+        ]
+      },
+      "Feature": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FeatureBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "name"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              }
+            }
+          }
+        ]
+      },
+      "ReviewBase": {
         "type": "object",
         "properties": {
-          "name": {
+          "body": {
             "type": "string"
           },
-          "description": {
-            "type": "string"
-          },
-          "abv": {
+          "rating": {
             "type": "number"
-          },
-          "ibu": {
-            "type": "number"
-          },
-          "city": {
-            "type": "string"
-          },
-          "country": {
-            "type": "string"
-          },
-          "category": {
-            "$ref": "#/components/schemas/Category"
-          },
-          "amount": {
-            "type": "integer"
-          },
-          "units": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string"
           }
         }
       },
       "Review": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ReviewBase"
           },
-          "body": {
-            "type": "string"
-          },
-          "rating": {
-            "type": "number"
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "body",
+              "rating"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              }
+            }
           }
-        }
+        ]
       },
       "ReviewCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ReviewBase"
+          },
+          {
+            "required": [
+              "body",
+              "rating"
+            ]
+          }
+        ]
+      },
+      "EnumClassBase": {
         "type": "object",
         "required": [
-          "body",
-          "rating"
+          "entity_name",
+          "field_name"
         ],
         "properties": {
-          "body": {
-            "type": "string"
-          },
-          "rating": {
-            "type": "number"
-          }
-        }
-      },
-      "EnumClass": {
-        "type": "object",
-        "properties": {
-          "enum_type": {
-            "type": "string"
-          },
           "entity_name": {
             "type": "string"
           },
           "field_name": {
             "type": "string"
-          },
-          "unit": {
-            "type": "string"
-          },
-          "is_active": {
-            "type": "boolean"
           }
         }
+      },
+      "EnumClass": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumClassBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "enum_type",
+              "entity_name",
+              "field_name",
+              "is_active"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "enum_type": {
+                "type": "string"
+              },
+              "unit": {
+                "type": "string"
+              },
+              "is_active": {
+                "type": "boolean"
+              }
+            }
+          }
+        ]
       },
       "EnumClassCreate": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/EnumClass"
+            "$ref": "#/components/schemas/EnumClassBase"
           },
           {
+            "type": "object",
             "required": [
               "enum_type",
               "entity_name",
               "field_name",
               "is_active"
-            ]
+            ],
+            "properties": {
+              "enum_type": {
+                "type": "string"
+              },
+              "unit": {
+                "type": "string"
+              },
+              "is_active": {
+                "type": "boolean"
+              }
+            }
           }
         ]
       },
-      "EnumClassWithFilter": {
-        "type": "object",
-        "required": [
-          "entity_name"
-        ],
-        "properties": {
-          "entity_name": {
-            "type": "string"
-          },
-          "field_name": {
-            "type": "string"
-          }
-        }
-      },
-      "EnumValueGet": {
+      "EnumClassUpdate": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/EnumClassWithFilter"
+            "$ref": "#/components/schemas/EnumClassCreate"
           },
           {
-            "type": "object",
-            "required": [
-              "entity_name",
-              "field_name"
-            ],
-            "properties": {
-              "type": {
-                "type": "string"
-              }
-            }
+            "required": []
           }
         ]
       },
@@ -1249,11 +1393,19 @@
           {
             "type": "object",
             "required": [
+              "id",
+              "enum_type",
               "class_id",
               "value",
               "position"
             ],
             "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "enum_type": {
+                "type": "string"
+              },
               "class_id": {
                 "type": "integer"
               }
@@ -1261,12 +1413,87 @@
           }
         ]
       },
-      "EnumValueUpdate": {
+      "EnumValueCreate": {
         "allOf": [
           {
             "$ref": "#/components/schemas/EnumValueBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "class_id",
+              "enum_type",
+              "value",
+              "position"
+            ],
+            "properties": {
+              "enum_type": {
+                "type": "string"
+              },
+              "class_id": {
+                "type": "integer"
+              }
+            }
           }
         ]
+      }
+    },
+    "responses": {
+      "500_internal_server_error": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": "INTERNAL_SERVER_ERROR",
+              "message": "Unexpected error occurred"
+            }
+          }
+        }
+      },
+      "400_bad_request": {
+        "description": "Invalid request data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": "VALIDATION_ERROR",
+              "message": "Invalid id"
+            }
+          }
+        }
+      },
+      "409_conflict": {
+        "description": "Conflict",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": "CONFLICT",
+              "message": "resource duplicate"
+            }
+          }
+        }
+      },
+      "404_not_found": {
+        "description": "Not Found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": "NOT_FOUND",
+              "message": "Resource with id=1 not found"
+            }
+          }
+        }
       }
     },
     "parameters": {
@@ -1323,6 +1550,14 @@
       },
       "FieldName": {
         "name": "field_name",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "EnumType": {
+        "name": "enum_type",
         "in": "query",
         "required": true,
         "schema": {

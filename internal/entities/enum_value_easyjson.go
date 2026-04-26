@@ -107,7 +107,7 @@ func easyjson137310b9DecodeBreweryInternalEntities1(in *jlexer.Lexer, out *EnumV
 			} else {
 				out.ID = int(in.Int())
 			}
-		case "enum_class_id":
+		case "class_id":
 			if in.IsNull() {
 				in.Skip()
 			} else {
@@ -121,7 +121,7 @@ func easyjson137310b9DecodeBreweryInternalEntities1(in *jlexer.Lexer, out *EnumV
 			} else {
 				out.Value = in.Interface()
 			}
-		case "ValueType":
+		case "enum_type":
 			if in.IsNull() {
 				in.Skip()
 			} else {
@@ -154,7 +154,7 @@ func easyjson137310b9EncodeBreweryInternalEntities1(out *jwriter.Writer, in Enum
 		out.Int(int(in.ID))
 	}
 	if in.EnumClassID != 0 {
-		const prefix string = ",\"enum_class_id\":"
+		const prefix string = ",\"class_id\":"
 		if first {
 			first = false
 			out.RawString(prefix[1:])
@@ -179,8 +179,8 @@ func easyjson137310b9EncodeBreweryInternalEntities1(out *jwriter.Writer, in Enum
 			out.Raw(json.Marshal(in.Value))
 		}
 	}
-	{
-		const prefix string = ",\"ValueType\":"
+	if in.ValueType != "" {
+		const prefix string = ",\"enum_type\":"
 		if first {
 			first = false
 			out.RawString(prefix[1:])
@@ -191,7 +191,12 @@ func easyjson137310b9EncodeBreweryInternalEntities1(out *jwriter.Writer, in Enum
 	}
 	if in.Position != 0 {
 		const prefix string = ",\"position\":"
-		out.RawString(prefix)
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
 		out.Int(int(in.Position))
 	}
 	out.RawByte('}')

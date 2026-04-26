@@ -18,14 +18,6 @@ const (
 	maxLimit = 100
 )
 
-type Handlers struct {
-	CategoryHandler  CategoriesHandlers
-	BeersHandler     BeersHandlers
-	ReviewHandler    ReviewsHandlers
-	EnumClassHandler EnumClassHandlers
-	EnumValueHandler EnumValueHandlers
-}
-
 // getUintParam извлекает и валидирует целочисленный ненулевой параметр из URL, например id.
 func getUintParam(c *gin.Context, name string) (uint, error) {
 	param := c.Param(name)
@@ -38,11 +30,6 @@ func getUintParam(c *gin.Context, name string) (uint, error) {
 	}
 
 	return uint(uintParam), nil
-}
-
-// getQueryParam извлекает строковый параметр из URL, например field_name.
-func getQueryParam(c *gin.Context, name string) string {
-	return c.Query(name)
 }
 
 // readRequestBody читает тело HTTP-запроса и возвращает его в виде байтового среза.

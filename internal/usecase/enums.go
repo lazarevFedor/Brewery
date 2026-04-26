@@ -114,7 +114,13 @@ func (s *enumService) UpdateEnumValue(ctx context.Context, id uint, updates map[
 		return fmt.Errorf("request cancelled: %w", err)
 	}
 
-	err := s.repo.UpdateEnumClass(ctx, id, updates)
+	val, ok := updates["value"]
+	if ok{
+		delete(updates, "value")
+		updates["value_raw"] = val
+	}
+
+	err := s.repo.UpdateEnumValue(ctx, id, updates)
 
 	if err != nil {
 		return fmt.Errorf("failed to create enum value: %w", err)

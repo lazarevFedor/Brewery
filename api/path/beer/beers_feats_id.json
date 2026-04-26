@@ -2,7 +2,7 @@
   "get": {
       "tags": ["Beers"],
       "summary": "Get beer's features",
-      "operationId": "getBeersFeats",
+      "operationId": "listBeerFeatures",
       "parameters": [
         { "$ref": "../../components/parameters/beer_id.json#/BeerId" }
       ],
@@ -17,102 +17,55 @@
               }
             }
           }
-        }
+        },
+        "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+        "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
+        "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
       }
     },
 
   "post": {
     "tags": ["Beers"],
     "summary": "Create beer's feature",
-    "operationId": "createBeersFeat",
+    "operationId": "createBeerFeature",
     "requestBody": {
       "required": true,
       "content": {
         "application/json": {
-          "schema": {
-            "type": "array",
-            "items": { "$ref": "../../components/schemas/beer.json#/Feature" }
-          }
+          "schema": { "$ref": "../../components/schemas/beer.json#/FeatureBase" }
         }
       }
     },
     "responses": {
       "201": {
-        "description": "Created",
+        "description": "Beer's feature created",
         "content": {
           "application/json": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "message": { "type": "string" }
-              }
-            }
+            "schema": { "$ref": "../../components/schemas/beer.json#/Feature" }
           }
         }
-      }
-    }
-  },
-
-  "patch": {
-    "tags": ["Beers"],
-    "summary": "Update beer's features",
-    "operationId": "updateFeats",
-    "parameters": [
-      { "$ref": "../../components/parameters/beer_id.json#/BeerId" }
-    ],
-    "requestBody": {
-      "content": {
-        "application/json": {
-          "schema": { "$ref": "../../components/schemas/beer.json#/BeerUpdate" }
-        }
-      }
-    },
-    "responses": {
-      "200": {
-        "description": "Updated beer",
-        "content": {
-          "application/json": {
-            "schema": { "$ref": "../../components/schemas/beer.json#/Beer" }
-          }
-        }
-      }
+      },
+      "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+      "404": { "$ref": "../../components/schemas/responses/404_not_found.json" }, 
+      "409": { "$ref": "../../components/schemas/responses/409_conflict.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
     }
   },
 
   "delete": {
     "tags": ["Beers"],
-    "summary": "Delete beer",
-    "operationId": "deleteBeer",
+    "summary": "Delete beer's feature",
+    "operationId": "deleteBeerFeature",
     "parameters": [
       { "$ref": "../../components/parameters/beer_id.json#/BeerId" }
     ],
     "responses": {
-      "200": {
-        "description": "Deleted",
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "success": { "type": "boolean" }
-              }
-            }
-          }
-        }
+      "204": {
+        "description": "Successfully deleted"
       },
-      "404": {
-        "description": "Beer or Feat Not Found",
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "success": { "type": "boolean" }
-              }
-            }
-          }
-        }
-      }
+      "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+      "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
     }
   }
 }

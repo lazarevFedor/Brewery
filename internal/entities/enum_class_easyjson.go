@@ -107,7 +107,7 @@ func easyjsonDfa25e2eDecodeBreweryInternalEntities1(in *jlexer.Lexer, out *EnumC
 			} else {
 				out.ID = int(in.Int())
 			}
-		case "type":
+		case "enum_type":
 			if in.IsNull() {
 				in.Skip()
 			} else {
@@ -158,7 +158,7 @@ func easyjsonDfa25e2eEncodeBreweryInternalEntities1(out *jwriter.Writer, in Enum
 		out.Int(int(in.ID))
 	}
 	if in.Type != "" {
-		const prefix string = ",\"type\":"
+		const prefix string = ",\"enum_type\":"
 		if first {
 			first = false
 			out.RawString(prefix[1:])

@@ -83,11 +83,10 @@ func main() {
 	defer router.Close()
 
 	h := handlers.Handlers{
-		CategoryHandler:  handlers.NewCategoriesHandlers(beerService),
-		BeersHandler:     handlers.NewBeersHandlers(beerService),
-		ReviewHandler:    handlers.NewReviewsHandlers(beerService),
-		EnumClassHandler: handlers.NewEnumClassHandlers(enumService),
-		EnumValueHandler: handlers.NewEnumValueHandlers(enumService),
+		CategoryHandler: handlers.NewCategoriesHandlers(beerService),
+		BeersHandler:    handlers.NewBeersHandlers(beerService),
+		ReviewHandler:   handlers.NewReviewsHandlers(beerService),
+		EnumHandler:     handlers.NewEnumHandlers(enumService),
 	}
 
 	routers.RegisterRoutes(router.Engine, h)
