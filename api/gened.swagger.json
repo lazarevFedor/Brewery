@@ -504,7 +504,7 @@
         "tags": [
           "Beers"
         ],
-        "summary": "Delete beer feature",
+        "summary": "Delete beer's feature",
         "operationId": "deleteBeerFeature",
         "parameters": [
           {
@@ -819,7 +819,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/EnumClass"
+                "$ref": "#/components/schemas/EnumClassUpdate"
               }
             }
           }
@@ -885,7 +885,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/EnumValue"
+                "$ref": "#/components/schemas/EnumValueCreate"
               }
             }
           }
@@ -1364,6 +1364,16 @@
           }
         ]
       },
+      "EnumClassUpdate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumClassCreate"
+          },
+          {
+            "required": []
+          }
+        ]
+      },
       "EnumValueBase": {
         "type": "object",
         "properties": {
@@ -1383,8 +1393,9 @@
           {
             "type": "object",
             "required": [
-              "class_id",
+              "id",
               "enum_type",
+              "class_id",
               "value",
               "position"
             ],
@@ -1392,6 +1403,30 @@
               "id": {
                 "type": "integer"
               },
+              "enum_type": {
+                "type": "string"
+              },
+              "class_id": {
+                "type": "integer"
+              }
+            }
+          }
+        ]
+      },
+      "EnumValueCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumValueBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "class_id",
+              "enum_type",
+              "value",
+              "position"
+            ],
+            "properties": {
               "enum_type": {
                 "type": "string"
               },
