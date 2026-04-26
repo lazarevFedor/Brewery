@@ -1132,14 +1132,6 @@
           }
         }
       },
-      "FeatureBase": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          }
-        }
-      },
       "Beer": {
         "allOf": [
           {
@@ -1184,7 +1176,7 @@
               "features": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/components/schemas/FeatureBase"
+                  "type": "string"
                 }
               },
               "amount": {
@@ -1200,9 +1192,10 @@
       "BeerCreate": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/Beer"
+            "$ref": "#/components/schemas/BeerBase"
           },
           {
+            "type": "object",
             "required": [
               "name",
               "description",
@@ -1214,7 +1207,53 @@
               "features",
               "amount",
               "units"
-            ]
+            ],
+            "properties": {
+              "abv": {
+                "type": "number"
+              },
+              "ibu": {
+                "type": "number"
+              },
+              "city": {
+                "type": "string"
+              },
+              "country": {
+                "type": "string"
+              },
+              "category": {
+                "$ref": "#/components/schemas/CategoryBase"
+              },
+              "features": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "amount": {
+                "type": "integer"
+              },
+              "units": {
+                "type": "string"
+              }
+            },
+            "example": {
+              "name": "Балтика 0",
+              "description": "Описание",
+              "abv": 7.5,
+              "ibu": 100,
+              "city": "Москва",
+              "country": "Россия",
+              "category": {
+                "name": "Светлое"
+              },
+              "features": [
+                "Вкусное",
+                "Сочное"
+              ],
+              "amount": 100,
+              "units": "Банки"
+            }
           }
         ]
       },
@@ -1227,6 +1266,14 @@
             "required": []
           }
         ]
+      },
+      "FeatureBase": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
       },
       "Feature": {
         "allOf": [

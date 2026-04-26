@@ -47,7 +47,7 @@
           "category": { "$ref": "./category.json#/CategoryBase" },
           "features": {
             "type": "array",
-            "items": {"$ref": "#/FeatureBase"}
+            "items": {"type": "string"}
           },
           "amount": {"type": "integer"},
           "units": {"type":  "string"}
@@ -56,18 +56,51 @@
     ]   
   },
 
+
   "BeerCreate": {
     "allOf": [
-      { "$ref": "#/Beer" },
+      { "$ref": "#/BeerBase" },
       {
+        "type": "object",
         "required": [
           "name", "description", "ibu", "abv",
           "city", "country", "category",
           "features", "amount", "units"
-        ]
+        ],
+        "properties": {
+          "abv": { "type": "number" },
+          "ibu": { "type": "number" },
+          "city": { "type": "string" },
+          "country": { "type": "string" },
+          "category": { "$ref": "./category.json#/CategoryBase" },
+          "features": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "amount": {"type": "integer"},
+          "units": {"type":  "string"}
+        },
+        "example": {
+          "name": "Балтика 0",
+          "description": "Описание",
+          "abv": 7.5,
+          "ibu": 100,
+          "city": "Москва",
+          "country": "Россия",
+          "category": {
+            "name": "Светлое"
+          },
+          "features": [
+            "Вкусное",
+            "Сочное"
+          ],
+          "amount": 100,
+          "units": "Банки"
+        }
       }
-    ]  
+    ]   
   },
+
 
   "BeerUpdate": {
     "allOf": [
