@@ -1,0 +1,208 @@
+### Create a new numeric parameter
+POST http://localhost:80/api/categories/{id}/params/numeric
+Content-Type: application/json
+
+{
+  "field_name": "amount",
+  "entity_name": "beers",
+  "min_val": 100,
+  "max_val": 200,
+  "inheritable": true
+}
+
+### Expected response (201):
+# {
+#   "id": 10,
+#   "field_name": "amount",
+#   "entity_name": "beers",
+#   "min_val": 100,
+#   "max_val": 200,
+#   "inheritable": true
+# }
+
+### Create a new enum parameter
+POST http://localhost:80/api/categories/{id}/params/enum
+Content-Type: application/json
+
+{
+  "enum_class_id": 1,
+  "inheritable": true
+}
+
+### Expected response (201):
+# {
+#   "id": 11,
+#   "enum_class_id": 1
+#   "inheritable": true
+# }
+
+### Get all parameters for category
+GET http://localhost:80/api/categories/{id}/params
+
+### Expected response (200):
+#[
+#   {
+#       "id": 11,
+#       "category_name": "Lager",
+#       "enum_class_id": 1,
+#       "entity_name": "string",
+#       "field_name": "string",
+#       "enum_type": "string",
+#       "unit": "string",
+#       "is_active": true
+#   },
+#   {
+#       "id": 10,
+#       "category_name": "Lager",
+#       "field_name": "amount",
+#       "entity_name": "beers",
+#       "min_val": 100,
+#       "max_val": 200
+#   }
+#]
+
+### Update numeric parameter
+PATCH http://localhost:80/api/categories/{id}/params/{param_id}?type=numeric
+Content-Type: application/json
+
+{
+  "min_val": 150,
+  "max_val": 300,
+  "inheritable": false
+}
+
+### Expected response (200):
+# {
+#   "id": 10,
+#   "field_name": "amount",
+#   "entity_name": "beers",
+#   "min_val": 150,
+#   "max_val": 300,
+#   "inheritable": false
+# }
+
+### Update enum parameter
+PATCH http://localhost:80/api/categories/{id}/params/{param_id}?type=enum
+Content-Type: application/json
+
+{
+  "inheritable": false
+}
+
+### Expected response (200):
+# {
+#   "id": 11,
+#   "enum_class_id": 1,
+#   "inheritable": false
+# }
+
+### Delete numeric parameter
+DELETE http://localhost:80/api/categories/{id}/params/{param_id}?type=numeric
+
+### Expected response (204)
+
+### Delete enum parameter
+DELETE http://localhost:80/api/categories/{id}/params/{param_id}?type=enum
+
+### Expected response (204)
+
+
+################################################################################
+
+
+### Create parameter aggregate
+POST http://localhost:80/api/param-aggregates
+Content-Type: application/json
+
+{
+  "name": "Lager Profile",
+  "description": "Стандартные параметры для Lager",
+  "numeric_param_ids": [10],
+  "enum_param_ids": [11]
+}
+
+### Expected response (201):
+# {
+#   "id": 1,
+#   "name": "Lager Profile",
+#   "description": "Стандартные параметры для Lager",
+#   "numeric_param_ids": [10],
+#   "enum_param_ids": [11]
+# }
+
+### Get all aggregates
+GET http://localhost:80/api/param-aggregates
+
+### Expected response (200):
+# [
+#   {
+#       "id": 1,
+#       "name": "Lager Profile",
+#       "description": "Стандартные параметры для Lager",
+#       "numeric_param_ids": [10],
+#       "enum_param_ids": [11]
+#   }
+# ]
+
+### Update aggregate
+PATCH http://localhost:80/api/param-aggregates/1
+Content-Type: application/json
+
+{
+  "name": "Lager Profile v2",
+  "enum_param_ids": [11, 12, 13]
+}
+
+### Expected response (200):
+# {
+#   "id": 1,
+#   "name": "Lager Profile",
+#   "description": "Стандартные параметры для Lager",
+#   "numeric_param_ids": [10],
+#   "enum_param_ids": [11, 12, 13]
+# }
+
+### Delete aggregate
+DELETE http://localhost:80/api/param-aggregates/1
+
+### Expected response (204)
+
+### Apply aggregate to category
+POST http://localhost:80/api/categories/{id}/apply-aggregate?aggregate_id=1
+Content-Type: application/json
+
+### Expected response (200):
+# {
+#   "message": "Aggregate applied successfully",
+#   "params_added": 3
+# }
+
+
+################################################################################
+
+### Поиск изделий заданного класса с представлением значений параметров
+GET http://localhost:80/api/categories/{id}/beers
+
+### Expected response (200):
+# [
+#   {
+#     "id": 123,
+#     "name": "Lager Primo",
+#     "category_id": {id},
+#     "abv": 5.0,
+#     "ibu": 25,
+#     "amount": 500,
+#     "units": "ml",
+#     "params": [
+#       {"param_name": "amount", "type": "numeric", "value": 500, "min": 100, "max": 200},
+#       {"param_name": "abv", "type": "numeric", "value": 5.0}
+#     ]
+#   }
+# ]
+
+
+### Отбор изделий по значениям параметров
+GET http://localhost:80/api/beers?param=amount:gte:400&param=amount:lte:600
+
+### Expected response (200):
+# [ { "id": 123, "name": "Lager Primo", "amount": 500, "abv": 5.0, "params": [ {"param_name": "amount", "type": "numeric", "value": 500}, {"param_name": "abv", "type": "numeric", "value": 5.0} ] } ]
