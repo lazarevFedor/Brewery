@@ -17,6 +17,10 @@ const (
 	beerFeaturesTable = "beer_features"
 )
 
+func Exists(id uint) sq.SelectBuilder {
+	return psql.Select("id").From(beersTable).Where(sq.Eq{"id": id})
+}
+
 // FullBeerSelect возвращает базовый запрос для получения полной информации о пиве, включая его характеристики, город и страну производства, категорию и особенности.
 func FullBeerSelect() sq.SelectBuilder {
 	return psql.Select(
@@ -163,7 +167,8 @@ func SelectOrInsertFeature(featName string) sq.InsertBuilder {
 func SelectBeersFeature(beerID uint) sq.SelectBuilder {
 	return psql.
 		Select("name").
-		From(featuresTable).
+		From(beerFeaturesTable + " bf").
+		Join(featuresTable + " f ON f.id = bf.feature_id").
 		Where(sq.Eq{"beer_id": beerID})
 }
 

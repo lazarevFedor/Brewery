@@ -41,7 +41,7 @@ func NewBeersHandlers(useCase usecase.BeerService) BeersHandlers {
 func (h *beersHandlers) CreateBeer(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
-		writeError(c, http.StatusInternalServerError, IntenalError, "Unexpected error occurred")
+		writeError(c, http.StatusInternalServerError, InternalError, "Unexpected error occurred")
 		return
 	}
 
@@ -62,7 +62,7 @@ func (h *beersHandlers) CreateBeer(c *gin.Context) {
 	beer, err := h.uc.CreateBeer(c.Request.Context(), &req)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to create beer: %v", err))
-		writeError(c, http.StatusInternalServerError, IntenalError, "Unexpected error occurred")
+		writeError(c, http.StatusInternalServerError, InternalError, "Unexpected error occurred")
 
 		return
 	}
@@ -76,7 +76,7 @@ func (h *beersHandlers) CreateBeer(c *gin.Context) {
 func (h *beersHandlers) UpdateBeer(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
-		writeError(c, http.StatusInternalServerError, IntenalError, "Unexpected error occurred")
+		writeError(c, http.StatusInternalServerError, InternalError, "Unexpected error occurred")
 		return
 	}
 
@@ -108,7 +108,7 @@ func (h *beersHandlers) UpdateBeer(c *gin.Context) {
 	beer, err := h.uc.UpdateBeer(c.Request.Context(), id, updates)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to update beer: %v", err))
-		writeError(c, http.StatusInternalServerError, IntenalError, "Unexpected error occurred")
+		writeError(c, http.StatusInternalServerError, InternalError, "Unexpected error occurred")
 		return
 	}
 
@@ -121,7 +121,7 @@ func (h *beersHandlers) UpdateBeer(c *gin.Context) {
 func (h *beersHandlers) DeleteBeer(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
-		writeError(c, http.StatusInternalServerError, IntenalError, "Unexpected error occurred")
+		writeError(c, http.StatusInternalServerError, InternalError, "Unexpected error occurred")
 		return
 	}
 
@@ -135,7 +135,7 @@ func (h *beersHandlers) DeleteBeer(c *gin.Context) {
 	err = h.uc.DeleteBeer(c.Request.Context(), id)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to delete beer: %v", err))
-		writeError(c, http.StatusInternalServerError, IntenalError, "Unexpected error occurred")
+		writeError(c, http.StatusInternalServerError, InternalError, "Unexpected error occurred")
 		return
 	}
 
@@ -147,7 +147,7 @@ func (h *beersHandlers) DeleteBeer(c *gin.Context) {
 func (h *beersHandlers) GetAllBeers(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
-		writeError(c, http.StatusInternalServerError, IntenalError, "Unexpected error occurred")
+		writeError(c, http.StatusInternalServerError, InternalError, "Unexpected error occurred")
 		return
 	}
 
@@ -161,63 +161,53 @@ func (h *beersHandlers) GetAllBeers(c *gin.Context) {
 	beers, err := h.uc.GetAllBeers(c.Request.Context(), limit, offset)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get beers: %v", err))
-		writeError(c, http.StatusInternalServerError, IntenalError, "Unexpected error occurred")
+		writeError(c, http.StatusInternalServerError, InternalError, "Unexpected error occurred")
 
 		return
 	}
 
-	// rawBytes, err := easyjson.Marshal(entities.Beers(beers))
-	// if err != nil {
-	// 	log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal beers: %v", err))
-	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
+	rawBytes, err := easyjson.Marshal(entities.Beers(beers))
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal beers: %v", err))
+		writeError(c, http.StatusInternalServerError, InternalError, "Unexpected error occurred")
+		return
+	}
 
-	// 	return
-	// }
-
-	// c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
-	log.Info(c.Request.Context(), fmt.Sprintf("action=list resource=beer status=success offset=%d limit=%d items=%d", offset, limit, len(beers)))
-	c.JSON(http.StatusOK, beers)
+	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
+	log.Info(c.Request.Context(), fmt.Sprintf(
+		"action=list resource=beer status=success offset=%d limit=%d items=%d",
+		 offset, limit, len(beers),
+	))
 }
 
 func (h *beersHandlers) GetFeature(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
-		c.Status(http.StatusInternalServerError)
-
+		writeError(c, http.StatusInternalServerError, InternalError, "Unexpected error occurred")
 		return
 	}
 
 	id, err := getUintParam(c, "id")
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid beer id: %v", err))
-
+		writeError(c, http.StatusBadRequest, InvalidID, "Invalid beer id")
 		return
 	}
 
 	offset, limit, err := getPaginationParams(c)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid pagination params: %v", err))
-
+		writeError(c, http.StatusBadRequest, InvalidParameters, "Invalid pagination parameters")
 		return
 	}
 
 	feats, err := h.uc.GetFeatures(c.Request.Context(), id)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get beers: %v", err))
-		c.Status(http.StatusInternalServerError)
-
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get beer's features: %v", err))
+		writeError(c, http.StatusInternalServerError, InternalError, "Unexpected error occurred")
 		return
 	}
 
-	rawBytes, err := json.Marshal(feats)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal beers: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
-
-		return
-	}
-
-	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
 	log.Info(
 		c.Request.Context(),
 		fmt.Sprintf(
@@ -225,13 +215,13 @@ func (h *beersHandlers) GetFeature(c *gin.Context) {
 			offset, limit, len(feats),
 		),
 	)
+	c.JSON(http.StatusOK, feats)
 }
 
 func (h *beersHandlers) CreateFeature(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
-		c.Status(http.StatusInternalServerError)
-
+		writeError(c, http.StatusInternalServerError, InternalError, "Unexpected error occurred")
 		return
 	}
 
@@ -245,7 +235,7 @@ func (h *beersHandlers) CreateFeature(c *gin.Context) {
 	id, err := getUintParam(c, "id")
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid beer id: %v", err))
-
+		writeError(c, http.StatusBadRequest, InvalidID, "Invalid beer id")
 		return
 	}
 
@@ -253,45 +243,44 @@ func (h *beersHandlers) CreateFeature(c *gin.Context) {
 	if err = json.Unmarshal(body, &featName); err != nil {
 		log.Error(c.Request.Context(), "failed to Unmurshal JSON", zap.Error(err))
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-
 		return
 	}
 
-	err = h.uc.CreateFeature(c.Request.Context(), id, featName)
+	featID, err := h.uc.CreateFeature(c.Request.Context(), id, featName)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to create beer: %v", err))
-		c.Status(http.StatusInternalServerError)
-
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to create beer's feature: %v", err))
+		writeError(c, http.StatusInternalServerError, InternalError, "Unexpected error occurred")
 		return
 	}
 
 	log.Info(c.Request.Context(), fmt.Sprintf("action=create resource=beer status=success name=%q", featName))
-	c.Status(http.StatusCreated)
+	c.JSON(http.StatusCreated, gin.H{
+		"id": featID, 
+		"name": featName,
+	})
 }
 
 func (h *beersHandlers) DeleteFeature(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
-		c.Status(http.StatusInternalServerError)
-
+		writeError(c, http.StatusInternalServerError, InternalError, "Unexpected error occurred")
 		return
 	}
 
 	id, err := getUintParam(c, "id")
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid feature id: %v", err))
-
+		log.Error(c.Request.Context(), fmt.Sprintf("Invalid beer id: %v", err))
+		writeError(c, http.StatusBadRequest, InvalidID, "Invalid beer id")
 		return
 	}
 
 	err = h.uc.DeleteFeature(c.Request.Context(), id)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to delete beer: %v", err))
-		c.Status(http.StatusInternalServerError)
-
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to delete beer's feature: %v", err))
+		writeError(c, http.StatusInternalServerError, InternalError, "Unexpected error occurred")
 		return
 	}
 
 	log.Info(c.Request.Context(), fmt.Sprintf("action=delete resource=beer status=success id=%d", id))
-	c.Status(http.StatusOK)
+	c.Status(http.StatusNoContent)
 }

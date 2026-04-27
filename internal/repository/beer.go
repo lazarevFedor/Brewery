@@ -20,6 +20,9 @@ import (
 // BeerRepository определяет контракт для хранения и получения данных о пиве.
 type BeerRepository interface {
 
+	// BeerExists проверяет наличие объекта по id.
+	BeerExists(ctx context.Context, id uint) (bool, error)
+
 	// InsertBeer сохраняет новую сущность Beer в хранилище.
 	InsertBeer(ctx context.Context, beer entities.Beer) (*entities.Beer, error)
 
@@ -76,6 +79,35 @@ func NewBeerRepository(pgPool *pgxpool.Pool) BeerRepository {
 // NewBeerPostgres создает новый репозиторий БД
 func NewBeerPostgres(pgPool *pgxpool.Pool) *BeerPostgres {
 	return &BeerPostgres{Pool: pgPool}
+}
+
+
+func (r *BeerPostgres) BeerExists(ctx context.Context, id uint) (bool, error) {
+	if r.Pool == nil {
+		return false, errors.New("pool is nil")
+	}
+
+	psql := queries.Exists(id)
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return false, fmt.Errorf("ToSql: %w", err)
+	}
+
+	rows, err := r.Pool.Query(ctx, query, args...)
+	if err != nil {
+		return false, err
+	}
+	
+	vals, err := rows.Values()
+	if err != nil {
+		return false, err
+	}
+
+	if len(vals) == 0 {
+		return false, nil
+	}
+
+	return true, nil
 }
 
 // InsertBeer сохраняет новую сущность Beer в хранилище. Если страна, город, категория или характеристика не существуют, они будут добавлены в базу данных.

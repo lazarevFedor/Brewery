@@ -296,7 +296,7 @@ func (h *categoriesHandlers) GetChildCategory(c *gin.Context) {
 func (h *categoriesHandlers) GetBeersByCategory(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
-		writeError(c, http.StatusInternalServerError, IntenalError, "Unexpected error occurred")
+		writeError(c, http.StatusInternalServerError, InternalError, "Unexpected error occurred")
 		return
 	}
 

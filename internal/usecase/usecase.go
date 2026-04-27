@@ -26,7 +26,7 @@ type BeerService interface {
 	GetAllBeers(ctx context.Context, limit, offset uint64) ([]entities.Beer, error)
 
 	GetFeatures(ctx context.Context, id uint) ([]string, error)
-	CreateFeature(ctx context.Context, id uint, feat string) error
+	CreateFeature(ctx context.Context, beerID uint, feat string) ( uint, error )
 	DeleteFeature(ctx context.Context, id uint) error
 
 	GetBeerReviews(ctx context.Context, limit, offset uint64, beerid uint) ([]entities.Review, error)
