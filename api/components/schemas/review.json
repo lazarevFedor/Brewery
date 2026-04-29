@@ -1,0 +1,32 @@
+{
+    "ReviewBase": {
+        "type": "object",
+        "properties": {
+            "body": { "type": "string" },
+            "rating": { "type": "number" }
+        }
+    },
+
+    "Review": {
+        "allOf": [
+            { "$ref": "#/ReviewBase" },
+            {
+                "type": "object",
+                "required": ["id", "body", "rating"],
+                "properties": {
+                    "id": { "type": "integer" }
+                }
+            }
+        ]
+    },
+
+    "ReviewCreate": {
+        "allOf": [
+            { "$ref": "#/ReviewBase" },
+            {
+                "required": ["body", "rating"] 
+            }
+        ]
+    }
+}
+

@@ -1,0 +1,98 @@
+{
+  "FeatureBase": {
+      "type": "object",
+      "properties": {
+        "name": {"type": "string"}
+      }
+    },
+
+  "Feature": {
+    "allOf": [
+      { "$ref": "#/FeatureBase" },
+      {
+        "type": "object",
+        "required": ["id", "name"],
+        "properties": {
+          "id": {"type": "integer"}
+        }
+      }
+    ]
+  },
+
+  "BeerBase": {
+    "type": "object",
+    "properties": {
+      "name": { "type": "string" },
+      "rating": { "type": "number" },
+      "description": { "type": "string" }
+    }
+  },
+
+  "Beer": {
+    "allOf": [
+      { "$ref": "#/BeerBase" },
+      {
+        "type": "object",
+        "required": [
+          "id", "name", "rating", "description",
+          "ibu", "abv", "city", "country", "category",
+          "features", "amount", "units", "type"
+        ],
+        "properties": {
+          "id": { "type": "integer" },
+          "abv": { "type": "number" },
+          "ibu": { "type": "number" },
+          "city": { "type": "string" },
+          "country": { "type": "string" },
+          "category": { "$ref": "./category.json#/CategoryBase" },
+          "features": {
+            "type": "array",
+            "items": {"$ref": "#/FeatureBase"}
+          },
+          "amount": {"type": "integer"},
+          "units": {"type":  "string"}
+        }
+      }
+    ]   
+  },
+
+  "BeerCreate": {
+    "allOf": [
+      { "$ref": "#/Beer" },
+      {
+        "required": [
+          "name", "description", "ibu", "abv",
+          "city", "country", "category",
+          "features", "amount", "units"
+        ]
+      }
+    ]  
+  },
+
+  "BeerUpdate": {
+    "allOf": [
+      { "$ref": "#/Beer" },
+      {
+        "required": []
+      }
+    ]  
+  },
+
+  "PaginatedBeers": {
+    "type": "object",
+    "properties": {
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/BeerBase"
+        }
+      },
+      "offset": { "type": "integer" },
+      "limit": { "type": "integer" },
+      "total": { "type": "integer" },
+      "total_pages": { "type": "integer" },
+      "has_next": { "type": "boolean" },
+      "has_prev": { "type": "boolean" }
+    }
+  }
+}

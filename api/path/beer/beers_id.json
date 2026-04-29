@@ -1,0 +1,48 @@
+{
+  "patch": {
+    "tags": ["Beers"],
+    "summary": "Update beer",
+    "operationId": "updateBeer",
+    "parameters": [
+      { "$ref": "../../components/parameters/id.json#/Id" }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": { "$ref": "../../components/schemas/beer.json#/BeerUpdate" }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Updated beer",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "../../components/schemas/beer.json#/Beer" }
+          }
+        }
+      },
+      "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+      "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
+    }
+  },
+
+  "delete": {
+    "tags": ["Beers"],
+    "summary": "Delete beer",
+    "operationId": "deleteBeer",
+    "parameters": [
+      { "$ref": "../../components/parameters/id.json#/Id" }
+    ],
+    "responses": {
+      "204": {
+        "description": "Successfully deleted"
+      },
+      "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+      "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
+    }
+  }
+}

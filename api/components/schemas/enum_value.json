@@ -1,0 +1,39 @@
+{
+    "EnumValueBase": {
+        "type": "object",
+        "properties": {
+            "value": {"type": "string"},
+            "position": {"type": "integer"}
+        }
+    },
+
+    "EnumValue": {
+        "allOf":[
+            { "$ref": "#/EnumValueBase" },
+            {
+                "type": "object",
+                "required": ["id", "enum_type", "class_id", "value", "position"],
+                "properties":{
+                    "id": { "type": "integer" },
+                    "enum_type": { "type": "string" },
+                    "class_id": {"type": "integer"}
+                }
+            }
+        ]
+    },
+
+    "EnumValueCreate": {
+        "allOf":[
+            { "$ref": "#/EnumValueBase" },
+            {
+                "type": "object",
+                "required": ["class_id", "enum_type", "value", "position"],
+                "properties":{
+                    "enum_type": { "type": "string" },
+                    "class_id": {"type": "integer"}
+                }
+            }
+        ]
+    }
+    
+}

@@ -161,12 +161,6 @@ func easyjson57ba88e2DecodeBreweryInternalEntities1(in *jlexer.Lexer, out *Beer)
 			} else {
 				out.Country = string(in.String())
 			}
-		case "type":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				out.Type = string(in.String())
-			}
 		case "category":
 			if in.IsNull() {
 				in.Skip()
@@ -263,11 +257,6 @@ func easyjson57ba88e2EncodeBreweryInternalEntities1(out *jwriter.Writer, in Beer
 		const prefix string = ",\"country\":"
 		out.RawString(prefix)
 		out.String(string(in.Country))
-	}
-	{
-		const prefix string = ",\"type\":"
-		out.RawString(prefix)
-		out.String(string(in.Type))
 	}
 	{
 		const prefix string = ",\"category\":"

@@ -1,0 +1,48 @@
+{
+  "delete": {
+    "tags": ["Reviews"],
+    "summary": "Delete beer's review",
+    "operationId": "deleteReview",
+    "parameters": [
+      { "$ref": "../../components/parameters/id.json#/Id" }
+    ],
+    "responses": {
+      "204": {
+        "description": "Successfully deleted"
+      },
+      "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+      "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
+    }
+  },
+  
+  "patch": {
+    "tags": ["Reviews"],
+    "summary": "Update beer's review",
+    "operationId": "updateReview",
+    "parameters": [
+      { "$ref": "../../components/parameters/id.json#/Id" }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": { "$ref": "../../components/schemas/review.json#/ReviewBase" }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Updated review",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "../../components/schemas/review.json#/Review" }
+          }
+        }
+      },
+      "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+      "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "post": {
+    "tags": ["Reviews"],
+    "summary": "Create beer's review",
+    "operationId": "createReview",
+    "parameters": [
+      { "$ref": "../../components/parameters/beer_id.json#/BeerId" }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": { "$ref": "../../components/schemas/review.json#/ReviewCreate" }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Review created",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "../../components/schemas/review.json#/Review" }
+          }
+        }
+      },
+      "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+      "409": { "$ref": "../../components/schemas/responses/409_conflict.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
+    }
+  },
+
+  "get": {
+    "tags": ["Reviews"],
+    "summary": "Get beer's reviews",
+    "operationId": "listReviews",
+    "parameters": [
+      { "$ref": "../../components/parameters/beer_id.json#/BeerId" }
+    ],
+    "responses": {
+      "200": {
+        "description": "Reviews list",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "../../components/schemas/review.json#/Review" }
+            }
+          }
+        }
+      },
+      "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+      "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
+    }
+  }
+}

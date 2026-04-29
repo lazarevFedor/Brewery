@@ -1,0 +1,49 @@
+{
+    "CategoryBase": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+            "name": { "type": "string" }
+        }
+    },
+    
+    "Category": {
+        "allOf": [
+            { "$ref": "#/CategoryBase" },
+            {
+                "type": "object",
+                "required": ["id", "name", "parent_id"],
+                "properties": {
+                    "id": { "type": "integer" },
+                    "parent_id": { "type": "integer", "nullable": true }
+                }
+            }
+        ]   
+    },
+
+    "CategoryCreate": {
+        "allOf": [
+            { "$ref": "#/CategoryBase" },
+            {
+                "type": "object",
+                "required": ["name", "parent_id"],
+                "properties": {
+                    "parent_id": { "type": "integer", "nullable": true }
+                }
+            }
+        ]   
+    },
+
+    "CategoryUpdate": {
+        "allOf": [
+            { "$ref": "#/CategoryBase" },
+            {
+                "type": "object",
+                "required": [],
+                "properties": {
+                    "parent_id": { "type": "integer", "nullable": true }
+                }
+            }
+        ]   
+    }
+}

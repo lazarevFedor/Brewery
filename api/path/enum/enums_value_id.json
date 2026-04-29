@@ -1,0 +1,49 @@
+{
+    "delete": {
+    "tags": ["EnumsValue"],
+    "summary": "Delete enum's value",
+    "operationId": "deleteEnumValue",
+    "parameters": [
+      { "$ref": "../../components/parameters/id.json#/Id" }
+    ],
+    "responses": {
+      "204": {
+        "description": "Successfully deleted"
+      },
+      "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+      "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
+    }
+  },
+
+  "patch": {
+    "tags": ["EnumsValue"],
+    "summary": "Update enum's value",
+    "operationId": "updateEnumValue",
+    "parameters": [
+      { "$ref": "../../components/parameters/id.json#/Id" }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {"$ref": "../../components/schemas/enum_value.json#/EnumValueBase"}
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Updated enum value",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "../../components/schemas/enum_value.json#/EnumValue" }
+          }
+        }
+      },
+      "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+      "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
+    }
+  }
+  
+}

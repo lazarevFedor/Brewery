@@ -5,6 +5,7 @@ import (
 	"Brewery/internal/config"
 	"Brewery/internal/http/handlers"
 	"Brewery/internal/http/middleware"
+	"Brewery/internal/http/routers"
 	"Brewery/internal/repository"
 	"Brewery/internal/usecase"
 	"Brewery/pkg/logger"
@@ -17,16 +18,17 @@ import (
 
 	"github.com/gin-contrib/graceful"
 	"github.com/gin-gonic/gin"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	cors "github.com/rs/cors/wrapper/gin"
 )
+
+const devMode = true
 
 // main является точкой входа в программу.
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	ctx, err := logger.NewLoggerContext(ctx, true)
+	ctx, err := logger.NewLoggerContext(ctx, devMode)
 	if err != nil {
 		panic(fmt.Errorf("failed to create logger context: %w", err))
 	}
@@ -48,10 +50,10 @@ func main() {
 
 	beerRepo := repository.NewBeerPostgres(pool)
 	ctgRepo := repository.NewCategoryPostgres(pool)
+	enumRepo := repository.NewEnumPostgres(pool)
 
-	beerSrv := usecase.NewBeerService(beerRepo, ctgRepo)
-	beersHandler := handlers.NewBeersHandlers(beerSrv)
-	categoryHandler := handlers.NewCategoriesHandlers(beerSrv)
+	beerService := usecase.NewBeerService(beerRepo, ctgRepo)
+	enumService := usecase.NewEnumService(enumRepo)
 
 	engine := gin.New()
 	engine.Use(gin.Recovery())
@@ -80,22 +82,14 @@ func main() {
 	}
 	defer router.Close()
 
-	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
+	h := handlers.Handlers{
+		CategoryHandler: handlers.NewCategoriesHandlers(beerService),
+		BeersHandler:    handlers.NewBeersHandlers(beerService),
+		ReviewHandler:   handlers.NewReviewsHandlers(beerService),
+		EnumHandler:     handlers.NewEnumHandlers(enumService),
+	}
 
-	router.POST("/api/categories", categoryHandler.CreateCategory)
-	router.GET("/api/categories/:id", categoryHandler.GetCategoryById)
-	router.PATCH("/api/categories/:id", categoryHandler.UpdateCategory)
-	router.DELETE("/api/categories/:id", categoryHandler.DeleteCategory)
-	router.GET("/api/categories", categoryHandler.GetAllCategories)
-	router.GET("/api/categories/beers/:category_id", categoryHandler.GetBeersByCategory)
-	router.GET("/api/categories/parent/:id", categoryHandler.GetParentCategory)
-	router.GET("/api/categories/children/:id", categoryHandler.GetChildCategory)
-
-	router.POST("/api/beers", beersHandler.CreateBeer)
-	router.PATCH("/api/beers/:id", beersHandler.UpdateBeer)
-	router.DELETE("/api/beers/:id", beersHandler.DeleteBeer)
-	router.GET("/api/beers", beersHandler.GetAllBeers)
-	router.POST("/api/beers/reviews/:beer_id", beersHandler.CreateBeerReview)
+	routers.RegisterRoutes(router.Engine, h)
 
 	log.Info(ctx, fmt.Sprintf("server listening on port %s", cfg.Port))
 

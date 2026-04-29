@@ -1,0 +1,48 @@
+{
+  "get": {
+    "tags": ["Categories"],
+    "summary": "Get all categories",
+    "operationId": "listCategories",
+    "responses": {
+      "200": {
+        "description": "Categories List",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "../../components/schemas/category.json#/Category" }
+            }
+          }
+        }
+      },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
+    }
+  },
+
+  "post": {
+    "tags": ["Categories"],
+    "summary": "Create category",
+    "operationId": "createCategory",
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": { "$ref": "../../components/schemas/category.json#/CategoryCreate" }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Category created",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "../../components/schemas/category.json#/Category" }
+          }
+        }
+      },
+      "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+      "409": { "$ref": "../../components/schemas/responses/409_conflict.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
+    }
+  }
+}

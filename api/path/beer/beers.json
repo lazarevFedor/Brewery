@@ -1,0 +1,53 @@
+{
+  "get": {
+      "tags": ["Beers"],
+      "summary": "Get all beers",
+      "operationId": "listBeers",
+      "parameters": [
+        { "$ref": "../../components/parameters/limit_offset.json#/Offset" },
+        { "$ref": "../../components/parameters/limit_offset.json#/Limit" }
+      ],
+      "responses": {
+        "200": {
+          "description": "Beers list",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": { "$ref": "../../components/schemas/beer.json#/Beer" }
+              }
+            }
+          }
+        },
+        "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+        "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
+      }
+    },
+
+  "post": {
+    "tags": ["Beers"],
+    "summary": "Create beer",
+    "operationId": "createBeer",
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": { "$ref": "../../components/schemas/beer.json#/BeerCreate" }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Beer created",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "../../components/schemas/beer.json#/Beer" }
+          }
+        }
+      },
+      "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+      "409": { "$ref": "../../components/schemas/responses/409_conflict.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
+    }
+  }
+}

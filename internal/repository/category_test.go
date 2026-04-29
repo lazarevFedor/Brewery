@@ -1,3 +1,4 @@
+// Package repository_test содержит тесты для слоя repository
 package repository_test
 
 import (
@@ -10,16 +11,22 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// testCtg - глобальная переменная для хранения тестовой категории, которая будет использоваться в нескольких тестах.
 var testCtg = entities.ProductCategory{Name: "test"}
 
+// TestCategoryRepository_InsertCategory проверяет, что метод InsertCategory корректно вставляет категорию в базу данных и возвращает её ID.
 func TestCategoryRepository_InsertCategory(t *testing.T) {
 	ctx := t.Context()
 
 	t.Run("Успешная вставка", func(t *testing.T) {
-		ctgs, err := ctgRepo.GetCategories(ctx)
+		err := seedTestData(ctx)
 		require.NoError(t, err)
-		require.NotEmpty(t, ctgs, "Должна быть уже 1 категория")
-		testCtg.ParentID = ctgs[0].ID
+
+		rootID, err := ctgRepo.GetCategoryID(ctx, "test_category")
+		require.NoError(t, err)
+		require.NotZero(t, rootID)
+
+		testCtg = entities.ProductCategory{Name: "test", ParentID: int(rootID)}
 
 		ctgID, err := ctgRepo.InsertCategory(ctx, testCtg)
 		require.NoError(t, err)
@@ -50,8 +57,7 @@ func TestCategoryRepository_InsertCategory(t *testing.T) {
 			t.Error("Ожидалась ошибка уникальности, но запись создалась")
 		}
 
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) {
+		if pgErr, ok := errors.AsType[*pgconn.PgError](err); ok {
 			if pgErr.Code != "23505" {
 				t.Errorf("ожидался код ошибки 23505, получили %s", pgErr.Code)
 			}
@@ -64,10 +70,13 @@ func TestCategoryRepository_InsertCategory(t *testing.T) {
 	})
 }
 
+// TestCategoryRepository_GetCategories проверяет, что метод GetCategories корректно возвращает список всех категорий из базы данных, а также обрабатывает случай, когда база данных пуста.
 func TestCategoryRepository_GetCategories(t *testing.T) {
 	ctx := t.Context()
 
 	t.Run("Пустая БД", func(t *testing.T) {
+		cleanDB(t, ctx, "product_categories")
+
 		ctgs, err := ctgRepo.GetCategories(ctx)
 		assert.Empty(t, ctgs)
 		require.NoError(t, err)
@@ -94,17 +103,27 @@ func TestCategoryRepository_GetCategories(t *testing.T) {
 	})
 }
 
+// TestCategoryRepository_UpdateCategory проверяет, что метод UpdateCategory корректно обновляет информацию о категории по её ID.
 func TestCategoryRepository_UpdateCategory(t *testing.T) {
 	ctx := t.Context()
 
 	t.Run("Успешное обновление", func(t *testing.T) {
-		ctgID, _ := ctgRepo.InsertCategory(ctx, testCtg)
+		err := seedTestData(ctx)
+		require.NoError(t, err)
+
+		rootID, err := ctgRepo.GetCategoryID(ctx, "test_category")
+		require.NoError(t, err)
+		require.NotZero(t, rootID)
+
+		testCtg := entities.ProductCategory{Name: "test", ParentID: int(rootID)}
+		ctgID, err := ctgRepo.InsertCategory(ctx, testCtg)
+		require.NoError(t, err)
 		require.NotZero(t, ctgID)
 
 		updates := map[string]any{
 			"name": "updated_name",
 		}
-		err := ctgRepo.UpdateCategory(ctx, ctgID, updates)
+		err = ctgRepo.UpdateCategory(ctx, ctgID, updates)
 		require.NoError(t, err)
 
 		category, err := ctgRepo.GetCategoryByID(ctx, ctgID)
@@ -118,14 +137,24 @@ func TestCategoryRepository_UpdateCategory(t *testing.T) {
 	})
 }
 
+// TestCategoryRepository_DeleteCategoryByID проверяет, что метод DeleteCategoryByID корректно удаляет категорию по её ID.
 func TestCategoryRepository_DeleteCategoryByID(t *testing.T) {
 	ctx := t.Context()
 
 	t.Run("Успешное удаление", func(t *testing.T) {
-		ctgID, _ := ctgRepo.InsertCategory(ctx, testCtg)
+		err := seedTestData(ctx)
+		require.NoError(t, err)
+
+		rootID, err := ctgRepo.GetCategoryID(ctx, "test_category")
+		require.NoError(t, err)
+		require.NotZero(t, rootID)
+
+		testCtg = entities.ProductCategory{Name: "test", ParentID: int(rootID)}
+		ctgID, err := ctgRepo.InsertCategory(ctx, testCtg)
+		require.NoError(t, err)
 		require.NotZero(t, ctgID)
 
-		err := ctgRepo.DeleteCategoryByID(ctx, ctgID)
+		err = ctgRepo.DeleteCategoryByID(ctx, ctgID)
 		require.NoError(t, err)
 
 		category, err := ctgRepo.GetCategoryByID(ctx, ctgID)
@@ -138,10 +167,13 @@ func TestCategoryRepository_DeleteCategoryByID(t *testing.T) {
 	})
 }
 
+// TestCategoryRepository_GetCategoryID проверяет, что метод GetCategoryID корректно возвращает ID категории по её имени.
 func TestCategoryRepository_GetCategoryID(t *testing.T) {
 	ctx := t.Context()
 
 	t.Run("Успешное удаление", func(t *testing.T) {
+		cleanDB(t, ctx, "product_categories")
+
 		ctgID, _ := ctgRepo.InsertCategory(ctx, testCtg)
 		require.NotZero(t, ctgID)
 
