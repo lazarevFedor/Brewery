@@ -214,6 +214,6 @@ linters:
     - deployments
     - build
     - migrator
-    - script
+    - scripts
     - api
     - internal/entities
