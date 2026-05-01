@@ -26,7 +26,6 @@ func FullBeerSelect() sq.SelectBuilder {
 	return psql.Select(
 		"b.id",
 		"b.name",
-		"b.rating",
 		"b.description",
 		"b.abv",
 		"b.ibu",
@@ -36,6 +35,8 @@ func FullBeerSelect() sq.SelectBuilder {
 		"cntr.name AS country",
 		"pc.name AS category",
 		"COALESCE(array_agg(f.name) FILTER (WHERE f.name IS NOT NULL), '{}') AS feats",
+		"b.review_amount",
+		"b.review_rating_sum",
 	).From(beersTable+" b").
 		Join("cities ct ON ct.id = b.city_id").
 		Join("countries cntr ON cntr.id = ct.country_id").
@@ -62,6 +63,25 @@ func SelectBeerByCategoryID(categoryID uint) sq.SelectBuilder {
 		OrderBy("id DESC")
 }
 
+func UpdateBeerRating(beerID, rating uint, operation string) sq.UpdateBuilder {
+	var review_amount, review_rating_sum int
+	switch operation{
+	case "insert":
+		review_amount, review_rating_sum = 1, int(rating)
+	case "update":
+		review_amount, review_rating_sum = 0, int(rating)
+	case "delete":
+		review_amount, review_rating_sum = -1, -int(rating)
+	default:
+		return sq.UpdateBuilder{}
+	}
+
+	return psql.Update(beersTable).
+	Set("review_amount", sq.Expr("review_amount + ?", review_amount)).
+	Set("review_rating_sum", sq.Expr("review_rating_sum + ?", review_rating_sum)).
+	Where(sq.Eq{"id": beerID})
+}
+
 // InsertReview возвращает запрос для вставки нового отзыва в таблицу reviews и возвращает ID вставленного отзыва.
 func InsertReview(review entities.Review) sq.InsertBuilder {
 	data := map[string]any{
@@ -80,7 +100,7 @@ func InsertReview(review entities.Review) sq.InsertBuilder {
 func DeleteReview(id uint) sq.DeleteBuilder {
 	return psql.
 		Delete(reviewsTable).
-		Where(sq.Eq{"id": id})
+		Where(sq.Eq{"id": id}).Suffix("RETURNING beer_id, rating")
 }
 
 // DeleteBeer возвращает запрос для удаления пива из таблицы beers по его ID.
@@ -96,7 +116,7 @@ func UpdateReview(id uint, updates map[string]any) sq.UpdateBuilder {
 		Update(reviewsTable).
 		SetMap(updates).
 		Where(sq.Eq{"id": id}).
-		Suffix("RETURNING id")
+		Suffix("RETURNING beer_id, rating")
 }
 
 // SelectReviewByBeerID возвращает запрос для получения списка отзывов, связанных с определенным пивом, с сортировкой по убыванию ID.
@@ -199,7 +219,6 @@ func SelectOrInsertBeerFeature(featID, beerID uint) sq.InsertBuilder {
 func InsertBeer(beer entities.Beer, cityID, categoryID uint) sq.InsertBuilder {
 	data := map[string]any{
 		"name":        beer.Name,
-		"rating":      beer.Rating,
 		"description": beer.Description,
 		"abv":         beer.ABV,
 		"ibu":         beer.IBU,

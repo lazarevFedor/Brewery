@@ -132,12 +132,12 @@ func TestCreateBeerReview_UsesPathParam(t *testing.T) {
 	serviceMock.CreateReviewMock.Set(func(ctx context.Context, review *entities.Review) (uint, error) {
 		require.Equal(t, uint(17), review.BeerID)
 		require.Equal(t, "great", review.Body)
-		require.InDelta(t, 4.5, float64(review.Rating), 1e-6)
+		require.InDelta(t, 4, review.Rating, 1e-6)
 
 		return 1, nil
 	})
 
-	body := strings.NewReader(`{"body":"great","rating":4.5}`)
+	body := strings.NewReader(`{"body":"great","rating":4}`)
 	resp := testEnv.DoRequest(ctx, http.MethodPost, "/api/reviews/17", body)
 
 	require.Equal(t, http.StatusOK, resp.Code)

@@ -98,7 +98,7 @@ var (
 	// testReview содержит тестовые данные для отзыва, которые используются в тестах вставки отзывов в репозиторий.
 	testReview = entities.Review{
 		Body:   "test_body",
-		Rating: 4.5,
+		Rating: 4,
 	}
 )
 
@@ -398,7 +398,7 @@ func TestBeerRepository_InsertReview(t *testing.T) {
 
 		review := entities.Review{
 			Body:   "Great beer!",
-			Rating: 4.8,
+			Rating: 4,
 			BeerID: createdBeer.ID,
 		}
 
@@ -421,7 +421,7 @@ func TestBeerRepository_InsertReview(t *testing.T) {
 	t.Run("Вставка отзыва к несуществующему пиву", func(t *testing.T) {
 		review := entities.Review{
 			Body:   "Review to non-existent beer",
-			Rating: 3.5,
+			Rating: 3,
 			BeerID: 999999,
 		}
 
@@ -454,7 +454,7 @@ func TestBeerRepository_DeleteReview(t *testing.T) {
 
 		review := entities.Review{
 			Body:   "Review to delete",
-			Rating: 4.5,
+			Rating: 4,
 			BeerID: createdBeer.ID,
 		}
 
@@ -477,7 +477,7 @@ func TestBeerRepository_DeleteReview(t *testing.T) {
 	t.Run("Удаление несуществующего отзыва", func(t *testing.T) {
 		err := beerRepo.DeleteReview(ctx, 999999)
 		require.Error(t, err)
-		require.EqualError(t, err, "failed to delete review")
+		require.EqualError(t, err, "Exec: no rows in result set")
 	})
 
 	t.Run("Удаление отзыва с неинициализированным репозиторием", func(t *testing.T) {
@@ -500,7 +500,7 @@ func TestBeerRepository_UpdateReview_Fields(t *testing.T) {
 
 		review := entities.Review{
 			Body:   "Original review",
-			Rating: 3.0,
+			Rating: 3,
 			BeerID: createdBeer.ID,
 		}
 
@@ -510,7 +510,7 @@ func TestBeerRepository_UpdateReview_Fields(t *testing.T) {
 
 		updates := map[string]any{
 			"body":   "Updated review text",
-			"rating": 5.0,
+			"rating": 5,
 		}
 		err = beerRepo.UpdateReview(ctx, reviewID, updates)
 		require.NoError(t, err)
@@ -519,7 +519,7 @@ func TestBeerRepository_UpdateReview_Fields(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, reviews, 1)
 		require.Equal(t, "Updated review text", reviews[0].Body)
-		require.InEpsilon(t, 5.0, reviews[0].Rating, 0.0001)
+		require.Equal(t, uint(5), reviews[0].Rating)
 
 		t.Cleanup(func() {
 			cleanDB(t, ctx, "beers")
@@ -533,7 +533,7 @@ func TestBeerRepository_UpdateReview_Fields(t *testing.T) {
 
 		review := entities.Review{
 			Body:   "Original body",
-			Rating: 4.2,
+			Rating: 4,
 			BeerID: createdBeer.ID,
 		}
 
@@ -551,7 +551,7 @@ func TestBeerRepository_UpdateReview_Fields(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, reviews, 1)
 		require.Equal(t, "Only body updated", reviews[0].Body)
-		require.InEpsilon(t, 4.2, reviews[0].Rating, 0.0001)
+		require.Equal(t, uint(4), reviews[0].Rating)
 
 		t.Cleanup(func() {
 			cleanDB(t, ctx, "beers")
@@ -565,7 +565,7 @@ func TestBeerRepository_UpdateReview_Fields(t *testing.T) {
 
 		review := entities.Review{
 			Body:   "Original body",
-			Rating: 3.3,
+			Rating: 3,
 			BeerID: createdBeer.ID,
 		}
 
@@ -583,7 +583,7 @@ func TestBeerRepository_UpdateReview_Fields(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, reviews, 1)
 		require.Equal(t, "Original body", reviews[0].Body)
-		require.InEpsilon(t, 4.9, reviews[0].Rating, 0.0001)
+		require.Equal(t, uint(4), reviews[0].Rating)
 
 		t.Cleanup(func() {
 			cleanDB(t, ctx, "beers")
@@ -601,7 +601,7 @@ func TestBeerRepository_UpdateReview_Errors(t *testing.T) {
 		}
 		err := beerRepo.UpdateReview(ctx, 999999, updates)
 		require.Error(t, err)
-		require.EqualError(t, err, "failed to update review")
+		require.EqualError(t, err, "QueryRow: no rows in result set")
 	})
 
 	t.Run("Обновление с пустым набором полей", func(t *testing.T) {
@@ -649,9 +649,9 @@ func TestBeerRepository_GetReviews_Basic(t *testing.T) {
 		require.NotZero(t, createdBeer.ID)
 
 		reviewsToInsert := []entities.Review{
-			{Body: "First review", Rating: 4.0, BeerID: createdBeer.ID},
-			{Body: "Second review", Rating: 4.5, BeerID: createdBeer.ID},
-			{Body: "Third review", Rating: 5.0, BeerID: createdBeer.ID},
+			{Body: "First review", Rating: 4, BeerID: createdBeer.ID},
+			{Body: "Second review", Rating: 4, BeerID: createdBeer.ID},
+			{Body: "Third review", Rating: 5, BeerID: createdBeer.ID},
 		}
 
 		for _, review := range reviewsToInsert {
