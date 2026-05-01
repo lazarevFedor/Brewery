@@ -3,7 +3,7 @@
         "type": "object",
         "properties": {
             "body": { "type": "string" },
-            "rating": { "type": "number" }
+            "rating": { "type": "integer" }
         }
     },
 

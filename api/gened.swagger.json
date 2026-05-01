@@ -1173,6 +1173,9 @@
               "category": {
                 "$ref": "#/components/schemas/CategoryBase"
               },
+              "rating": {
+                "type": "float"
+              },
               "features": {
                 "type": "array",
                 "items": {

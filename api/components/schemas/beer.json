@@ -45,6 +45,7 @@
           "city": { "type": "string" },
           "country": { "type": "string" },
           "category": { "$ref": "./category.json#/CategoryBase" },
+          "rating": { "type": "number" },
           "features": {
             "type": "array",
             "items": {"type": "string"}
