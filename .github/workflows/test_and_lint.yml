@@ -3,15 +3,15 @@ on:
   push:
     branches:
       - master
-      - feature/*
       - feat/*
       - dev
+      - fix/*
   pull_request:
     branches:
       - master
-      - feature/*
       - feat/*
       - dev
+      - fix/*
 
 permissions:
   contents: read
