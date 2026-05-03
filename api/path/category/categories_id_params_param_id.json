@@ -15,7 +15,11 @@
 		"name": "type",
 		"in": "query",
 		"required": true,
-		"schema": { "type": "string", "enum": ["numeric", "enum"] }
+		"schema": { "type": "string", "enum": ["numeric", "enum"] },
+		"examples": {
+		  "numeric": { "summary": "Numeric type", "value": "numeric" },
+		  "enum": { "summary": "Enum type", "value": "enum" }
+		}
 	  }
 	],
 	"requestBody": {
@@ -27,6 +31,16 @@
 			  { "$ref": "../../components/schemas/category_parameter.json#/NumericParameterUpdate" },
 			  { "$ref": "../../components/schemas/category_parameter.json#/EnumParameterUpdate" }
 			]
+		  },
+		  "examples": {
+			"numeric": {
+			  "summary": "Numeric parameter update example",
+			  "value": { "min_val": 150, "max_val": 300, "inheritable": false }
+			},
+			"enum": {
+			  "summary": "Enum parameter update example",
+			  "value": { "enum_class_id": 2, "inheritable": false }
+			}
 		  }
 		}
 	  }
@@ -41,6 +55,16 @@
 				{ "$ref": "../../components/schemas/category_parameter.json#/NumericParameter" },
 				{ "$ref": "../../components/schemas/category_parameter.json#/EnumParameter" }
 			  ]
+			},
+			"examples": {
+			  "numeric": {
+				"summary": "Numeric parameter response example",
+				"value": { "id": 10, "field_name": "amount", "entity_name": "beers", "min_val": 150, "max_val": 300, "inheritable": false }
+			  },
+			  "enum": {
+				"summary": "Enum parameter response example",
+				"value": { "id": 11, "enum_class_id": 2, "inheritable": false }
+			  }
 			}
 		  }
 		}
@@ -78,4 +102,5 @@
 	}
   }
 }
+
 
