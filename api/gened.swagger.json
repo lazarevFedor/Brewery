@@ -3,7 +3,7 @@
   "info": {
     "title": "Beer Catalog API",
     "version": "1.0.0",
-    "description": "API for managing categories, beers and reviews"
+    "description": "API for managing categories, beers, reviews, enums, category parameters and parameter's aggregates"
   },
   "servers": [
     {
@@ -30,6 +30,14 @@
     {
       "name": "EnumsValue",
       "description": "Операции связанные с перечислениями"
+    },
+    {
+      "name": "CategoryParams",
+      "description": "Операции связанные с параметрами категорий"
+    },
+    {
+      "name": "Aggregates",
+      "description": "Операции связанные с агрегатами параметров категорий"
     }
   ],
   "paths": {
@@ -1025,6 +1033,448 @@
           }
         }
       }
+    },
+    "/categories/{id}/params/numeric": {
+      "post": {
+        "tags": [
+          "CategoryParams"
+        ],
+        "summary": "Create numeric parameter",
+        "operationId": "createNumericParameter",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NumericParameterCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Numeric parameter created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NumericParameter"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/categories/{id}/params/enum": {
+      "post": {
+        "tags": [
+          "CategoryParams"
+        ],
+        "summary": "Create enum parameter",
+        "operationId": "createEnumParameter",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnumParameterCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Enum parameter created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnumParameter"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/categories/{id}/params": {
+      "get": {
+        "tags": [
+          "CategoryParams"
+        ],
+        "summary": "Get all parameters for category",
+        "operationId": "listCategoryParameters",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Parameters list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "oneOf": [
+                      {
+                        "$ref": "#/components/schemas/NumericParameter"
+                      },
+                      {
+                        "$ref": "#/components/schemas/EnumParameter"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/categories/{id}/params/{param_id}": {
+      "patch": {
+        "tags": [
+          "CategoryParams"
+        ],
+        "summary": "Update parameter",
+        "operationId": "updateCategoryParameter",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          },
+          {
+            "name": "param_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "numeric",
+                "enum"
+              ]
+            },
+            "examples": {
+              "numeric": {
+                "summary": "Numeric type",
+                "value": "numeric"
+              },
+              "enum": {
+                "summary": "Enum type",
+                "value": "enum"
+              }
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/NumericParameterUpdate"
+                  },
+                  {
+                    "$ref": "#/components/schemas/EnumParameterUpdate"
+                  }
+                ]
+              },
+              "examples": {
+                "numeric": {
+                  "summary": "Numeric parameter update example",
+                  "value": {
+                    "min_val": 150,
+                    "max_val": 300,
+                    "inheritable": false
+                  }
+                },
+                "enum": {
+                  "summary": "Enum parameter update example",
+                  "value": {
+                    "enum_class_id": 2,
+                    "inheritable": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Parameter updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/NumericParameter"
+                    },
+                    {
+                      "$ref": "#/components/schemas/EnumParameter"
+                    }
+                  ]
+                },
+                "examples": {
+                  "numeric": {
+                    "summary": "Numeric parameter response example",
+                    "value": {
+                      "id": 10,
+                      "field_name": "amount",
+                      "entity_name": "beers",
+                      "min_val": 150,
+                      "max_val": 300,
+                      "inheritable": false
+                    }
+                  },
+                  "enum": {
+                    "summary": "Enum parameter response example",
+                    "value": {
+                      "id": 11,
+                      "enum_class_id": 2,
+                      "inheritable": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "422": {
+            "description": "Validation error"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "CategoryParams"
+        ],
+        "summary": "Delete parameter",
+        "operationId": "deleteCategoryParameter",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          },
+          {
+            "name": "param_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "numeric",
+                "enum"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Parameter deleted"
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/aggregates": {
+      "post": {
+        "tags": [
+          "Aggregates"
+        ],
+        "summary": "Create parameter aggregate",
+        "operationId": "createParameterAggregate",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParameterAggregateCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Parameter aggregate created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParameterAggregate"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Aggregates"
+        ],
+        "summary": "Get all parameter aggregates",
+        "operationId": "listParameterAggregates",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Optional exact aggregate name filter"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of aggregates",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ParameterAggregate"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/aggregates/{category_id}/apply": {
+      "post": {
+        "tags": [
+          "Aggregates"
+        ],
+        "summary": "Apply parameter aggregate to category",
+        "operationId": "applyParameterAggregate",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CategoryId"
+          },
+          {
+            "name": "aggregate_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Aggregate ID to apply"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Aggregate applied successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "params_added": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1436,6 +1886,181 @@
             }
           }
         ]
+      },
+      "NumericParameterCreate": {
+        "type": "object",
+        "required": [
+          "field_name",
+          "entity_name",
+          "min_val",
+          "max_val",
+          "inheritable"
+        ],
+        "properties": {
+          "field_name": {
+            "type": "string"
+          },
+          "entity_name": {
+            "type": "string"
+          },
+          "min_val": {
+            "type": "integer"
+          },
+          "max_val": {
+            "type": "integer"
+          },
+          "inheritable": {
+            "type": "boolean"
+          }
+        }
+      },
+      "NumericParameter": {
+        "type": "object",
+        "required": [
+          "id",
+          "field_name",
+          "entity_name",
+          "min_val",
+          "max_val",
+          "inheritable"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "field_name": {
+            "type": "string"
+          },
+          "entity_name": {
+            "type": "string"
+          },
+          "min_val": {
+            "type": "integer"
+          },
+          "max_val": {
+            "type": "integer"
+          },
+          "inheritable": {
+            "type": "boolean"
+          }
+        }
+      },
+      "EnumParameterCreate": {
+        "type": "object",
+        "required": [
+          "enum_class_id",
+          "inheritable"
+        ],
+        "properties": {
+          "enum_class_id": {
+            "type": "integer"
+          },
+          "inheritable": {
+            "type": "boolean"
+          }
+        }
+      },
+      "EnumParameter": {
+        "type": "object",
+        "required": [
+          "id",
+          "enum_class_id",
+          "inheritable"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "enum_class_id": {
+            "type": "integer"
+          },
+          "inheritable": {
+            "type": "boolean"
+          }
+        }
+      },
+      "NumericParameterUpdate": {
+        "type": "object",
+        "properties": {
+          "min_val": {
+            "type": "integer"
+          },
+          "max_val": {
+            "type": "integer"
+          },
+          "inheritable": {
+            "type": "boolean"
+          }
+        }
+      },
+      "EnumParameterUpdate": {
+        "type": "object",
+        "properties": {
+          "enum_class_id": {
+            "type": "integer"
+          },
+          "inheritable": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ParameterAggregate": {
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "numeric_param_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "enum_param_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "ParameterAggregateCreate": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "numeric_param_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "default": []
+          },
+          "enum_param_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "default": []
+          }
+        }
       }
     },
     "responses": {
