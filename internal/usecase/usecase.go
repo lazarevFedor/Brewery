@@ -26,7 +26,7 @@ type BeerService interface {
 	GetAllBeers(ctx context.Context, limit, offset uint64) ([]entities.Beer, error)
 
 	GetFeatures(ctx context.Context, id uint) ([]string, error)
-	CreateFeature(ctx context.Context, beerID uint, feat string) ( uint, error )
+	CreateFeature(ctx context.Context, beerID uint, feat string) (uint, error)
 	DeleteFeature(ctx context.Context, id uint) error
 
 	GetBeerReviews(ctx context.Context, limit, offset uint64, beerid uint) ([]entities.Review, error)
@@ -47,6 +47,7 @@ func NewBeerService(beerRepo repository.BeerRepository, categoryRepo repository.
 	}
 }
 
+// CreateCategory создает и возвращает новый узел дерева категорий
 func (s *beerService) CreateCategory(ctx context.Context, ctg *entities.ProductCategory) (uint, error) {
 	if err := ctx.Err(); err != nil {
 		return 0, fmt.Errorf("request cancelled: %w", err)
@@ -88,6 +89,7 @@ func (s *beerService) CreateCategory(ctx context.Context, ctg *entities.ProductC
 	return id, nil
 }
 
+// UpdateCategory возвращает узел дерева категорий по id
 func (s *beerService) GetCategoryByID(ctx context.Context, id uint) (*entities.ProductCategory, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
@@ -105,6 +107,7 @@ func (s *beerService) GetCategoryByID(ctx context.Context, id uint) (*entities.P
 	return ctg, nil
 }
 
+// UpdateCategory обновляет узел дерева категорий
 func (s *beerService) UpdateCategory(ctx context.Context, id uint, updates map[string]any) error {
 	if err := ctx.Err(); err != nil {
 		return fmt.Errorf("request cancelled: %w", err)
@@ -169,6 +172,7 @@ func (s *beerService) ensureCategoryParentIsNotDescendant(ctx context.Context, c
 	return nil
 }
 
+// GetChildCategories удаляет узел дерева категорий
 func (s *beerService) DeleteCategory(ctx context.Context, id uint) error {
 	if err := ctx.Err(); err != nil {
 		return fmt.Errorf("request cancelled: %w", err)
@@ -186,6 +190,7 @@ func (s *beerService) DeleteCategory(ctx context.Context, id uint) error {
 	return nil
 }
 
+// GetChildCategories возвращает список всех узлов дерева категорий
 func (s *beerService) GetAllCategories(ctx context.Context) ([]entities.ProductCategory, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
@@ -199,6 +204,7 @@ func (s *beerService) GetAllCategories(ctx context.Context) ([]entities.ProductC
 	return categories, nil
 }
 
+// GetChildCategories возвращает родительский узел дерева категорий
 func (s *beerService) GetParentCategory(ctx context.Context, id uint) (*entities.ProductCategory, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
@@ -221,6 +227,7 @@ func (s *beerService) GetParentCategory(ctx context.Context, id uint) (*entities
 	return parent, nil
 }
 
+// GetChildCategories возвращает список всех дочерних узлов дерева категорий
 func (s *beerService) GetChildCategories(ctx context.Context, id uint) ([]entities.ProductCategory, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
@@ -239,6 +246,7 @@ func (s *beerService) GetChildCategories(ctx context.Context, id uint) ([]entiti
 	return children, nil
 }
 
+// CreateBeer создает сущность пиво и возвращает ее
 func (s *beerService) CreateBeer(ctx context.Context, beer *entities.Beer) (*entities.Beer, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
@@ -260,6 +268,7 @@ func (s *beerService) CreateBeer(ctx context.Context, beer *entities.Beer) (*ent
 	return beer, nil
 }
 
+// GetAllBeers возвращает список всех сущностей пиво
 func (s *beerService) GetAllBeers(ctx context.Context, limit, offset uint64) ([]entities.Beer, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
@@ -273,6 +282,7 @@ func (s *beerService) GetAllBeers(ctx context.Context, limit, offset uint64) ([]
 	return beers, nil
 }
 
+// GetBeersByCategory возвращает список сущностей пиво опредленной категории
 func (s *beerService) GetBeersByCategory(ctx context.Context, id uint, limit, offset uint64) ([]entities.Beer, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
@@ -290,6 +300,7 @@ func (s *beerService) GetBeersByCategory(ctx context.Context, id uint, limit, of
 	return beers, nil
 }
 
+// validateUpdates валидирует входные данные на обновление сущности пиво
 func (s *beerService) validateUpdates(ctx context.Context, updates map[string]any) (map[string]any, error) {
 	validatedUpdates := make(map[string]any)
 
@@ -365,6 +376,7 @@ func (s *beerService) validateUpdates(ctx context.Context, updates map[string]an
 	return validatedUpdates, nil
 }
 
+// resolveCityUpdate валидирует входные данные на обновление города пива, возвращает id нового или уже существующего города
 func (s *beerService) resolveCityUpdate(ctx context.Context, updates map[string]any) (uint, error) {
 	if err := ctx.Err(); err != nil {
 		return 0, fmt.Errorf("request canceled: %w", err)
@@ -397,6 +409,7 @@ func (s *beerService) resolveCityUpdate(ctx context.Context, updates map[string]
 	return cityID, nil
 }
 
+// resolveCityUpdate обновляет сущность пиво
 func (s *beerService) UpdateBeer(ctx context.Context, id uint, updates map[string]any) (*entities.Beer, error) {
 	validatedUpdates, err := s.validateUpdates(ctx, updates)
 	if err != nil {
@@ -411,6 +424,7 @@ func (s *beerService) UpdateBeer(ctx context.Context, id uint, updates map[strin
 	return beer, nil
 }
 
+// DeleteBeer Удаляет сущность пиво
 func (s *beerService) DeleteBeer(ctx context.Context, id uint) error {
 	if err := ctx.Err(); err != nil {
 		return fmt.Errorf("request cancelled: %w", err)

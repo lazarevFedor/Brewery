@@ -473,7 +473,7 @@ func (r *BeerPostgres) InsertReview(ctx context.Context, review entities.Review)
 		return 0, fmt.Errorf("%s: %w", "Scan", err)
 	}
 
-	if result.RowsAffected() != 1{
+	if result.RowsAffected() != 1 {
 		return 0, fmt.Errorf("%s: %w", "RowsAffected", err)
 	}
 
@@ -511,14 +511,12 @@ func (r *BeerPostgres) DeleteReview(ctx context.Context, id uint) error {
 	if err != nil {
 		return fmt.Errorf("%s: %w", "ToSql", err)
 	}
-	
+
 	var rating, beerID uint
 	err = tx.QueryRow(ctx, query, args...).Scan(&beerID, &rating)
 	if err != nil {
 		return fmt.Errorf("%s: %w", "Exec", err)
 	}
-
-
 
 	updatePsql := queries.UpdateBeerRating(beerID, rating, "delete")
 	query, args, err = updatePsql.ToSql()
@@ -531,7 +529,7 @@ func (r *BeerPostgres) DeleteReview(ctx context.Context, id uint) error {
 		return fmt.Errorf("%s: %w", "Scan", err)
 	}
 
-	if result.RowsAffected() != 1{
+	if result.RowsAffected() != 1 {
 		return fmt.Errorf("%s: %w, %d, %d", "RowsAffected", err, rating, beerID)
 	}
 
@@ -587,7 +585,7 @@ func (r *BeerPostgres) UpdateReview(ctx context.Context, id uint, updates map[st
 		return fmt.Errorf("%s: %w", "Scan", err)
 	}
 
-	if result.RowsAffected() != 1{
+	if result.RowsAffected() != 1 {
 		return fmt.Errorf("%s: %w", "RowsAffected", err)
 	}
 
@@ -798,41 +796,41 @@ func (r *BeerPostgres) InsertBeerFeature(ctx context.Context, featID, beerID uin
 	return nil
 }
 
-// scanBeer сканирует строку из базы данных в сущность Beer. Если строка не соответствует структуре сущности, возвращает ошибку.
+// scanBeer сканирует обработанную строку из базы данных в сущность Beer. Если строка не соответствует структуре сущности, возвращает ошибку.
 func scanBeer(row pgx.Row) (*entities.Beer, error) {
 	var beer entities.Beer
-	var review_rating_sum, review_amount uint
+	var reviewRatingSum, reviewAmount uint
 	err := row.Scan(&beer.ID, &beer.Name,
 		&beer.Description, &beer.ABV, &beer.IBU, &beer.Amount,
 		&beer.Unit, &beer.City, &beer.Country,
 		&beer.Category.Name, &beer.Features,
-		&review_rating_sum, &review_amount)
+		&reviewRatingSum, &reviewAmount)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Scan", err)
 	}
 
-	if review_amount != 0{
-		rating := float32(review_rating_sum) / float32(review_amount)
+	if reviewAmount != 0 {
+		rating := float32(reviewRatingSum) / float32(reviewAmount)
 		beer.Rating = rating
 	}
 
 	return &beer, nil
 }
 
-// scanBeer сканирует строку из базы данных в сущность Beer. Если строка не соответствует структуре сущности, возвращает ошибку.
+// scanBeerBase сканирует полную сырую строку из базы данных в сущность Beer. Если строка не соответствует структуре сущности, возвращает ошибку.
 func scanBeerBase(row pgx.Row) (*entities.Beer, error) {
 	var beer entities.Beer
-	var cityID, categoryID, review_rating_sum, review_amount uint
+	var cityID, categoryID, reviewRatingSum, reviewAmount uint
 	err := row.Scan(&beer.ID, &beer.Name,
 		&beer.Description, &beer.ABV, &beer.IBU,
 		&beer.Amount, &beer.Unit, &cityID, &categoryID,
-		&review_rating_sum, &review_amount)
+		&reviewRatingSum, &reviewAmount)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Scan", err)
 	}
 
-	if review_amount != 0{
-		rating := float32(review_rating_sum) / float32(review_amount)
+	if reviewAmount != 0 {
+		rating := float32(reviewRatingSum) / float32(reviewAmount)
 		beer.Rating = rating
 	}
 

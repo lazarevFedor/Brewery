@@ -133,11 +133,12 @@ func SelectReviewByBeerID(beerID uint) sq.SelectBuilder {
 
 // UpdateBeer возвращает запрос для обновления информации о пиве в таблице beers по его ID с использованием данных из переданной карты обновлений.
 func UpdateBeer(id uint, updates map[string]any) sq.UpdateBuilder {
+	returnColumns := "id, name, description, abv, ibu, amount, units, city_id, category_id, review_amount, review_rating_sum"
 	return psql.
 		Update(beersTable).
 		SetMap(updates).
 		Where(sq.Eq{"id": id}).
-		Suffix("RETURNING *")
+		Suffix("RETURNING " + returnColumns)
 }
 
 // SelectOrInsertCountry возвращает запрос для вставки новой страны в таблицу countries, если страна с таким именем еще не существует, или возвращает ID существующей страны, если она уже есть. Запрос использует конструкцию ON CONFLICT для обработки конфликтов по имени страны.
