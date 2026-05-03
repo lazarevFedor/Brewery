@@ -1,0 +1,81 @@
+{
+  "patch": {
+	"tags": ["CategoryParams"],
+	"summary": "Update parameter",
+	"operationId": "updateCategoryParameter",
+	"parameters": [
+	  { "$ref": "../../components/parameters/id.json#/Id" },
+	  {
+		"name": "param_id",
+		"in": "path",
+		"required": true,
+		"schema": { "type": "integer" }
+	  },
+	  {
+		"name": "type",
+		"in": "query",
+		"required": true,
+		"schema": { "type": "string", "enum": ["numeric", "enum"] }
+	  }
+	],
+	"requestBody": {
+	  "required": true,
+	  "content": {
+		"application/json": {
+		  "schema": {
+			"oneOf": [
+			  { "$ref": "../../components/schemas/category_parameter.json#/NumericParameterUpdate" },
+			  { "$ref": "../../components/schemas/category_parameter.json#/EnumParameterUpdate" }
+			]
+		  }
+		}
+	  }
+	},
+	"responses": {
+	  "200": {
+		"description": "Parameter updated",
+		"content": {
+		  "application/json": {
+			"schema": {
+			  "oneOf": [
+				{ "$ref": "../../components/schemas/category_parameter.json#/NumericParameter" },
+				{ "$ref": "../../components/schemas/category_parameter.json#/EnumParameter" }
+			  ]
+			}
+		  }
+		}
+	  },
+	  "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+	  "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
+	  "422": { "description": "Validation error" },
+	  "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
+	}
+  },
+  "delete": {
+	"tags": ["CategoryParams"],
+	"summary": "Delete parameter",
+	"operationId": "deleteCategoryParameter",
+	"parameters": [
+	  { "$ref": "../../components/parameters/id.json#/Id" },
+	  {
+		"name": "param_id",
+		"in": "path",
+		"required": true,
+		"schema": { "type": "integer" }
+	  },
+	  {
+		"name": "type",
+		"in": "query",
+		"required": true,
+		"schema": { "type": "string", "enum": ["numeric", "enum"] }
+	  }
+	],
+	"responses": {
+	  "204": { "description": "Parameter deleted" },
+	  "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+	  "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
+	  "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
+	}
+  }
+}
+

@@ -38,4 +38,20 @@
       }
     }
   }
+  ,
+  "NumericParameterUpdate": {
+    "type": "object",
+    "properties": {
+      "min_val": { "type": "integer" },
+      "max_val": { "type": "integer" },
+      "inheritable": { "type": "boolean" }
+    }
+  },
+  "EnumParameterUpdate": {
+    "type": "object",
+    "properties": {
+      "enum_class_id": { "type": "integer" },
+      "inheritable": { "type": "boolean" }
+    }
+  }
 }
