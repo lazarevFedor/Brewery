@@ -1,0 +1,11 @@
+{
+  "ParamId": {
+    "name": "param_id",
+    "in": "path",
+    "required": true,
+    "schema": {
+      "type": "integer",
+      "example": 10
+    }
+  }
+}
