@@ -13,7 +13,7 @@
 	  "content": {
 		"application/json": {
 		  "schema": {
-			"$ref": "../../components/schemas/category_parameter.json#/EnumParameter"
+			"$ref": "../../components/schemas/category_parameter.json#/EnumParameterCreate"
 		  }
 		}
 	  }
