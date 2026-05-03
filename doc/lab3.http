@@ -111,7 +111,7 @@ DELETE http://localhost:80/api/categories/{id}/params/{param_id}?type=enum
 
 
 ### Create parameter aggregate
-POST http://localhost:80/api/param-aggregates
+POST http://localhost:80/api/aggregates
 Content-Type: application/json
 
 {
@@ -131,7 +131,7 @@ Content-Type: application/json
 # }
 
 ### Get all aggregates
-GET http://localhost:80/api/param-aggregates
+GET http://localhost:80/api/aggregates
 
 ### Expected response (200):
 # [
@@ -145,7 +145,7 @@ GET http://localhost:80/api/param-aggregates
 # ]
 
 ### Update aggregate
-PATCH http://localhost:80/api/param-aggregates/1
+PATCH http://localhost:80/api/aggregates/1
 Content-Type: application/json
 
 {
@@ -163,7 +163,7 @@ Content-Type: application/json
 # }
 
 ### Delete aggregate
-DELETE http://localhost:80/api/param-aggregates/1
+DELETE http://localhost:80/api/aggregates/1
 
 ### Expected response (204)
 
@@ -181,7 +181,7 @@ Content-Type: application/json
 ################################################################################
 
 ### Поиск изделий заданного класса с представлением значений параметров
-GET http://localhost:80/api/categories/{id}/beers
+GET http://localhost:80/api/categories/{id}/beers?param=amount:gte:400&param=amount:lte:600
 
 ### Expected response (200):
 # [
@@ -192,17 +192,23 @@ GET http://localhost:80/api/categories/{id}/beers
 #     "abv": 5.0,
 #     "ibu": 25,
 #     "amount": 500,
-#     "units": "ml",
-#     "params": [
-#       {"param_name": "amount", "type": "numeric", "value": 500, "min": 100, "max": 200},
-#       {"param_name": "abv", "type": "numeric", "value": 5.0}
-#     ]
+#     "units": "ml"
 #   }
 # ]
 
 
 ### Отбор изделий по значениям параметров
-GET http://localhost:80/api/beers?param=amount:gte:400&param=amount:lte:600
+GET http://localhost:80/api/beers
 
 ### Expected response (200):
-# [ { "id": 123, "name": "Lager Primo", "amount": 500, "abv": 5.0, "params": [ {"param_name": "amount", "type": "numeric", "value": 500}, {"param_name": "abv", "type": "numeric", "value": 5.0} ] } ]
+# [
+#   {
+#     "id": 123,
+#     "name": "Lager Primo",
+#     "category_id": {id},
+#     "abv": 5.0,
+#     "ibu": 25,
+#     "amount": 500,
+#     "units": "ml"
+#   }
+# ]

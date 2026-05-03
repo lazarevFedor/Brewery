@@ -1,0 +1,19 @@
+{
+  "patch": {
+    "tags": ["Aggregates"],
+    "summary": "Update parameter aggregate",
+    "operationId": "updateParameterAggregate",
+    "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } } ],
+    "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "../../components/schemas/param_aggregate.json#/ParameterAggregateUpdate" } } } },
+    "responses": { "200": { "description": "Parameter aggregate updated", "content": { "application/json": { "schema": { "$ref": "../../components/schemas/param_aggregate.json#/ParameterAggregate" } } } }, "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" }, "404": { "$ref": "../../components/schemas/responses/404_not_found.json" }, "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" } }
+  },
+  "delete": {
+    "tags": ["Aggregates"],
+    "summary": "Delete parameter aggregate",
+    "operationId": "deleteParameterAggregate",
+    "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } } ],
+    "responses": { "204": { "description": "Parameter aggregate deleted" }, "404": { "$ref": "../../components/schemas/responses/404_not_found.json" }, "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" } }
+  }
+}
+
+

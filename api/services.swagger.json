@@ -33,6 +33,10 @@
     {
       "name": "CategoryParams",
       "description": "Операции связанные с параметрами категорий"
+    },
+    {
+      "name": "Aggregates",
+      "description": "Операции связанные с агрегатами параметров категорий"
     }
   ],
 
@@ -59,6 +63,9 @@
     "/categories/{id}/params/numeric": { "$ref": "./path/category/categories_id_params_numeric.json" },
     "/categories/{id}/params/enum": { "$ref": "./path/category/categories_id_params_enum.json" },
     "/categories/{id}/params": { "$ref": "./path/category/categories_id_params.json" },
-    "/categories/{id}/params/{param_id}": { "$ref": "./path/category/categories_id_params_param_id.json"}
+    "/categories/{id}/params/{param_id}": { "$ref": "./path/category/categories_id_params_param_id.json"},
+
+    "/aggregates": { "$ref": "./path/aggregate/aggregates.json" },
+    "/aggregates/{category_id}/apply": { "$ref": "./path/aggregate/apply_aggregate.json" }
   }
 }
