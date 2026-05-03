@@ -7,7 +7,7 @@
       "required": true,
       "content": {
         "application/json": {
-          "schema": { "$ref": "../../components/schemas/param_aggregate.json#/ParameterAggregateCreate" }
+          "schema": { "$ref": "../../components/parameters/parameter_aggregate.json#/ParameterAggregateCreate" }
         }
       }
     },
@@ -16,7 +16,7 @@
         "description": "Parameter aggregate created",
         "content": {
           "application/json": {
-            "schema": { "$ref": "../../components/schemas/param_aggregate.json#/ParameterAggregate" }
+            "schema": { "$ref": "../../components/parameters/parameter_aggregate.json#/ParameterAggregate" }
           }
         }
       },
@@ -43,7 +43,12 @@
         "description": "List of aggregates",
         "content": {
           "application/json": {
-            "schema": { "type": "array", "items": { "$ref": "../../components/schemas/param_aggregate.json#/ParameterAggregate" } }
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "../../components/parameters/parameter_aggregate.json#/ParameterAggregate"
+              }
+            }
           }
         }
       },
@@ -51,5 +56,3 @@
     }
   }
 }
-
-
