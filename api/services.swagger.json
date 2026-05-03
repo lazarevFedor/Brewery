@@ -15,6 +15,14 @@
       "description": "Все операции, связанные с категориями товаров"
     },
     {
+      "name": "CategoryParams",
+      "description": "Операции связанные с параметрами категорий"
+    },
+    {
+      "name": "Aggregates",
+      "description": "Операции связанные с агрегатами параметров категорий"
+    },
+    {
       "name": "Beers",
       "description": "Операции, связанные с пивной продукцией"
     },
@@ -29,14 +37,6 @@
     {
       "name": "EnumsValue",
       "description": "Операции связанные с перечислениями"
-    },
-    {
-      "name": "CategoryParams",
-      "description": "Операции связанные с параметрами категорий"
-    },
-    {
-      "name": "Aggregates",
-      "description": "Операции связанные с агрегатами параметров категорий"
     }
   ],
 
@@ -50,6 +50,8 @@
     "/beers/{id}": { "$ref": "./path/beer/beers_id.json" },
     "/beers/feats/{id}": { "$ref": "./path/beer/beers_feats_id.json" },
     "/categories/beers/{category_id}": { "$ref": "./path/beer/categories_beers_category_id.json" },
+    "/beers/search": { "$ref": "./path/beer/beers_search.json" },
+    "/categories/{id}/beers/search": { "$ref": "./path/beer/categories_id_beers_search.json" },
 
     "/reviews/{beer_id}": { "$ref": "./path/review/reviews_beer_id.json" },
     "/reviews/{id}": { "$ref": "./path/review/reviews_id.json" },

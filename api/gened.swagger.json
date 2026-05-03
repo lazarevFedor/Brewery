@@ -16,6 +16,14 @@
       "description": "Все операции, связанные с категориями товаров"
     },
     {
+      "name": "CategoryParams",
+      "description": "Операции связанные с параметрами категорий"
+    },
+    {
+      "name": "Aggregates",
+      "description": "Операции связанные с агрегатами параметров категорий"
+    },
+    {
       "name": "Beers",
       "description": "Операции, связанные с пивной продукцией"
     },
@@ -30,14 +38,6 @@
     {
       "name": "EnumsValue",
       "description": "Операции связанные с перечислениями"
-    },
-    {
-      "name": "CategoryParams",
-      "description": "Операции связанные с параметрами категорий"
-    },
-    {
-      "name": "Aggregates",
-      "description": "Операции связанные с агрегатами параметров категорий"
     }
   ],
   "paths": {
@@ -545,6 +545,94 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/CategoryId"
+          },
+          {
+            "$ref": "#/components/parameters/Offset"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Beers list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Beer"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/beers/search": {
+      "get": {
+        "tags": [
+          "Beers"
+        ],
+        "summary": "Filter beers by exact parameter values",
+        "operationId": "searchBeers",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BeerFilter"
+          },
+          {
+            "$ref": "#/components/parameters/Offset"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Beers list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Beer"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/categories/{id}/beers/search": {
+      "get": {
+        "tags": [
+          "Beers"
+        ],
+        "summary": "Search beers in category by parameter ranges",
+        "operationId": "searchBeersByCategory",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CategoryId"
+          },
+          {
+            "$ref": "#/components/parameters/CategoryBeerFilter"
           },
           {
             "$ref": "#/components/parameters/Offset"
@@ -1187,34 +1275,10 @@
             "$ref": "#/components/parameters/Id"
           },
           {
-            "name": "param_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
+            "$ref": "#/components/parameters/ParamId"
           },
           {
-            "name": "type",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "numeric",
-                "enum"
-              ]
-            },
-            "examples": {
-              "numeric": {
-                "summary": "Numeric type",
-                "value": "numeric"
-              },
-              "enum": {
-                "summary": "Enum type",
-                "value": "enum"
-              }
-            }
+            "$ref": "#/components/parameters/ParamType"
           }
         ],
         "requestBody": {
@@ -1233,19 +1297,10 @@
               },
               "examples": {
                 "numeric": {
-                  "summary": "Numeric parameter update example",
-                  "value": {
-                    "min_val": 150,
-                    "max_val": 300,
-                    "inheritable": false
-                  }
+                  "$ref": "#/components/examples/NumericParameterUpdate"
                 },
                 "enum": {
-                  "summary": "Enum parameter update example",
-                  "value": {
-                    "enum_class_id": 2,
-                    "inheritable": false
-                  }
+                  "$ref": "#/components/examples/EnumParameterUpdate"
                 }
               }
             }
@@ -1268,23 +1323,10 @@
                 },
                 "examples": {
                   "numeric": {
-                    "summary": "Numeric parameter response example",
-                    "value": {
-                      "id": 10,
-                      "field_name": "amount",
-                      "entity_name": "beers",
-                      "min_val": 150,
-                      "max_val": 300,
-                      "inheritable": false
-                    }
+                    "$ref": "#/components/examples/NumericParameter"
                   },
                   "enum": {
-                    "summary": "Enum parameter response example",
-                    "value": {
-                      "id": 11,
-                      "enum_class_id": 2,
-                      "inheritable": false
-                    }
+                    "$ref": "#/components/examples/EnumParameter"
                   }
                 }
               }
@@ -1297,7 +1339,7 @@
             "$ref": "#/components/responses/404_not_found"
           },
           "422": {
-            "description": "Validation error"
+            "$ref": "#/components/responses/422_validation_error"
           },
           "500": {
             "$ref": "#/components/responses/500_internal_server_error"
@@ -1315,24 +1357,10 @@
             "$ref": "#/components/parameters/Id"
           },
           {
-            "name": "param_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
+            "$ref": "#/components/parameters/ParamId"
           },
           {
-            "name": "type",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "numeric",
-                "enum"
-              ]
-            }
+            "$ref": "#/components/parameters/ParamType"
           }
         ],
         "responses": {
@@ -1439,13 +1467,7 @@
             "$ref": "#/components/parameters/CategoryId"
           },
           {
-            "name": "aggregate_id",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            },
-            "description": "Aggregate ID to apply"
+            "$ref": "#/components/parameters/AggregateId"
           }
         ],
         "responses": {
@@ -1887,97 +1909,117 @@
           }
         ]
       },
-      "NumericParameterCreate": {
+      "NumericParameterBase": {
         "type": "object",
-        "required": [
-          "field_name",
-          "entity_name",
-          "min_val",
-          "max_val",
-          "inheritable"
-        ],
         "properties": {
           "field_name": {
-            "type": "string"
+            "type": "string",
+            "example": "amount"
           },
           "entity_name": {
-            "type": "string"
+            "type": "string",
+            "example": "beers"
           },
           "min_val": {
-            "type": "integer"
+            "type": "integer",
+            "example": 150
           },
           "max_val": {
-            "type": "integer"
+            "type": "integer",
+            "example": 300
           },
           "inheritable": {
-            "type": "boolean"
+            "type": "boolean",
+            "example": false
           }
         }
       },
+      "NumericParameterCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/NumericParameterBase"
+          },
+          {
+            "required": [
+              "field_name",
+              "entity_name",
+              "min_val",
+              "max_val",
+              "inheritable"
+            ]
+          }
+        ]
+      },
       "NumericParameter": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/NumericParameterBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "field_name",
+              "entity_name",
+              "min_val",
+              "max_val",
+              "inheritable"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer",
+                "example": 10
+              }
+            }
+          }
+        ]
+      },
+      "EnumParameterBase": {
         "type": "object",
-        "required": [
-          "id",
-          "field_name",
-          "entity_name",
-          "min_val",
-          "max_val",
-          "inheritable"
-        ],
         "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "field_name": {
-            "type": "string"
-          },
-          "entity_name": {
-            "type": "string"
-          },
-          "min_val": {
-            "type": "integer"
-          },
-          "max_val": {
-            "type": "integer"
+          "enum_class_id": {
+            "type": "integer",
+            "example": 2
           },
           "inheritable": {
-            "type": "boolean"
+            "type": "boolean",
+            "example": false
           }
         }
       },
       "EnumParameterCreate": {
-        "type": "object",
-        "required": [
-          "enum_class_id",
-          "inheritable"
-        ],
-        "properties": {
-          "enum_class_id": {
-            "type": "integer"
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumParameterBase"
           },
-          "inheritable": {
-            "type": "boolean"
+          {
+            "required": [
+              "enum_class_id",
+              "inheritable"
+            ]
           }
-        }
+        ]
       },
       "EnumParameter": {
-        "type": "object",
-        "required": [
-          "id",
-          "enum_class_id",
-          "inheritable"
-        ],
-        "properties": {
-          "id": {
-            "type": "integer"
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumParameterBase"
           },
-          "enum_class_id": {
-            "type": "integer"
-          },
-          "inheritable": {
-            "type": "boolean"
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "enum_class_id",
+              "inheritable"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer",
+                "example": 11
+              }
+            }
           }
-        }
+        ]
       },
       "NumericParameterUpdate": {
         "type": "object",
@@ -1997,70 +2039,70 @@
         "type": "object",
         "properties": {
           "enum_class_id": {
-            "type": "integer"
+            "type": "integer",
+            "example": 2
           },
           "inheritable": {
-            "type": "boolean"
+            "type": "boolean",
+            "example": false
+          }
+        }
+      },
+      "ParameterAggregateBase": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "numeric_param_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "default": []
+          },
+          "enum_param_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "default": []
           }
         }
       },
       "ParameterAggregate": {
-        "type": "object",
-        "required": [
-          "id",
-          "name"
-        ],
-        "properties": {
-          "id": {
-            "type": "integer"
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ParameterAggregateBase"
           },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "numeric_param_ids": {
-            "type": "array",
-            "items": {
-              "type": "integer"
-            }
-          },
-          "enum_param_ids": {
-            "type": "array",
-            "items": {
-              "type": "integer"
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "name"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              }
             }
           }
-        }
+        ]
       },
       "ParameterAggregateCreate": {
-        "type": "object",
-        "required": [
-          "name"
-        ],
-        "properties": {
-          "name": {
-            "type": "string"
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ParameterAggregateBase"
           },
-          "description": {
-            "type": "string"
-          },
-          "numeric_param_ids": {
-            "type": "array",
-            "items": {
-              "type": "integer"
-            },
-            "default": []
-          },
-          "enum_param_ids": {
-            "type": "array",
-            "items": {
-              "type": "integer"
-            },
-            "default": []
+          {
+            "required": [
+              "name"
+            ]
           }
-        }
+        ]
       }
     },
     "responses": {
@@ -2119,6 +2161,20 @@
             }
           }
         }
+      },
+      "422_validation_error": {
+        "description": "Validation error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": "VALIDATION_ERROR",
+              "message": "Invalid parameter payload"
+            }
+          }
+        }
       }
     },
     "parameters": {
@@ -2165,6 +2221,40 @@
           "type": "integer"
         }
       },
+      "BeerFilter": {
+        "name": "param",
+        "in": "query",
+        "required": false,
+        "description": "Repeated filter in the form field:op:value. Use eq for exact beer filtering.",
+        "schema": {
+          "type": "string"
+        },
+        "examples": {
+          "exact_value": {
+            "summary": "Exact parameter value",
+            "value": "amount:eq:100"
+          }
+        }
+      },
+      "CategoryBeerFilter": {
+        "name": "param",
+        "in": "query",
+        "required": false,
+        "description": "Repeated filter in the form field:op:value. Use gte/lte/in to filter category beers by numeric ranges or allowed enum values.",
+        "schema": {
+          "type": "string"
+        },
+        "examples": {
+          "numeric_range": {
+            "summary": "Numeric range filter",
+            "value": "amount:gte:100"
+          },
+          "enum_values": {
+            "summary": "Enum allowed values filter",
+            "value": "city:in:Москва,Самара"
+          }
+        }
+      },
       "EntityName": {
         "name": "entity_name",
         "in": "query",
@@ -2188,6 +2278,120 @@
         "schema": {
           "type": "string"
         }
+      },
+      "ParamId": {
+        "name": "param_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "integer",
+          "example": 10
+        }
+      },
+      "ParamType": {
+        "name": "type",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "numeric",
+            "enum"
+          ]
+        },
+        "examples": {
+          "numeric": {
+            "summary": "Numeric type",
+            "value": "numeric"
+          },
+          "enum": {
+            "summary": "Enum type",
+            "value": "enum"
+          }
+        }
+      },
+      "AggregateId": {
+        "name": "aggregate_id",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "integer",
+          "example": 1
+        }
+      }
+    },
+    "examples": {
+      "NumericParameterUpdate": {
+        "type": "object",
+        "properties": {
+          "min_val": {
+            "type": "integer"
+          },
+          "max_val": {
+            "type": "integer"
+          },
+          "inheritable": {
+            "type": "boolean"
+          }
+        }
+      },
+      "EnumParameterUpdate": {
+        "type": "object",
+        "properties": {
+          "enum_class_id": {
+            "type": "integer",
+            "example": 2
+          },
+          "inheritable": {
+            "type": "boolean",
+            "example": false
+          }
+        }
+      },
+      "NumericParameter": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/NumericParameterBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "field_name",
+              "entity_name",
+              "min_val",
+              "max_val",
+              "inheritable"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer",
+                "example": 10
+              }
+            }
+          }
+        ]
+      },
+      "EnumParameter": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumParameterBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "enum_class_id",
+              "inheritable"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer",
+                "example": 11
+              }
+            }
+          }
+        ]
       }
     }
   }
