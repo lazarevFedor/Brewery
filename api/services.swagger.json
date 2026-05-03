@@ -3,7 +3,7 @@
   "info": {
     "title": "Beer Catalog API",
     "version": "1.0.0",
-    "description": "API for managing categories, beers and reviews"
+    "description": "API for managing categories, beers, reviews, enums, category parameters and parameter's aggregates"
   },
   "servers": [
     { "url": "http://localhost:80/api" }
@@ -29,6 +29,10 @@
     {
       "name": "EnumsValue",
       "description": "Операции связанные с перечислениями"
+    },
+    {
+      "name": "CategoryParams",
+      "description": "Операции связанные с параметрами категорий"
     }
   ],
 
@@ -50,6 +54,11 @@
     "/enums/{id}": { "$ref": "./path/enum/enums_id.json" },
 
     "/enums/value": { "$ref": "./path/enum/enums_value.json" },
-    "/enums/value/{id}": { "$ref": "./path/enum/enums_value_id.json" }
+    "/enums/value/{id}": { "$ref": "./path/enum/enums_value_id.json" },
+
+    "/categories/{id}/params/numeric": { "$ref": "./path/category/categories_id_params_numeric.json" },
+    "/categories/{id}/params/enum": { "$ref": "./path/category/categories_id_params_enum.json" },
+    "/categories/{id}/params": { "$ref": "./path/category/categories_id_params.json" },
+    "/categories/{id}/params/{param_id}": { "$ref": "./path/category/categories_id_params_param_id.json"}
   }
 }
