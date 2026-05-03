@@ -12,9 +12,9 @@
 	  "required": true,
 	  "content": {
 		"application/json": {
-		  "schema": {
-			"$ref": "../../components/schemas/category_parameter.json#/NumericParameterCreate"
-		  }
+			"schema": {
+				"$ref": "../../components/parameters/numeric_parameter.json#/NumericParameterCreate"
+			}
 		}
 	  }
 	},
@@ -23,25 +23,16 @@
 		"description": "Numeric parameter created",
 		"content": {
 		  "application/json": {
-			"schema": {
-			  "$ref": "../../components/schemas/category_parameter.json#/NumericParameter"
-			}
+			  "schema": {
+				"$ref": "../../components/parameters/numeric_parameter.json#/NumericParameter"
+			  }
 		  }
 		}
 	  },
-	  "400": {
-		"$ref": "../../components/schemas/responses/400_bad_request.json"
-	  },
-	  "404": {
-		"$ref": "../../components/schemas/responses/404_not_found.json"
-	  },
-	  "409": {
-		"$ref": "../../components/schemas/responses/409_conflict.json"
-	  },
-	  "500": {
-		"$ref": "../../components/schemas/responses/500_internal_server_error.json"
-	  }
+	  "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+	  "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
+	  "409": { "$ref": "../../components/schemas/responses/409_conflict.json" },
+	  "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
 	}
   }
 }
-

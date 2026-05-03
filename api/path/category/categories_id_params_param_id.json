@@ -5,22 +5,8 @@
 	"operationId": "updateCategoryParameter",
 	"parameters": [
 	  { "$ref": "../../components/parameters/id.json#/Id" },
-	  {
-		"name": "param_id",
-		"in": "path",
-		"required": true,
-		"schema": { "type": "integer" }
-	  },
-	  {
-		"name": "type",
-		"in": "query",
-		"required": true,
-		"schema": { "type": "string", "enum": ["numeric", "enum"] },
-		"examples": {
-		  "numeric": { "summary": "Numeric type", "value": "numeric" },
-		  "enum": { "summary": "Enum type", "value": "enum" }
-		}
-	  }
+	  { "$ref": "../../components/parameters/param_id.json#/ParamId" },
+	  { "$ref": "../../components/parameters/param_type.json#/ParamType" }
 	],
 	"requestBody": {
 	  "required": true,
@@ -28,19 +14,13 @@
 		"application/json": {
 		  "schema": {
 			"oneOf": [
-			  { "$ref": "../../components/schemas/category_parameter.json#/NumericParameterUpdate" },
-			  { "$ref": "../../components/schemas/category_parameter.json#/EnumParameterUpdate" }
+			  { "$ref": "../../components/parameters/numeric_parameter.json#/NumericParameterUpdate" },
+			  { "$ref": "../../components/parameters/enum_parameter.json#/EnumParameterUpdate" }
 			]
 		  },
 		  "examples": {
-			"numeric": {
-			  "summary": "Numeric parameter update example",
-			  "value": { "min_val": 150, "max_val": 300, "inheritable": false }
-			},
-			"enum": {
-			  "summary": "Enum parameter update example",
-			  "value": { "enum_class_id": 2, "inheritable": false }
-			}
+			"numeric": { "$ref": "../../components/parameters/numeric_parameter.json#/NumericParameterUpdate" },
+			"enum": { "$ref": "../../components/parameters/enum_parameter.json#/EnumParameterUpdate" }
 		  }
 		}
 	  }
@@ -52,26 +32,20 @@
 		  "application/json": {
 			"schema": {
 			  "oneOf": [
-				{ "$ref": "../../components/schemas/category_parameter.json#/NumericParameter" },
-				{ "$ref": "../../components/schemas/category_parameter.json#/EnumParameter" }
+				{ "$ref": "../../components/parameters/numeric_parameter.json#/NumericParameter" },
+				{ "$ref": "../../components/parameters/enum_parameter.json#/EnumParameter" }
 			  ]
 			},
 			"examples": {
-			  "numeric": {
-				"summary": "Numeric parameter response example",
-				"value": { "id": 10, "field_name": "amount", "entity_name": "beers", "min_val": 150, "max_val": 300, "inheritable": false }
-			  },
-			  "enum": {
-				"summary": "Enum parameter response example",
-				"value": { "id": 11, "enum_class_id": 2, "inheritable": false }
-			  }
+			  "numeric": { "$ref": "../../components/parameters/numeric_parameter.json#/NumericParameter" },
+			  "enum": { "$ref": "../../components/parameters/enum_parameter.json#/EnumParameter" }
 			}
 		  }
 		}
 	  },
 	  "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
 	  "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
-	  "422": { "description": "Validation error" },
+	  "422": { "$ref": "../../components/schemas/responses/422_validation_error.json" },
 	  "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
 	}
   },
@@ -81,18 +55,8 @@
 	"operationId": "deleteCategoryParameter",
 	"parameters": [
 	  { "$ref": "../../components/parameters/id.json#/Id" },
-	  {
-		"name": "param_id",
-		"in": "path",
-		"required": true,
-		"schema": { "type": "integer" }
-	  },
-	  {
-		"name": "type",
-		"in": "query",
-		"required": true,
-		"schema": { "type": "string", "enum": ["numeric", "enum"] }
-	  }
+	  { "$ref": "../../components/parameters/param_id.json#/ParamId" },
+	  { "$ref": "../../components/parameters/param_type.json#/ParamType" }
 	],
 	"responses": {
 	  "204": { "description": "Parameter deleted" },
@@ -102,5 +66,3 @@
 	}
   }
 }
-
-
