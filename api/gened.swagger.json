@@ -1122,14 +1122,13 @@
         }
       }
     },
-    "/categories/params/numeric": {
+    "/categories/parameters/numeric": {
       "post": {
         "tags": [
           "CategoryParams"
         ],
         "summary": "Create numeric parameter",
         "operationId": "createNumericParameter",
-        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -1166,7 +1165,7 @@
         }
       }
     },
-    "/categories/params/enum": {
+    "/categories/parameters/enum": {
       "post": {
         "tags": [
           "CategoryParams"
@@ -1210,14 +1209,13 @@
         }
       }
     },
-    "/categories/params": {
+    "/categories/parameters": {
       "get": {
         "tags": [
           "CategoryParams"
         ],
         "summary": "Get all parameters for category",
         "operationId": "listCategoryParameters",
-        "parameters": [],
         "responses": {
           "200": {
             "description": "Parameters list",
@@ -1251,7 +1249,7 @@
         }
       }
     },
-    "/categories/params/{category_id}/apply": {
+    "/categories/parameters/{category_id}/apply": {
       "patch": {
         "tags": [
           "CategoryParams"
@@ -1304,7 +1302,7 @@
         }
       }
     },
-    "/categories/params/{param_id}": {
+    "/categories/parameters/{id}": {
       "patch": {
         "tags": [
           "CategoryParams"
@@ -1313,7 +1311,7 @@
         "operationId": "updateCategoryParameter",
         "parameters": [
           {
-            "$ref": "#/components/parameters/ParamId"
+            "$ref": "#/components/parameters/Id"
           },
           {
             "$ref": "#/components/parameters/ParamType"
@@ -1395,9 +1393,6 @@
             "$ref": "#/components/parameters/Id"
           },
           {
-            "$ref": "#/components/parameters/ParamId"
-          },
-          {
             "$ref": "#/components/parameters/ParamType"
           }
         ],
@@ -1464,13 +1459,7 @@
         "operationId": "listParameterAggregates",
         "parameters": [
           {
-            "name": "name",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Optional exact aggregate name filter"
+            "$ref": "#/components/parameters/AggregateName"
           }
         ],
         "responses": {
@@ -2204,7 +2193,6 @@
       },
       "CategoryParamsApply": {
         "type": "object",
-        "required": [],
         "properties": {
           "numeric_param_ids": {
             "type": "array",
@@ -2498,15 +2486,6 @@
           "type": "string"
         }
       },
-      "ParamId": {
-        "name": "param_id",
-        "in": "path",
-        "required": true,
-        "schema": {
-          "type": "integer",
-          "example": 10
-        }
-      },
       "ParamType": {
         "name": "type",
         "in": "query",
@@ -2528,6 +2507,15 @@
             "value": "enum"
           }
         }
+      },
+      "AggregateName": {
+        "name": "name",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Optional exact aggregate name filter"
       },
       "AggregateId": {
         "name": "aggregate_id",

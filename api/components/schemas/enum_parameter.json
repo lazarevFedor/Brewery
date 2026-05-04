@@ -12,22 +12,16 @@
   },
   "EnumParameterCreate": {
     "allOf": [
-      {
-        "$ref": "#/EnumParameterBase"
-      },
-      {
-        "required": ["enum_class_id", "inheritable"]
-      }
+      { "$ref": "#/EnumParameterBase" },
+      { "required": [ "enum_class_id", "inheritable" ] }
     ]
   },
   "EnumParameter": {
     "allOf": [
-      {
-        "$ref": "#/EnumParameterBase"
-      },
+      { "$ref": "#/EnumParameterBase" },
       {
         "type": "object",
-        "required": ["id", "enum_class_id", "inheritable"],
+        "required": [ "id", "enum_class_id", "inheritable" ],
         "properties": {
           "id": {
             "type": "integer"

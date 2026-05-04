@@ -9,9 +9,9 @@
     "requestBody": {
       "required": true,
       "content": {
-        "application/json": {
-          "schema": { "$ref": "../../components/schemas/category_params_apply.json#/CategoryParamsApply" }
-        }
+          "application/json": {
+            "schema": { "$ref": "../../components/schemas/category_parameters_apply.json#/CategoryParamsApply" }
+          }
       }
     },
     "responses": {

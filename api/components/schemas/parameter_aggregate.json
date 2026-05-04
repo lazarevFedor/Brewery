@@ -18,19 +18,13 @@
   },
   "ParameterAggregateCreate": {
 	"allOf": [
-	  {
-		"$ref": "#/ParameterAggregateBase"
-	  },
-	  {
-		"required": ["name"]
-	  }
+	  { "$ref": "#/ParameterAggregateBase" },
+	  { "required": [ "name" ] }
 	]
   },
   "ParameterAggregate": {
 	"allOf": [
-	  {
-		"$ref": "#/ParameterAggregateBase"
-	  },
+	  { "$ref": "#/ParameterAggregateBase" },
 	  {
 		"type": "object",
 		"required": ["id", "name"],

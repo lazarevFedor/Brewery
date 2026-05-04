@@ -28,8 +28,8 @@
         "description": "Parameter aggregate updated",
         "content": {
           "application/json": {
-            "schema": { "$ref": "../../components/parameters/parameter_aggregate.json#/ParameterAggregate" }
-            ,"examples": {
+            "schema": { "$ref": "../../components/parameters/parameter_aggregate.json#/ParameterAggregate" },
+            "examples": {
               "updated": {
                 "summary": "Updated aggregate",
                 "value": {

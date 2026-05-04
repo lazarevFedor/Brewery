@@ -30,13 +30,7 @@
     "summary": "Get all parameter aggregates",
     "operationId": "listParameterAggregates",
     "parameters": [
-      {
-        "name": "name",
-        "in": "query",
-        "required": false,
-        "schema": { "type": "string" },
-        "description": "Optional exact aggregate name filter"
-      }
+      { "$ref": "../../components/parameters/aggregate_name_filter.json#/AggregateName" }
     ],
     "responses": {
       "200": {
