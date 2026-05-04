@@ -1,0 +1,53 @@
+{
+  "ParameterAggregateBase": {
+    "type": "object",
+    "properties": {
+      "name": { "type": "string" },
+      "description": { "type": "string" },
+      "numeric_param_ids": {
+        "type": "array",
+        "items": { "type": "integer" },
+        "default": []
+      },
+      "enum_param_ids": {
+        "type": "array",
+        "items": { "type": "integer" },
+        "default": []
+      }
+    }
+  },
+  "ParameterAggregateCreate": {
+    "allOf": [
+      { "$ref": "#/ParameterAggregateBase" },
+      { "required": [ "name" ] }
+    ]
+  },
+  "ParameterAggregate": {
+    "allOf": [
+      {
+        "$ref": "#/ParameterAggregateBase"
+      },
+      {
+        "type": "object",
+        "required": [ "id", "name" ],
+        "properties": {
+          "id": { "type": "integer" }
+        }
+      }
+    ]
+  },
+  "ParameterAggregateUpdate": {
+    "allOf": [
+      {
+        "$ref": "#/ParameterAggregateBase"
+      },
+      {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" }
+        }
+      }
+    ]
+  }
+}
