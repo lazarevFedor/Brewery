@@ -1,5 +1,5 @@
 {
-  "post": {
+  "patch": {
     "tags": ["Aggregates"],
     "summary": "Apply parameter aggregate to category",
     "operationId": "applyParameterAggregate",

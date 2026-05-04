@@ -4,7 +4,6 @@
 	"summary": "Update parameter",
 	"operationId": "updateCategoryParameter",
 	"parameters": [
-	  { "$ref": "../../components/parameters/id.json#/Id" },
 	  { "$ref": "../../components/parameters/param_id.json#/ParamId" },
 	  { "$ref": "../../components/parameters/param_type.json#/ParamType" }
 	],

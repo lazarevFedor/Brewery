@@ -3,11 +3,7 @@
 	"tags": ["CategoryParams"],
 	"summary": "Create numeric parameter",
 	"operationId": "createNumericParameter",
-	"parameters": [
-	  {
-		"$ref": "../../components/parameters/id.json#/Id"
-	  }
-	],
+	"parameters": [],
 	"requestBody": {
 	  "required": true,
 	  "content": {

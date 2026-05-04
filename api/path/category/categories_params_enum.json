@@ -3,11 +3,7 @@
 	"tags": ["CategoryParams"],
 	"summary": "Create enum parameter",
 	"operationId": "createEnumParameter",
-	"parameters": [
-	  {
-		"$ref": "../../components/parameters/id.json#/Id"
-	  }
-	],
+	"parameters": [],
 	"requestBody": {
 	  "required": true,
 	  "content": {

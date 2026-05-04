@@ -4,18 +4,22 @@
     "summary": "Update parameter aggregate",
     "operationId": "updateParameterAggregate",
     "parameters": [
-      {
-        "name": "id",
-        "in": "path",
-        "required": true,
-        "schema": { "type": "integer" }
-      }
+      { "$ref": "../../components/parameters/id.json#/Id" }
     ],
     "requestBody": {
       "required": true,
       "content": {
         "application/json": {
-        "schema": { "$ref": "../../components/parameters/parameter_aggregate.json#/ParameterAggregateUpdate" }
+        "schema": { "$ref": "../../components/parameters/parameter_aggregate.json#/ParameterAggregateUpdate" },
+        "examples": {
+          "update-name-description": {
+            "summary": "Update name and description",
+            "value": {
+              "name": "Lager Profile v2",
+              "description": "Updated standard parameters for Lager"
+            }
+          }
+        }
         }
       }
     },
@@ -25,6 +29,18 @@
         "content": {
           "application/json": {
             "schema": { "$ref": "../../components/parameters/parameter_aggregate.json#/ParameterAggregate" }
+            ,"examples": {
+              "updated": {
+                "summary": "Updated aggregate",
+                "value": {
+                  "id": 1,
+                  "name": "Lager Profile v2",
+                  "description": "Updated standard parameters for Lager",
+                  "numeric_param_ids": [10],
+                  "enum_param_ids": [11]
+                }
+              }
+            }
           }
         }
       },
@@ -38,12 +54,7 @@
     "summary": "Delete parameter aggregate",
     "operationId": "deleteParameterAggregate",
     "parameters": [
-      {
-        "name": "id",
-        "in": "path",
-        "required": true,
-        "schema": { "type": "integer" }
-      }
+      { "$ref": "../../components/parameters/id.json#/Id" }
     ],
     "responses": {
       "204": {

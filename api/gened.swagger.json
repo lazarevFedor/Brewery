@@ -1122,18 +1122,14 @@
         }
       }
     },
-    "/categories/{id}/params/numeric": {
+    "/categories/params/numeric": {
       "post": {
         "tags": [
           "CategoryParams"
         ],
         "summary": "Create numeric parameter",
         "operationId": "createNumericParameter",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/Id"
-          }
-        ],
+        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -1170,18 +1166,14 @@
         }
       }
     },
-    "/categories/{id}/params/enum": {
+    "/categories/params/enum": {
       "post": {
         "tags": [
           "CategoryParams"
         ],
         "summary": "Create enum parameter",
         "operationId": "createEnumParameter",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/Id"
-          }
-        ],
+        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -1218,18 +1210,14 @@
         }
       }
     },
-    "/categories/{id}/params": {
+    "/categories/params": {
       "get": {
         "tags": [
           "CategoryParams"
         ],
         "summary": "Get all parameters for category",
         "operationId": "listCategoryParameters",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/Id"
-          }
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "Parameters list",
@@ -1263,7 +1251,60 @@
         }
       }
     },
-    "/categories/{id}/params/{param_id}": {
+    "/categories/params/{category_id}/apply": {
+      "patch": {
+        "tags": [
+          "CategoryParams"
+        ],
+        "summary": "Apply parameters to category",
+        "operationId": "applyParametersToCategory",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CategoryId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CategoryParamsApply"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Parameters applied successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "params_added": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/categories/params/{param_id}": {
       "patch": {
         "tags": [
           "CategoryParams"
@@ -1271,9 +1312,6 @@
         "summary": "Update parameter",
         "operationId": "updateCategoryParameter",
         "parameters": [
-          {
-            "$ref": "#/components/parameters/Id"
-          },
           {
             "$ref": "#/components/parameters/ParamId"
           },
@@ -1456,7 +1494,7 @@
       }
     },
     "/aggregates/{category_id}/apply": {
-      "post": {
+      "patch": {
         "tags": [
           "Aggregates"
         ],
@@ -1488,6 +1526,99 @@
           },
           "400": {
             "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/aggregates/{id}": {
+      "patch": {
+        "tags": [
+          "Aggregates"
+        ],
+        "summary": "Update parameter aggregate",
+        "operationId": "updateParameterAggregate",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParameterAggregateUpdate"
+              },
+              "examples": {
+                "update-name-description": {
+                  "summary": "Update name and description",
+                  "value": {
+                    "name": "Lager Profile v2",
+                    "description": "Updated standard parameters for Lager"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Parameter aggregate updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParameterAggregate"
+                },
+                "examples": {
+                  "updated": {
+                    "summary": "Updated aggregate",
+                    "value": {
+                      "id": 1,
+                      "name": "Lager Profile v2",
+                      "description": "Updated standard parameters for Lager",
+                      "numeric_param_ids": [
+                        10
+                      ],
+                      "enum_param_ids": [
+                        11
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Aggregates"
+        ],
+        "summary": "Delete parameter aggregate",
+        "operationId": "deleteParameterAggregate",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Parameter aggregate deleted"
           },
           "404": {
             "$ref": "#/components/responses/404_not_found"
@@ -2071,6 +2202,26 @@
           }
         ]
       },
+      "CategoryParamsApply": {
+        "type": "object",
+        "required": [],
+        "properties": {
+          "numeric_param_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "List of numeric parameter ids to apply"
+          },
+          "enum_param_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "List of enum parameter ids to apply"
+          }
+        }
+      },
       "NumericParameterUpdate": {
         "type": "object",
         "properties": {
@@ -2151,6 +2302,24 @@
             "required": [
               "name"
             ]
+          }
+        ]
+      },
+      "ParameterAggregateUpdate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ParameterAggregateBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
+            }
           }
         ]
       }
