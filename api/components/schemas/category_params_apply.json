@@ -1,7 +1,6 @@
 {
   "CategoryParamsApply": {
     "type": "object",
-    "required": [],
     "properties": {
       "numeric_param_ids": {
         "type": "array",

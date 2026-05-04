@@ -3,7 +3,6 @@
 	"tags": ["CategoryParams"],
 	"summary": "Get all parameters for category",
 	"operationId": "listCategoryParameters",
-	"parameters": [],
 	"responses": {
 	  "200": {
 		"description": "Parameters list",
@@ -13,12 +12,8 @@
 			  "type": "array",
 			  "items": {
 				"oneOf": [
-				  {
-					"$ref": "../../components/parameters/numeric_parameter.json#/NumericParameter"
-				  },
-				  {
-					"$ref": "../../components/parameters/enum_parameter.json#/EnumParameter"
-				  }
+				  { "$ref": "../../components/parameters/numeric_parameter.json#/NumericParameter" },
+				  { "$ref": "../../components/parameters/enum_parameter.json#/EnumParameter" }
 				]
 			  }
 			}

@@ -3,7 +3,6 @@
 	"tags": ["CategoryParams"],
 	"summary": "Create numeric parameter",
 	"operationId": "createNumericParameter",
-	"parameters": [],
 	"requestBody": {
 	  "required": true,
 	  "content": {

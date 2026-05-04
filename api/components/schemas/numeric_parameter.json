@@ -21,26 +21,18 @@
   },
   "NumericParameterCreate": {
     "allOf": [
-      {
-        "$ref": "#/NumericParameterBase"
-      },
-      {
-        "required": ["field_name", "entity_name", "min_val", "max_val", "inheritable"]
-      }
+      { "$ref": "#/NumericParameterBase" },
+      { "required": [ "field_name", "entity_name", "min_val", "max_val", "inheritable" ] }
     ]
   },
   "NumericParameter": {
     "allOf": [
-      {
-        "$ref": "#/NumericParameterBase"
-      },
+      { "$ref": "#/NumericParameterBase" },
       {
         "type": "object",
-        "required": ["id", "field_name", "entity_name", "min_val", "max_val", "inheritable"],
+        "required": [ "id", "field_name", "entity_name", "min_val", "max_val", "inheritable" ],
         "properties": {
-          "id": {
-            "type": "integer"
-          }
+          "id": { "type": "integer" }
         }
       }
     ]
