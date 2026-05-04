@@ -1,0 +1,55 @@
+{
+  "EnumParameterBase": {
+    "type": "object",
+    "properties": {
+      "enum_class_id": {
+        "type": "integer",
+        "example": 2
+      },
+      "inheritable": {
+        "type": "boolean",
+        "example": false
+      }
+    }
+  },
+  "EnumParameterCreate": {
+    "allOf": [
+      {
+        "$ref": "#/EnumParameterBase"
+      },
+      {
+        "required": ["enum_class_id", "inheritable"]
+      }
+    ]
+  },
+  "EnumParameter": {
+    "allOf": [
+      {
+        "$ref": "#/EnumParameterBase"
+      },
+      {
+        "type": "object",
+        "required": ["id", "enum_class_id", "inheritable"],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 11
+          }
+        }
+      }
+    ]
+  },
+  "EnumParameterUpdate": {
+    "type": "object",
+    "properties": {
+      "enum_class_id": {
+        "type": "integer",
+        "example": 2
+      },
+      "inheritable": {
+        "type": "boolean",
+        "example": false
+      }
+    }
+  }
+}

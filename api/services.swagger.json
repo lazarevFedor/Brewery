@@ -3,7 +3,7 @@
   "info": {
     "title": "Beer Catalog API",
     "version": "1.0.0",
-    "description": "API for managing categories, beers and reviews"
+    "description": "API for managing categories, beers, reviews, enums, category parameters and parameter's aggregates"
   },
   "servers": [
     { "url": "http://localhost:80/api" }
@@ -13,6 +13,14 @@
     {
       "name": "Categories",
       "description": "Все операции, связанные с категориями товаров"
+    },
+    {
+      "name": "CategoryParams",
+      "description": "Операции связанные с параметрами категорий"
+    },
+    {
+      "name": "Aggregates",
+      "description": "Операции связанные с агрегатами параметров категорий"
     },
     {
       "name": "Beers",
@@ -42,6 +50,8 @@
     "/beers/{id}": { "$ref": "./path/beer/beers_id.json" },
     "/beers/feats/{id}": { "$ref": "./path/beer/beers_feats_id.json" },
     "/categories/beers/{category_id}": { "$ref": "./path/beer/categories_beers_category_id.json" },
+    "/beers/search": { "$ref": "./path/beer/beers_search.json" },
+    "/categories/{id}/beers/search": { "$ref": "./path/beer/categories_id_beers_search.json" },
 
     "/reviews/{beer_id}": { "$ref": "./path/review/reviews_beer_id.json" },
     "/reviews/{id}": { "$ref": "./path/review/reviews_id.json" },
@@ -50,6 +60,14 @@
     "/enums/{id}": { "$ref": "./path/enum/enums_id.json" },
 
     "/enums/value": { "$ref": "./path/enum/enums_value.json" },
-    "/enums/value/{id}": { "$ref": "./path/enum/enums_value_id.json" }
+    "/enums/value/{id}": { "$ref": "./path/enum/enums_value_id.json" },
+
+    "/categories/{id}/params/numeric": { "$ref": "./path/category/categories_id_params_numeric.json" },
+    "/categories/{id}/params/enum": { "$ref": "./path/category/categories_id_params_enum.json" },
+    "/categories/{id}/params": { "$ref": "./path/category/categories_id_params.json" },
+    "/categories/{id}/params/{param_id}": { "$ref": "./path/category/categories_id_params_param_id.json"},
+
+    "/aggregates": { "$ref": "./path/aggregate/aggregates.json" },
+    "/aggregates/{category_id}/apply": { "$ref": "./path/aggregate/apply_aggregate.json" }
   }
 }
