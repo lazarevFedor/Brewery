@@ -45,6 +45,11 @@ type EnumPostgres struct {
 	Pool *pgxpool.Pool
 }
 
+// NewEnumRepository создает новый экземпляр EnumRepository с переданным пулом соединений.
+func NewEnumRepository(pool *pgxpool.Pool) EnumRepository {
+	return &EnumPostgres{Pool: pool}
+}
+
 // NewEnumPostgres создает новый репозиторий БД
 func NewEnumPostgres(pool *pgxpool.Pool) *EnumPostgres {
 	return &EnumPostgres{Pool: pool}
