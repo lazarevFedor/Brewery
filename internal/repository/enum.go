@@ -1,3 +1,4 @@
+// Package repository содержит слой для манипуляции объектами в базе данных
 package repository
 
 import (
