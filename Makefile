@@ -40,3 +40,4 @@ test:
 
 hook:
 	cp .githooks/pre-push .git/hooks
+	chmod +x .git/hooks/pre-push
