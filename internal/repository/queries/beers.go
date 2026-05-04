@@ -17,12 +17,16 @@ const (
 	beerFeaturesTable = "beer_features"
 )
 
+// FullBeerSelect возвращает pапрос на проверку наличия сущности пива по id
+func Exists(id uint) sq.SelectBuilder {
+	return psql.Select("id").From(beersTable).Where(sq.Eq{"id": id})
+}
+
 // FullBeerSelect возвращает базовый запрос для получения полной информации о пиве, включая его характеристики, город и страну производства, категорию и особенности.
 func FullBeerSelect() sq.SelectBuilder {
 	return psql.Select(
 		"b.id",
 		"b.name",
-		"b.rating",
 		"b.description",
 		"b.abv",
 		"b.ibu",
@@ -32,6 +36,8 @@ func FullBeerSelect() sq.SelectBuilder {
 		"cntr.name AS country",
 		"pc.name AS category",
 		"COALESCE(array_agg(f.name) FILTER (WHERE f.name IS NOT NULL), '{}') AS feats",
+		"b.review_amount",
+		"b.review_rating_sum",
 	).From(beersTable+" b").
 		Join("cities ct ON ct.id = b.city_id").
 		Join("countries cntr ON cntr.id = ct.country_id").
@@ -58,6 +64,26 @@ func SelectBeerByCategoryID(categoryID uint) sq.SelectBuilder {
 		OrderBy("id DESC")
 }
 
+// UpdateBeerRating возвращает запрос на обовление сущности отзыва на пиво
+func UpdateBeerRating(beerID, rating uint, operation string) sq.UpdateBuilder {
+	var reviewAmount, reviewRatingSum int
+	switch operation{
+	case "insert":
+		reviewAmount, reviewRatingSum = 1, int(rating)
+	case "update":
+		reviewAmount, reviewRatingSum = 0, int(rating)
+	case "delete":
+		reviewAmount, reviewRatingSum = -1, -int(rating)
+	default:
+		return sq.UpdateBuilder{}
+	}
+
+	return psql.Update(beersTable).
+	Set("review_amount", sq.Expr("review_amount + ?", reviewAmount)).
+	Set("review_rating_sum", sq.Expr("review_rating_sum + ?", reviewRatingSum)).
+	Where(sq.Eq{"id": beerID})
+}
+
 // InsertReview возвращает запрос для вставки нового отзыва в таблицу reviews и возвращает ID вставленного отзыва.
 func InsertReview(review entities.Review) sq.InsertBuilder {
 	data := map[string]any{
@@ -76,7 +102,7 @@ func InsertReview(review entities.Review) sq.InsertBuilder {
 func DeleteReview(id uint) sq.DeleteBuilder {
 	return psql.
 		Delete(reviewsTable).
-		Where(sq.Eq{"id": id})
+		Where(sq.Eq{"id": id}).Suffix("RETURNING beer_id, rating")
 }
 
 // DeleteBeer возвращает запрос для удаления пива из таблицы beers по его ID.
@@ -92,7 +118,7 @@ func UpdateReview(id uint, updates map[string]any) sq.UpdateBuilder {
 		Update(reviewsTable).
 		SetMap(updates).
 		Where(sq.Eq{"id": id}).
-		Suffix("RETURNING id")
+		Suffix("RETURNING beer_id, rating")
 }
 
 // SelectReviewByBeerID возвращает запрос для получения списка отзывов, связанных с определенным пивом, с сортировкой по убыванию ID.
@@ -109,11 +135,12 @@ func SelectReviewByBeerID(beerID uint) sq.SelectBuilder {
 
 // UpdateBeer возвращает запрос для обновления информации о пиве в таблице beers по его ID с использованием данных из переданной карты обновлений.
 func UpdateBeer(id uint, updates map[string]any) sq.UpdateBuilder {
+	returnColumns := "id, name, description, abv, ibu, amount, units, city_id, category_id, review_amount, review_rating_sum"
 	return psql.
 		Update(beersTable).
 		SetMap(updates).
 		Where(sq.Eq{"id": id}).
-		Suffix("RETURNING id")
+		Suffix("RETURNING " + returnColumns)
 }
 
 // SelectOrInsertCountry возвращает запрос для вставки новой страны в таблицу countries, если страна с таким именем еще не существует, или возвращает ID существующей страны, если она уже есть. Запрос использует конструкцию ON CONFLICT для обработки конфликтов по имени страны.
@@ -163,7 +190,8 @@ func SelectOrInsertFeature(featName string) sq.InsertBuilder {
 func SelectBeersFeature(beerID uint) sq.SelectBuilder {
 	return psql.
 		Select("name").
-		From(featuresTable).
+		From(beerFeaturesTable + " bf").
+		Join(featuresTable + " f ON f.id = bf.feature_id").
 		Where(sq.Eq{"beer_id": beerID})
 }
 
@@ -188,13 +216,12 @@ func SelectOrInsertBeerFeature(featID, beerID uint) sq.InsertBuilder {
 		Insert(beerFeaturesTable).
 		SetMap(data).
 		Suffix("ON CONFLICT DO NOTHING")
-}
+	}
 
 // InsertBeer возвращает запрос для вставки нового пива в таблицу beers с использованием данных из переданной структуры beer и идентификаторов города и категории. Запрос возвращает ID вставленного пива.
 func InsertBeer(beer entities.Beer, cityID, categoryID uint) sq.InsertBuilder {
 	data := map[string]any{
 		"name":        beer.Name,
-		"rating":      beer.Rating,
 		"description": beer.Description,
 		"abv":         beer.ABV,
 		"ibu":         beer.IBU,
@@ -207,5 +234,5 @@ func InsertBeer(beer entities.Beer, cityID, categoryID uint) sq.InsertBuilder {
 	return psql.
 		Insert(beersTable).
 		SetMap(data).
-		Suffix("RETURNING id")
+		Suffix("RETURNING *")
 }
