@@ -9,7 +9,7 @@ require (
 	github.com/gojuno/minimock/v3 v3.4.7
 	github.com/google/uuid v1.6.0
 	github.com/ilyakaznacheev/cleanenv v1.5.0
-	github.com/jackc/pgx/v5 v5.9.1
+	github.com/jackc/pgx/v5 v5.9.2
 	github.com/lib/pq v1.12.0
 	github.com/mailru/easyjson v0.9.2
 	github.com/pressly/goose/v3 v3.27.0
