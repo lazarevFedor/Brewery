@@ -17,6 +17,7 @@ const (
 	beerFeaturesTable = "beer_features"
 )
 
+// FullBeerSelect возвращает pапрос на проверку наличия сущности пива по id
 func Exists(id uint) sq.SelectBuilder {
 	return psql.Select("id").From(beersTable).Where(sq.Eq{"id": id})
 }
@@ -63,22 +64,23 @@ func SelectBeerByCategoryID(categoryID uint) sq.SelectBuilder {
 		OrderBy("id DESC")
 }
 
+// UpdateBeerRating возвращает запрос на обовление сущности отзыва на пиво
 func UpdateBeerRating(beerID, rating uint, operation string) sq.UpdateBuilder {
-	var review_amount, review_rating_sum int
+	var reviewAmount, reviewRatingSum int
 	switch operation{
 	case "insert":
-		review_amount, review_rating_sum = 1, int(rating)
+		reviewAmount, reviewRatingSum = 1, int(rating)
 	case "update":
-		review_amount, review_rating_sum = 0, int(rating)
+		reviewAmount, reviewRatingSum = 0, int(rating)
 	case "delete":
-		review_amount, review_rating_sum = -1, -int(rating)
+		reviewAmount, reviewRatingSum = -1, -int(rating)
 	default:
 		return sq.UpdateBuilder{}
 	}
 
 	return psql.Update(beersTable).
-	Set("review_amount", sq.Expr("review_amount + ?", review_amount)).
-	Set("review_rating_sum", sq.Expr("review_rating_sum + ?", review_rating_sum)).
+	Set("review_amount", sq.Expr("review_amount + ?", reviewAmount)).
+	Set("review_rating_sum", sq.Expr("review_rating_sum + ?", reviewRatingSum)).
 	Where(sq.Eq{"id": beerID})
 }
 
