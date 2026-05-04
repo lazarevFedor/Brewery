@@ -1,8 +1,11 @@
 {
   "get": {
 	"tags": ["CategoryParams"],
-	"summary": "Get all parameters for category",
+	"summary": "Get all parameters",
 	"operationId": "listCategoryParameters",
+	"parameters": [
+	  { "$ref": "../../components/parameters/category_id_filter.json#/CategoryIdFilter" }
+	],
 	"responses": {
 	  "200": {
 		"description": "Parameters list",

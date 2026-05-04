@@ -1214,8 +1214,13 @@
         "tags": [
           "CategoryParams"
         ],
-        "summary": "Get all parameters for category",
+        "summary": "Get all parameters",
         "operationId": "listCategoryParameters",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CategoryIdFilter"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Parameters list",
@@ -2485,6 +2490,15 @@
         "schema": {
           "type": "string"
         }
+      },
+      "CategoryIdFilter": {
+        "name": "category_id",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "integer"
+        },
+        "description": "Optional category filter"
       },
       "ParamType": {
         "name": "type",
