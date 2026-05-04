@@ -34,3 +34,9 @@ genapi:
 
 lint:
 	golangci-lint run
+
+test:
+	go test ./...
+
+hook:
+	cp .githooks/pre-push .git/hooks
