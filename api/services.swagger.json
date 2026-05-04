@@ -62,12 +62,14 @@
     "/enums/value": { "$ref": "./path/enum/enums_value.json" },
     "/enums/value/{id}": { "$ref": "./path/enum/enums_value_id.json" },
 
-    "/categories/{id}/params/numeric": { "$ref": "./path/category/categories_id_params_numeric.json" },
-    "/categories/{id}/params/enum": { "$ref": "./path/category/categories_id_params_enum.json" },
-    "/categories/{id}/params": { "$ref": "./path/category/categories_id_params.json" },
-    "/categories/{id}/params/{param_id}": { "$ref": "./path/category/categories_id_params_param_id.json"},
+    "/categories/params/numeric": { "$ref": "./path/category/categories_params_numeric.json" },
+    "/categories/params/enum": { "$ref": "./path/category/categories_params_enum.json" },
+    "/categories/params": { "$ref": "./path/category/categories_params.json" },
+    "/categories/params/{category_id}/apply": { "$ref": "./path/category/categories_params_category_id_apply.json" },
+    "/categories/params/{param_id}": { "$ref": "./path/category/categories_params_param_id.json"},
 
     "/aggregates": { "$ref": "./path/aggregate/aggregates.json" },
-    "/aggregates/{category_id}/apply": { "$ref": "./path/aggregate/apply_aggregate.json" }
+    "/aggregates/{category_id}/apply": { "$ref": "./path/aggregate/apply_aggregate.json" },
+    "/aggregates/{id}": { "$ref": "./path/aggregate/aggregates_id.json" }
   }
 }

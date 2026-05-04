@@ -3,11 +3,7 @@
 	"tags": ["CategoryParams"],
 	"summary": "Get all parameters for category",
 	"operationId": "listCategoryParameters",
-	"parameters": [
-	  {
-		"$ref": "../../components/parameters/id.json#/Id"
-	  }
-	],
+	"parameters": [],
 	"responses": {
 	  "200": {
 		"description": "Parameters list",

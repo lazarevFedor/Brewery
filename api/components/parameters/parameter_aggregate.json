@@ -49,15 +49,7 @@
         "type": "object",
         "properties": {
           "name": { "type": "string" },
-          "description": { "type": "string" },
-          "numeric_param_ids": {
-            "type": "array",
-            "items": { "type": "integer" }
-          },
-          "enum_param_ids": {
-            "type": "array",
-            "items": { "type": "integer" }
-          }
+          "description": { "type": "string" }
         }
       }
     ]
