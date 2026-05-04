@@ -1,0 +1,20 @@
+{
+    "CategoryBeerFilter": {
+        "name": "param",
+        "in": "query",
+        "required": false,
+        "description": "Repeated filter in the form field:op:value. Use gte/lte/in to filter category beers by numeric ranges or allowed enum values.",
+        "schema": { "type": "string" },
+        "examples": {
+            "numeric_range": {
+                "summary": "Numeric range filter",
+                "value": "amount:gte:100"
+            },
+            "enum_values": {
+                "summary": "Enum allowed values filter",
+                "value": "city:in:Москва,Самара"
+            }
+        }
+    }
+}
+
