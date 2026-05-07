@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# Останавливать выполнение при любой ошибке
+set -e
+
+echo "--- Запуск локальных проверок перед Push ---"
+
+# 1. Тесты и линтер (из test_and_lint.yml)
+
+echo "Обновление зависимостей"
+go mod tidy
+
+echo "🔍 Запуск линтера..."
+make lint
+
+echo "🧪 Запуск тестов..."
+make test
+
+echo "📊 Проверка покрытия..."
+go test -coverprofile=coverage.out -short ./...
+
+# 2. Билд (из build.yml)
+echo "🐳 Проверка сборки Docker-контейнеров..."
+# Создаем окружение, как в GitHub Actions
+cp -n configs/example.env configs/.env || true
+# Создаем папку для данных если нет
+mkdir -p deployments/pgdata
+
+# Запускаем сборку из корня проекта
+# --env-file говорит Docker Compose, откуда брать переменные для ${PORT}
+docker compose -f deployments/docker-compose.yml --env-file configs/.env up -d --build
+
+# Останавливаем (если нужно сразу после билда)
+docker compose -f deployments/docker-compose.yml --env-file configs/.env down
+
+
+echo "✅ Все проверки пройдены! Отправляем код..."
+exit 0
