@@ -1,3 +1,4 @@
+// Package entities содержит слой сущностей
 package entities
 
 type NumericParameter struct {
