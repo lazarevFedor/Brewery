@@ -1,3 +1,4 @@
+// Package repository содержит слой для манипуляции объектами в базе данных
 package repository
 
 import (
@@ -43,6 +44,11 @@ type EnumRepository interface {
 // EnumPostgres хранит в себе пул подключений к БД
 type EnumPostgres struct {
 	Pool *pgxpool.Pool
+}
+
+// NewEnumRepository создает новый экземпляр EnumRepository с переданным пулом соединений.
+func NewEnumRepository(pool *pgxpool.Pool) EnumRepository {
+	return &EnumPostgres{Pool: pool}
 }
 
 // NewEnumPostgres создает новый репозиторий БД

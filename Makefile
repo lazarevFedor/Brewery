@@ -25,6 +25,8 @@ genjson:
 	easyjson -all internal/entities/review.go
 	easyjson -all internal/entities/enum_class.go
 	easyjson -all internal/entities/enum_value.go
+	easyjson -all internal/entities/aggregate.go
+	easyjson -all internal/entities/parameter.go
 
 genmock:
 	go generate ./internal/http/handlers/mocks

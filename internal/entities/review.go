@@ -1,3 +1,4 @@
+// Package entities содержит слой сущностей
 package entities
 
 // Review представляет полное описание отзыва о пиве.

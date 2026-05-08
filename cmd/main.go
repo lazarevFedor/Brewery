@@ -48,9 +48,9 @@ func main() {
 		panic(fmt.Errorf("failed to create postgres pool: %w", err))
 	}
 
-	beerRepo := repository.NewBeerPostgres(pool)
-	ctgRepo := repository.NewCategoryPostgres(pool)
-	enumRepo := repository.NewEnumPostgres(pool)
+	beerRepo := repository.NewBeerRepository(pool)
+	ctgRepo := repository.NewCategoryRepository(pool)
+	enumRepo := repository.NewEnumRepository(pool)
 
 	beerService := usecase.NewBeerService(beerRepo, ctgRepo)
 	enumService := usecase.NewEnumService(enumRepo)
