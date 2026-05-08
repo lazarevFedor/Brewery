@@ -2,7 +2,7 @@ package errors
 
 import "net/http"
 
-func new(code, message string, status int, err error) *AppError {
+func newError(code, message string, status int, err error) *AppError {
 	return &AppError{
 		Code:       code,
 		Message:    message,
@@ -12,21 +12,21 @@ func new(code, message string, status int, err error) *AppError {
 }
 
 func NotFound(message string, err error) *AppError {
-	return new(CodeNotFound, message, http.StatusNotFound, err)
+	return newError(CodeNotFound, message, http.StatusNotFound, err)
 }
 
 func Validation(message string, err error) *AppError {
-	return new(CodeValidation, message, http.StatusUnprocessableEntity, err)
+	return newError(CodeValidation, message, http.StatusUnprocessableEntity, err)
 }
 
 func Conflict(message string, err error) *AppError {
-	return new(CodeConflict, message, http.StatusConflict, err)
+	return newError(CodeConflict, message, http.StatusConflict, err)
 }
 
 func Internal(err error) *AppError {
-	return new(CodeInternalError, "Unexpected error occurred", http.StatusInternalServerError, err)
+	return newError(CodeInternalError, "Unexpected error occurred", http.StatusInternalServerError, err)
 }
 
 func BadRequest(message string, err error) *AppError {
-	return new(CodeBadRequest, message, http.StatusBadRequest, err)
+	return newError(CodeBadRequest, message, http.StatusBadRequest, err)
 }
