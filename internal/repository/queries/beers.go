@@ -84,6 +84,26 @@ func UpdateBeerRating(beerID, rating uint, operation string) sq.UpdateBuilder {
 	Where(sq.Eq{"id": beerID})
 }
 
+func FilterBeers(filter map[string]any, categoryID uint) sq.SelectBuilder{
+	field, _ := filter["field"].(string)
+	oper := filter["operation"]
+	
+	var pred any
+	switch filter["field"]{
+	case "eq":
+		pred = sq.Eq{field: oper}
+	case "more":
+		pred = sq.Gt{field: oper}
+	case "less":
+		pred = sq.Lt{field: oper}
+	}
+
+	if categoryID != 0{
+		return FullBeerSelect().Where(pred).Where(sq.Eq{"category_id": categoryID})
+	}
+	return FullBeerSelect().Where(pred)
+}
+
 // InsertReview возвращает запрос для вставки нового отзыва в таблицу reviews и возвращает ID вставленного отзыва.
 func InsertReview(review entities.Review) sq.InsertBuilder {
 	data := map[string]any{
