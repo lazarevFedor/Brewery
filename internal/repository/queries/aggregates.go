@@ -34,7 +34,7 @@ func UpdateAggregate(id uint, updates map[string]any) sq.UpdateBuilder {
 	return psql.Update(aggregatesTable).
 		SetMap(updates).
 		Where(sq.Eq{"id": id}).
-		Suffix(aggregateReturningFields)
+		Suffix("RETURNING " + aggregateReturningFields)
 }
 
 // DeleteAggregate возвращает запрос для удаления агрегата
@@ -43,7 +43,7 @@ func DeleteAggregate(id uint) sq.DeleteBuilder {
 	return psql.
 		Delete(aggregatesTable).
 		Where(sq.Eq{"id": id}).
-		Suffix(aggregateReturningFields)
+		Suffix("RETURNING " + aggregateReturningFields)
 }
 
 // GetAggregates возвращает запрос для получения всех агрегатов,
