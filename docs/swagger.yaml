@@ -1,6 +1,5 @@
-basePath: /api/v1
 definitions:
-  Brewery_internal_entities.Review:
+  entities.Review:
     properties:
       beer_id:
         type: integer
@@ -11,36 +10,41 @@ definitions:
       rating:
         type: integer
     type: object
-externalDocs:
-  description: OpenAPI
-  url: https://swagger.io/resources/open-api/
-host: localhost:8080
+  errors.APIError:
+    properties:
+      error:
+        example: VALIDATION_ERROR
+        type: string
+      message:
+        example: Invalid request
+        type: string
+    type: object
 info:
-  contact:
-    name: API Support
-    url: http://www.swagger.io/support
-  description: API for managing categories, beers, reviews, enums, category parameters
-    and parameter's aggregates
-  termsOfService: http://swagger.io/terms/
-  title: Beer Catalog API
-  version: "1.0"
+  contact: {}
 paths:
   /reviews/{beer_id}:
     post:
       consumes:
       - application/json
       description: create beer's review
+      parameters:
+      - description: review create by beer id
+        in: path
+        minimum: 1
+        name: beer_id
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
         "201":
           description: Review created
           schema:
-            $ref: '#/definitions/Brewery_internal_entities.Review'
+            $ref: '#/definitions/entities.Review'
         "400":
           description: failed
           schema:
-            $ref: '#/definitions/Brewery_internal_entities.Review'
+            $ref: '#/definitions/errors.APIError'
       summary: create beer's review
       tags:
       - Reviews

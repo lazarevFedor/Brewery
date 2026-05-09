@@ -32,7 +32,7 @@ genmock:
 	go generate ./internal/http/handlers/mocks
 
 genapi:
-	redocly bundle api/services.swagger.json --output api/gened.swagger.json
+	swag init -g cmd/main.go -d ./,./internal/http/handlers,./internal/entities --parseDependency --parseInternal
 
 lint:
 	golangci-lint run
@@ -43,3 +43,4 @@ test:
 hook:
 	cp .githooks/pre-push .git/hooks
 	chmod +x .git/hooks/pre-push
+

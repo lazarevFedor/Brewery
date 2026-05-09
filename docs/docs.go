@@ -9,11 +9,7 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "termsOfService": "http://swagger.io/terms/",
-        "contact": {
-            "name": "API Support",
-            "url": "http://www.swagger.io/support"
-        },
+        "contact": {},
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
@@ -32,17 +28,27 @@ const docTemplate = `{
                     "Reviews"
                 ],
                 "summary": "create beer's review",
+                "parameters": [
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "review create by beer id",
+                        "name": "beer_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "201": {
                         "description": "Review created",
                         "schema": {
-                            "$ref": "#/definitions/Brewery_internal_entities.Review"
+                            "$ref": "#/definitions/entities.Review"
                         }
                     },
                     "400": {
                         "description": "failed",
                         "schema": {
-                            "$ref": "#/definitions/Brewery_internal_entities.Review"
+                            "$ref": "#/definitions/errors.APIError"
                         }
                     }
                 }
@@ -50,7 +56,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "Brewery_internal_entities.Review": {
+        "entities.Review": {
             "type": "object",
             "properties": {
                 "beer_id": {
@@ -66,22 +72,31 @@ const docTemplate = `{
                     "type": "integer"
                 }
             }
+        },
+        "errors.APIError": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "VALIDATION_ERROR"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Invalid request"
+                }
+            }
         }
-    },
-    "externalDocs": {
-        "description": "OpenAPI",
-        "url": "https://swagger.io/resources/open-api/"
     }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "1.0",
-	Host:             "localhost:8080",
-	BasePath:         "/api/v1",
+	Version:          "",
+	Host:             "",
+	BasePath:         "",
 	Schemes:          []string{},
-	Title:            "Beer Catalog API",
-	Description:      "API for managing categories, beers, reviews, enums, category parameters and parameter's aggregates",
+	Title:            "",
+	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
