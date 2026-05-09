@@ -31,13 +31,24 @@ func NewReviewsHandlers(useCase usecase.BeerService) ReviewsHandlers {
 	}
 }
 
+// @BasePath /api/v1
+// CreateReview godoc
+// @Summary create beer's review
+// @Schemes
+// @Description create beer's review
+// @Tags Reviews
+// @Accept json
+// @Produce json
+// @Param beer_id path int true "review create by beer id" minimum(1)
+// @Success 201 {object} entities.Review "Review created"
+// @Failure 400 {object} errors.APIError "failed"
+// @Router /reviews/{beer_id} [post]
 // CreateReview обрабатывает HTTP-запрос на создание отзыва о пиве.
 func (h *reviewsHandlers) CreateReview(c *gin.Context) {
 	reqCtx := c.Request.Context()
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
 		c.Status(http.StatusInternalServerError)
-
 		return
 	}
 
@@ -77,7 +88,6 @@ func (h *reviewsHandlers) CreateReview(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// GetBeersReviews обрабатывает HTTP-запрос на получение всех отзывов на пиво.
 func (h *reviewsHandlers) GetBeersReviews(c *gin.Context) {
 	reqCtx := c.Request.Context()
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
