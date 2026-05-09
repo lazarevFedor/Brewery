@@ -17,6 +17,7 @@ func RegisterRoutes(e *gin.Engine, h handlers.Handlers) {
 			beers.PATCH("/:id", h.BeersHandler.UpdateBeer)
 			beers.DELETE("/:id", h.BeersHandler.DeleteBeer)
 			beers.GET("", h.BeersHandler.GetAllBeers)
+			beers.GET("/search", h.BeersHandler.SearchBeer)
 
 			features := beers.Group("/feats")
 			{
@@ -45,6 +46,7 @@ func RegisterRoutes(e *gin.Engine, h handlers.Handlers) {
 			categories.GET("/beers/:category_id", h.CategoryHandler.GetBeersByCategory)
 			categories.GET("/parent/:id", h.CategoryHandler.GetParentCategory)
 			categories.GET("/children/:id", h.CategoryHandler.GetChildCategory)
+			categories.GET("/:id/beers/search", h.BeersHandler.SearchBeer)
 		}
 
 		enums := api.Group("/enums")

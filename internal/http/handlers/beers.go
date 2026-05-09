@@ -19,6 +19,7 @@ type BeersHandlers interface {
 	UpdateBeer(c *gin.Context)
 	DeleteBeer(c *gin.Context)
 	GetAllBeers(c *gin.Context)
+	SearchBeer(c *gin.Context)
 
 	GetFeature(c *gin.Context)
 	CreateFeature(c *gin.Context)
@@ -178,6 +179,50 @@ func (h *beersHandlers) GetAllBeers(c *gin.Context) {
 		"action=list resource=beer status=success offset=%d limit=%d items=%d",
 		 offset, limit, len(beers),
 	))
+}
+
+func (h *beersHandlers) SearchBeer(c *gin.Context) {
+	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+	if !ok {
+		writeError(c, http.StatusInternalServerError, InternalError, "Unexpected error occurred")
+		return
+	}
+
+	categoryID, err := getUintParam(c, "id")
+	if err.Error() == "invalid id"{
+		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
+		writeError(c, http.StatusBadRequest, InvalidID, "Invalid beer id")
+		return
+	}
+
+	filter, err := validateFilterParam(c.Query("param"));
+	if err != nil{
+		writeError(c, http.StatusBadRequest, InvalidParameters, "Invalid filter parameters")
+		return
+	}
+
+	offset, limit, err := getPaginationParams(c)
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Invalid pagination params: %v", err))
+		writeError(c, http.StatusBadRequest, InvalidParameters, "Invalid pagination parameters")
+		return
+	}
+
+	filteredBeers, err := h.uc.FilterBeer(c.Request.Context(), filter, limit, offset, categoryID)
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to filter beers: %v", err))
+		writeError(c, http.StatusInternalServerError, InternalError, "Unexpected error occurred")
+		return
+	}
+
+	log.Info(
+		c.Request.Context(),
+		fmt.Sprintf(
+			"action=list resource=beer status=success offset=%d limit=%d items=%d",
+			offset, limit, len(filteredBeers),
+		),
+	)
+	c.JSON(http.StatusOK, filteredBeers)
 }
 
 func (h *beersHandlers) GetFeature(c *gin.Context) {

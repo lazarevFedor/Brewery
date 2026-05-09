@@ -1771,7 +1771,7 @@
                 "$ref": "#/components/schemas/CategoryBase"
               },
               "rating": {
-                "type": "float"
+                "type": "number"
               },
               "features": {
                 "type": "array",
@@ -1901,7 +1901,7 @@
             "type": "string"
           },
           "rating": {
-            "type": "number"
+            "type": "integer"
           }
         }
       },
