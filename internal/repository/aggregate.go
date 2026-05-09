@@ -3,6 +3,7 @@ package repository
 
 import (
 	"Brewery/internal/entities"
+	"context"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -10,19 +11,19 @@ import (
 // AggregateRepository определяет интерфейс для работы с агрегатами в базе данных.
 type AggregateRepository interface {
 	// InsertAggregate вставляет новый агрегат в базу данных и возвращает его с присвоенным ID.
-	InsertAggregate(aggregate *entities.Aggregate) (*entities.Aggregate, error)
+	InsertAggregate(ctx context.Context, aggregate *entities.Aggregate) (*entities.Aggregate, error)
 
 	// GetAggregates извлекает все агрегаты, соответствующие заданному имени, если оно задано, из базы данных.
-	GetAggregates(name string) ([]entities.Aggregate, error)
+	GetAggregates(ctx context.Context, name string) ([]entities.Aggregate, error)
 
 	// ApplyAggregate применяет агрегат к категории и возвращает результат применения.
-	ApplyAggregate(categoryID uint, id uint) (int, error)
+	ApplyAggregate(ctx context.Context, categoryID uint, id uint) (int, error)
 
 	// UpdateAggregate обновляет существующий агрегат с заданным ID и возвращает обновленный агрегат.
-	UpdateAggregate(id uint, updates map[string]any) (*entities.Aggregate, error)
+	UpdateAggregate(ctx context.Context, id uint, updates map[string]any) (*entities.Aggregate, error)
 
 	// DeleteAggregate удаляет агрегат с заданным ID из базы данных и возвращает удаленный агрегат.
-	DeleteAggregate(id uint) (*entities.Aggregate, error)
+	DeleteAggregate(ctx context.Context, id uint) (*entities.Aggregate, error)
 }
 
 // AggregatePostgres реализует интерфейс AggregateRepository для работы с агрегатами в базе данных PostgreSQL.
@@ -41,26 +42,26 @@ func NewAggregatePostgres(pool *pgxpool.Pool) *AggregatePostgres {
 }
 
 // InsertAggregate вставляет новый агрегат в базу данных и возвращает его с присвоенным ID.
-func (a *AggregatePostgres) InsertAggregate(aggregate *entities.Aggregate) (*entities.Aggregate, error) {
+func (a *AggregatePostgres) InsertAggregate(ctx context.Context, aggregate *entities.Aggregate) (*entities.Aggregate, error) {
 	return nil, nil
 }
 
 // GetAggregates извлекает все агрегаты, соответствующие заданному имени, если оно задано, из базы данных.
-func (a *AggregatePostgres) GetAggregates(name string) ([]entities.Aggregate, error) {
+func (a *AggregatePostgres) GetAggregates(ctx context.Context, name string) ([]entities.Aggregate, error) {
 	return nil, nil
 }
 
 // ApplyAggregate применяет агрегат к категории и возвращает результат применения.
-func (a *AggregatePostgres) ApplyAggregate(categoryID uint, id uint) (int, error) {
+func (a *AggregatePostgres) ApplyAggregate(ctx context.Context, categoryID uint, id uint) (int, error) {
 	return 0, nil
 }
 
 // UpdateAggregate обновляет существующий агрегат с заданным ID и возвращает обновленный агрегат.
-func (a *AggregatePostgres) UpdateAggregate(id uint, updates map[string]any) (*entities.Aggregate, error) {
+func (a *AggregatePostgres) UpdateAggregate(ctx context.Context, id uint, updates map[string]any) (*entities.Aggregate, error) {
 	return nil, nil
 }
 
 // DeleteAggregate удаляет агрегат с заданным ID из базы данных и возвращает удаленный агрегат.
-func (a *AggregatePostgres) DeleteAggregate(id uint) (*entities.Aggregate, error) {
+func (a *AggregatePostgres) DeleteAggregate(ctx context.Context, id uint) (*entities.Aggregate, error) {
 	return nil, nil
 }
