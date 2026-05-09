@@ -4,13 +4,15 @@ CREATE TABLE IF NOT EXISTS numeric_parameters (
     min_val INTEGER,
     max_val INTEGER,
     field_name VARCHAR(50) NOT NULL,
-    entity_name VARCHAR(50) NOT NULL
+    entity_name VARCHAR(50) NOT NULL,
+    inheritable BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 
 CREATE TABLE IF NOT EXISTS enum_parameters (
     id SERIAL PRIMARY KEY,
-    enum_class_id INTEGER NOT NULL
+    enum_class_id INTEGER NOT NULL,
+    inheritable BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 
