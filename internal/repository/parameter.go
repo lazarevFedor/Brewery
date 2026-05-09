@@ -27,8 +27,8 @@ type ParameterRepository interface {
 	// DeleteEnumParameter удаляет перечисляемый параметр из базы данных и возвращает его.
 	DeleteEnumParameter(id uint) (*entities.EnumParameter, error)
 
-	// GetParameters извлекает все числовые и перечисляемые параметры из базы данных и возвращает их.
-	GetParameters(categoryID uint) ([]entities.NumericParameter, []entities.EnumParameter, error)
+	// GetParameters извлекает числовые и перечисляемые параметры из базы данных и возвращает их.
+	GetParameters(categoryID uint, parameterType int) ([]entities.NumericParameter, []entities.EnumParameter, error)
 
 	// ApplyParameters применяет числовые и перечисляемые параметры к категории и возвращает результат применения.
 	ApplyParameters(categoryID uint, numericParameters, enumParameters []int) (int, error)
@@ -79,8 +79,8 @@ func (p *ParameterPostgres) DeleteEnumParameter(id uint) (*entities.EnumParamete
 	return nil, nil
 }
 
-// GetParameters извлекает все числовые и перечисляемые параметры из базы данных и возвращает их.
-func (p *ParameterPostgres) GetParameters(categoryID uint) ([]entities.NumericParameter, []entities.EnumParameter, error) {
+// GetParameters извлекает числовые и перечисляемые параметры из базы данных и возвращает их.
+func (p *ParameterPostgres) GetParameters(categoryID uint, parameterType int) ([]entities.NumericParameter, []entities.EnumParameter, error) {
 	return nil, nil, nil
 }
 
