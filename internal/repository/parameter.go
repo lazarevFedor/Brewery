@@ -90,7 +90,7 @@ func (p *ParameterPostgres) UpdateNumericParameter(ctx context.Context, id uint,
 		return nil, err
 	}
 
-	if err := p.handleInheritableToggle(ctx, false, id, oldParam.Inheritable, param.Inheritable); err != nil {
+	if err = p.handleInheritableToggle(ctx, false, id, oldParam.Inheritable, param.Inheritable); err != nil {
 		return nil, err
 	}
 
@@ -383,12 +383,12 @@ func (p *ParameterPostgres) handleInheritableToggle(ctx context.Context, isEnum 
 	if !oldInheritable && newInheritable {
 		for _, categoryID := range categoryIDs {
 			inheritQuery := queries.InheritParametersToChildren(categoryID)
-			sql, args, err := inheritQuery.ToSql()
+			sql, args, err = inheritQuery.ToSql()
 			if err != nil {
 				return err
 			}
-			var affected int
-			if err = p.Pool.QueryRow(ctx, sql, args...).Scan(&affected); err != nil {
+
+			if _, err = p.Pool.Exec(ctx, sql, args...); err != nil {
 				return err
 			}
 		}
@@ -397,15 +397,15 @@ func (p *ParameterPostgres) handleInheritableToggle(ctx context.Context, isEnum 
 
 	if isEnum {
 		removeQuery := queries.RemoveEnumParametersFromDescendants([]int{int(id)}, categoryIDs)
-		sql, args, err := removeQuery.ToSql()
+		sql, args, err = removeQuery.ToSql()
 		if err != nil {
 			return err
 		}
-		var affected int
-		if err = p.Pool.QueryRow(ctx, sql, args...).Scan(&affected); err != nil {
+
+		if _, err = p.Pool.Exec(ctx, sql, args...); err != nil {
 			return err
 		}
-		_ = affected
+
 		return nil
 	}
 
@@ -414,10 +414,10 @@ func (p *ParameterPostgres) handleInheritableToggle(ctx context.Context, isEnum 
 	if err != nil {
 		return err
 	}
-	var affected int
-	if err = p.Pool.QueryRow(ctx, sql, args...).Scan(&affected); err != nil {
+
+	if _, err = p.Pool.Exec(ctx, sql, args...); err != nil {
 		return err
 	}
-	_ = affected
+
 	return nil
 }

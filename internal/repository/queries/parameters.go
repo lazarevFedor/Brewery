@@ -123,8 +123,7 @@ func SelectNumericParameters(ids []uint) sq.SelectBuilder {
 		Where(sq.Eq{"id": ids})
 }
 
-// SelectEnumParameters возвращает запрос для получения всех параметров, без фильтрации по категории,
-// включая как параметры-перечисления.
+// SelectEnumParameters возвращает запрос для получения всех параметров, без фильтрации по категории
 func SelectEnumParameters(ids []uint) sq.SelectBuilder {
 	if len(ids) == 0 {
 		return psql.
