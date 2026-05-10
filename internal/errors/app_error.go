@@ -1,5 +1,5 @@
-// Package errors хранит в себе структуру ошибки приложения
-package errors
+// Package apperrors хранит в себе структуру ошибки приложения
+package apperrors
 
 type AppError struct {
 	Code       string
