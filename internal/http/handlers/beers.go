@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"Brewery/internal/entities"
-	"Brewery/internal/errors"
+	"Brewery/internal/apperrors"
 	"Brewery/internal/usecase"
 	"Brewery/pkg/logger"
 	"encoding/json"
@@ -42,7 +42,7 @@ func NewBeersHandlers(useCase usecase.BeerService) BeersHandlers {
 func (h *beersHandlers) CreateBeer(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
-		writeError(c, http.StatusInternalServerError, errors.CodeInternalError, "Unexpected error occurred")
+		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
 		return
 	}
 
@@ -56,14 +56,14 @@ func (h *beersHandlers) CreateBeer(c *gin.Context) {
 	var req entities.Beer
 	if err = easyjson.Unmarshal(body, &req); err != nil {
 		log.Error(c.Request.Context(), "failed to Unmurshal JSON", zap.Error(err))
-		writeError(c, http.StatusBadRequest, errors.CodeInvalidJSON, "Request body is not valid JSON")
+		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidJSON, "Request body is not valid JSON")
 		return
 	}
 
 	beer, err := h.uc.CreateBeer(c.Request.Context(), &req)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to create beer: %v", err))
-		writeError(c, http.StatusInternalServerError, errors.CodeInternalError, "Unexpected error occurred")
+		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
 
 		return
 	}
@@ -77,39 +77,39 @@ func (h *beersHandlers) CreateBeer(c *gin.Context) {
 func (h *beersHandlers) UpdateBeer(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
-		writeError(c, http.StatusInternalServerError, errors.CodeInternalError, "Unexpected error occurred")
+		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
 		return
 	}
 
 	id, err := getUintParam(c, "id")
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid beer id: %v", err))
-		writeError(c, http.StatusBadRequest, errors.CodeInvalidID, "Invalid beer id")
+		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidID, "Invalid beer id")
 		return
 	}
 
 	body, err := readRequestBody(c)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read request body: %v", err))
-		writeError(c, http.StatusBadRequest, errors.CodeBadRequest, "Failed to read request body")
+		writeError(c, http.StatusBadRequest, apperrors.CodeBadRequest, "Failed to read request body")
 		return
 	}
 
 	updates := make(map[string]any)
 	if err = json.Unmarshal(body, &updates); err != nil {
-		writeError(c, http.StatusBadRequest, errors.CodeInvalidJSON, "Request body is not valid JSON")
+		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidJSON, "Request body is not valid JSON")
 		return
 	}
 
 	if len(updates) == 0 {
-		writeError(c, http.StatusBadRequest, errors.CodeInvalidJSON, "Request body is empty")
+		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidJSON, "Request body is empty")
 		return
 	}
 
 	beer, err := h.uc.UpdateBeer(c.Request.Context(), id, updates)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to update beer: %v", err))
-		writeError(c, http.StatusInternalServerError, errors.CodeInternalError, "Unexpected error occurred")
+		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
 		return
 	}
 
@@ -122,21 +122,21 @@ func (h *beersHandlers) UpdateBeer(c *gin.Context) {
 func (h *beersHandlers) DeleteBeer(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
-		writeError(c, http.StatusInternalServerError, errors.CodeInternalError, "Unexpected error occurred")
+		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
 		return
 	}
 
 	id, err := getUintParam(c, "id")
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid beer id: %v", err))
-		writeError(c, http.StatusBadRequest, errors.CodeInvalidID, "Invalid beer id")
+		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidID, "Invalid beer id")
 		return
 	}
 
 	err = h.uc.DeleteBeer(c.Request.Context(), id)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to delete beer: %v", err))
-		writeError(c, http.StatusInternalServerError, errors.CodeInternalError, "Unexpected error occurred")
+		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
 		return
 	}
 
@@ -148,21 +148,21 @@ func (h *beersHandlers) DeleteBeer(c *gin.Context) {
 func (h *beersHandlers) GetAllBeers(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
-		writeError(c, http.StatusInternalServerError, errors.CodeInternalError, "Unexpected error occurred")
+		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
 		return
 	}
 
 	offset, limit, err := getPaginationParams(c)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid pagination params: %v", err))
-		writeError(c, http.StatusBadRequest, errors.CodeInvalidParameters, "Invalid pagination parameters")
+		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidParameters, "Invalid pagination parameters")
 		return
 	}
 
 	beers, err := h.uc.GetAllBeers(c.Request.Context(), limit, offset)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get beers: %v", err))
-		writeError(c, http.StatusInternalServerError, errors.CodeInternalError, "Unexpected error occurred")
+		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
 
 		return
 	}
@@ -170,7 +170,7 @@ func (h *beersHandlers) GetAllBeers(c *gin.Context) {
 	rawBytes, err := easyjson.Marshal(entities.Beers(beers))
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal beers: %v", err))
-		writeError(c, http.StatusInternalServerError, errors.CodeInternalError, "Unexpected error occurred")
+		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
 		return
 	}
 
@@ -184,28 +184,28 @@ func (h *beersHandlers) GetAllBeers(c *gin.Context) {
 func (h *beersHandlers) GetFeature(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
-		writeError(c, http.StatusInternalServerError, errors.CodeInternalError, "Unexpected error occurred")
+		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
 		return
 	}
 
 	id, err := getUintParam(c, "id")
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid beer id: %v", err))
-		writeError(c, http.StatusBadRequest, errors.CodeInvalidID, "Invalid beer id")
+		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidID, "Invalid beer id")
 		return
 	}
 
 	offset, limit, err := getPaginationParams(c)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid pagination params: %v", err))
-		writeError(c, http.StatusBadRequest, errors.CodeInvalidParameters, "Invalid pagination parameters")
+		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidParameters, "Invalid pagination parameters")
 		return
 	}
 
 	feats, err := h.uc.GetFeatures(c.Request.Context(), id)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get beer's features: %v", err))
-		writeError(c, http.StatusInternalServerError, errors.CodeInternalError, "Unexpected error occurred")
+		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
 		return
 	}
 
@@ -222,21 +222,21 @@ func (h *beersHandlers) GetFeature(c *gin.Context) {
 func (h *beersHandlers) CreateFeature(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
-		writeError(c, http.StatusInternalServerError, errors.CodeInternalError, "Unexpected error occurred")
+		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
 		return
 	}
 
 	body, err := readRequestBody(c)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read request body: %v", err))
-		writeError(c, http.StatusBadRequest, errors.CodeBadRequest, "Failed to read request body")
+		writeError(c, http.StatusBadRequest, apperrors.CodeBadRequest, "Failed to read request body")
 		return
 	}
 
 	id, err := getUintParam(c, "id")
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid beer id: %v", err))
-		writeError(c, http.StatusBadRequest, errors.CodeInvalidID, "Invalid beer id")
+		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidID, "Invalid beer id")
 		return
 	}
 
@@ -250,7 +250,7 @@ func (h *beersHandlers) CreateFeature(c *gin.Context) {
 	featID, err := h.uc.CreateFeature(c.Request.Context(), id, featName)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to create beer's feature: %v", err))
-		writeError(c, http.StatusInternalServerError, errors.CodeInternalError, "Unexpected error occurred")
+		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
 		return
 	}
 
@@ -264,21 +264,21 @@ func (h *beersHandlers) CreateFeature(c *gin.Context) {
 func (h *beersHandlers) DeleteFeature(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
-		writeError(c, http.StatusInternalServerError, errors.CodeInternalError, "Unexpected error occurred")
+		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
 		return
 	}
 
 	id, err := getUintParam(c, "id")
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid beer id: %v", err))
-		writeError(c, http.StatusBadRequest, errors.CodeInvalidID, "Invalid beer id")
+		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidID, "Invalid beer id")
 		return
 	}
 
 	err = h.uc.DeleteFeature(c.Request.Context(), id)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to delete beer's feature: %v", err))
-		writeError(c, http.StatusInternalServerError, errors.CodeInternalError, "Unexpected error occurred")
+		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
 		return
 	}
 

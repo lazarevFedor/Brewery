@@ -118,16 +118,16 @@ func seedTestData(ctx context.Context) error {
 	if cityID == 0 {
 		return errors.New("seed city: zero id")
 	}
-
-	categoryID, err := ctgRepo.GetCategoryID(ctx, nil, "test_category")
+	var categoryID uint
+	categoryID, err = ctgRepo.GetCategoryID(ctx, nil, "test_category")
 	if err != nil {
-		return fmt.Errorf("seed category get id: %w", err)
-	}
-
-	if categoryID == 0 {
-		categoryID, err = ctgRepo.InsertCategory(ctx, nil, entities.ProductCategory{Name: "test_category"})
-		if err != nil {
-			return fmt.Errorf("seed category insert: %w", err)
+		if categoryID == 0 {
+			categoryID, err = ctgRepo.InsertCategory(ctx, nil, entities.ProductCategory{Name: "test_category"})
+			if err != nil {
+				return fmt.Errorf("seed category insert: %w", err)
+			}
+		} else {
+			return fmt.Errorf("seed category get id: %w", err)
 		}
 	}
 

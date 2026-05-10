@@ -3,7 +3,7 @@ package repository
 
 import (
 	"Brewery/internal/entities"
-	app_errors "Brewery/internal/errors"
+	"Brewery/internal/apperrors"
 	"Brewery/internal/repository/queries"
 	"Brewery/pkg/logger"
 	"context"
@@ -89,7 +89,7 @@ func (r *CategoryPostgres) GetCategories(ctx context.Context) ([]entities.Produc
 // Возвращает ID новой категории.
 func (r *CategoryPostgres) 	InsertCategory(ctx context.Context, tx pgx.Tx, category entities.ProductCategory) (uint, error){
 	if r.Pool == nil {
-		return 0, app_errors.Internal(errors.New("pool is nil"))
+		return 0, apperrors.Internal(errors.New("pool is nil"))
 	}
 
 	psql := queries.CategoryInsert(category)
@@ -107,7 +107,7 @@ func (r *CategoryPostgres) 	InsertCategory(ctx context.Context, tx pgx.Tx, categ
 
 	var categoryID uint
 	if err = row.Scan(&categoryID); err != nil {
-		return 0, app_errors.Internal(fmt.Errorf("city QueryRow: %w", err))
+		return 0, apperrors.Internal(fmt.Errorf("city QueryRow: %w", err))
 	}
 
 	return categoryID, nil
@@ -250,7 +250,7 @@ func (r *CategoryPostgres) DeleteCategoryByID(ctx context.Context, id uint) erro
 // GetCategoryID получает ID категории по её имени. Если категория не найдена, возвращает 0 и ошибку.
 func (r *CategoryPostgres) GetCategoryID(ctx context.Context, tx pgx.Tx, ctgName string) (uint, error){
 	if r.Pool == nil {
-		return 0, app_errors.Internal(errors.New("pool is nil"))
+		return 0, apperrors.Internal(errors.New("pool is nil"))
 	}
 
 	psql := queries.SelectCategoryByName(ctgName)
@@ -268,7 +268,7 @@ func (r *CategoryPostgres) GetCategoryID(ctx context.Context, tx pgx.Tx, ctgName
 
 	var categoryID uint
 	if err = row.Scan(&categoryID); err != nil {
-		return 0, app_errors.Internal(fmt.Errorf("city QueryRow: %w", err))
+		return 0, apperrors.Internal(fmt.Errorf("city QueryRow: %w", err))
 	}
 
 	return categoryID, nil

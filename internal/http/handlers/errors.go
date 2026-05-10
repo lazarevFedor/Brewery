@@ -1,27 +1,27 @@
 package handlers
 
-// import (
-// 	appErrors "Brewery/internal/errors"
-// 	"errors"
-// 	"net/http"
+import (
+	"Brewery/internal/apperrors"
+	"errors"
+	"net/http"
 
-// 	"github.com/gin-gonic/gin"
-// )
+	"github.com/gin-gonic/gin"
+)
 
-// func handleError(c *gin.Context, err error) {
-// 	var appErr *appErrors.AppError
+func handleError(c *gin.Context, err error) {
+	var appErr *apperrors.AppError
 
-// 	if errors.As(err, &appErr) {
-// 		c.JSON(appErr.HTTPStatus, gin.H{
-// 			"error":   appErr.Code,
-// 			"message": appErr.Message,
-// 		})
-// 		return
-// 	}
+	if errors.As(err, &appErr) {
+		c.JSON(appErr.HTTPStatus, gin.H{
+			"error":   appErr.APIErr.ErrorCode,
+			"message": appErr.APIErr.Message,
+		})
+		return
+	}
 
-// 	// fallback
-// 	c.JSON(http.StatusInternalServerError, gin.H{
-// 		"error":   appErrors.CodeInternalError,
-// 		"message": "Unexpected error occurred",
-// 	})
-// }
+	// fallback
+	c.JSON(http.StatusInternalServerError, gin.H{
+		"error":   apperrors.CodeInternalError,
+		"message": "Unexpected error occurred",
+	})
+}

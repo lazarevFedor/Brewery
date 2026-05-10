@@ -2,8 +2,8 @@
 package repository
 
 import (
+	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
-	app_errors "Brewery/internal/errors"
 	"Brewery/internal/repository/queries"
 	"Brewery/pkg/logger"
 	"context"
@@ -94,28 +94,19 @@ var rollbackFunc = func(tx pgx.Tx, ctx context.Context) {
 
 func (r *BeerPostgres) BeerExists(ctx context.Context, id uint) (bool, error) {
 	if r.Pool == nil {
-		return false, app_errors.Internal(errors.New("pool is nil"))
+		return false, apperrors.Internal(errors.New("pool is nil"))
 	}
 
 	psql := queries.Exists(id)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return false, app_errors.Internal(fmt.Errorf("toSql: %w", err))
+		return false, apperrors.Internal(fmt.Errorf("toSql: %w", err))
 	}
 
 	var exists bool
 	err = r.Pool.QueryRow(ctx, query, args...).Scan(&exists)
 	if err != nil {
-<<<<<<< HEAD
-		return false, err
-	}
-
-	vals, err := rows.Values()
-	if err != nil {
-		return false, err
-=======
-		return false, app_errors.Internal(fmt.Errorf("query: %w", err))
->>>>>>> 079e0e0 (feat(errors): add app errors)
+		return false, apperrors.Internal(fmt.Errorf("query: %w", err))
 	}
 
 	return exists, nil
@@ -124,14 +115,14 @@ func (r *BeerPostgres) BeerExists(ctx context.Context, id uint) (bool, error) {
 // InsertBeer сохраняет новую сущность Beer в хранилище. Если страна, город, категория или характеристика не существуют, они будут добавлены в базу данных.
 func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (*entities.Beer, error) {
 	if r.Pool == nil {
-		return nil, app_errors.Internal(errors.New("pool is nil"))
+		return nil, apperrors.Internal(errors.New("pool is nil"))
 	}
 
 	ctgRepo := NewCategoryRepository(r.Pool)
 
 	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
-		return nil, app_errors.Internal(fmt.Errorf("begin: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("begin: %w", err))
 	}
 	defer rollbackFunc(tx, ctx)
 
@@ -160,14 +151,14 @@ func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (*ent
 	psql := queries.InsertBeer(beer, cityID, categoryID)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return nil, app_errors.Internal(fmt.Errorf("toSql: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("toSql: %w", err))
 	}
 
 	row := tx.QueryRow(ctx, query, args...)
 	createdBeer, err := scanBeerBase(row)
 
 	if err != nil {
-		return nil, app_errors.Internal(fmt.Errorf("beer QueryRow: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("beer QueryRow: %w", err))
 	}
 
 	createdBeer.City = beer.City
@@ -189,7 +180,7 @@ func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (*ent
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		return nil, app_errors.Internal(fmt.Errorf("commit: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("commit: %w", err))
 	}
 	return createdBeer, nil
 }
@@ -197,7 +188,7 @@ func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (*ent
 // GetBeers возвращает список всех сортов пива. Если limit не равен 0, возвращает не более limit сортов пива, начиная с позиции offset.
 func (r *BeerPostgres) GetBeers(ctx context.Context, limit, offset uint64) ([]entities.Beer, error) {
 	if r.Pool == nil {
-		return nil, app_errors.Internal(errors.New("pool is nil"))
+		return nil, apperrors.Internal(errors.New("pool is nil"))
 	}
 
 	psql := queries.FullBeerSelect().Offset(offset)
@@ -207,12 +198,12 @@ func (r *BeerPostgres) GetBeers(ctx context.Context, limit, offset uint64) ([]en
 
 	query, _, err := psql.ToSql()
 	if err != nil {
-		return nil, app_errors.Internal(fmt.Errorf("toSql: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("toSql: %w", err))
 	}
 
 	rows, err := r.Pool.Query(ctx, query)
 	if err != nil {
-		return nil, app_errors.Internal(fmt.Errorf("query: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("query: %w", err))
 	}
 	defer rows.Close()
 
@@ -227,7 +218,7 @@ func (r *BeerPostgres) GetBeers(ctx context.Context, limit, offset uint64) ([]en
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, app_errors.Internal(fmt.Errorf("rows.Err: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("rows.Err: %w", err))
 	}
 
 	return beers, nil
@@ -236,21 +227,21 @@ func (r *BeerPostgres) GetBeers(ctx context.Context, limit, offset uint64) ([]en
 // GetBeerByID возвращает сорт пива по его ID. Если сорт пива с таким ID не найден, возвращает ошибку.
 func (r *BeerPostgres) GetBeerByID(ctx context.Context, id uint) (*entities.Beer, error) {
 	if r.Pool == nil {
-		return nil, app_errors.Internal(errors.New("pool is nil"))
+		return nil, apperrors.Internal(errors.New("pool is nil"))
 	}
 
 	psql := queries.SelectBeerByID(id)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return nil, app_errors.Internal(fmt.Errorf("toSql: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("toSql: %w", err))
 	}
 
 	beer, err := scanBeer(r.Pool.QueryRow(ctx, query, args...))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, app_errors.NotFound("beer not found", err)
+			return nil, apperrors.NotFound("beer not found", err)
 		}
-		return nil, app_errors.Internal(fmt.Errorf("query: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("query: %w", err))
 	}
 
 	return beer, nil
@@ -259,13 +250,13 @@ func (r *BeerPostgres) GetBeerByID(ctx context.Context, id uint) (*entities.Beer
 // UpdateBeer обновляет поля у сущности Beer в хранилище. Если сорт пива с таким ID не найден, возвращает ошибку. Если updates пустой, возвращает ID без изменений.
 func (r *BeerPostgres) UpdateBeer(ctx context.Context, id uint, updates map[string]any) (*entities.Beer, error) {
 	if r.Pool == nil {
-		return nil, app_errors.Internal(errors.New("pool is nil"))
+		return nil, apperrors.Internal(errors.New("pool is nil"))
 	}
 
 	psql := queries.UpdateBeer(id, updates)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return nil, app_errors.Internal(fmt.Errorf("toSql: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("toSql: %w", err))
 	}
 
 	row := r.Pool.QueryRow(ctx, query, args...)
@@ -280,31 +271,31 @@ func (r *BeerPostgres) UpdateBeer(ctx context.Context, id uint, updates map[stri
 // DeleteBeer удаляет сущность Beer из хранилища. Если сорт пива с таким ID не найден, возвращает ошибку.
 func (r *BeerPostgres) DeleteBeer(ctx context.Context, id uint) error {
 	if r.Pool == nil {
-		return app_errors.Internal(errors.New("pool is nil"))
+		return apperrors.Internal(errors.New("pool is nil"))
 	}
 
 	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
-		return app_errors.Internal(fmt.Errorf("%s: %w", "Begin", err))
+		return apperrors.Internal(fmt.Errorf("%s: %w", "Begin", err))
 	}
 	defer rollbackFunc(tx, ctx)
 
 	psql := queries.DeleteBeer(id)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return app_errors.Internal(fmt.Errorf("toSql: %w", err))
+		return apperrors.Internal(fmt.Errorf("toSql: %w", err))
 	}
 	result, err := tx.Exec(ctx, query, args...)
 	if err != nil {
-		return app_errors.Internal(fmt.Errorf("%s: %w", "Exec", err))
+		return apperrors.Internal(fmt.Errorf("%s: %w", "Exec", err))
 	}
 	if result.RowsAffected() == 0 {
-		return app_errors.NotFound("beer not found", nil)
+		return apperrors.NotFound("beer not found", nil)
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		return app_errors.Internal(fmt.Errorf("commit: %w", err))
+		return apperrors.Internal(fmt.Errorf("commit: %w", err))
 	}
 	return nil
 }
@@ -312,7 +303,7 @@ func (r *BeerPostgres) DeleteBeer(ctx context.Context, id uint) error {
 // InsertReview сохраняет новую сущность Review в хранилище. Если сорт пива, к которому относится отзыв, не найден, возвращает ошибку.
 func (r *BeerPostgres) InsertReview(ctx context.Context, review entities.Review) (uint, error) {
 	if r.Pool == nil {
-		return 0, app_errors.Internal(errors.New("pool is nil"))
+		return 0, apperrors.Internal(errors.New("pool is nil"))
 	}
 
 <<<<<<< HEAD
@@ -338,33 +329,13 @@ func (r *BeerPostgres) InsertReview(ctx context.Context, review entities.Review)
 	query, args, err := psql.ToSql()
 >>>>>>> 079e0e0 (feat(errors): add app errors)
 	if err != nil {
-		return 0, app_errors.Internal(fmt.Errorf("toSql: %w", err))
+		return 0, apperrors.Internal(fmt.Errorf("toSql: %w", err))
 	}
 
 	var reviewID uint
-	err = tx.QueryRow(ctx, query, args...).Scan(&reviewID)
+	err = r.Pool.QueryRow(ctx, query, args...).Scan(&reviewID)
 	if err != nil {
-		return 0, app_errors.Internal(fmt.Errorf("%s: %w", "scan", err))
-	}
-
-	updatePsql := queries.UpdateBeerRating(review.BeerID, review.Rating, "insert")
-	query, args, err = updatePsql.ToSql()
-	if err != nil {
-		return 0, fmt.Errorf("%s: %w", "ToSql", err)
-	}
-
-	result, err := tx.Exec(ctx, query, args...)
-	if err != nil {
-		return 0, fmt.Errorf("%s: %w", "Scan", err)
-	}
-
-	if result.RowsAffected() != 1 {
-		return 0, fmt.Errorf("%s: %w", "RowsAffected", err)
-	}
-
-	err = tx.Commit(ctx)
-	if err != nil {
-		return 0, fmt.Errorf("commit: %w", err)
+		return 0, apperrors.Internal(fmt.Errorf("%s: %w", "scan", err))
 	}
 
 	return reviewID, nil
@@ -373,7 +344,7 @@ func (r *BeerPostgres) InsertReview(ctx context.Context, review entities.Review)
 // DeleteReview удаляет сущность Review из хранилища. Если отзыв с таким id, не найден, возвращает ошибку.
 func (r *BeerPostgres) DeleteReview(ctx context.Context, id uint) error {
 	if r.Pool == nil {
-		return app_errors.Internal(errors.New("pool is nil"))
+		return apperrors.Internal(errors.New("pool is nil"))
 	}
 
 	tx, err := r.Pool.Begin(ctx)
@@ -393,13 +364,13 @@ func (r *BeerPostgres) DeleteReview(ctx context.Context, id uint) error {
 	psql := queries.DeleteReview(id)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return app_errors.Internal(fmt.Errorf("toSql: %w", err))
+		return apperrors.Internal(fmt.Errorf("toSql: %w", err))
 	}
 
 	var rating, beerID uint
 	err = tx.QueryRow(ctx, query, args...).Scan(&beerID, &rating)
 	if err != nil {
-		return app_errors.Internal(fmt.Errorf("exec: %w", err))
+		return apperrors.Internal(fmt.Errorf("exec: %w", err))
 	}
 <<<<<<< HEAD
 
@@ -409,22 +380,7 @@ func (r *BeerPostgres) DeleteReview(ctx context.Context, id uint) error {
 		return fmt.Errorf("%s: %w", "ToSql", err)
 =======
 	if result.RowsAffected() == 0 {
-		return app_errors.NotFound("review not found", nil)
->>>>>>> 079e0e0 (feat(errors): add app errors)
-	}
-
-	result, err := tx.Exec(ctx, query, args...)
-	if err != nil {
-		return fmt.Errorf("%s: %w", "Scan", err)
-	}
-
-	if result.RowsAffected() != 1 {
-		return fmt.Errorf("%s: %w, %d, %d", "RowsAffected", err, rating, beerID)
-	}
-
-	err = tx.Commit(ctx)
-	if err != nil {
-		return fmt.Errorf("commit: %w", err)
+		return apperrors.NotFound("review not found", nil)
 	}
 
 	return nil
@@ -433,7 +389,7 @@ func (r *BeerPostgres) DeleteReview(ctx context.Context, id uint) error {
 // UpdateReview обновляет поля у сущности Review в хранилище. Если отзыв с таким id, не найден, возвращает ошибку.
 func (r *BeerPostgres) UpdateReview(ctx context.Context, id uint, updates map[string]any) error {
 	if r.Pool == nil {
-		return app_errors.Internal(errors.New("pool is nil"))
+		return apperrors.Internal(errors.New("pool is nil"))
 	}
 
 	tx, err := r.Pool.Begin(ctx)
@@ -454,50 +410,26 @@ func (r *BeerPostgres) UpdateReview(ctx context.Context, id uint, updates map[st
 
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return app_errors.Internal(fmt.Errorf("toSql: %w", err))
+		return apperrors.Internal(fmt.Errorf("toSql: %w", err))
 	}
 
 	var rating, beerID uint
 	err = tx.QueryRow(ctx, query, args...).Scan(&beerID, &rating)
 	if err != nil {
-<<<<<<< HEAD
-		return fmt.Errorf("%s: %w", "QueryRow", err)
-=======
-		return app_errors.Internal(fmt.Errorf("%s: %w", "Exec", err))
+		return apperrors.Internal(fmt.Errorf("%s: %w", "Exec", err))
 	}
 
 	if result.RowsAffected() == 0 {
-		return app_errors.NotFound("review not found", nil)
->>>>>>> 079e0e0 (feat(errors): add app errors)
+		return apperrors.NotFound("review not found", nil)
 	}
 
-	updatePsql := queries.UpdateBeerRating(beerID, rating, "delete")
-	query, args, err = updatePsql.ToSql()
-	if err != nil {
-		return fmt.Errorf("%s: %w", "ToSql", err)
-	}
-
-	result, err := tx.Exec(ctx, query, args...)
-	if err != nil {
-		return fmt.Errorf("%s: %w", "Scan", err)
-	}
-
-	if result.RowsAffected() != 1 {
-		return fmt.Errorf("%s: %w", "RowsAffected", err)
-	}
-
-	err = tx.Commit(ctx)
-	if err != nil {
-		return fmt.Errorf("commit: %w", err)
-	}
-
-	return nil
+	return err
 }
 
 // GetReviews возвращает список всех отзывов к конкретному пиву, возвращает не более limit отзывов, начиная с позиции offset.
 func (r *BeerPostgres) GetReviews(ctx context.Context, limit, offset uint64, beerID uint) ([]entities.Review, error) {
 	if r.Pool == nil {
-		return nil, app_errors.Internal(errors.New("pool is nil"))
+		return nil, apperrors.Internal(errors.New("pool is nil"))
 	}
 
 	psql := queries.SelectReviewByBeerID(beerID).Offset(offset)
@@ -507,12 +439,12 @@ func (r *BeerPostgres) GetReviews(ctx context.Context, limit, offset uint64, bee
 
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return nil, app_errors.Internal(fmt.Errorf("toSql: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("toSql: %w", err))
 	}
 
 	rows, err := r.Pool.Query(ctx, query, args...)
 	if err != nil {
-		return nil, app_errors.Internal(fmt.Errorf("query: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("query: %w", err))
 	}
 	defer rows.Close()
 
@@ -522,14 +454,14 @@ func (r *BeerPostgres) GetReviews(ctx context.Context, limit, offset uint64, bee
 
 		err = rows.Scan(&review.ID, &review.Body, &review.BeerID, &review.Rating)
 		if err != nil {
-			return nil, app_errors.Internal(fmt.Errorf("scan: %w", err))
+			return nil, apperrors.Internal(fmt.Errorf("scan: %w", err))
 		}
 
 		reviews = append(reviews, review)
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, app_errors.Internal(fmt.Errorf("rows.Err: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("rows.Err: %w", err))
 	}
 
 	return reviews, nil
@@ -538,7 +470,7 @@ func (r *BeerPostgres) GetReviews(ctx context.Context, limit, offset uint64, bee
 // GetBeersByCategoryID возвращает список сортов пива, принадлежащих к определенной категории. Если категория с таким ID не найдена, возвращает пустой список.
 func (r *BeerPostgres) GetBeersByCategoryID(ctx context.Context, ctgID uint, limit, offset uint64) ([]entities.Beer, error) {
 	if r.Pool == nil {
-		return nil, app_errors.Internal(errors.New("pool is nil"))
+		return nil, apperrors.Internal(errors.New("pool is nil"))
 	}
 
 	psql := queries.SelectBeerByCategoryID(ctgID).Offset(offset)
@@ -547,11 +479,11 @@ func (r *BeerPostgres) GetBeersByCategoryID(ctx context.Context, ctgID uint, lim
 	}
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return nil, app_errors.Internal(fmt.Errorf("toSql: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("toSql: %w", err))
 	}
 	rows, err := r.Pool.Query(ctx, query, args...)
 	if err != nil {
-		return nil, app_errors.Internal(fmt.Errorf("query: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("query: %w", err))
 	}
 	defer rows.Close()
 
@@ -565,7 +497,7 @@ func (r *BeerPostgres) GetBeersByCategoryID(ctx context.Context, ctgID uint, lim
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, app_errors.Internal(fmt.Errorf("rows.Err: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("rows.Err: %w", err))
 	}
 
 	return beers, nil
@@ -574,18 +506,18 @@ func (r *BeerPostgres) GetBeersByCategoryID(ctx context.Context, ctgID uint, lim
 // GetBeerFeature возвращает список и тд
 func (r *BeerPostgres) GetBeerFeature(ctx context.Context, beerID uint) ([]string, error) {
 	if r.Pool == nil {
-		return nil, app_errors.Internal(errors.New("pool is nil"))
+		return nil, apperrors.Internal(errors.New("pool is nil"))
 	}
 
 	psql := queries.SelectBeersFeature(beerID)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return nil, app_errors.Internal(fmt.Errorf("toSql: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("toSql: %w", err))
 	}
 
 	rows, err := r.Pool.Query(ctx, query, args...)
 	if err != nil {
-		return nil, app_errors.Internal(fmt.Errorf("feature QueryRow: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("feature QueryRow: %w", err))
 	}
 	defer rows.Close()
 
@@ -595,7 +527,7 @@ func (r *BeerPostgres) GetBeerFeature(ctx context.Context, beerID uint) ([]strin
 	for rows.Next() {
 		err := rows.Scan(&featName)
 		if err != nil {
-			return nil, app_errors.Internal(fmt.Errorf("scan: %w", err))
+			return nil, apperrors.Internal(fmt.Errorf("scan: %w", err))
 		}
 		features = append(features, featName)
 	}
@@ -608,7 +540,7 @@ func (r *BeerPostgres) ConnectBeerAndFeature(ctx context.Context, tx pgx.Tx, fea
 	psql := queries.ConnectBeerAndFeature(featID, beerID)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return app_errors.Internal(fmt.Errorf("toSql: %w", err))
+		return apperrors.Internal(fmt.Errorf("toSql: %w", err))
 	}
 
 	if tx != nil {
@@ -618,7 +550,7 @@ func (r *BeerPostgres) ConnectBeerAndFeature(ctx context.Context, tx pgx.Tx, fea
 	}
 
 	if err != nil {
-		return app_errors.Internal(fmt.Errorf("exec: %w", err))
+		return apperrors.Internal(fmt.Errorf("exec: %w", err))
 	}
 
 	return nil
@@ -632,7 +564,7 @@ func (r *BeerPostgres) GetCountryID(ctx context.Context, tx pgx.Tx, name string)
 	psql := queries.SelectOrInsertCountry(name)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return 0, app_errors.Internal(fmt.Errorf("toSql: %w", err))
+		return 0, apperrors.Internal(fmt.Errorf("toSql: %w", err))
 	}
 
 	var row pgx.Row
@@ -644,7 +576,7 @@ func (r *BeerPostgres) GetCountryID(ctx context.Context, tx pgx.Tx, name string)
 
 	var countryID uint
 	if err := row.Scan(&countryID); err != nil {
-		return 0, app_errors.Internal(fmt.Errorf("scan: %w", err))
+		return 0, apperrors.Internal(fmt.Errorf("scan: %w", err))
 	}
 	return countryID, nil
 }
@@ -652,13 +584,13 @@ func (r *BeerPostgres) GetCountryID(ctx context.Context, tx pgx.Tx, name string)
 // GetCityID возвращает ID существующего или созданного города по его названию с возвожностью запуска в транзакции
 func (r *BeerPostgres) GetCityID(ctx context.Context, tx pgx.Tx, name string, countryID uint) (uint, error) {
 	if r.Pool == nil {
-		return 0, app_errors.Internal(errors.New("pool is nil"))
+		return 0, apperrors.Internal(errors.New("pool is nil"))
 	}
 
 	psql := queries.SelectOrInsertCity(name, countryID)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return 0, app_errors.Internal(fmt.Errorf("toSql: %w", err))
+		return 0, apperrors.Internal(fmt.Errorf("toSql: %w", err))
 	}
 
 	var row pgx.Row
@@ -670,7 +602,7 @@ func (r *BeerPostgres) GetCityID(ctx context.Context, tx pgx.Tx, name string, co
 
 	var cityID uint
 	if err = row.Scan(&cityID); err != nil {
-		return 0, app_errors.Internal(fmt.Errorf("city QueryRow: %w", err))
+		return 0, apperrors.Internal(fmt.Errorf("city QueryRow: %w", err))
 	}
 
 	return cityID, nil
@@ -679,13 +611,13 @@ func (r *BeerPostgres) GetCityID(ctx context.Context, tx pgx.Tx, name string, co
 // GetFeatureID возвращает ID характеристики по ее названию. Если характеристики нет, она будет добавлена в базу данных. Если name пустой, возвращает ошибку.
 func (r *BeerPostgres) GetFeatureID(ctx context.Context, tx pgx.Tx, name string) (uint, error) {
 	if r.Pool == nil {
-		return 0, app_errors.Internal(errors.New("pool is nil"))
+		return 0, apperrors.Internal(errors.New("pool is nil"))
 	}
 
 	psql := queries.SelectOrInsertFeature(name)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return 0, app_errors.Internal(fmt.Errorf("toSql: %w", err))
+		return 0, apperrors.Internal(fmt.Errorf("toSql: %w", err))
 	}
 
 	var row pgx.Row
@@ -697,7 +629,7 @@ func (r *BeerPostgres) GetFeatureID(ctx context.Context, tx pgx.Tx, name string)
 
 	var featID uint
 	if err = row.Scan(&featID); err != nil {
-		return 0, app_errors.Internal(fmt.Errorf("city QueryRow: %w", err))
+		return 0, apperrors.Internal(fmt.Errorf("city QueryRow: %w", err))
 	}
 	return featID, nil
 }
@@ -713,12 +645,7 @@ func scanBeer(row pgx.Row) (*entities.Beer, error) {
 		&beer.Category.Name, &beer.Features,
 		&reviewRatingSum, &reviewAmount)
 	if err != nil {
-		return nil, app_errors.Internal(fmt.Errorf("%s: %w", "Scan", err))
-	}
-
-	if reviewAmount != 0 {
-		rating := float32(reviewRatingSum) / float32(reviewAmount)
-		beer.Rating = rating
+		return nil, apperrors.Internal(fmt.Errorf("%s: %w", "Scan", err))
 	}
 
 	return &beer, nil
@@ -733,12 +660,7 @@ func scanBeerBase(row pgx.Row) (*entities.Beer, error) {
 		&beer.Amount, &beer.Unit, &cityID, &categoryID,
 		&reviewRatingSum, &reviewAmount)
 	if err != nil {
-		return nil, app_errors.Internal(fmt.Errorf("%s: %w", "Scan", err))
-	}
-
-	if reviewAmount != 0 {
-		rating := float32(reviewRatingSum) / float32(reviewAmount)
-		beer.Rating = rating
+		return nil, apperrors.Internal(fmt.Errorf("%s: %w", "Scan", err))
 	}
 
 	return &beer, nil
