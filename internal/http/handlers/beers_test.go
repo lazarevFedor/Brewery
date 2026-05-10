@@ -2,7 +2,7 @@ package handlers_test
 
 import (
 	"Brewery/internal/entities"
-	"Brewery/internal/http/handlers"
+	app_errors "Brewery/internal/errors"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -50,7 +50,7 @@ func TestGetBeersByCategory_InvalidID_ReturnsBadRequest(t *testing.T) {
 
 	var got map[string]string
 	require.NoError(t, json.Unmarshal(resp.Body.Bytes(), &got))
-	assert.Equal(t, handlers.InvalidID, got["error"])
+	assert.Equal(t, app_errors.CodeInvalidID, got["error"])
 }
 
 // TestUpdateBeer_UsesPathParam проверяет, что при обновлении пива используется правильный путь и передается правильный ID в сервис.
