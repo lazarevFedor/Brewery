@@ -5,6 +5,7 @@ import (
 	"Brewery/internal/entities"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/lib/pq"
 )
 
 const (
@@ -19,7 +20,6 @@ const (
 // нового числового параметра в базу данных.
 func InsertNumericParameter(param *entities.NumericParameter) sq.InsertBuilder {
 	data := map[string]any{
-		"id":          param.ID,
 		"min_val":     param.MinValue,
 		"max_val":     param.MaxValue,
 		"field_name":  param.FieldName,
@@ -48,14 +48,14 @@ func UpdateNumericParameter(id uint, updates map[string]any) sq.UpdateBuilder {
 func DeleteNumericParameter(id uint) sq.DeleteBuilder {
 	return psql.
 		Delete(NumericParametersTable).
-		Where(sq.Eq{"id": id})
+		Where(sq.Eq{"id": id}).
+		Suffix("RETURNING " + NumericReturningFields)
 }
 
 // InsertEnumParameter возвращает запрос для вставки
 // нового параметра-перечисления в базу данных.
 func InsertEnumParameter(param *entities.EnumParameter) sq.InsertBuilder {
 	data := map[string]any{
-		"id":            param.ID,
 		"enum_class_id": param.EnumClassID,
 		"inheritable":   param.Inheritable,
 	}
@@ -81,7 +81,8 @@ func UpdateEnumParameter(id uint, updates map[string]any) sq.UpdateBuilder {
 func DeleteEnumParameter(id uint) sq.DeleteBuilder {
 	return psql.
 		Delete(EnumParametersTable).
-		Where(sq.Eq{"id": id})
+		Where(sq.Eq{"id": id}).
+		Suffix("RETURNING " + EnumReturningFields)
 }
 
 // SelectParameterIDsByCategory возвращает запрос для получения всех параметров,
@@ -111,11 +112,13 @@ func SelectParameterIDsByCategory(categoryID uint, parameterType int) sq.SelectB
 // включая как числовые параметры.
 func SelectNumericParameters(ids []uint) sq.SelectBuilder {
 	if len(ids) == 0 {
-		return psql.Select(NumericReturningFields).
+		return psql.
+			Select(NumericReturningFields).
 			From(NumericParametersTable)
 	}
 
-	return psql.Select(NumericReturningFields).
+	return psql.
+		Select(NumericReturningFields).
 		From(NumericParametersTable).
 		Where(sq.Eq{"id": ids})
 }
@@ -124,53 +127,94 @@ func SelectNumericParameters(ids []uint) sq.SelectBuilder {
 // включая как параметры-перечисления.
 func SelectEnumParameters(ids []uint) sq.SelectBuilder {
 	if len(ids) == 0 {
-		return psql.Select(EnumReturningFields).
+		return psql.
+			Select(EnumReturningFields).
 			From(EnumParametersTable)
 	}
 
-	return psql.Select(EnumReturningFields).
+	return psql.
+		Select(EnumReturningFields).
 		From(EnumParametersTable).
 		Where(sq.Eq{"id": ids})
 }
 
-// UpdateNumericParameterInheritance обновляет наследование числовых параметров для указанных категорий.
-// Если add равно true, то добавляет параметры к существующему списку, иначе удаляет их.
-func UpdateNumericParameterInheritance(parameterIDs []int, add bool, categoriesList []int) sq.UpdateBuilder {
-	if add {
-		sqlExpr := `(SELECT coalesce(array_agg(DISTINCT x ORDER BY x), '{}')
-                     FROM unnest(coalesce(numeric_parameter_ids, '{}') || ?::int[]) AS x)`
-		return psql.Update(tableCategories).
-			Set("numeric_parameter_ids", sq.Expr(sqlExpr, parameterIDs)).
-			Where(sq.Eq{"id": categoriesList})
-	}
-
-	sqlExpr := `(SELECT coalesce(array_agg(x ORDER BY x), '{}')
-                 FROM unnest(coalesce(numeric_parameter_ids, '{}')) AS x
-                 WHERE NOT (x = ANY(?::int[])))`
-	return psql.Update(tableCategories).
-		Set("numeric_parameter_ids", sq.Expr(sqlExpr, parameterIDs)).
-		Where(sq.Eq{"id": categoriesList})
+// AddNumericParametersToCategories возвращает запрос для добавления числовых параметров в категории
+func AddNumericParametersToCategories(parameterIDs []int, categoryIDs []int) sq.SelectBuilder {
+	return psql.
+		Select().
+		Column(
+			sq.Expr(
+				"add_numeric_parameters_to_categories(?::int[], ?::int[])",
+				pq.Array(parameterIDs),
+				pq.Array(categoryIDs),
+			),
+		)
 }
 
-// UpdateEnumParameterInheritance обновляет наследование параметров-перечислений для указанных категорий.
-// Если add равно true, то добавляет параметры к существующему списку, иначе удаляет их.
-func UpdateEnumParameterInheritance(parameterIDs []int, add bool, categoriesList []int) sq.UpdateBuilder {
-	if len(parameterIDs) == 0 || len(categoriesList) == 0 {
-		return psql.Update(tableCategories).Where(sq.Expr("false"))
-	}
+// AddEnumParametersToCategories возвращает запрос для добавления параметров-перечислений в категории
+func AddEnumParametersToCategories(parameterIDs []int, categoryIDs []int) sq.SelectBuilder {
+	return psql.
+		Select().
+		Column(
+			sq.Expr(
+				"add_enum_parameters_to_categories(?::int[], ?::int[])",
+				pq.Array(parameterIDs),
+				pq.Array(categoryIDs),
+			),
+		)
+}
 
-	if add {
-		sqlExpr := `(SELECT coalesce(array_agg(DISTINCT x ORDER BY x), '{}')
-                     FROM unnest(coalesce(enum_parameter_ids, '{}') || ?::int[]) AS x)`
-		return psql.Update(tableCategories).
-			Set("enum_parameter_ids", sq.Expr(sqlExpr, parameterIDs)).
-			Where(sq.Eq{"id": categoriesList})
-	}
+// InheritParametersToChildren возвращает запрос на наследование параметров дочерними категориями
+// Рекурсивно находит всех потомков и добавляет им наследуемые параметры
+func InheritParametersToChildren(parentID int) sq.SelectBuilder {
+	return psql.
+		Select().
+		Column(
+			sq.Expr(
+				"inherit_parameters_to_children(?)",
+				parentID,
+			),
+		)
+}
 
-	sqlExpr := `(SELECT coalesce(array_agg(x ORDER BY x), '{}')
-                 FROM unnest(coalesce(enum_parameter_ids, '{}')) AS x
-                 WHERE NOT (x = ANY(?::int[])))`
-	return psql.Update(tableCategories).
-		Set("enum_parameter_ids", sq.Expr(sqlExpr, parameterIDs)).
-		Where(sq.Eq{"id": categoriesList})
+// SelectCategoriesWithNumericParameter возвращает запрос для получения всех категорий, содержащих числовой параметр
+func SelectCategoriesWithNumericParameter(parameterID uint) sq.SelectBuilder {
+	return psql.
+		Select("id").
+		From(tableCategories).
+		Where(sq.Expr("numeric_parameter_ids @> ARRAY[?::INT]", int(parameterID)))
+}
+
+// SelectCategoriesWithEnumParameter возвращает запрос для получения всех категорий, содержащих параметр-перечисление
+func SelectCategoriesWithEnumParameter(parameterID uint) sq.SelectBuilder {
+	return psql.
+		Select("id").
+		From(tableCategories).
+		Where(sq.Expr("enum_parameter_ids @> ARRAY[?::INT]", int(parameterID)))
+}
+
+// RemoveNumericParametersFromDescendants возвращает запрос для удаления числовых параметров из потомков категорий
+func RemoveNumericParametersFromDescendants(parameterIDs []int, parentIDs []int) sq.SelectBuilder {
+	return psql.
+		Select().
+		Column(
+			sq.Expr(
+				"remove_numeric_parameters_from_descendants(?::int[], ?::int[])",
+				pq.Array(parameterIDs),
+				pq.Array(parentIDs),
+			),
+		)
+}
+
+// RemoveEnumParametersFromDescendants возвращает запрос для удаления параметров-перечислений из потомков категорий
+func RemoveEnumParametersFromDescendants(parameterIDs []int, parentIDs []int) sq.SelectBuilder {
+	return psql.
+		Select().
+		Column(
+			sq.Expr(
+				"remove_enum_parameters_from_descendants(?::int[], ?::int[])",
+				pq.Array(parameterIDs),
+				pq.Array(parentIDs),
+			),
+		)
 }
