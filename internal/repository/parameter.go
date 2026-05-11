@@ -5,6 +5,7 @@ import (
 	"Brewery/internal/entities"
 	"Brewery/internal/repository/queries"
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
@@ -73,6 +74,10 @@ func (p *ParameterPostgres) InsertNumericParameter(ctx context.Context, param *e
 
 // UpdateNumericParameter обновляет существующий числовой параметр в базе данных и возвращает его.
 func (p *ParameterPostgres) UpdateNumericParameter(ctx context.Context, id uint, updates map[string]any) (*entities.NumericParameter, error) {
+	if len(updates) == 0 {
+		return nil, errors.New("no updates provided")
+	}
+
 	oldParam, err := p.fetchNumericParameterByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -90,7 +95,7 @@ func (p *ParameterPostgres) UpdateNumericParameter(ctx context.Context, id uint,
 		return nil, err
 	}
 
-	if err = p.handleInheritableToggle(ctx, false, id, oldParam.Inheritable, param.Inheritable); err != nil {
+	if err = p.toggleInheritance(ctx, false, id, oldParam.Inheritable, param.Inheritable); err != nil {
 		return nil, err
 	}
 
@@ -138,6 +143,10 @@ func (p *ParameterPostgres) InsertEnumParameter(ctx context.Context, param *enti
 
 // UpdateEnumParameter обновляет существующий перечисляемый параметр в базе данных и возвращает его.
 func (p *ParameterPostgres) UpdateEnumParameter(ctx context.Context, id uint, updates map[string]any) (*entities.EnumParameter, error) {
+	if len(updates) == 0 {
+		return nil, errors.New("no updates provided")
+	}
+
 	oldParam, err := p.fetchEnumParameterByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -155,7 +164,7 @@ func (p *ParameterPostgres) UpdateEnumParameter(ctx context.Context, id uint, up
 		return nil, err
 	}
 
-	if err := p.handleInheritableToggle(ctx, true, id, oldParam.Inheritable, param.Inheritable); err != nil {
+	if err = p.toggleInheritance(ctx, true, id, oldParam.Inheritable, param.Inheritable); err != nil {
 		return nil, err
 	}
 
@@ -292,9 +301,10 @@ func (p *ParameterPostgres) ApplyParameters(ctx context.Context, categoryID uint
 
 	var inheritAffected int
 	err = p.Pool.QueryRow(ctx, sql, args...).Scan(&inheritAffected)
-	if err == nil {
-		rowsAffected += inheritAffected
+	if err != nil {
+		return 0, err
 	}
+	rowsAffected += inheritAffected
 
 	return rowsAffected, nil
 }
@@ -343,9 +353,11 @@ func (p *ParameterPostgres) fetchEnumParameterByID(ctx context.Context, id uint)
 	return scanEnumParameter(p.Pool.QueryRow(ctx, sql, args...))
 }
 
-// handleInheritableToggle реализует обработку изменения флага наследования у параметра
-func (p *ParameterPostgres) handleInheritableToggle(ctx context.Context, isEnum bool, id uint, oldInheritable, newInheritable bool) error {
-	if oldInheritable == newInheritable {
+// toggleInheritance реализует обработку изменения флага наследования у параметра
+//
+//nolint:funlen
+func (p *ParameterPostgres) toggleInheritance(ctx context.Context, isEnum bool, id uint, oldValue, newValue bool) error {
+	if oldValue == newValue {
 		return nil
 	}
 
@@ -380,42 +392,70 @@ func (p *ParameterPostgres) handleInheritableToggle(ctx context.Context, isEnum 
 		return nil
 	}
 
-	if !oldInheritable && newInheritable {
-		for _, categoryID := range categoryIDs {
+	seen := make(map[int]struct{})
+	uniq := make([]int, 0, len(categoryIDs))
+	for _, cid := range categoryIDs {
+		if _, ok := seen[cid]; !ok {
+			seen[cid] = struct{}{}
+			uniq = append(uniq, cid)
+		}
+	}
+
+	tx, err := p.Pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+
+	if !oldValue && newValue {
+		for _, categoryID := range uniq {
 			inheritQuery := queries.InheritParametersToChildren(categoryID)
 			sql, args, err = inheritQuery.ToSql()
 			if err != nil {
 				return err
 			}
 
-			if _, err = p.Pool.Exec(ctx, sql, args...); err != nil {
+			if _, err = tx.Exec(ctx, sql, args...); err != nil {
 				return err
 			}
+		}
+		if err = tx.Commit(ctx); err != nil {
+			return err
 		}
 		return nil
 	}
 
 	if isEnum {
-		removeQuery := queries.RemoveEnumParametersFromDescendants([]int{int(id)}, categoryIDs)
+		removeQuery := queries.RemoveEnumParametersFromDescendants([]int{int(id)}, uniq)
 		sql, args, err = removeQuery.ToSql()
 		if err != nil {
 			return err
 		}
 
-		if _, err = p.Pool.Exec(ctx, sql, args...); err != nil {
+		if _, err = tx.Exec(ctx, sql, args...); err != nil {
+			return err
+		}
+
+		if err := tx.Commit(ctx); err != nil {
 			return err
 		}
 
 		return nil
 	}
 
-	removeQuery := queries.RemoveNumericParametersFromDescendants([]int{int(id)}, categoryIDs)
+	removeQuery := queries.RemoveNumericParametersFromDescendants([]int{int(id)}, uniq)
 	sql, args, err = removeQuery.ToSql()
 	if err != nil {
 		return err
 	}
 
-	if _, err = p.Pool.Exec(ctx, sql, args...); err != nil {
+	if _, err = tx.Exec(ctx, sql, args...); err != nil {
+		return err
+	}
+
+	if err = tx.Commit(ctx); err != nil {
 		return err
 	}
 
