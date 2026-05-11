@@ -297,7 +297,7 @@ func (h *parametersHandlers) ListCategoryParameters(c *gin.Context) {
 		return
 	}
 
-	result := make([]interface{}, 0)
+	result := make([]any, 0)
 	for _, p := range numeric {
 		result = append(result, p)
 	}
