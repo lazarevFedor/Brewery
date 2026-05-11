@@ -9,8 +9,10 @@ const (
 )
 
 type Handlers struct {
-	CategoryHandler CategoriesHandlers
-	BeersHandler    BeersHandlers
-	ReviewHandler   ReviewsHandlers
-	EnumHandler     EnumHandlers
+	CategoryHandler      CategoriesHandlers
+	BeersHandler         BeersHandlers
+	ReviewHandler        ReviewsHandlers
+	EnumHandler          EnumHandlers
+	CategoryParamHandler ParametersHandlers
+	AggregateHandler     AggregateHandlers
 }
