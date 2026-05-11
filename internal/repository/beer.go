@@ -306,28 +306,8 @@ func (r *BeerPostgres) InsertReview(ctx context.Context, review entities.Review)
 		return 0, apperrors.Internal(errors.New("pool is nil"))
 	}
 
-<<<<<<< HEAD
-	tx, err := r.Pool.Begin(ctx)
-	if err != nil {
-		return 0, fmt.Errorf("%s: %w", "Begin", err)
-	}
-	defer func(tx pgx.Tx, ctx context.Context) {
-		rollbackErr := tx.Rollback(ctx)
-		log, ok := logger.GetLoggerFromCtx(ctx)
-		if ok {
-			if rollbackErr != nil && !errors.Is(rollbackErr, pgx.ErrTxClosed) {
-				log.Error(ctx, "InsertBeer: rollback error:", zap.Error(rollbackErr))
-			}
-		}
-	}(tx, ctx)
-
-	insertPsql := queries.InsertReview(review)
-
-	query, args, err := insertPsql.ToSql()
-=======
 	psql := queries.InsertReview(review)
 	query, args, err := psql.ToSql()
->>>>>>> 079e0e0 (feat(errors): add app errors)
 	if err != nil {
 		return 0, apperrors.Internal(fmt.Errorf("toSql: %w", err))
 	}
@@ -351,15 +331,7 @@ func (r *BeerPostgres) DeleteReview(ctx context.Context, id uint) error {
 	if err != nil {
 		return fmt.Errorf("%s: %w", "Begin", err)
 	}
-	defer func(tx pgx.Tx, ctx context.Context) {
-		rollbackErr := tx.Rollback(ctx)
-		log, ok := logger.GetLoggerFromCtx(ctx)
-		if ok {
-			if rollbackErr != nil && !errors.Is(rollbackErr, pgx.ErrTxClosed) {
-				log.Error(ctx, "InsertBeer: rollback error:", zap.Error(rollbackErr))
-			}
-		}
-	}(tx, ctx)
+	defer rollbackFunc(tx, ctx)
 
 	psql := queries.DeleteReview(id)
 	query, args, err := psql.ToSql()
@@ -372,17 +344,26 @@ func (r *BeerPostgres) DeleteReview(ctx context.Context, id uint) error {
 	if err != nil {
 		return apperrors.Internal(fmt.Errorf("exec: %w", err))
 	}
-<<<<<<< HEAD
 
 	updatePsql := queries.UpdateBeerRating(beerID, rating, "delete")
 	query, args, err = updatePsql.ToSql()
 	if err != nil {
 		return fmt.Errorf("%s: %w", "ToSql", err)
-=======
-	if result.RowsAffected() == 0 {
-		return apperrors.NotFound("review not found", nil)
 	}
 
+	result, err := r.Pool.Exec(ctx, query, args...)
+	if err != nil{
+		return apperrors.Internal(fmt.Errorf("beer exec: %w", err))
+	}
+	
+	if result.RowsAffected() == 0 {
+		return apperrors.NotFound("review not found", nil)
+	}	
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return apperrors.Internal(fmt.Errorf("commit: %w", err))
+	}
 	return nil
 }
 
@@ -396,15 +377,7 @@ func (r *BeerPostgres) UpdateReview(ctx context.Context, id uint, updates map[st
 	if err != nil {
 		return fmt.Errorf("%s: %w", "Begin", err)
 	}
-	defer func(tx pgx.Tx, ctx context.Context) {
-		rollbackErr := tx.Rollback(ctx)
-		log, ok := logger.GetLoggerFromCtx(ctx)
-		if ok {
-			if rollbackErr != nil && !errors.Is(rollbackErr, pgx.ErrTxClosed) {
-				log.Error(ctx, "InsertBeer: rollback error:", zap.Error(rollbackErr))
-			}
-		}
-	}(tx, ctx)
+	defer rollbackFunc(tx, ctx)
 
 	psql := queries.UpdateReview(id, updates)
 
@@ -418,11 +391,26 @@ func (r *BeerPostgres) UpdateReview(ctx context.Context, id uint, updates map[st
 	if err != nil {
 		return apperrors.Internal(fmt.Errorf("%s: %w", "Exec", err))
 	}
-
+	
+	updatePsql := queries.UpdateBeerRating(beerID, rating, "delete")
+	query, args, err = updatePsql.ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: %w", "ToSql", err)
+	}
+	
+	result, err := r.Pool.Exec(ctx, query, args...)
+	if err != nil{
+		return apperrors.Internal(fmt.Errorf("beer: exec: %w", err))
+	}
+	
 	if result.RowsAffected() == 0 {
 		return apperrors.NotFound("review not found", nil)
 	}
 
+	err = tx.Commit(ctx)
+	if err != nil {
+		return apperrors.Internal(fmt.Errorf("commit: %w", err))
+	}
 	return err
 }
 
@@ -537,6 +525,9 @@ func (r *BeerPostgres) GetBeerFeature(ctx context.Context, beerID uint) ([]strin
 
 // ConnectBeerAndFeature связывает характеристику с сортом пива в рамках транзакции. Если связь уже существует, она не будет добавлена повторно. Если featID или beerID равны 0, возвращает ошибку.
 func (r *BeerPostgres) ConnectBeerAndFeature(ctx context.Context, tx pgx.Tx, featID, beerID uint) error {
+	if r.Pool == nil{
+		return apperrors.Internal(errors.New("pool is nil"))
+	}
 	psql := queries.ConnectBeerAndFeature(featID, beerID)
 	query, args, err := psql.ToSql()
 	if err != nil {
@@ -556,11 +547,15 @@ func (r *BeerPostgres) ConnectBeerAndFeature(ctx context.Context, tx pgx.Tx, fea
 	return nil
 }
 
-<<<<<<< HEAD
-// scanBeer сканирует обработанную строку из базы данных в сущность Beer. Если строка не соответствует структуре сущности, возвращает ошибку.
-=======
 // GetCountryID возвращает ID страны по ее названиюс возвожностью запуска в транзакции. Если страны нет, она будет добавлена в базу данных. Если name пустой, возвращает ошибку.
 func (r *BeerPostgres) GetCountryID(ctx context.Context, tx pgx.Tx, name string) (uint, error) {
+	if name == ""{
+		return 0, apperrors.BadRequest("country name is empty", errors.New("country name is empty"))
+	}
+	if r.Pool == nil {
+		return 0, apperrors.Internal(errors.New("pool is nil"))
+	}
+	
 	psql := queries.SelectOrInsertCountry(name)
 	query, args, err := psql.ToSql()
 	if err != nil {
@@ -583,6 +578,9 @@ func (r *BeerPostgres) GetCountryID(ctx context.Context, tx pgx.Tx, name string)
 
 // GetCityID возвращает ID существующего или созданного города по его названию с возвожностью запуска в транзакции
 func (r *BeerPostgres) GetCityID(ctx context.Context, tx pgx.Tx, name string, countryID uint) (uint, error) {
+	if name == ""{
+		return 0, apperrors.BadRequest("city name is empty", errors.New("city name is empty"))
+	}
 	if r.Pool == nil {
 		return 0, apperrors.Internal(errors.New("pool is nil"))
 	}
@@ -635,7 +633,6 @@ func (r *BeerPostgres) GetFeatureID(ctx context.Context, tx pgx.Tx, name string)
 }
 
 // scanBeer сканирует строку из базы данных в сущность Beer. Если строка не соответствует структуре сущности, возвращает ошибку.
->>>>>>> 079e0e0 (feat(errors): add app errors)
 func scanBeer(row pgx.Row) (*entities.Beer, error) {
 	var beer entities.Beer
 	var reviewRatingSum, reviewAmount uint

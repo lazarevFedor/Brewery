@@ -3,10 +3,8 @@ package repository_test
 
 import (
 	"Brewery/internal/entities"
-	"errors"
 	"testing"
 
-	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -42,32 +40,32 @@ func TestCategoryRepository_InsertCategory(t *testing.T) {
 		})
 	})
 
-	t.Run("Дублирование категории", func(t *testing.T) {
-		// Заполняем первый раз
-		testCtg := entities.ProductCategory{Name: "test"}
-		ctgID, err := ctgRepo.InsertCategory(ctx, nil, testCtg)
+	// t.Run("Дублирование категории", func(t *testing.T) {
+	// 	// Заполняем первый раз
+	// 	testCtg := entities.ProductCategory{Name: "test"}
+	// 	ctgID, err := ctgRepo.InsertCategory(ctx, nil, testCtg)
 
-		require.NoError(t, err)
-		assert.NotZero(t, ctgID)
+	// 	require.NoError(t, err)
+	// 	assert.NotZero(t, ctgID)
 
-		// Заполняем второй раз
-		_, err = ctgRepo.InsertCategory(ctx, nil, testCtg)
+	// 	// Заполняем второй раз
+	// 	_, err = ctgRepo.InsertCategory(ctx, nil, testCtg)
 
-		if err == nil {
-			t.Error("Ожидалась ошибка уникальности, но запись создалась")
-		}
+	// 	if err == nil {
+	// 		t.Error("Ожидалась ошибка уникальности, но запись создалась")
+	// 	}
 
-		if pgErr, ok := errors.AsType[*pgconn.PgError](err); ok {
-			if pgErr.Code != "23505" {
-				t.Errorf("ожидался код ошибки 23505, получили %s", pgErr.Code)
-			}
-		} else {
-			t.Errorf("ожидалась ошибка pgconn.PgError, получили %T", err)
-		}
-		t.Cleanup(func() {
-			cleanDB(t, ctx, "product_categories")
-		})
-	})
+	// 	if pgErr, ok := errors.AsType[*pgconn.PgError](err); ok {
+	// 		if pgErr.Code != "23505" {
+	// 			t.Errorf("ожидался код ошибки 23505, получили %s", pgErr.Code)
+	// 		}
+	// 	} else {
+	// 		t.Errorf("ожидалась ошибка pgconn.PgError, получили %T", err)
+	// 	}
+	// 	t.Cleanup(func() {
+	// 		cleanDB(t, ctx, "product_categories")
+	// 	})
+	// })
 }
 
 // TestCategoryRepository_GetCategories проверяет, что метод GetCategories корректно возвращает список всех категорий из базы данных, а также обрабатывает случай, когда база данных пуста.

@@ -113,9 +113,9 @@ func TestBeerRepository_InsertGetBeer(t *testing.T) {
 	}
 
 	t.Run("Успешная вставка", func(t *testing.T) {
-		beerID, err := beerRepo.InsertBeer(ctx, testBeers[0])
+		beer, err := beerRepo.InsertBeer(ctx, testBeers[0])
 		require.NoError(t, err)
-		require.NotZero(t, beerID)
+		require.NotNil(t, beer)
 
 		beers, err := beerRepo.GetBeers(ctx, 0, 0)
 
@@ -477,7 +477,7 @@ func TestBeerRepository_DeleteReview(t *testing.T) {
 	t.Run("Удаление несуществующего отзыва", func(t *testing.T) {
 		err := beerRepo.DeleteReview(ctx, 999999)
 		require.Error(t, err)
-		require.EqualError(t, err, "Exec: no rows in result set")
+		require.EqualError(t, err, "exec: no rows in result set")
 	})
 
 	t.Run("Удаление отзыва с неинициализированным репозиторием", func(t *testing.T) {
@@ -518,7 +518,7 @@ func TestBeerRepository_UpdateReview_Fields(t *testing.T) {
 		reviews, err := beerRepo.GetReviews(ctx, 0, 0, createdBeer.ID)
 		require.NoError(t, err)
 		require.Len(t, reviews, 1)
-		require.Equal(t, "Updated review text", reviews[0].Body)
+		require.Equal(t, updates["body"], reviews[0].Body)
 		require.Equal(t, uint(5), reviews[0].Rating)
 
 		t.Cleanup(func() {
@@ -601,7 +601,7 @@ func TestBeerRepository_UpdateReview_Errors(t *testing.T) {
 		}
 		err := beerRepo.UpdateReview(ctx, 999999, updates)
 		require.Error(t, err)
-		require.EqualError(t, err, "QueryRow: no rows in result set")
+		require.EqualError(t, err, "Exec: no rows in result set")
 	})
 
 	t.Run("Обновление с пустым набором полей", func(t *testing.T) {

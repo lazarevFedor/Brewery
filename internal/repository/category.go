@@ -87,7 +87,7 @@ func (r *CategoryPostgres) GetCategories(ctx context.Context) ([]entities.Produc
 // InsertCategory вставляет новую категорию в базу данных. Если категория с таким именем уже существует,
 // возвращает ошибку. Если ParentID не равен 0, проверяет, что родительская категория существует.
 // Возвращает ID новой категории.
-func (r *CategoryPostgres) 	InsertCategory(ctx context.Context, tx pgx.Tx, category entities.ProductCategory) (uint, error){
+func (r *CategoryPostgres) InsertCategory(ctx context.Context, tx pgx.Tx, category entities.ProductCategory) (uint, error){
 	if r.Pool == nil {
 		return 0, apperrors.Internal(errors.New("pool is nil"))
 	}
@@ -107,7 +107,7 @@ func (r *CategoryPostgres) 	InsertCategory(ctx context.Context, tx pgx.Tx, categ
 
 	var categoryID uint
 	if err = row.Scan(&categoryID); err != nil {
-		return 0, apperrors.Internal(fmt.Errorf("city QueryRow: %w", err))
+		return 0, apperrors.Internal(fmt.Errorf("category QueryRow: %w", err))
 	}
 
 	return categoryID, nil
@@ -268,7 +268,9 @@ func (r *CategoryPostgres) GetCategoryID(ctx context.Context, tx pgx.Tx, ctgName
 
 	var categoryID uint
 	if err = row.Scan(&categoryID); err != nil {
-		return 0, apperrors.Internal(fmt.Errorf("city QueryRow: %w", err))
+		if !errors.Is(err, pgx.ErrNoRows){
+			return 0, apperrors.Internal(fmt.Errorf("QueryRow: %w", err))
+		}
 	}
 
 	return categoryID, nil

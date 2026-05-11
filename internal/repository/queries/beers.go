@@ -102,7 +102,8 @@ func InsertReview(review entities.Review) sq.InsertBuilder {
 func DeleteReview(id uint) sq.DeleteBuilder {
 	return psql.
 		Delete(reviewsTable).
-		Where(sq.Eq{"id": id}).Suffix("RETURNING beer_id, rating")
+		Where(sq.Eq{"id": id}).
+		Suffix("RETURNING beer_id, rating")
 }
 
 // DeleteBeer возвращает запрос для удаления пива из таблицы beers по его ID.
