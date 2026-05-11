@@ -1,4 +1,3 @@
-// Package routers содержит регистрацию все url путей сервера
 package routers
 
 import (
@@ -8,59 +7,90 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-func RegisterRoutes(e *gin.Engine, h handlers.Handlers) {
+func RegisterRoutes(
+	e *gin.Engine,
+	beersHandler handlers.BeersHandlers,
+	reviewHandler handlers.ReviewsHandlers,
+	categoryHandler handlers.CategoriesHandlers,
+	enumHandler handlers.EnumHandlers,
+	parametersHandler handlers.ParametersHandlers,
+	aggregateHandler handlers.AggregateHandlers,
+) {
 	api := e.Group("/api")
 	{
 		beers := api.Group("/beers")
 		{
-			beers.POST("", h.BeersHandler.CreateBeer)
-			beers.PATCH("/:id", h.BeersHandler.UpdateBeer)
-			beers.DELETE("/:id", h.BeersHandler.DeleteBeer)
-			beers.GET("", h.BeersHandler.GetAllBeers)
+			beers.POST("", beersHandler.CreateBeer)
+			beers.PATCH("/:id", beersHandler.UpdateBeer)
+			beers.DELETE("/:id", beersHandler.DeleteBeer)
+			beers.GET("", beersHandler.GetAllBeers)
 
 			features := beers.Group("/feats")
 			{
-				features.GET("/:beer_id", h.BeersHandler.GetFeature)
-				features.POST("/:beer_id", h.BeersHandler.CreateFeature)
-				features.PATCH("/:beer_id", h.BeersHandler.UpdateBeer)
-				features.DELETE("/:beer_id", h.BeersHandler.DeleteFeature)
+				features.GET("/:beer_id", beersHandler.GetFeature)
+				features.POST("/:beer_id", beersHandler.CreateFeature)
+				features.PATCH("/:beer_id", beersHandler.UpdateBeer)
+				features.DELETE("/:beer_id", beersHandler.DeleteFeature)
 			}
 		}
 
 		reviews := api.Group("/reviews")
 		{
-			reviews.POST("/:beer_id", h.ReviewHandler.CreateReview)
-			reviews.GET("/:beer_id", h.ReviewHandler.GetBeersReviews)
-			reviews.DELETE("/:id", h.ReviewHandler.DeleteReview)
-			reviews.PATCH("/:id", h.ReviewHandler.UpdateReview)
+			reviews.POST("/:beer_id", reviewHandler.CreateReview)
+			reviews.GET("/:beer_id", reviewHandler.GetBeersReviews)
+			reviews.DELETE("/:id", reviewHandler.DeleteReview)
+			reviews.PATCH("/:id", reviewHandler.UpdateReview)
 		}
 
 		categories := api.Group("/categories")
 		{
-			categories.POST("", h.CategoryHandler.CreateCategory)
-			categories.GET("/:id", h.CategoryHandler.GetCategoryByID)
-			categories.PATCH("/:id", h.CategoryHandler.UpdateCategory)
-			categories.DELETE("/:id", h.CategoryHandler.DeleteCategory)
-			categories.GET("", h.CategoryHandler.GetAllCategories)
-			categories.GET("/beers/:category_id", h.CategoryHandler.GetBeersByCategory)
-			categories.GET("/parent/:id", h.CategoryHandler.GetParentCategory)
-			categories.GET("/children/:id", h.CategoryHandler.GetChildCategory)
+			categories.POST("", categoryHandler.CreateCategory)
+			categories.GET("/:id", categoryHandler.GetCategoryByID)
+			categories.PATCH("/:id", categoryHandler.UpdateCategory)
+			categories.DELETE("/:id", categoryHandler.DeleteCategory)
+			categories.GET("", categoryHandler.GetAllCategories)
+			categories.GET("/beers/:category_id", categoryHandler.GetBeersByCategory)
+			categories.GET("/parent/:id", categoryHandler.GetParentCategory)
+			categories.GET("/children/:id", categoryHandler.GetChildCategory)
+
+			parameters := categories.Group("/parameters")
+			{
+				parameters.GET("", parametersHandler.ListCategoryParameters)
+				parameters.PATCH("/:category_id/apply", parametersHandler.ApplyParametersToCategory)
+
+				parameters.POST("/numeric", parametersHandler.CreateNumericParameter)
+				parameters.PATCH("/numeric/:id", parametersHandler.UpdateNumericParameter)
+				parameters.DELETE("/numeric/:id", parametersHandler.DeleteNumericParameter)
+
+				parameters.POST("/enum", parametersHandler.CreateEnumParameter)
+				parameters.PATCH("/enum/:id", parametersHandler.UpdateEnumParameter)
+				parameters.DELETE("/enum/:id", parametersHandler.DeleteEnumParameter)
+			}
 		}
 
 		enums := api.Group("/enums")
 		{
-			enums.POST("", h.EnumHandler.CreateEnum)
-			enums.GET("", h.EnumHandler.GetEnum)
-			enums.PATCH("/:id", h.EnumHandler.UpdateEnum)
-			enums.DELETE("/:id", h.EnumHandler.DeleteEnum)
+			enums.POST("", enumHandler.CreateEnum)
+			enums.GET("", enumHandler.GetEnum)
+			enums.PATCH("/:id", enumHandler.UpdateEnum)
+			enums.DELETE("/:id", enumHandler.DeleteEnum)
 
-			value := enums.Group("value")
+			value := enums.Group("/value")
 			{
-				value.POST("", h.EnumHandler.CreateValue)
-				value.GET("", h.EnumHandler.GetValue)
-				value.PATCH("/:id", h.EnumHandler.UpdateValue)
-				value.DELETE("/:id", h.EnumHandler.DeleteValue)
+				value.POST("", enumHandler.CreateValue)
+				value.GET("", enumHandler.GetValue)
+				value.PATCH("/:id", enumHandler.UpdateValue)
+				value.DELETE("/:id", enumHandler.DeleteValue)
 			}
+		}
+
+		aggregates := api.Group("/aggregates")
+		{
+			aggregates.POST("", aggregateHandler.CreateAggregate)
+			aggregates.GET("/:id", aggregateHandler.GetAggregates)
+			aggregates.PATCH("/:id", aggregateHandler.UpdateAggregate)
+			aggregates.DELETE("/:id", aggregateHandler.DeleteAggregate)
+			aggregates.PATCH("/:category_id/apply", aggregateHandler.ApplyAggregateToCategory)
 		}
 	}
 
