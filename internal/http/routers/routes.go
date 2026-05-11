@@ -78,11 +78,11 @@ func RegisterRoutes(e *gin.Engine, h handlers.Handlers) {
 
 		aggregates := api.Group("/aggregates")
 		{
-			aggregates.GET("", h.AggregateHandler.GetAggregates)
-			aggregates.POST("", h.AggregateHandler.CreateAggregate)
-			aggregates.PATCH("/:id", h.AggregateHandler.UpdateAggregate)
-			aggregates.DELETE("/:id", h.AggregateHandler.DeleteAggregate)
-			aggregates.PATCH("/:category_id/apply", h.AggregateHandler.ApplyAggregateToCategory)
+			aggregates.GET("", h.AggregatesHandler.GetAggregates)
+			aggregates.POST("", h.AggregatesHandler.CreateAggregate)
+			aggregates.PATCH("/:id", h.AggregatesHandler.UpdateAggregate)
+			aggregates.DELETE("/:id", h.AggregatesHandler.DeleteAggregate)
+			aggregates.PATCH("/:category_id/apply", h.AggregatesHandler.ApplyAggregateToCategory)
 		}
 	}
 

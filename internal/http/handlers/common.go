@@ -14,5 +14,5 @@ type Handlers struct {
 	ReviewHandler     ReviewsHandlers
 	EnumHandler       EnumHandlers
 	ParametersHandler ParametersHandlers
-	AggregateHandler  AggregateHandlers
+	AggregatesHandler AggregateHandlers
 }
