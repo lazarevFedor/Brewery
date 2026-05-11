@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// fetchCategoryParams - вспомогательная функция для получения связанных с категорией параметров из базы данных для проверки результатов тестов.
 func fetchCategoryParams(t *testing.T, ctx context.Context, categoryID uint) ([]int, []int) {
 	t.Helper()
 
@@ -26,6 +27,7 @@ func fetchCategoryParams(t *testing.T, ctx context.Context, categoryID uint) ([]
 	return numericIDs, enumIDs
 }
 
+// countQueryRows - вспомогательная функция для подсчета количества строк, возвращаемых запросом, для проверки результатов тестов.
 func countQueryRows(t *testing.T, ctx context.Context, queryBuilder interface{ ToSql() (string, []any, error) }) int {
 	t.Helper()
 
@@ -44,6 +46,7 @@ func countQueryRows(t *testing.T, ctx context.Context, queryBuilder interface{ T
 	return count
 }
 
+// insertCategoryTree - вспомогательная функция для создания иерархии категорий в базе данных для проверки наследования параметров в тестах.
 func insertCategoryTree(t *testing.T, ctx context.Context) (uint, uint, uint) {
 	t.Helper()
 
@@ -61,6 +64,7 @@ func insertCategoryTree(t *testing.T, ctx context.Context) (uint, uint, uint) {
 	return rootID, childID, grandChildID
 }
 
+// insertNumericParam - вспомогательная функция для вставки числового параметра в базу данных и возврата его ID для использования в тестах.
 func insertNumericParam(t *testing.T, ctx context.Context, minVal, maxVal int, field string, inheritable bool) uint {
 	t.Helper()
 
@@ -77,6 +81,7 @@ func insertNumericParam(t *testing.T, ctx context.Context, minVal, maxVal int, f
 	return got.ID
 }
 
+// insertEnumParam - вспомогательная функция для вставки перечислимого параметра в базу данных и возврата его ID для использования в тестах.
 func insertEnumParam(t *testing.T, ctx context.Context, enumClassID uint, inheritable bool) uint {
 	t.Helper()
 
@@ -90,11 +95,12 @@ func insertEnumParam(t *testing.T, ctx context.Context, enumClassID uint, inheri
 	return got.ID
 }
 
+// TestParameterRepository_InsertNumericParameter тестирует вставку числового параметра
 func TestParameterRepository_InsertNumericParameter(t *testing.T) {
 	ctx := t.Context()
 	repo := repository.NewParameterPostgres(testDB)
 
-	t.Run("valid insert", func(t *testing.T) {
+	t.Run("Успешная вставка", func(t *testing.T) {
 		cleanDB(t, ctx, "numeric_parameters")
 
 		param := &entities.NumericParameter{
@@ -119,7 +125,7 @@ func TestParameterRepository_InsertNumericParameter(t *testing.T) {
 		assert.Equal(t, 1, count)
 	})
 
-	t.Run("multiple inserts are unique", func(t *testing.T) {
+	t.Run("Множественные вставки уникальны", func(t *testing.T) {
 		cleanDB(t, ctx, "numeric_parameters")
 
 		cases := []struct {
@@ -144,11 +150,12 @@ func TestParameterRepository_InsertNumericParameter(t *testing.T) {
 	})
 }
 
+// TestParameterRepository_UpdateNumericParameter тестирует обновление числового параметра.
 func TestParameterRepository_UpdateNumericParameter(t *testing.T) {
 	ctx := t.Context()
 	repo := repository.NewParameterPostgres(testDB)
 
-	t.Run("update existing parameter", func(t *testing.T) {
+	t.Run("Обновление существующего параметра", func(t *testing.T) {
 		cleanDB(t, ctx, "numeric_parameters")
 
 		paramID := insertNumericParam(t, ctx, 1, 2, "f", false)
@@ -161,25 +168,26 @@ func TestParameterRepository_UpdateNumericParameter(t *testing.T) {
 		assert.True(t, updated.Inheritable)
 	})
 
-	t.Run("empty updates return error", func(t *testing.T) {
+	t.Run("Пустое обновление возвращает ошибку", func(t *testing.T) {
 		cleanDB(t, ctx, "numeric_parameters")
 		paramID := insertNumericParam(t, ctx, 1, 2, "f", false)
 		_, err := repo.UpdateNumericParameter(ctx, paramID, map[string]any{})
 		require.Error(t, err)
 	})
 
-	t.Run("non existent id returns error", func(t *testing.T) {
+	t.Run("Несуществующий ID возвращает ошибку", func(t *testing.T) {
 		cleanDB(t, ctx, "numeric_parameters")
 		_, err := repo.UpdateNumericParameter(ctx, 99999, map[string]any{"min_val": 3})
 		require.Error(t, err)
 	})
 }
 
+// TestParameterRepository_ApplyParametersAndInheritance тестирует применение параметров к категории.
 func TestParameterRepository_ApplyParametersAndInheritance(t *testing.T) {
 	ctx := t.Context()
 	repo := repository.NewParameterPostgres(testDB)
 
-	t.Run("apply on root propagates only inheritable parameters to children", func(t *testing.T) {
+	t.Run("Применение к корню распространяет только наследуемые параметры на потомков", func(t *testing.T) {
 		cleanDB(t, ctx, "product_categories")
 		cleanDB(t, ctx, "numeric_parameters")
 		cleanDB(t, ctx, "enum_parameters")
@@ -207,7 +215,7 @@ func TestParameterRepository_ApplyParametersAndInheritance(t *testing.T) {
 		assert.ElementsMatch(t, []int{int(eInheritable)}, grandEnum)
 	})
 
-	t.Run("apply on empty input is no-op for category arrays", func(t *testing.T) {
+	t.Run("Пустой ввод при применении не изменяет массивы категорий", func(t *testing.T) {
 		cleanDB(t, ctx, "product_categories")
 		cleanDB(t, ctx, "numeric_parameters")
 		cleanDB(t, ctx, "enum_parameters")
@@ -227,11 +235,12 @@ func TestParameterRepository_ApplyParametersAndInheritance(t *testing.T) {
 	})
 }
 
+// TestParameterRepository_DeleteNumericParameter тестирует удаление числового параметра
 func TestParameterRepository_DeleteNumericParameter(t *testing.T) {
 	ctx := t.Context()
 	repo := repository.NewParameterPostgres(testDB)
 
-	t.Run("cleanup trigger removes numeric parameter from all categories", func(t *testing.T) {
+	t.Run("Триггер очистки удаляет числовой параметр из всех категорий", func(t *testing.T) {
 		cleanDB(t, ctx, "product_categories")
 		cleanDB(t, ctx, "numeric_parameters")
 		cleanDB(t, ctx, "enum_parameters")
@@ -256,18 +265,19 @@ func TestParameterRepository_DeleteNumericParameter(t *testing.T) {
 		assert.Zero(t, count)
 	})
 
-	t.Run("delete non existent numeric parameter returns error", func(t *testing.T) {
+	t.Run("Удаление несуществующего числового параметра возвращает ошибку", func(t *testing.T) {
 		cleanDB(t, ctx, "numeric_parameters")
 		_, err := repo.DeleteNumericParameter(ctx, 99999)
 		require.Error(t, err)
 	})
 }
 
+// TestParameterRepository_DeleteEnumParameter тестирует удаление перечислимого параметра
 func TestParameterRepository_DeleteEnumParameter(t *testing.T) {
 	ctx := t.Context()
 	repo := repository.NewParameterPostgres(testDB)
 
-	t.Run("cleanup trigger removes enum parameter from all categories", func(t *testing.T) {
+	t.Run("Триггер очистки удаляет перечислимый параметр из всех категорий", func(t *testing.T) {
 		cleanDB(t, ctx, "product_categories")
 		cleanDB(t, ctx, "numeric_parameters")
 		cleanDB(t, ctx, "enum_parameters")
@@ -292,18 +302,19 @@ func TestParameterRepository_DeleteEnumParameter(t *testing.T) {
 		assert.Zero(t, count)
 	})
 
-	t.Run("delete non existent enum parameter returns error", func(t *testing.T) {
+	t.Run("Удаление несуществующего перечислимого параметра возвращает ошибку", func(t *testing.T) {
 		cleanDB(t, ctx, "enum_parameters")
 		_, err := repo.DeleteEnumParameter(ctx, 99999)
 		require.Error(t, err)
 	})
 }
 
+// TestParameterRepository_UpdateInheritableAndInherit тестирует обновление флага наследования для числового и перечислимого параметра
 func TestParameterRepository_UpdateInheritableAndInherit(t *testing.T) {
 	ctx := t.Context()
 	repo := repository.NewParameterPostgres(testDB)
 
-	t.Run("update numeric parameter inheritable to true propagates to children", func(t *testing.T) {
+	t.Run("Установка inheritable в true распространяет числовой параметр на потомков", func(t *testing.T) {
 		cleanDB(t, ctx, "product_categories")
 		cleanDB(t, ctx, "numeric_parameters")
 		cleanDB(t, ctx, "enum_parameters")
@@ -337,7 +348,7 @@ func TestParameterRepository_UpdateInheritableAndInherit(t *testing.T) {
 		assert.Contains(t, grandNumeric, int(nLocal))
 	})
 
-	t.Run("update enum parameter inheritable to true propagates to children", func(t *testing.T) {
+	t.Run("Установка inheritable в true распространяет перечислимый параметр на потомков", func(t *testing.T) {
 		cleanDB(t, ctx, "product_categories")
 		cleanDB(t, ctx, "numeric_parameters")
 		cleanDB(t, ctx, "enum_parameters")
@@ -372,11 +383,12 @@ func TestParameterRepository_UpdateInheritableAndInherit(t *testing.T) {
 	})
 }
 
+// TestParameterRepository_UpdateNumericParameterInheritableFalsToTrue тестирует изменение флага наследования для числового параметра с false на true
 func TestParameterRepository_UpdateNumericParameterInheritableFalsToTrue(t *testing.T) {
 	ctx := t.Context()
 	repo := repository.NewParameterPostgres(testDB)
 
-	t.Run("toggle inheritable from false to true adds parameter to descendants", func(t *testing.T) {
+	t.Run("Переключение inheritable с false на true добавляет параметр потомкам", func(t *testing.T) {
 		cleanDB(t, ctx, "product_categories")
 		cleanDB(t, ctx, "numeric_parameters")
 		cleanDB(t, ctx, "enum_parameters")
@@ -411,11 +423,12 @@ func TestParameterRepository_UpdateNumericParameterInheritableFalsToTrue(t *test
 	})
 }
 
+// TestParameterRepository_UpdateNumericParameterInheritableTrueToFalse тестирует изменение флага наследования для числового параметра с true на false
 func TestParameterRepository_UpdateNumericParameterInheritableTrueToFalse(t *testing.T) {
 	ctx := t.Context()
 	repo := repository.NewParameterPostgres(testDB)
 
-	t.Run("toggle inheritable from true to false removes parameter from descendants", func(t *testing.T) {
+	t.Run("Переключение inheritable с true на false удаляет параметр у потомков", func(t *testing.T) {
 		cleanDB(t, ctx, "product_categories")
 		cleanDB(t, ctx, "numeric_parameters")
 		cleanDB(t, ctx, "enum_parameters")
@@ -450,11 +463,12 @@ func TestParameterRepository_UpdateNumericParameterInheritableTrueToFalse(t *tes
 	})
 }
 
+// TestParameterRepository_UpdateEnumParameterInheritableTrueToFalse тестирует изменение флага наследования для перечислимого параметра с true на false
 func TestParameterRepository_UpdateEnumParameterInheritableTrueToFalse(t *testing.T) {
 	ctx := t.Context()
 	repo := repository.NewParameterPostgres(testDB)
 
-	t.Run("toggle inheritable from true to false removes enum parameter from descendants", func(t *testing.T) {
+	t.Run("Переключение inheritable с true на false удаляет перечислимый параметр у потомков", func(t *testing.T) {
 		cleanDB(t, ctx, "product_categories")
 		cleanDB(t, ctx, "numeric_parameters")
 		cleanDB(t, ctx, "enum_parameters")
@@ -489,11 +503,12 @@ func TestParameterRepository_UpdateEnumParameterInheritableTrueToFalse(t *testin
 	})
 }
 
+// TestParameterRepository_EdgeCases тестирует крайние случаи для репозитория параметров, включая получение параметров для категории без параметров.
 func TestParameterRepository_EdgeCases(t *testing.T) {
 	ctx := t.Context()
 	repo := repository.NewParameterPostgres(testDB)
 
-	t.Run("GetParameters returns empty for category without params", func(t *testing.T) {
+	t.Run("GetParameters возвращает пустой набор для категории без параметров", func(t *testing.T) {
 		cleanDB(t, ctx, "product_categories")
 		cleanDB(t, ctx, "numeric_parameters")
 		cleanDB(t, ctx, "enum_parameters")
@@ -506,7 +521,7 @@ func TestParameterRepository_EdgeCases(t *testing.T) {
 		assert.Empty(t, e)
 	})
 
-	t.Run("ApplyParameters deduplicates input ids", func(t *testing.T) {
+	t.Run("ApplyParameters удаляет дубликаты входных ID", func(t *testing.T) {
 		cleanDB(t, ctx, "product_categories")
 		cleanDB(t, ctx, "numeric_parameters")
 		cleanDB(t, ctx, "enum_parameters")
@@ -514,7 +529,6 @@ func TestParameterRepository_EdgeCases(t *testing.T) {
 		rootID, childID, _ := insertCategoryTree(t, ctx)
 		pid := insertNumericParam(t, ctx, 1, 2, "dup_test", false)
 
-		// Apply same id multiple times
 		rows, err := repo.ApplyParameters(ctx, rootID, []int{int(pid), int(pid), int(pid)}, nil)
 		require.NoError(t, err)
 		assert.GreaterOrEqual(t, rows, 1)
@@ -522,21 +536,17 @@ func TestParameterRepository_EdgeCases(t *testing.T) {
 		rootNums, _ := fetchCategoryParams(t, ctx, rootID)
 		childNums, _ := fetchCategoryParams(t, ctx, childID)
 
-		// Should contain exactly one entry for pid on root and none on child (non-inheritable)
 		assert.ElementsMatch(t, []int{int(pid)}, rootNums)
 		assert.Empty(t, childNums)
 	})
 
-	// Note: test for propagation from multiple parents omitted because schema enforces single root
-
-	t.Run("Toggle inheritable when parameter not applied anywhere is no-op", func(t *testing.T) {
+	t.Run("Переключение inheritable для непримененного параметра — нет действий", func(t *testing.T) {
 		cleanDB(t, ctx, "product_categories")
 		cleanDB(t, ctx, "numeric_parameters")
 		cleanDB(t, ctx, "enum_parameters")
 
 		pid := insertNumericParam(t, ctx, 1, 2, "orphan", false)
 
-		// Should not error when toggling, even though not applied
 		updated, err := repo.UpdateNumericParameter(ctx, pid, map[string]any{"inheritable": true})
 		require.NoError(t, err)
 		require.NotNil(t, updated)
