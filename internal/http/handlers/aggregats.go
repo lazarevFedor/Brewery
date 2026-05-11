@@ -25,6 +25,12 @@ type aggregateHandlers struct {
 	uc usecase.AggregateService
 }
 
+func NewAggregateHandlers(uc usecase.AggregateService) AggregateHandlers {
+	return &aggregateHandlers{
+		uc: uc,
+	}
+}
+
 func (h *aggregateHandlers) CreateAggregate(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
