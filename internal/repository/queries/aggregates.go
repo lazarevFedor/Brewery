@@ -5,6 +5,7 @@ import (
 	"Brewery/internal/entities"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/lib/pq"
 )
 
 const (
@@ -20,8 +21,8 @@ func InsertAggregate(aggregate *entities.Aggregate) sq.InsertBuilder {
 	data := map[string]any{
 		"name":                  aggregate.Name,
 		"description":           aggregate.Description,
-		"numeric_parameter_ids": aggregate.NumericParameters,
-		"enum_parameter_ids":    aggregate.EnumParameters,
+		"numeric_parameter_ids": pq.Array(aggregate.NumericParameters),
+		"enum_parameter_ids":    pq.Array(aggregate.EnumParameters),
 	}
 	return psql.Insert(aggregatesTable).
 		SetMap(data).
@@ -31,8 +32,36 @@ func InsertAggregate(aggregate *entities.Aggregate) sq.InsertBuilder {
 // UpdateAggregate возвращает запрос для обновления агрегата в таблице aggregates по его ID
 // с использованием предоставленных обновлений и возвращает обновленный агрегат.
 func UpdateAggregate(id uint, updates map[string]any) sq.UpdateBuilder {
+	if updates == nil {
+		return psql.Update(aggregatesTable).
+			SetMap(updates).
+			Where(sq.Eq{"id": id}).
+			Suffix("RETURNING " + aggregateReturningFields)
+	}
+
+	data := make(map[string]any, len(updates))
+	for k, v := range updates {
+		switch k {
+		case "numeric_parameter_ids", "enum_parameter_ids":
+			switch t := v.(type) {
+			case []int:
+				data[k] = pq.Array(t)
+			case []uint:
+				tmp := make([]int, len(t))
+				for i, val := range t {
+					tmp[i] = int(val)
+				}
+				data[k] = pq.Array(tmp)
+			default:
+				data[k] = v
+			}
+		default:
+			data[k] = v
+		}
+	}
+
 	return psql.Update(aggregatesTable).
-		SetMap(updates).
+		SetMap(data).
 		Where(sq.Eq{"id": id}).
 		Suffix("RETURNING " + aggregateReturningFields)
 }
@@ -54,7 +83,7 @@ func GetAggregates(name string) sq.SelectBuilder {
 		From(aggregatesTable)
 
 	if name != "" {
-		query = query.Where(sq.Eq{"name": name}).OrderBy(name)
+		query = query.Where(sq.Eq{"name": name}).OrderBy("name")
 	}
 
 	return query
@@ -64,7 +93,8 @@ func GetAggregates(name string) sq.SelectBuilder {
 // обновляя поля numeric_parameter_ids и enum_parameter_ids в таблице product_categories
 // на значения из агрегата, соответствующего заданному ID.
 func ApplyAggregate(categoryID uint, id uint) sq.UpdateBuilder {
-	return psql.Update(tableCategories).
+	return psql.
+		Update(tableCategories).
 		Set("numeric_parameter_ids", sq.Expr("a.numeric_parameter_ids")).
 		Set("enum_parameter_ids", sq.Expr("a.enum_parameter_ids")).
 		From(aggregatesTable + " a").
