@@ -3,9 +3,9 @@ package handlers
 import (
 	"errors"
 	"io"
+	"slices"
 	"strconv"
 	"strings"
-	"slices"
 
 	"github.com/gin-gonic/gin"
 )
@@ -34,19 +34,20 @@ func writeError(c *gin.Context, code int, errType, message string) {
 }
 
 var numFields = []string{"rating", "abv", "ibu", "amount"}
+
 func validateFilterParam(filter string) (map[string]any, error) {
 	filterParams := strings.Split(filter, ":")
 	if len(filterParams) != filterParamArgsNum {
 		return nil, errors.New("неправильный параметр")
 	}
-	
-	if !slices.Contains(numFields, filterParams[0]){
+
+	if !slices.Contains(numFields, filterParams[0]) {
 		return nil, errors.New("неверное поле")
 	}
 	filterMap := map[string]any{
 		"field": filterParams[0],
 		"value": filterParams[2],
-	}	
+	}
 
 	rawVal := filterParams[2]
 	valInt, err := strconv.Atoi(rawVal)
@@ -56,12 +57,11 @@ func validateFilterParam(filter string) (map[string]any, error) {
 			return nil, errors.New(InvalidParameters)
 		}
 		filterMap["value"] = valFloat32
-
 	} else {
 		filterMap["value"] = valInt
 	}
 
-	switch filterParams[1]{
+	switch filterParams[1] {
 	case "eq", "gt", "ge", "lt", "le", "ne":
 		filterMap["operation"] = filterParams[1]
 	default:
@@ -74,7 +74,7 @@ func validateFilterParam(filter string) (map[string]any, error) {
 // getUintParam извлекает и валидирует целочисленный ненулевой параметр из URL, например id.
 func getUintParam(c *gin.Context, name string) (uint, error) {
 	param := c.Param(name)
-	if param == ""{
+	if param == "" {
 		return 0, nil
 	}
 
