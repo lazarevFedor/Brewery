@@ -9,5 +9,4 @@ const (
 	CodeConflict          = "CONFLICT"
 	CodeNotFound          = "NOT_FOUND"
 	CodeValidation        = "VALIDATION_ERROR"
-	
 )

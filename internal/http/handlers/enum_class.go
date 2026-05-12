@@ -193,8 +193,6 @@ func (h *enumHandlers) DeleteEnum(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-
-
 func (h *enumHandlers) CreateValue(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -212,7 +210,6 @@ func (h *enumHandlers) CreateValue(c *gin.Context) {
 
 	log.Debug(c.Request.Context(), "Bode read Create")
 
-
 	var req entities.EnumValue
 	if err = easyjson.Unmarshal(body, &req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
@@ -220,14 +217,13 @@ func (h *enumHandlers) CreateValue(c *gin.Context) {
 		return
 	}
 
-	if req.EnumClassID == 0{
+	if req.EnumClassID == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
 		log.Error(c.Request.Context(), errors.New("class_id is empty").Error())
 		return
 	}
-	
-	log.Debug(c.Request.Context(), "Unmarshaled Create")
 
+	log.Debug(c.Request.Context(), "Unmarshaled Create")
 
 	enumValueID, err := h.uc.CreateEnumValue(c.Request.Context(), req)
 	if err != nil {
@@ -358,4 +354,3 @@ func (h *enumHandlers) DeleteValue(c *gin.Context) {
 	log.Info(c.Request.Context(), fmt.Sprintf("action=delete resource=beer status=success id=%d", id))
 	c.Status(http.StatusOK)
 }
-

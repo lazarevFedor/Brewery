@@ -2,7 +2,7 @@
   "ParamType": {
     "name": "type",
     "in": "query",
-    "required": true,
+    "required": false,
     "schema": {
       "type": "string",
       "enum": ["numeric", "enum"]
