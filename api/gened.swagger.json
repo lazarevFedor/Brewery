@@ -1211,19 +1211,27 @@
     },
     "/categories/parameters": {
       "get": {
-        "tags": [
-          "CategoryParams"
-        ],
-        "summary": "Get all parameters",
+        "tags": ["CategoryParams"],
+        "summary": "Get parameters with optional filtering by category and/or type",
         "operationId": "listCategoryParameters",
         "parameters": [
           {
             "$ref": "#/components/parameters/CategoryIdFilter"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["numeric", "enum"]
+            },
+            "description": "Filter parameters by type. If omitted, returns both numeric and enum parameters."
           }
         ],
         "responses": {
           "200": {
-            "description": "Parameters list",
+            "description": "Filtered list of parameters",
             "content": {
               "application/json": {
                 "schema": {

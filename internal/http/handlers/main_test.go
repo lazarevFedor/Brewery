@@ -16,13 +16,15 @@ import (
 )
 
 type testEnv struct {
-	Router   *gin.Engine
-	BeerMock *mocks.BeerServiceMock
-	EnumMock *mocks.EnumServiceMock
+	Router        *gin.Engine
+	BeerMock      *mocks.BeerServiceMock
+	EnumMock      *mocks.EnumServiceMock
+	ParameterMock *mocks.ParametersServiceMock
+	AggregateMock *mocks.AggregateServiceMock
 }
 
 // setupIntegrationRouter инициализирует тестовый сервер с моками и необходимыми middleware для интеграционных тестов.
-func setupIntegrationRouter(beerServiceM *mocks.BeerServiceMock, enumServiceM *mocks.EnumServiceMock) *gin.Engine {
+func setupIntegrationRouter(beerServiceM *mocks.BeerServiceMock, enumServiceM *mocks.EnumServiceMock, parametersServiseM *mocks.ParametersServiceMock, aggregateServiceM *mocks.AggregateServiceMock) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 
 	logCtx, err := logger.NewLoggerContext(context.Background(), true)
@@ -46,10 +48,12 @@ func setupIntegrationRouter(beerServiceM *mocks.BeerServiceMock, enumServiceM *m
 	engine.Use(middleware.MetricsMiddleware())
 
 	h := handlers.Handlers{
-		CategoryHandler: handlers.NewCategoriesHandlers(beerServiceM),
-		BeersHandler:    handlers.NewBeersHandlers(beerServiceM),
-		ReviewHandler:   handlers.NewReviewsHandlers(beerServiceM),
-		EnumHandler:     handlers.NewEnumHandlers(enumServiceM),
+		CategoryHandler:   handlers.NewCategoriesHandlers(beerServiceM),
+		BeersHandler:      handlers.NewBeersHandlers(beerServiceM),
+		ReviewHandler:     handlers.NewReviewsHandlers(beerServiceM),
+		EnumHandler:       handlers.NewEnumHandlers(enumServiceM),
+		ParametersHandler: handlers.NewParametersHandlers(parametersServiseM),
+		AggregatesHandler: handlers.NewAggregateHandlers(aggregateServiceM),
 	}
 	routers.RegisterRoutes(engine, h)
 
@@ -62,13 +66,17 @@ func newTestEnv(t *testing.T) *testEnv {
 	mc := minimock.NewController(t)
 	beerServiceMock := mocks.NewBeerServiceMock(mc)
 	enumServiceMock := mocks.NewEnumServiceMock(mc)
+	parametersServiceMock := mocks.NewParametersServiceMock(mc)
+	aggregateServiceMock := mocks.NewAggregateServiceMock(mc)
 
-	router := setupIntegrationRouter(beerServiceMock, enumServiceMock)
+	router := setupIntegrationRouter(beerServiceMock, enumServiceMock, parametersServiceMock, aggregateServiceMock)
 
 	return &testEnv{
-		Router:   router,
-		BeerMock: beerServiceMock,
-		EnumMock: enumServiceMock,
+		Router:        router,
+		BeerMock:      beerServiceMock,
+		EnumMock:      enumServiceMock,
+		ParameterMock: parametersServiceMock,
+		AggregateMock: aggregateServiceMock,
 	}
 }
 
