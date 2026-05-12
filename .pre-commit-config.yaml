@@ -12,7 +12,7 @@ repos:
 
       - id: go-mod-tidy
         name: 📦 Check go mod chores
-        entry: bash -c "make check_mod || (echo '❌ Файлы go.mod или go.sum изменились! Добавьте их (git add), закоммитьте и повторите пуш.' && exit 1)"
+        entry: make check_mod
         language: system
         pass_filenames: false
         stages: [manual, pre-push] 

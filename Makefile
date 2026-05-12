@@ -53,6 +53,11 @@ check_fmt:
 	@go fmt ./...
 	@git diff --exit-code --quiet
 
+
 check_mod:
 	@go mod tidy
-	@git diff --exit-code --quiet go.mod go.sum
+	@if ! git diff --exit-code --quiet go.mod go.sum; then \
+		git add go.mod go.sum; \
+		git commit --amend --no-edit; \
+		echo "Зависимости обновлены и добавлены в коммит!"; \
+	fi
