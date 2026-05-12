@@ -128,7 +128,7 @@ func (s *parametersService) ListParameters(ctx context.Context, categoryID uint)
 		return nil, nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	numeric, enum, err := s.paramRepo.GetParameters(ctx, categoryID)
+	numeric, enum, err := s.paramRepo.GetParameters(ctx, categoryID, entities.MissingType)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get parameters: %w", err)
 	}

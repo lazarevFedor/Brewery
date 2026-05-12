@@ -27,3 +27,9 @@ type EnumParameter struct {
 //
 //easyjson:json
 type EnumParameters []EnumParameter
+
+const (
+	MissingType = iota
+	NumericParameterType
+	EnumParameterType
+)
