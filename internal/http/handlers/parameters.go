@@ -291,7 +291,7 @@ func (h *parametersHandlers) ListCategoryParameters(c *gin.Context) {
 		categoryID = uint(id)
 	}
 
-	paramType := entities.MissingType
+	var paramType int
 	switch paramTypeStr {
 	case "numeric":
 		paramType = entities.NumericParameterType
