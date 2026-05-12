@@ -1,3 +1,6 @@
+// Package validator содержит функции для валидации сущностей на соответствие заданным параметрам категорий.
+//
+//nolint:cyclop
 package validator
 
 import (
@@ -9,6 +12,8 @@ import (
 )
 
 // ValidateBeerWithParams валидирует пиво на соответствие заданным параметрам у категории.
+//
+//nolint:funlen
 func ValidateBeerWithParams(beer entities.Beer, numericParams []entities.NumericParameter, enumParams []entities.EnumParameter, getEnumValues func(classID uint) ([]entities.EnumValue, error), getEnumClass func(classID uint) (*entities.EnumClass, error)) error {
 	val := reflect.ValueOf(beer)
 	if val.Kind() == reflect.Ptr {
@@ -17,7 +22,7 @@ func ValidateBeerWithParams(beer entities.Beer, numericParams []entities.Numeric
 
 	getField := func(fieldName string) (reflect.Value, bool) {
 		t := val.Type()
-		for i := 0; i < t.NumField(); i++ {
+		for i := range t.NumField() {
 			f := t.Field(i)
 
 			tag := strings.Split(f.Tag.Get("json"), ",")[0]
@@ -53,13 +58,16 @@ func ValidateBeerWithParams(beer entities.Beer, numericParams []entities.Numeric
 		}
 
 		var valFloat float64
-		switch fv.Kind() {
+		kind := fv.Kind()
+		switch kind {
 		case reflect.Float32, reflect.Float64:
 			valFloat = fv.Float()
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 			valFloat = float64(fv.Int())
-		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 			valFloat = float64(fv.Uint())
+		case reflect.Invalid, reflect.Bool, reflect.Complex64, reflect.Complex128, reflect.Array, reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Ptr, reflect.Slice, reflect.String, reflect.Struct, reflect.UnsafePointer:
+			continue
 		default:
 			continue
 		}
