@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"Brewery/internal/entities"
 	"errors"
 	"io"
 	"slices"
@@ -35,7 +36,7 @@ func writeError(c *gin.Context, code int, errType, message string) {
 
 var numFields = []string{"rating", "abv", "ibu", "amount"}
 
-func validateFilterParam(filter string) (map[string]any, error) {
+func validateFilterParam(filter string) (*entities.FilterParameter, error) {
 	filterParams := strings.Split(filter, ":")
 	if len(filterParams) != filterParamArgsNum {
 		return nil, errors.New("неправильный параметр")
@@ -44,31 +45,36 @@ func validateFilterParam(filter string) (map[string]any, error) {
 	if !slices.Contains(numFields, filterParams[0]) {
 		return nil, errors.New("неверное поле")
 	}
-	filterMap := map[string]any{
-		"field": filterParams[0],
-		"value": filterParams[2],
+	filterEntity := &entities.FilterParameter{
+		FieldName: filterParams[0],
 	}
 
 	rawVal := filterParams[2]
-	valInt, err := strconv.Atoi(rawVal)
+	val, err := strconv.ParseFloat(rawVal, 32)
 	if err != nil {
-		valFloat32, err := strconv.ParseFloat(rawVal, 32)
-		if err != nil {
-			return nil, errors.New(InvalidParameters)
-		}
-		filterMap["value"] = valFloat32
-	} else {
-		filterMap["value"] = valInt
+		return nil, errors.New(InvalidParameters)
 	}
-
+	filterEntity.Value = float32(val)
+	var oper entities.Operation
 	switch filterParams[1] {
-	case "eq", "gt", "ge", "lt", "le", "ne":
-		filterMap["operation"] = filterParams[1]
+	case "eq":
+		oper = entities.OpEqual
+	case "gt":
+		oper = entities.OpGreater
+	case "ge":
+		oper = entities.OpGreaterEqual
+	case "le":
+		oper = entities.OpLess
+	case "lt":
+		oper = entities.OpLessEqual
+	case "ne":
+		oper = entities.OpNotEqual
 	default:
 		return nil, errors.New("неверная операция")
 	}
+	filterEntity.Operation = oper
 
-	return filterMap, nil
+	return filterEntity, nil
 }
 
 // getUintParam извлекает и валидирует целочисленный ненулевой параметр из URL, например id.

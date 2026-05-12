@@ -17,7 +17,7 @@ const (
 	beerFeaturesTable = "beer_features"
 )
 
-// FullBeerSelect возвращает pапрос на проверку наличия сущности пива по id
+// Exists возвращает pапрос на проверку наличия сущности пива по id
 func Exists(id uint) sq.SelectBuilder {
 	return psql.Select("id").From(beersTable).Where(sq.Eq{"id": id})
 }
@@ -84,31 +84,41 @@ func UpdateBeerRating(beerID, rating uint, operation string) sq.UpdateBuilder {
 		Where(sq.Eq{"id": beerID})
 }
 
-func FilterBeers(filter map[string]any, categoryID uint) sq.SelectBuilder{
-	field, _ := filter["field"].(string)
-	oper, _ := filter["operation"].(string)
-	val := filter["value"]
-	
-	var pred any
-	switch oper{
-	case "eq":
-		pred = sq.Eq{field: val}
-	case "gt":
-		pred = sq.Gt{field: val}
-	case "ge":
-		pred = sq.GtOrEq{field: val}
-	case "lt":
-		pred = sq.Lt{field: val}
-	case "le": 
-		pred = sq.LtOrEq{field: val}
-	case "ne": 
-		pred = sq.NotEq{field: val}
+func FilterBeers(filters []*entities.FilterParameter, categoryID uint) sq.SelectBuilder {
+	query := FullBeerSelect()
+	if len(filters) != 0 {
+		for _, filter := range filters {
+			field := filter.FieldName
+			val := filter.Value
+			var pred any
+			if field == "rating" {
+				oper := filter.Operation
+				pred = sq.Expr("COALESCE(b.review_rating_sum::float / NULLIF(b.review_amount, 0), 0) "+string(oper)+" ?", val)
+			} else {
+				oper := filter.Operation
+				switch oper {
+				case entities.OpEqual:
+					pred = sq.Eq{field: val}
+				case entities.OpGreater:
+					pred = sq.Gt{field: val}
+				case entities.OpGreaterEqual:
+					pred = sq.GtOrEq{field: val}
+				case entities.OpLess:
+					pred = sq.Lt{field: val}
+				case entities.OpLessEqual:
+					pred = sq.LtOrEq{field: val}
+				case entities.OpNotEqual:
+					pred = sq.NotEq{field: val}
+				}
+			}
+			query = query.Where(pred)
+		}
 	}
 
-	if categoryID != 0{
-		return FullBeerSelect().Where(pred).Where(sq.Eq{"category_id": categoryID})
+	if categoryID != 0 {
+		query = query.Where(sq.Eq{"category_id": categoryID})
 	}
-	return FullBeerSelect().Where(pred)
+	return query
 }
 
 // InsertReview возвращает запрос для вставки нового отзыва в таблицу reviews и возвращает ID вставленного отзыва.

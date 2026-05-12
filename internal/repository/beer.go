@@ -36,7 +36,7 @@ type BeerRepository interface {
 	DeleteBeer(ctx context.Context, id uint) error
 
 	// FilterBeer возвращает список сущностей пиво по фильтру
-	FilterBeer(ctx context.Context, filter map[string]any, limit, offset uint64, categoryID uint) ([]entities.Beer, error)
+	FilterBeer(ctx context.Context, filters []*entities.FilterParameter, limit, offset uint64, categoryID uint) ([]entities.Beer, error)
 
 	// InsertReview сохраняет новую сущность Review в хранилище.
 	InsertReview(ctx context.Context, review entities.Review) (uint, error)
@@ -432,12 +432,12 @@ func (r *BeerPostgres) DeleteBeer(ctx context.Context, id uint) error {
 	return nil
 }
 
-func (r *BeerPostgres) FilterBeer(ctx context.Context, filter map[string]any, limit, offset uint64, categoryID uint) ([]entities.Beer, error){
+func (r *BeerPostgres) FilterBeer(ctx context.Context, filters []*entities.FilterParameter, limit, offset uint64, categoryID uint) ([]entities.Beer, error) {
 	if r.Pool == nil {
 		return nil, errors.New("pool is nil")
 	}
 
-	psql := queries.FilterBeers(filter, categoryID).Offset(offset)
+	psql := queries.FilterBeers(filters, categoryID).Offset(offset)
 	if limit != 0 {
 		psql = psql.Limit(limit)
 	}
@@ -447,7 +447,7 @@ func (r *BeerPostgres) FilterBeer(ctx context.Context, filter map[string]any, li
 		return nil, fmt.Errorf("%s: %w", "ToSql", err)
 	}
 
-	rows, err := r.Pool.Query(ctx, query, args)
+	rows, err := r.Pool.Query(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("query: %w", err)
 	}
