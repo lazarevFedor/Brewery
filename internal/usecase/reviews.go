@@ -53,7 +53,7 @@ func (s *beerService) UpdateReview(ctx context.Context, id uint, updates map[str
 	rating, ok := updates["rating"]
 	if ok {
 		ratingFloat, ok := rating.(float32)
-		if !ok{
+		if !ok {
 			return errors.New("invalid review rating datatype")
 		}
 		if ratingFloat >= 0 && ratingFloat <= 5 {
