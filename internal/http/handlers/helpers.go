@@ -45,10 +45,24 @@ func validateFilterParam(filter string) (map[string]any, error) {
 	}
 	filterMap := map[string]any{
 		"field": filterParams[0],
+		"value": filterParams[2],
 	}	
 
+	rawVal := filterParams[2]
+	valInt, err := strconv.Atoi(rawVal)
+	if err != nil {
+		valFloat32, err := strconv.ParseFloat(rawVal, 32)
+		if err != nil {
+			return nil, errors.New(InvalidParameters)
+		}
+		filterMap["value"] = valFloat32
+
+	} else {
+		filterMap["value"] = valInt
+	}
+
 	switch filterParams[1]{
-	case "eq", "more", "less":
+	case "eq", "gt", "ge", "lt", "le", "ne":
 		filterMap["operation"] = filterParams[1]
 	default:
 		return nil, errors.New("неверная операция")

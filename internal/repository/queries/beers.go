@@ -86,16 +86,23 @@ func UpdateBeerRating(beerID, rating uint, operation string) sq.UpdateBuilder {
 
 func FilterBeers(filter map[string]any, categoryID uint) sq.SelectBuilder{
 	field, _ := filter["field"].(string)
-	oper := filter["operation"]
+	oper, _ := filter["operation"].(string)
+	val := filter["value"]
 	
 	var pred any
-	switch filter["field"]{
+	switch oper{
 	case "eq":
-		pred = sq.Eq{field: oper}
-	case "more":
-		pred = sq.Gt{field: oper}
-	case "less":
-		pred = sq.Lt{field: oper}
+		pred = sq.Eq{field: val}
+	case "gt":
+		pred = sq.Gt{field: val}
+	case "ge":
+		pred = sq.GtOrEq{field: val}
+	case "lt":
+		pred = sq.Lt{field: val}
+	case "le": 
+		pred = sq.LtOrEq{field: val}
+	case "ne": 
+		pred = sq.NotEq{field: val}
 	}
 
 	if categoryID != 0{
