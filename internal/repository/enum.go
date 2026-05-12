@@ -42,6 +42,9 @@ type EnumRepository interface {
 
 	// GetEnumValuesByClassID получает список сущностей EnumValue по заданному ID класса перечисления.
 	GetEnumValuesByClassID(ctx context.Context, classID uint) ([]entities.EnumValue, error)
+
+	// GetEnumClassByID получает сущность EnumClass по заданному ID класса перечисления.
+	GetEnumClassByID(ctx context.Context, id uint) (*entities.EnumClass, error)
 }
 
 // EnumPostgres хранит в себе пул подключений к БД
@@ -331,6 +334,28 @@ func (e *EnumPostgres) GetEnumValuesByClassID(ctx context.Context, classID uint)
 	}
 
 	return enumValues, nil
+}
+
+// GetEnumClassByID получает сущность EnumClass по заданному ID класса перечисления.
+func (e *EnumPostgres) GetEnumClassByID(ctx context.Context, id uint) (*entities.EnumClass, error) {
+	if e.Pool == nil {
+		return nil, errors.New("pool is nil")
+	}
+
+	psql := queries.SelectEnumClassByID(id)
+
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ToSql", err)
+	}
+
+	row := e.Pool.QueryRow(ctx, query, args...)
+	class, err := scanEnumClass(row)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ToRow", err)
+	}
+
+	return class, nil
 }
 
 // scanEnumValue сканирует строку результата запроса и преобразует ее в сущность EnumValue.
