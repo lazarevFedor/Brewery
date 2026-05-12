@@ -19,6 +19,11 @@ const (
 
 	// maxLimit это максимальное значение для лимита при пагинации.
 	maxLimit = 100
+
+	// filterParamArgsNum - кол-во аргументов параметра фильтрации.
+	// Т. е. field:operation:number - 3 части.
+	// Необходим для валидации параметра фильтрации
+	filterParamArgsNum = 3
 )
 
 func writeError(c *gin.Context, code int, errType, message string) {
@@ -30,9 +35,8 @@ func writeError(c *gin.Context, code int, errType, message string) {
 
 var numFields = []string{"rating", "abv", "ibu", "amount"}
 func validateFilterParam(filter string) (map[string]any, error) {
-	paramNum := 3
 	filterParams := strings.Split(filter, ":")
-	if len(filterParams) != paramNum {
+	if len(filterParams) != filterParamArgsNum {
 		return nil, errors.New("неправильный параметр")
 	}
 	
