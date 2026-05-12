@@ -8,10 +8,7 @@ import (
 	"Brewery/internal/entities"
 )
 
-// ValidateBeerWithParams validates a beer against numeric and enum parameters.
-// getEnumValues should return enum values for given enum class id.
-// getEnumClass should return enum class metadata (contains FieldName).
-// Returns first encountered error (caller requested simple behavior).
+// ValidateBeerWithParams валидирует пиво на соответствие заданным параметрам у категории.
 func ValidateBeerWithParams(beer entities.Beer, numericParams []entities.NumericParameter, enumParams []entities.EnumParameter, getEnumValues func(classID uint) ([]entities.EnumValue, error), getEnumClass func(classID uint) (*entities.EnumClass, error)) error {
 	val := reflect.ValueOf(beer)
 	if val.Kind() == reflect.Ptr {
