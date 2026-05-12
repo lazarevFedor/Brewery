@@ -27,3 +27,20 @@ type EnumParameter struct {
 //
 //easyjson:json
 type EnumParameters []EnumParameter
+
+type Operation string
+
+const (
+	OpEqual        Operation = "="
+	OpGreater      Operation = ">"
+	OpGreaterEqual Operation = ">="
+	OpLess         Operation = "<"
+	OpLessEqual    Operation = "<="
+	OpNotEqual     Operation = "!="
+)
+
+type FilterParameter struct {
+	FieldName string    `json:"field_name,omitempty" info:"Имя поля сущности"`
+	Operation Operation `json:"operation,omitempty" info:"Операция сравнения (eq, gt, ge, lt, le, ne)"`
+	Value     float32   `json:"value,omitempty" info:"Значение для сравнения"`
+}
