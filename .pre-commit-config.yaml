@@ -8,7 +8,7 @@ repos:
         entry: bash -c "make check_fmt || (echo '❌ Код автоматически отформатирован! Добавьте изменения (git add) и повторите коммит.' && exit 1)"
         language: system
         pass_filenames: false
-        stages: [pre-commit]
+        stages: [pre-push]
 
       - id: go-mod-tidy
         name: 📦 Check go mod chores
