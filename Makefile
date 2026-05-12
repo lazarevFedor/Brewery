@@ -40,7 +40,7 @@ test:
 
 hook:
 	pip install pre-commit
-	pre-commit install --hook-type pre-push
+	pre-commit install --hook-type pre-commit --hook-type pre-push
 
 check_building:
 	cp -n configs/env.example configs/.env || true
