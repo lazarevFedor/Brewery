@@ -12,7 +12,7 @@ repos:
 
       - id: go-mod-tidy
         name: 📦 Check go mod chores
-        entry: bash -c "go mod tidy && git diff --exit-code go.mod go.sum"
+        entry: make check_mod
         language: system
         pass_filenames: false
         stages: [manual, pre-push] 
