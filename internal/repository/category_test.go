@@ -58,8 +58,8 @@ func TestCategoryRepository_InsertCategory(t *testing.T) {
 			t.Error("Ожидалась ошибка уникальности, но запись создалась")
 		}
 
-		appErr, ok := err.(*apperrors.AppError)
-		if ok {
+		var appErr *apperrors.AppError
+		if errors.As(err, &appErr) {
 			if pgErr, ok := errors.AsType[*pgconn.PgError](appErr.Err); ok {
 				if pgErr.Code != "23505" {
 					t.Errorf("ожидался код ошибки 23505, получили %s", pgErr.Code)
@@ -67,7 +67,6 @@ func TestCategoryRepository_InsertCategory(t *testing.T) {
 			} else {
 				t.Errorf("ожидалась ошибка pgconn.PgError, получили %T", appErr)
 			}
-
 		} else {
 			t.Errorf("Ожидалась ошибка типа AppError")
 		}

@@ -47,7 +47,7 @@ func BadRequest(message string, err error) *AppError {
 	return newAppError(CodeBadRequest, message, http.StatusBadRequest, err)
 }
 
-func (e AppError) Error() string {
+func (e *AppError) Error() string {
 	if e.Err != nil {
 		return e.Err.Error()
 	}
