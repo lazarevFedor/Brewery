@@ -36,7 +36,7 @@ type BeerRepository interface {
 	DeleteBeer(ctx context.Context, id uint) error
 
 	// FilterBeer возвращает список сущностей пиво по фильтру
-	FilterBeer(ctx context.Context, filter map[string]any, limit, offset uint64, categpryID uint) ([]entities.Beer, error)
+	FilterBeer(ctx context.Context, filter map[string]any, limit, offset uint64, categoryID uint) ([]entities.Beer, error)
 
 	// InsertReview сохраняет новую сущность Review в хранилище.
 	InsertReview(ctx context.Context, review entities.Review) (uint, error)

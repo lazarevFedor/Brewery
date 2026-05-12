@@ -191,7 +191,7 @@ func (h *beersHandlers) SearchBeer(c *gin.Context) {
 	categoryID, err := getUintParam(c, "id")
 	if err.Error() == "invalid id"{
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
-		writeError(c, http.StatusBadRequest, InvalidID, "Invalid beer id")
+		writeError(c, http.StatusBadRequest, InvalidID, "Invalid category id")
 		return
 	}
 
