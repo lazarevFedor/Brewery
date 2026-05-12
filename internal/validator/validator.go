@@ -30,7 +30,7 @@ func ValidateBeerWithParams(beer entities.Beer, numericParams []entities.Numeric
 				return val.Field(i), true
 			}
 
-			if strings.EqualFold(f.Name, fieldName) || strings.EqualFold(f.Name, toTitle(fieldName)) {
+			if strings.EqualFold(f.Name, fieldName) || strings.EqualFold(f.Name, strings.ToUpper(fieldName)) {
 				return val.Field(i), true
 			}
 		}
@@ -116,15 +116,4 @@ func ValidateBeerWithParams(beer entities.Beer, numericParams []entities.Numeric
 	}
 
 	return nil
-}
-
-func toTitle(s string) string {
-	if s == "" {
-		return s
-	}
-	b := []byte(s)
-	if 'a' <= b[0] && b[0] <= 'z' {
-		b[0] -= 'a' - 'A'
-	}
-	return string(b)
 }
