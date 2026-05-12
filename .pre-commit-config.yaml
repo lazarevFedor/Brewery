@@ -1,0 +1,35 @@
+repos:
+  - local:
+    hooks:
+      - id: go mod tidy
+        name: Check go mod chores
+        entry: bash -c "go mod tidy && git diff --exit-code go.mod go.sum"
+        language: system
+        pass_filenames: false
+        stages:
+          - manual
+          - pre-push
+
+      - id: golangci-lint
+        name: Run Linter
+        entry: make lint
+        language: system
+        pass_filenames: false
+        stages:
+          - pre-push
+
+      - id: go-test
+        name: Run Tests
+        entry: make test
+        language: system
+        pass_filenames: false
+        stages:
+          - pre-push
+
+      - id: docker-build
+        name: Docker Build Check
+        entry: make check_building
+        language: system
+        pass_filenames: false
+        stages:
+          - pre-push
