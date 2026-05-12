@@ -95,7 +95,7 @@ func (r *CategoryPostgres) InsertCategory(ctx context.Context, tx pgx.Tx, catego
 	psql := queries.CategoryInsert(category)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return 0, fmt.Errorf("%s: %w", "ToSql", err)
+		return 0, apperrors.Internal(fmt.Errorf("%s: %w", "ToSql", err))
 	}
 
 	var row pgx.Row
