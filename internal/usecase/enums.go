@@ -82,7 +82,6 @@ func (s *enumService) DeleteEnum(ctx context.Context, id uint) error {
 	return nil
 }
 
-
 func (s *enumService) CreateEnumValue(ctx context.Context, enum entities.EnumValue) (uint, error) {
 	if err := ctx.Err(); err != nil {
 		return 0, fmt.Errorf("request cancelled: %w", err)
@@ -115,7 +114,7 @@ func (s *enumService) UpdateEnumValue(ctx context.Context, id uint, updates map[
 	}
 
 	val, ok := updates["value"]
-	if ok{
+	if ok {
 		delete(updates, "value")
 		updates["value_raw"] = val
 	}
