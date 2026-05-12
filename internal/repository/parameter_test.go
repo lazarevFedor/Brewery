@@ -515,7 +515,7 @@ func TestParameterRepository_EdgeCases(t *testing.T) {
 
 		rootID, _, _ := insertCategoryTree(t, ctx)
 
-		n, e, err := repo.GetParameters(ctx, rootID)
+		n, e, err := repo.GetParameters(ctx, rootID, entities.MissingType)
 		require.NoError(t, err)
 		assert.Empty(t, n)
 		assert.Empty(t, e)

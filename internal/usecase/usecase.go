@@ -184,7 +184,7 @@ func (s *beerService) UpdateCategory(ctx context.Context, id uint, updates map[s
 			return fmt.Errorf("failed to get beers for category %d: %w", cid, err)
 		}
 		for _, b := range beers {
-			numericParams, enumParams, err := s.paramRepo.GetParameters(ctx, uint(cid))
+			numericParams, enumParams, err := s.paramRepo.GetParameters(ctx, uint(cid), entities.MissingType)
 			if err != nil {
 				_ = s.categoryRepo.UpdateCategory(ctx, id, map[string]any{"parent_id": oldParent})
 				return fmt.Errorf("failed to get parameters for category %d: %w", cid, err)
@@ -331,7 +331,7 @@ func (s *beerService) CreateBeer(ctx context.Context, beer *entities.Beer) (*ent
 	}
 
 	if categoryID != 0 {
-		numericParams, enumParams, err := s.paramRepo.GetParameters(ctx, categoryID)
+		numericParams, enumParams, err := s.paramRepo.GetParameters(ctx, categoryID, entities.MissingType)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get parameters for category %d: %w", categoryID, err)
 		}

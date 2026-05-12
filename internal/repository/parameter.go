@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -33,7 +34,7 @@ type ParameterRepository interface {
 	DeleteEnumParameter(ctx context.Context, id uint) (*entities.EnumParameter, error)
 
 	// GetParameters извлекает все числовые и перечисляемые параметры из базы данных и возвращает их.
-	GetParameters(ctx context.Context, categoryID uint) ([]entities.NumericParameter, []entities.EnumParameter, error)
+	GetParameters(ctx context.Context, categoryID uint, parameterType int) ([]entities.NumericParameter, []entities.EnumParameter, error)
 
 	// ApplyParameters применяет числовые и перечисляемые параметры к категории и возвращает результат применения.
 	ApplyParameters(ctx context.Context, categoryID uint, numericParameters, enumParameters []int) (int, error)
@@ -193,8 +194,11 @@ func (p *ParameterPostgres) DeleteEnumParameter(ctx context.Context, id uint) (*
 }
 
 // GetParameters извлекает все числовые и перечисляемые параметры из базы данных и возвращает их.
-func (p *ParameterPostgres) GetParameters(ctx context.Context, categoryID uint) ([]entities.NumericParameter, []entities.EnumParameter, error) {
-	query := queries.SelectParameterIDsByCategory(categoryID, entities.MissingType)
+func (p *ParameterPostgres) GetParameters(ctx context.Context, categoryID uint, parameterType int) ([]entities.NumericParameter, []entities.EnumParameter, error) {
+	var query squirrel.SelectBuilder
+	if categoryID != 0 {
+		query = queries.SelectParameterIDsByCategory(categoryID, parameterType)
+	}
 	sql, args, err := query.ToSql()
 	if err != nil {
 		return nil, nil, err
@@ -210,7 +214,7 @@ func (p *ParameterPostgres) GetParameters(ctx context.Context, categoryID uint) 
 	var numericParams []entities.NumericParameter
 	var enumParams []entities.EnumParameter
 
-	if len(numericIDs) > 0 {
+	if len(numericIDs) > 0 && categoryID != 0 || parameterType == entities.NumericParameterType {
 		selectNumericQuery := queries.SelectNumericParameters(numericIDs)
 		sql, args, err = selectNumericQuery.ToSql()
 		if err != nil {
@@ -233,7 +237,7 @@ func (p *ParameterPostgres) GetParameters(ctx context.Context, categoryID uint) 
 		}
 	}
 
-	if len(enumIDs) > 0 {
+	if len(enumIDs) > 0 && categoryID != 0 || parameterType == entities.EnumParameterType {
 		selectEnumQuery := queries.SelectEnumParameters(enumIDs)
 		sql, args, err = selectEnumQuery.ToSql()
 		if err != nil {
