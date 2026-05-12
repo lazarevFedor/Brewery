@@ -51,14 +51,8 @@ check_building:
 
 check_fmt:
 	@go fmt ./...
-	@if ! git diff --exit-code --quiet; then \
-		git add -u; \
-		echo "Код автоматически отформатирован и добавлен в коммит!"; \
-	fi
+	@git diff --exit-code --quiet
 
 check_mod:
 	@go mod tidy
-	@if ! git diff --exit-code --quiet; then \
-		git add -u; \
-		echo "Зависимости обновлены и добавлены в коммит!"; \
-	fi
+	@git diff --exit-code --quiet go.mod go.sum
