@@ -94,7 +94,7 @@ func registerEnumRoutes(api *gin.RouterGroup, h handlers.Handlers) {
 func registerAggregatesRoutes(api *gin.RouterGroup, h handlers.Handlers) {
 	aggregates := api.Group("/aggregates")
 	{
-		aggregates.PATCH("/:category_id/apply", h.AggregatesHandler.ApplyAggregateToCategory)
+		aggregates.PATCH("/apply/:category_id", h.AggregatesHandler.ApplyAggregateToCategory)
 		aggregates.PATCH("/:id", h.AggregatesHandler.UpdateAggregate)
 		aggregates.DELETE("/:id", h.AggregatesHandler.DeleteAggregate)
 		aggregates.POST("", h.AggregatesHandler.CreateAggregate)
@@ -102,7 +102,7 @@ func registerAggregatesRoutes(api *gin.RouterGroup, h handlers.Handlers) {
 
 		value := aggregates.Group("/value")
 		{
-			value.PATCH("/:category_id/apply", h.AggregatesHandler.ApplyAggregateToCategory)
+			value.PATCH("/apply/:category_id", h.AggregatesHandler.ApplyAggregateToCategory)
 			value.PATCH("/:id", h.AggregatesHandler.UpdateAggregate)
 			value.DELETE("/:id", h.AggregatesHandler.DeleteAggregate)
 			value.POST("", h.AggregatesHandler.CreateAggregate)
