@@ -17,18 +17,42 @@ type ParametersService interface {
 	UpdateEnum(ctx context.Context, id uint, updates map[string]any) (*entities.EnumParameter, error)
 	DeleteEnum(ctx context.Context, id uint) (*entities.EnumParameter, error)
 
-	ListParameters(ctx context.Context, categoryID uint) ([]entities.NumericParameter, []entities.EnumParameter, error)
+	// ListParameters categoryID = 0 - без фильтра по категории
+	// paramType = "" - все типы, "numeric" - только числовые, "enum" - только перечисления
+	ListParameters(ctx context.Context, categoryID uint, paramType int) ([]entities.NumericParameter, []entities.EnumParameter, error)
 	ApplyToCategory(ctx context.Context, categoryID uint, numericIDs, enumIDs []int) (int, error)
 }
 
 type parametersService struct {
 	paramRepo repository.ParameterRepository
+	enumRepo  repository.EnumRepository
 }
 
-func NewParametersService(paramRepo repository.ParameterRepository) ParametersService {
+var allowedNumericUpdates = map[string]bool{
+	"min_val":     true,
+	"max_val":     true,
+	"inheritable": true,
+}
+
+var allowedEnumUpdates = map[string]bool{
+	"enum_class_id": true,
+	"inheritable":   true,
+}
+
+func NewParametersService(paramRepo repository.ParameterRepository, enumRepo repository.EnumRepository) ParametersService {
 	return &parametersService{
 		paramRepo: paramRepo,
+		enumRepo:  enumRepo,
 	}
+}
+
+func validateUpdates(updates map[string]any, allowed map[string]bool) error {
+	for key := range updates {
+		if !allowed[key] {
+			return fmt.Errorf("invalid field for update: %s", key)
+		}
+	}
+	return nil
 }
 
 func (s *parametersService) CreateNumeric(ctx context.Context, param *entities.NumericParameter) (*entities.NumericParameter, error) {
@@ -55,6 +79,14 @@ func (s *parametersService) CreateNumeric(ctx context.Context, param *entities.N
 }
 
 func (s *parametersService) UpdateNumeric(ctx context.Context, id uint, updates map[string]any) (*entities.NumericParameter, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, fmt.Errorf("request cancelled: %w", err)
+	}
+
+	if err := validateUpdates(updates, allowedNumericUpdates); err != nil {
+		return nil, err
+	}
+
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -89,6 +121,15 @@ func (s *parametersService) CreateEnum(ctx context.Context, param *entities.Enum
 		return nil, errors.New("enum_class_id is required")
 	}
 
+	// Проверяем существование enum класса через EnumRepository
+	enumClass, err := s.enumRepo.GetEnumClassByID(ctx, param.EnumClassID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check enum class: %w", err)
+	}
+	if enumClass == nil {
+		return nil, fmt.Errorf("enum class with id %d not found", param.EnumClassID)
+	}
+
 	created, err := s.paramRepo.InsertEnumParameter(ctx, param)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create enum parameter: %w", err)
@@ -98,6 +139,14 @@ func (s *parametersService) CreateEnum(ctx context.Context, param *entities.Enum
 }
 
 func (s *parametersService) UpdateEnum(ctx context.Context, id uint, updates map[string]any) (*entities.EnumParameter, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, fmt.Errorf("request cancelled: %w", err)
+	}
+
+	if err := validateUpdates(updates, allowedEnumUpdates); err != nil {
+		return nil, err
+	}
+
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -123,12 +172,12 @@ func (s *parametersService) DeleteEnum(ctx context.Context, id uint) (*entities.
 	return deleted, nil
 }
 
-func (s *parametersService) ListParameters(ctx context.Context, categoryID uint) ([]entities.NumericParameter, []entities.EnumParameter, error) {
+func (s *parametersService) ListParameters(ctx context.Context, categoryID uint, paramType int) ([]entities.NumericParameter, []entities.EnumParameter, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	numeric, enum, err := s.paramRepo.GetParameters(ctx, categoryID, entities.MissingType)
+	numeric, enum, err := s.paramRepo.GetParameters(ctx, categoryID, paramType)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get parameters: %w", err)
 	}

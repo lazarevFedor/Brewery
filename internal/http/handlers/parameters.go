@@ -278,8 +278,9 @@ func (h *parametersHandlers) ListCategoryParameters(c *gin.Context) {
 	}
 
 	categoryIDStr := c.Query("category_id")
-	var categoryID uint
+	paramTypeStr := c.Query("type")
 
+	var categoryID uint
 	if categoryIDStr != "" {
 		id, err := strconv.ParseUint(categoryIDStr, 10, 32)
 		if err != nil {
@@ -290,19 +291,39 @@ func (h *parametersHandlers) ListCategoryParameters(c *gin.Context) {
 		categoryID = uint(id)
 	}
 
-	numeric, enum, err := h.uc.ListParameters(c.Request.Context(), categoryID)
+	paramType := entities.MissingType
+	switch paramTypeStr {
+	case "numeric":
+		paramType = entities.NumericParameterType
+	case "enum":
+		paramType = entities.EnumParameterType
+	case "":
+		paramType = entities.MissingType
+	default:
+		c.JSON(http.StatusBadRequest, gin.H{"error": "type must be 'numeric' or 'enum'"})
+		log.Error(c.Request.Context(), fmt.Sprintf("Invalid param type: %s", paramTypeStr))
+		return
+	}
+
+	numeric, enum, err := h.uc.ListParameters(c.Request.Context(), categoryID, paramType)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to list parameters: %v", err))
 		c.Status(http.StatusInternalServerError)
 		return
 	}
 
-	result := make([]any, 0)
-	for _, p := range numeric {
-		result = append(result, p)
+	var result []interface{}
+
+	if paramType == entities.MissingType || paramType == entities.NumericParameterType {
+		for _, p := range numeric {
+			result = append(result, p)
+		}
 	}
-	for _, p := range enum {
-		result = append(result, p)
+
+	if paramType == entities.MissingType || paramType == entities.EnumParameterType {
+		for _, p := range enum {
+			result = append(result, p)
+		}
 	}
 
 	rawBytes, err := json.Marshal(result)
@@ -313,7 +334,7 @@ func (h *parametersHandlers) ListCategoryParameters(c *gin.Context) {
 	}
 
 	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
-	log.Info(c.Request.Context(), fmt.Sprintf("action=list resource=parameters status=success numeric_count=%d enum_count=%d", len(numeric), len(enum)))
+	log.Info(c.Request.Context(), fmt.Sprintf("action=list resource=parameters status=success"))
 }
 
 func (h *parametersHandlers) ApplyParametersToCategory(c *gin.Context) {
