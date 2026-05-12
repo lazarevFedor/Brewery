@@ -20,12 +20,11 @@ func TestGetBeersByCategory_NewRoute_WorksWithIDAndPagination(t *testing.T) {
 	testEnv := newTestEnv(t)
 	serviceMock := testEnv.BeerMock
 
+	// Мок должен возвращать столько пива, сколько соответствует пагинации
 	serviceMock.GetBeersByCategoryMock.
 		Expect(minimock.AnyContext, uint(42), uint64(1), uint64(1)).
 		Return([]entities.Beer{
-			{Name: "one", Rating: 4.1},
 			{Name: "two", Rating: 4.2},
-			{Name: "three", Rating: 4.3},
 		}, nil)
 
 	resp := testEnv.DoRequest(ctx, http.MethodGet, "/api/categories/beers/42?offset=1&limit=1", nil)
@@ -34,9 +33,8 @@ func TestGetBeersByCategory_NewRoute_WorksWithIDAndPagination(t *testing.T) {
 
 	var got []entities.Beer
 	require.NoError(t, json.Unmarshal(resp.Body.Bytes(), &got))
-	require.Len(t, got, 3)
-	assert.Equal(t, "one", got[0].Name)
-	assert.Equal(t, "three", got[2].Name)
+	require.Len(t, got, 1)
+	assert.Equal(t, "two", got[0].Name)
 }
 
 // TestGetBeersByCategory_InvalidID_ReturnsBadRequest проверяет, что при запросе пива по категории с нечисловым ID возвращается статус 400 Bad Request и корректное сообщение об ошибке.

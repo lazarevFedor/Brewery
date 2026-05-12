@@ -67,7 +67,7 @@ func SelectBeerByCategoryID(categoryID uint) sq.SelectBuilder {
 // UpdateBeerRating возвращает запрос на обовление сущности отзыва на пиво
 func UpdateBeerRating(beerID, rating uint, operation string) sq.UpdateBuilder {
 	var reviewAmount, reviewRatingSum int
-	switch operation{
+	switch operation {
 	case "insert":
 		reviewAmount, reviewRatingSum = 1, int(rating)
 	case "update":
@@ -79,9 +79,9 @@ func UpdateBeerRating(beerID, rating uint, operation string) sq.UpdateBuilder {
 	}
 
 	return psql.Update(beersTable).
-	Set("review_amount", sq.Expr("review_amount + ?", reviewAmount)).
-	Set("review_rating_sum", sq.Expr("review_rating_sum + ?", reviewRatingSum)).
-	Where(sq.Eq{"id": beerID})
+		Set("review_amount", sq.Expr("review_amount + ?", reviewAmount)).
+		Set("review_rating_sum", sq.Expr("review_rating_sum + ?", reviewRatingSum)).
+		Where(sq.Eq{"id": beerID})
 }
 
 // InsertReview возвращает запрос для вставки нового отзыва в таблицу reviews и возвращает ID вставленного отзыва.
@@ -220,6 +220,18 @@ func InsertFeature(name string) sq.InsertBuilder {
 		SetMap(data)
 }
 
+// SelectOrInsertBeerFeature возвращает запрос для вставки новой связи между пивом и особенностью в таблицу beer_features, если такая связь еще не существует, или ничего не делает, если связь уже есть. Запрос использует конструкцию ON CONFLICT для обработки конфликтов по идентификаторам пива и особенности.
+func SelectOrInsertBeerFeature(featID, beerID uint) sq.InsertBuilder {
+	data := map[string]any{
+		"beer_id":    beerID,
+		"feature_id": featID,
+	}
+
+	return psql.
+		Insert(beerFeaturesTable).
+		SetMap(data).
+		Suffix("ON CONFLICT DO NOTHING")
+}
 
 // InsertBeer возвращает запрос для вставки нового пива в таблицу beers с использованием данных из переданной структуры beer и идентификаторов города и категории. Запрос возвращает ID вставленного пива.
 func InsertBeer(beer entities.Beer, cityID, categoryID uint) sq.InsertBuilder {
