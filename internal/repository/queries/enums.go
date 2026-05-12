@@ -88,6 +88,21 @@ func SelectEnumValues(entity, field string, valueType entities.EnumType) sq.Sele
 		OrderBy("val.position ASC")
 }
 
+// SelectEnumValuesByClassID возвращает запрос на получение значений перечисления по ID класса перечисления.
+func SelectEnumValuesByClassID(classID uint) sq.SelectBuilder {
+	return psql.
+		Select(
+			"id",
+			"enum_class_id",
+			"value_raw",
+			"value_type",
+			"position",
+		).
+		From(enumValuesTable).
+		Where(sq.Eq{"enum_class_id": classID}).
+		OrderBy("position ASC")
+}
+
 // UpdateEnumValue возвращает запрос на обновление значения перечисления.
 func UpdateEnumValue(id uint, updates map[string]any) sq.UpdateBuilder {
 	return psql.

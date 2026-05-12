@@ -37,8 +37,11 @@ type EnumRepository interface {
 	// DeleteEnumValueByID удаляет сущность EnumValue из хранилища.
 	DeleteEnumValueByID(ctx context.Context, id uint) error
 
-	// GetEnumValues получает список сущностей EnumClass по заданным имени таблицы, поля и типу значения.
+	// GetEnumValues получает список сущностей EnumValue по заданным имени таблицы, поля и типу значения.
 	GetEnumValues(ctx context.Context, entity, field string, valueType entities.EnumType) ([]entities.EnumValue, error)
+
+	// GetEnumValuesByClassID получает список сущностей EnumValue по заданному ID класса перечисления.
+	GetEnumValuesByClassID(ctx context.Context, classID uint) ([]entities.EnumValue, error)
 }
 
 // EnumPostgres хранит в себе пул подключений к БД
@@ -265,6 +268,42 @@ func (e *EnumPostgres) GetEnumValues(ctx context.Context, entity, field string, 
 	}
 
 	psql := queries.SelectEnumValues(entity, field, valueType)
+
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ToSql", err)
+	}
+
+	rows, err := e.Pool.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Query", err)
+	}
+	defer rows.Close()
+
+	enumValues := make([]entities.EnumValue, 0)
+
+	for rows.Next() {
+		val, err := scanEnumValue(rows)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan row: %w", err)
+		}
+		enumValues = append(enumValues, *val)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows.Err: %w", err)
+	}
+
+	return enumValues, nil
+}
+
+// GetEnumValuesByClassID получает список сущностей EnumValue по заданному ID класса перечисления.
+func (e *EnumPostgres) GetEnumValuesByClassID(ctx context.Context, classID uint) ([]entities.EnumValue, error) {
+	if e.Pool == nil {
+		return nil, errors.New("pool is nil")
+	}
+
+	psql := queries.SelectEnumValuesByClassID(classID)
 
 	query, args, err := psql.ToSql()
 	if err != nil {
