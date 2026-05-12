@@ -312,7 +312,7 @@ func (h *parametersHandlers) ListCategoryParameters(c *gin.Context) {
 		return
 	}
 
-	var result []interface{}
+	var result []any
 
 	if paramType == entities.MissingType || paramType == entities.NumericParameterType {
 		for _, p := range numeric {
@@ -334,7 +334,7 @@ func (h *parametersHandlers) ListCategoryParameters(c *gin.Context) {
 	}
 
 	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
-	log.Info(c.Request.Context(), fmt.Sprintf("action=list resource=parameters status=success"))
+	log.Info(c.Request.Context(), "action=list resource=parameters status=success")
 }
 
 func (h *parametersHandlers) ApplyParametersToCategory(c *gin.Context) {

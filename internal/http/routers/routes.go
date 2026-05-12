@@ -107,7 +107,6 @@ func registerAggregatesRoutes(api *gin.RouterGroup, h handlers.Handlers) {
 			value.DELETE("/:id", h.AggregatesHandler.DeleteAggregate)
 			value.POST("", h.AggregatesHandler.CreateAggregate)
 			value.GET("", h.AggregatesHandler.GetAggregates)
-
 		}
 	}
 }
