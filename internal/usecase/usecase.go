@@ -4,6 +4,7 @@ package usecase
 import (
 	"Brewery/internal/entities"
 	"Brewery/internal/repository"
+	"Brewery/internal/validator"
 	"context"
 	"errors"
 	"fmt"
@@ -39,6 +40,8 @@ type BeerService interface {
 type beerService struct {
 	beerRepo     repository.BeerRepository
 	categoryRepo repository.CategoryRepository
+	enumRepo     repository.EnumRepository
+	paramRepo    repository.ParameterRepository
 }
 
 func NewBeerService(beerRepo repository.BeerRepository, categoryRepo repository.CategoryRepository) BeerService {
@@ -122,6 +125,15 @@ func (s *beerService) UpdateCategory(ctx context.Context, id uint, updates map[s
 		return errors.New("no fields to update")
 	}
 
+	oldCtg, err := s.categoryRepo.GetCategoryByID(ctx, id)
+	if err != nil {
+		return fmt.Errorf("failed to load existing category: %w", err)
+	}
+	if oldCtg == nil {
+		return errors.New("category not found")
+	}
+	oldParent := oldCtg.ParentID
+
 	parentID, ok := updates["parent_id"]
 	if ok {
 		parentIDFloat, ok := parentID.(float64)
@@ -137,9 +149,55 @@ func (s *beerService) UpdateCategory(ctx context.Context, id uint, updates map[s
 		}
 	}
 
-	err := s.categoryRepo.UpdateCategory(ctx, id, updates)
+	err = s.categoryRepo.UpdateCategory(ctx, id, updates)
 	if err != nil {
 		return fmt.Errorf("failed to update category: %w", err)
+	}
+
+	if !ok {
+		return nil
+	}
+
+	allCategories, err := s.categoryRepo.GetCategories(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to load categories for validation: %w", err)
+	}
+	children := make(map[int][]int)
+	for _, c := range allCategories {
+		children[c.ParentID] = append(children[c.ParentID], c.ID)
+	}
+
+	var collect func(int)
+	affected := make([]int, 0)
+	collect = func(cur int) {
+		affected = append(affected, cur)
+		for _, ch := range children[cur] {
+			collect(ch)
+		}
+	}
+	collect(int(id))
+
+	for _, cid := range affected {
+		beers, err := s.beerRepo.GetBeersByCategoryID(ctx, uint(cid), 0, 0)
+		if err != nil {
+			_ = s.categoryRepo.UpdateCategory(ctx, id, map[string]any{"parent_id": oldParent})
+			return fmt.Errorf("failed to get beers for category %d: %w", cid, err)
+		}
+		for _, b := range beers {
+			numericParams, enumParams, err := s.paramRepo.GetParameters(ctx, uint(cid))
+			if err != nil {
+				_ = s.categoryRepo.UpdateCategory(ctx, id, map[string]any{"parent_id": oldParent})
+				return fmt.Errorf("failed to get parameters for category %d: %w", cid, err)
+			}
+			if err := validator.ValidateBeerWithParams(b, numericParams, enumParams, func(classID uint) ([]entities.EnumValue, error) {
+				return s.enumRepo.GetEnumValuesByClassID(ctx, classID)
+			}, func(classID uint) (*entities.EnumClass, error) {
+				return s.enumRepo.GetEnumClassByID(ctx, classID)
+			}); err != nil {
+				_ = s.categoryRepo.UpdateCategory(ctx, id, map[string]any{"parent_id": oldParent})
+				return fmt.Errorf("validation failed for beer %d in category %d: %w", b.ID, cid, err)
+			}
+		}
 	}
 
 	return nil
@@ -259,6 +317,33 @@ func (s *beerService) CreateBeer(ctx context.Context, beer *entities.Beer) (*ent
 
 	if beer.Name == "" {
 		return nil, errors.New("beer name is required")
+	}
+
+	var categoryID uint
+	if beer.Category.ID != 0 {
+		categoryID = uint(beer.Category.ID)
+	} else if beer.Category.Name != "" {
+		ctgID, err := s.categoryRepo.GetCategoryID(ctx, beer.Category.Name)
+		if err != nil {
+			return nil, fmt.Errorf("failed to resolve category: %w", err)
+		}
+		categoryID = ctgID
+	}
+
+	if categoryID != 0 {
+		numericParams, enumParams, err := s.paramRepo.GetParameters(ctx, categoryID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get parameters for category %d: %w", categoryID, err)
+		}
+
+		err = validator.ValidateBeerWithParams(*beer, numericParams, enumParams, func(classID uint) ([]entities.EnumValue, error) {
+			return s.enumRepo.GetEnumValuesByClassID(ctx, classID)
+		}, func(classID uint) (*entities.EnumClass, error) {
+			return s.enumRepo.GetEnumClassByID(ctx, classID)
+		})
+		if err != nil {
+			return nil, fmt.Errorf("beer validation failed: %w", err)
+		}
 	}
 
 	beer, err := s.beerRepo.InsertBeer(ctx, *beer)
