@@ -41,11 +41,18 @@ test:
 	go test ./...
 
 hook:
-	cp .githooks/pre-push .git/hooks
-	chmod +x .git/hooks/pre-push
+	pip install pre-commit
+	pre-commit install --hook-type pre-push
 
 check_building:
-	cp -n configs/example.env configs/.env || true
+	cp -n configs/env.example configs/.env || true
 	mkdir -p deployments/pgdata
 	docker compose -f deployments/docker-compose.yml --env-file configs/.env up -d --build
 	docker compose -f deployments/docker-compose.yml --env-file configs/.env down
+
+check_fmt:
+	@go fmt ./...
+	@if ! git diff --exit-code --quiet; then \
+		git add -u; \
+		echo "✨ Код автоматически отформатирован и добавлен в коммит!"; \
+	fi

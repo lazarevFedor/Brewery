@@ -15,7 +15,7 @@ func (s *beerService) GetFeatures(ctx context.Context, beerID uint) ([]string, e
 	if err != nil {
 		return nil, err
 	}
-	if !exists{
+	if !exists {
 		return nil, errors.New("тут надо передать ошибку 404")
 	}
 
@@ -27,7 +27,7 @@ func (s *beerService) GetFeatures(ctx context.Context, beerID uint) ([]string, e
 	return features, nil
 }
 
-func (s *beerService) CreateFeature(ctx context.Context, beerID uint, feat string) ( uint, error ) {
+func (s *beerService) CreateFeature(ctx context.Context, beerID uint, feat string) (uint, error) {
 	if err := ctx.Err(); err != nil {
 		return 0, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -36,7 +36,7 @@ func (s *beerService) CreateFeature(ctx context.Context, beerID uint, feat strin
 	if err != nil {
 		return 0, err
 	}
-	if !exists{
+	if !exists {
 		return 0, errors.New("тут надо передать ошибку 404")
 	}
 

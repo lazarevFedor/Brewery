@@ -25,6 +25,7 @@ const devMode = true
 
 // main является точкой входа в программу.
 func main() {
+
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 

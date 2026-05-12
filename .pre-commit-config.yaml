@@ -1,35 +1,40 @@
+fail_fast: true
 repos:
-  - local:
+  - repo: local
     hooks:
-      - id: go mod tidy
-        name: Check go mod chores
+      
+      - id: go-fmt
+        name: 🧹 Run go fmt
+        entry: make check_fmt
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
+      - id: go-mod-tidy
+        name: 📦 Check go mod chores
         entry: bash -c "go mod tidy && git diff --exit-code go.mod go.sum"
         language: system
         pass_filenames: false
-        stages:
-          - manual
-          - pre-push
+        stages: [manual, pre-push] 
 
       - id: golangci-lint
-        name: Run Linter
+        name: 🔍 Run Linter
         entry: make lint
         language: system
         pass_filenames: false
-        stages:
-          - pre-push
+        stages: [pre-push] 
 
       - id: go-test
-        name: Run Tests
+        name: 🧪 Run Tests
         entry: make test
         language: system
         pass_filenames: false
-        stages:
-          - pre-push
+        verbose: true
+        stages: [pre-push] 
 
       - id: docker-build
-        name: Docker Build Check
+        name: 🐳 Docker Build Check
         entry: make check_building
         language: system
         pass_filenames: false
-        stages:
-          - pre-push
+        stages: [pre-push] 

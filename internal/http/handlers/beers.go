@@ -177,7 +177,7 @@ func (h *beersHandlers) GetAllBeers(c *gin.Context) {
 	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
 	log.Info(c.Request.Context(), fmt.Sprintf(
 		"action=list resource=beer status=success offset=%d limit=%d items=%d",
-		 offset, limit, len(beers),
+		offset, limit, len(beers),
 	))
 }
 
@@ -300,7 +300,7 @@ func (h *beersHandlers) CreateFeature(c *gin.Context) {
 
 	log.Info(c.Request.Context(), fmt.Sprintf("action=create resource=beer status=success name=%q", featName))
 	c.JSON(http.StatusCreated, gin.H{
-		"id": featID, 
+		"id":   featID,
 		"name": featName,
 	})
 }

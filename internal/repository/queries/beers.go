@@ -67,7 +67,7 @@ func SelectBeerByCategoryID(categoryID uint) sq.SelectBuilder {
 // UpdateBeerRating возвращает запрос на обовление сущности отзыва на пиво
 func UpdateBeerRating(beerID, rating uint, operation string) sq.UpdateBuilder {
 	var reviewAmount, reviewRatingSum int
-	switch operation{
+	switch operation {
 	case "insert":
 		reviewAmount, reviewRatingSum = 1, int(rating)
 	case "update":
@@ -79,9 +79,9 @@ func UpdateBeerRating(beerID, rating uint, operation string) sq.UpdateBuilder {
 	}
 
 	return psql.Update(beersTable).
-	Set("review_amount", sq.Expr("review_amount + ?", reviewAmount)).
-	Set("review_rating_sum", sq.Expr("review_rating_sum + ?", reviewRatingSum)).
-	Where(sq.Eq{"id": beerID})
+		Set("review_amount", sq.Expr("review_amount + ?", reviewAmount)).
+		Set("review_rating_sum", sq.Expr("review_rating_sum + ?", reviewRatingSum)).
+		Where(sq.Eq{"id": beerID})
 }
 
 func FilterBeers(filter map[string]any, categoryID uint) sq.SelectBuilder{
@@ -243,7 +243,7 @@ func SelectOrInsertBeerFeature(featID, beerID uint) sq.InsertBuilder {
 		Insert(beerFeaturesTable).
 		SetMap(data).
 		Suffix("ON CONFLICT DO NOTHING")
-	}
+}
 
 // InsertBeer возвращает запрос для вставки нового пива в таблицу beers с использованием данных из переданной структуры beer и идентификаторов города и категории. Запрос возвращает ID вставленного пива.
 func InsertBeer(beer entities.Beer, cityID, categoryID uint) sq.InsertBuilder {
