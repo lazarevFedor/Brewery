@@ -41,3 +41,9 @@ test:
 hook:
 	cp .githooks/pre-push .git/hooks
 	chmod +x .git/hooks/pre-push
+
+check_building:
+	cp -n configs/example.env configs/.env || true
+	mkdir -p deployments/pgdata
+	docker compose -f deployments/docker-compose.yml --env-file configs/.env up -d --build
+	docker compose -f deployments/docker-compose.yml --env-file configs/.env down
