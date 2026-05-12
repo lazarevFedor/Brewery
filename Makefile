@@ -41,7 +41,6 @@ test:
 	go test ./...
 
 hook:
-	pip install pre-commit
 	pre-commit install --hook-type pre-commit --hook-type pre-push
 
 check_building:
@@ -54,5 +53,12 @@ check_fmt:
 	@go fmt ./...
 	@if ! git diff --exit-code --quiet; then \
 		git add -u; \
-		echo "✨ Код автоматически отформатирован и добавлен в коммит!"; \
+		echo "Код автоматически отформатирован и добавлен в коммит!"; \
+	fi
+
+check_mod:
+	@go mod tidy
+	@if ! git diff --exit-code --quiet; then \
+		git add -u; \
+		echo "Зависимости обновлены и добавлены в коммит!"; \
 	fi
