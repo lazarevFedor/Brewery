@@ -61,7 +61,7 @@ func validateFilterParam(filter string) (map[string]any, error) {
 // getUintParam извлекает и валидирует целочисленный ненулевой параметр из URL, например id.
 func getUintParam(c *gin.Context, name string) (uint, error) {
 	param := c.Param(name)
-	if param == "" {
+	if param == ""{
 		return 0, nil
 	}
 
