@@ -35,7 +35,7 @@ func NewLoggerContext(ctx context.Context, dev bool) (context.Context, error) {
 		config = zap.NewProductionConfig()
 	}
 
-	logger, err := config.Build()
+	logger, err := config.Build(zap.AddCallerSkip(1))
 	if err != nil {
 		return nil, fmt.Errorf("NewLogger: %w", err)
 	}
