@@ -54,9 +54,9 @@ type ParametersServiceMock struct {
 	beforeDeleteNumericCounter uint64
 	DeleteNumericMock          mParametersServiceMockDeleteNumeric
 
-	funcListParameters          func(ctx context.Context, categoryID uint) (na1 []entities.NumericParameter, ea1 []entities.EnumParameter, err error)
+	funcListParameters          func(ctx context.Context, categoryID uint, paramType int) (na1 []entities.NumericParameter, ea1 []entities.EnumParameter, err error)
 	funcListParametersOrigin    string
-	inspectFuncListParameters   func(ctx context.Context, categoryID uint)
+	inspectFuncListParameters   func(ctx context.Context, categoryID uint, paramType int)
 	afterListParametersCounter  uint64
 	beforeListParametersCounter uint64
 	ListParametersMock          mParametersServiceMockListParameters
@@ -1918,12 +1918,14 @@ type ParametersServiceMockListParametersExpectation struct {
 type ParametersServiceMockListParametersParams struct {
 	ctx        context.Context
 	categoryID uint
+	paramType  int
 }
 
 // ParametersServiceMockListParametersParamPtrs contains pointers to parameters of the ParametersService.ListParameters
 type ParametersServiceMockListParametersParamPtrs struct {
 	ctx        *context.Context
 	categoryID *uint
+	paramType  *int
 }
 
 // ParametersServiceMockListParametersResults contains results of the ParametersService.ListParameters
@@ -1938,6 +1940,7 @@ type ParametersServiceMockListParametersExpectationOrigins struct {
 	origin           string
 	originCtx        string
 	originCategoryID string
+	originParamType  string
 }
 
 // Marks this method to be optional. The default behavior of any method with Return() is '1 or more', meaning
@@ -1951,7 +1954,7 @@ func (mmListParameters *mParametersServiceMockListParameters) Optional() *mParam
 }
 
 // Expect sets up expected params for ParametersService.ListParameters
-func (mmListParameters *mParametersServiceMockListParameters) Expect(ctx context.Context, categoryID uint) *mParametersServiceMockListParameters {
+func (mmListParameters *mParametersServiceMockListParameters) Expect(ctx context.Context, categoryID uint, paramType int) *mParametersServiceMockListParameters {
 	if mmListParameters.mock.funcListParameters != nil {
 		mmListParameters.mock.t.Fatalf("ParametersServiceMock.ListParameters mock is already set by Set")
 	}
@@ -1964,7 +1967,7 @@ func (mmListParameters *mParametersServiceMockListParameters) Expect(ctx context
 		mmListParameters.mock.t.Fatalf("ParametersServiceMock.ListParameters mock is already set by ExpectParams functions")
 	}
 
-	mmListParameters.defaultExpectation.params = &ParametersServiceMockListParametersParams{ctx, categoryID}
+	mmListParameters.defaultExpectation.params = &ParametersServiceMockListParametersParams{ctx, categoryID, paramType}
 	mmListParameters.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
 	for _, e := range mmListParameters.expectations {
 		if minimock.Equal(e.params, mmListParameters.defaultExpectation.params) {
@@ -2021,8 +2024,31 @@ func (mmListParameters *mParametersServiceMockListParameters) ExpectCategoryIDPa
 	return mmListParameters
 }
 
+// ExpectParamTypeParam3 sets up expected param paramType for ParametersService.ListParameters
+func (mmListParameters *mParametersServiceMockListParameters) ExpectParamTypeParam3(paramType int) *mParametersServiceMockListParameters {
+	if mmListParameters.mock.funcListParameters != nil {
+		mmListParameters.mock.t.Fatalf("ParametersServiceMock.ListParameters mock is already set by Set")
+	}
+
+	if mmListParameters.defaultExpectation == nil {
+		mmListParameters.defaultExpectation = &ParametersServiceMockListParametersExpectation{}
+	}
+
+	if mmListParameters.defaultExpectation.params != nil {
+		mmListParameters.mock.t.Fatalf("ParametersServiceMock.ListParameters mock is already set by Expect")
+	}
+
+	if mmListParameters.defaultExpectation.paramPtrs == nil {
+		mmListParameters.defaultExpectation.paramPtrs = &ParametersServiceMockListParametersParamPtrs{}
+	}
+	mmListParameters.defaultExpectation.paramPtrs.paramType = &paramType
+	mmListParameters.defaultExpectation.expectationOrigins.originParamType = minimock.CallerInfo(1)
+
+	return mmListParameters
+}
+
 // Inspect accepts an inspector function that has same arguments as the ParametersService.ListParameters
-func (mmListParameters *mParametersServiceMockListParameters) Inspect(f func(ctx context.Context, categoryID uint)) *mParametersServiceMockListParameters {
+func (mmListParameters *mParametersServiceMockListParameters) Inspect(f func(ctx context.Context, categoryID uint, paramType int)) *mParametersServiceMockListParameters {
 	if mmListParameters.mock.inspectFuncListParameters != nil {
 		mmListParameters.mock.t.Fatalf("Inspect function is already set for ParametersServiceMock.ListParameters")
 	}
@@ -2047,7 +2073,7 @@ func (mmListParameters *mParametersServiceMockListParameters) Return(na1 []entit
 }
 
 // Set uses given function f to mock the ParametersService.ListParameters method
-func (mmListParameters *mParametersServiceMockListParameters) Set(f func(ctx context.Context, categoryID uint) (na1 []entities.NumericParameter, ea1 []entities.EnumParameter, err error)) *ParametersServiceMock {
+func (mmListParameters *mParametersServiceMockListParameters) Set(f func(ctx context.Context, categoryID uint, paramType int) (na1 []entities.NumericParameter, ea1 []entities.EnumParameter, err error)) *ParametersServiceMock {
 	if mmListParameters.defaultExpectation != nil {
 		mmListParameters.mock.t.Fatalf("Default expectation is already set for the ParametersService.ListParameters method")
 	}
@@ -2063,14 +2089,14 @@ func (mmListParameters *mParametersServiceMockListParameters) Set(f func(ctx con
 
 // When sets expectation for the ParametersService.ListParameters which will trigger the result defined by the following
 // Then helper
-func (mmListParameters *mParametersServiceMockListParameters) When(ctx context.Context, categoryID uint) *ParametersServiceMockListParametersExpectation {
+func (mmListParameters *mParametersServiceMockListParameters) When(ctx context.Context, categoryID uint, paramType int) *ParametersServiceMockListParametersExpectation {
 	if mmListParameters.mock.funcListParameters != nil {
 		mmListParameters.mock.t.Fatalf("ParametersServiceMock.ListParameters mock is already set by Set")
 	}
 
 	expectation := &ParametersServiceMockListParametersExpectation{
 		mock:               mmListParameters.mock,
-		params:             &ParametersServiceMockListParametersParams{ctx, categoryID},
+		params:             &ParametersServiceMockListParametersParams{ctx, categoryID, paramType},
 		expectationOrigins: ParametersServiceMockListParametersExpectationOrigins{origin: minimock.CallerInfo(1)},
 	}
 	mmListParameters.expectations = append(mmListParameters.expectations, expectation)
@@ -2105,17 +2131,17 @@ func (mmListParameters *mParametersServiceMockListParameters) invocationsDone() 
 }
 
 // ListParameters implements mm_usecase.ParametersService
-func (mmListParameters *ParametersServiceMock) ListParameters(ctx context.Context, categoryID uint) (na1 []entities.NumericParameter, ea1 []entities.EnumParameter, err error) {
+func (mmListParameters *ParametersServiceMock) ListParameters(ctx context.Context, categoryID uint, paramType int) (na1 []entities.NumericParameter, ea1 []entities.EnumParameter, err error) {
 	mm_atomic.AddUint64(&mmListParameters.beforeListParametersCounter, 1)
 	defer mm_atomic.AddUint64(&mmListParameters.afterListParametersCounter, 1)
 
 	mmListParameters.t.Helper()
 
 	if mmListParameters.inspectFuncListParameters != nil {
-		mmListParameters.inspectFuncListParameters(ctx, categoryID)
+		mmListParameters.inspectFuncListParameters(ctx, categoryID, paramType)
 	}
 
-	mm_params := ParametersServiceMockListParametersParams{ctx, categoryID}
+	mm_params := ParametersServiceMockListParametersParams{ctx, categoryID, paramType}
 
 	// Record call args
 	mmListParameters.ListParametersMock.mutex.Lock()
@@ -2134,7 +2160,7 @@ func (mmListParameters *ParametersServiceMock) ListParameters(ctx context.Contex
 		mm_want := mmListParameters.ListParametersMock.defaultExpectation.params
 		mm_want_ptrs := mmListParameters.ListParametersMock.defaultExpectation.paramPtrs
 
-		mm_got := ParametersServiceMockListParametersParams{ctx, categoryID}
+		mm_got := ParametersServiceMockListParametersParams{ctx, categoryID, paramType}
 
 		if mm_want_ptrs != nil {
 
@@ -2146,6 +2172,11 @@ func (mmListParameters *ParametersServiceMock) ListParameters(ctx context.Contex
 			if mm_want_ptrs.categoryID != nil && !minimock.Equal(*mm_want_ptrs.categoryID, mm_got.categoryID) {
 				mmListParameters.t.Errorf("ParametersServiceMock.ListParameters got unexpected parameter categoryID, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
 					mmListParameters.ListParametersMock.defaultExpectation.expectationOrigins.originCategoryID, *mm_want_ptrs.categoryID, mm_got.categoryID, minimock.Diff(*mm_want_ptrs.categoryID, mm_got.categoryID))
+			}
+
+			if mm_want_ptrs.paramType != nil && !minimock.Equal(*mm_want_ptrs.paramType, mm_got.paramType) {
+				mmListParameters.t.Errorf("ParametersServiceMock.ListParameters got unexpected parameter paramType, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmListParameters.ListParametersMock.defaultExpectation.expectationOrigins.originParamType, *mm_want_ptrs.paramType, mm_got.paramType, minimock.Diff(*mm_want_ptrs.paramType, mm_got.paramType))
 			}
 
 		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
@@ -2160,9 +2191,9 @@ func (mmListParameters *ParametersServiceMock) ListParameters(ctx context.Contex
 		return (*mm_results).na1, (*mm_results).ea1, (*mm_results).err
 	}
 	if mmListParameters.funcListParameters != nil {
-		return mmListParameters.funcListParameters(ctx, categoryID)
+		return mmListParameters.funcListParameters(ctx, categoryID, paramType)
 	}
-	mmListParameters.t.Fatalf("Unexpected call to ParametersServiceMock.ListParameters. %v %v", ctx, categoryID)
+	mmListParameters.t.Fatalf("Unexpected call to ParametersServiceMock.ListParameters. %v %v %v", ctx, categoryID, paramType)
 	return
 }
 
