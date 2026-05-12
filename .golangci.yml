@@ -1,5 +1,3 @@
-version: "1"
-
 issues:
   max-same-issues: 50
 
