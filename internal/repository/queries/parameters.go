@@ -88,53 +88,49 @@ func DeleteEnumParameter(id uint) sq.DeleteBuilder {
 // SelectParameterIDsByCategory возвращает запрос для получения всех параметров,
 // связанных с определенной категорией, включая как числовые, так и перечисляемые параметры.
 func SelectParameterIDsByCategory(categoryID uint, parameterType int) sq.SelectBuilder {
-	if parameterType == entities.NumericParameterType {
-		return psql.
-			Select("numeric_parameter_ids").
-			From(tableCategories).
-			Where(sq.Eq{"id": categoryID})
+	var query sq.SelectBuilder
+	switch parameterType {
+	case entities.NumericParameterType:
+		query = psql.Select("numeric_parameter_ids")
+
+	case entities.EnumParameterType:
+		query = psql.Select("enum_parameter_ids")
+
+	case entities.MissingType:
+		query = psql.Select("numeric_parameter_ids, enum_parameter_ids")
 	}
 
-	if parameterType == entities.EnumParameterType {
-		return psql.
-			Select("enum_parameter_ids").
-			From(tableCategories).
-			Where(sq.Eq{"id": categoryID})
+	query = query.From(tableCategories)
+	if categoryID != 0 {
+		query = query.Where(sq.Eq{"id": categoryID})
 	}
 
-	return psql.
-		Select("numeric_parameter_ids, enum_parameter_ids").
-		From(tableCategories).
-		Where(sq.Eq{"id": categoryID})
+	return query
 }
 
 // SelectNumericParameters возвращает запрос для получения всех параметров, без фильтрации по категории,
 // включая как числовые параметры.
 func SelectNumericParameters(ids []uint) sq.SelectBuilder {
-	if len(ids) == 0 {
-		return psql.
-			Select(NumericReturningFields).
-			From(NumericParametersTable)
-	}
-
-	return psql.
+	query := psql.
 		Select(NumericReturningFields).
-		From(NumericParametersTable).
-		Where(sq.Eq{"id": ids})
+		From(NumericParametersTable)
+
+	if len(ids) > 0 {
+		query = query.Where(sq.Eq{"id": ids})
+	}
+	return query
 }
 
 // SelectEnumParameters возвращает запрос для получения всех параметров, без фильтрации по категории
 func SelectEnumParameters(ids []uint) sq.SelectBuilder {
-	if len(ids) == 0 {
-		return psql.
-			Select(EnumReturningFields).
-			From(EnumParametersTable)
-	}
-
-	return psql.
+	query := psql.
 		Select(EnumReturningFields).
-		From(EnumParametersTable).
-		Where(sq.Eq{"id": ids})
+		From(EnumParametersTable)
+
+	if len(ids) > 0 {
+		query = query.Where(sq.Eq{"id": ids})
+	}
+	return query
 }
 
 // AddNumericParametersToCategories возвращает запрос для добавления числовых параметров в категории

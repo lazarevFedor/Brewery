@@ -105,15 +105,16 @@ func SelectEnumValues(entity, field string, valueType entities.EnumType) sq.Sele
 func SelectEnumValuesByClassID(classID uint) sq.SelectBuilder {
 	return psql.
 		Select(
-			"id",
-			"enum_class_id",
-			"value_raw",
-			"value_type",
-			"position",
+			"val.id",
+			"val.enum_class_id",
+			"val.value_raw",
+			"cls.enum_type AS value_type",
+			"val.position",
 		).
-		From(enumValuesTable).
-		Where(sq.Eq{"enum_class_id": classID}).
-		OrderBy("position ASC")
+		From(enumValuesTable + " val").
+		Join("enum_classes cls ON val.enum_class_id = cls.id").
+		Where(sq.Eq{"val.enum_class_id": classID}).
+		OrderBy("val.position ASC")
 }
 
 // UpdateEnumValue возвращает запрос на обновление значения перечисления.

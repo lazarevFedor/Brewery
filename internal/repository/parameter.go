@@ -4,11 +4,13 @@ package repository
 import (
 	"Brewery/internal/entities"
 	"Brewery/internal/repository/queries"
+	"Brewery/pkg/logger"
 	"context"
 	"errors"
 	"fmt"
 
-	"github.com/Masterminds/squirrel"
+	sq "github.com/Masterminds/squirrel"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -194,29 +196,54 @@ func (p *ParameterPostgres) DeleteEnumParameter(ctx context.Context, id uint) (*
 }
 
 // GetParameters извлекает все числовые и перечисляемые параметры из базы данных и возвращает их.
-func (p *ParameterPostgres) GetParameters(ctx context.Context, categoryID uint, parameterType int) ([]entities.NumericParameter, []entities.EnumParameter, error) {
-	var query squirrel.SelectBuilder
-	if categoryID != 0 {
-		query = queries.SelectParameterIDsByCategory(categoryID, parameterType)
-	}
-	sql, args, err := query.ToSql()
-	if err != nil {
-		return nil, nil, err
-	}
-
+//
+//nolint:funlen
+func (p *ParameterPostgres) GetParameters(
+	ctx context.Context,
+	categoryID uint,
+	parameterType int,
+) (
+	[]entities.NumericParameter,
+	[]entities.EnumParameter,
+	error,
+) {
 	var numericIDs []uint
 	var enumIDs []uint
-	err = p.Pool.QueryRow(ctx, sql, args...).Scan(&numericIDs, &enumIDs)
-	if err != nil {
-		return nil, nil, err
+	var query sq.SelectBuilder
+
+	log, ok := logger.GetLoggerFromCtx(ctx)
+	if !ok {
+		return nil, nil, nil
+	}
+
+	if categoryID != 0 {
+		query := queries.SelectParameterIDsByCategory(categoryID, parameterType)
+		sql, args, err := query.ToSql()
+		if err != nil {
+			return nil, nil, err
+		}
+
+		switch parameterType {
+		case entities.MissingType:
+			err = p.Pool.QueryRow(ctx, sql, args...).Scan(&numericIDs, &enumIDs)
+		case entities.NumericParameterType:
+			err = p.Pool.QueryRow(ctx, sql, args...).Scan(&numericIDs)
+		case entities.EnumParameterType:
+			err = p.Pool.QueryRow(ctx, sql, args...).Scan(&enumIDs)
+		}
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 
 	var numericParams []entities.NumericParameter
 	var enumParams []entities.EnumParameter
 
-	if len(numericIDs) > 0 && categoryID != 0 || parameterType == entities.NumericParameterType {
-		selectNumericQuery := queries.SelectNumericParameters(numericIDs)
-		sql, args, err = selectNumericQuery.ToSql()
+	if parameterType == entities.MissingType ||
+		parameterType == entities.NumericParameterType {
+		log.Debug(ctx, "enum")
+		query = queries.SelectNumericParameters(numericIDs)
+		sql, args, err := query.ToSql()
 		if err != nil {
 			return nil, nil, err
 		}
@@ -236,10 +263,10 @@ func (p *ParameterPostgres) GetParameters(ctx context.Context, categoryID uint, 
 			numericParams = append(numericParams, *param)
 		}
 	}
-
-	if len(enumIDs) > 0 && categoryID != 0 || parameterType == entities.EnumParameterType {
-		selectEnumQuery := queries.SelectEnumParameters(enumIDs)
-		sql, args, err = selectEnumQuery.ToSql()
+	if parameterType == entities.MissingType ||
+		parameterType == entities.EnumParameterType {
+		query = queries.SelectEnumParameters(enumIDs)
+		sql, args, err := query.ToSql()
 		if err != nil {
 			return nil, nil, err
 		}

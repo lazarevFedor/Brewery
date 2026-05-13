@@ -1,3 +1,4 @@
+// Package routes регистрирует все хендлеры
 package routers
 
 import (
@@ -14,6 +15,7 @@ func RegisterRoutes(e *gin.Engine, h handlers.Handlers) {
 	registerReviewRoutes(api, h)
 	registerCategoryRoutes(api, h)
 	registerEnumRoutes(api, h)
+	registerAggregatesRoutes(api, h)
 
 	e.GET("/metrics", gin.WrapH(promhttp.Handler()))
 }
@@ -63,13 +65,11 @@ func registerCategoryRoutes(api *gin.RouterGroup, h handlers.Handlers) {
 		params := categories.Group("/parameters")
 		{
 			params.GET("", h.ParametersHandler.ListCategoryParameters)
-			params.PATCH("/:category_id/apply", h.ParametersHandler.ApplyParametersToCategory)
+			params.PATCH("/apply/:category_id", h.ParametersHandler.ApplyParametersToCategory)
 			params.POST("/numeric", h.ParametersHandler.CreateNumericParameter)
-			params.PATCH("/numeric/:id", h.ParametersHandler.UpdateNumericParameter)
-			params.DELETE("/numeric/:id", h.ParametersHandler.DeleteNumericParameter)
+			params.PATCH("/:id", h.ParametersHandler.UpdateParameter)
+			params.DELETE("/:id", h.ParametersHandler.DeleteParameter)
 			params.POST("/enum", h.ParametersHandler.CreateEnumParameter)
-			params.PATCH("/enum/:id", h.ParametersHandler.UpdateEnumParameter)
-			params.DELETE("/enum/:id", h.ParametersHandler.DeleteEnumParameter)
 		}
 	}
 }
@@ -89,5 +89,16 @@ func registerEnumRoutes(api *gin.RouterGroup, h handlers.Handlers) {
 			value.PATCH("/:id", h.EnumHandler.UpdateValue)
 			value.DELETE("/:id", h.EnumHandler.DeleteValue)
 		}
+	}
+}
+
+func registerAggregatesRoutes(api *gin.RouterGroup, h handlers.Handlers) {
+	aggregates := api.Group("/aggregates")
+	{
+		aggregates.PATCH("/apply/:category_id", h.AggregatesHandler.ApplyAggregateToCategory)
+		aggregates.PATCH("/:id", h.AggregatesHandler.UpdateAggregate)
+		aggregates.DELETE("/:id", h.AggregatesHandler.DeleteAggregate)
+		aggregates.POST("", h.AggregatesHandler.CreateAggregate)
+		aggregates.GET("", h.AggregatesHandler.GetAggregates)
 	}
 }

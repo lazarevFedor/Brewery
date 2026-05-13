@@ -17,7 +17,7 @@ type ParametersService interface {
 	UpdateEnum(ctx context.Context, id uint, updates map[string]any) (*entities.EnumParameter, error)
 	DeleteEnum(ctx context.Context, id uint) (*entities.EnumParameter, error)
 
-	ListParameters(ctx context.Context, categoryID uint) ([]entities.NumericParameter, []entities.EnumParameter, error)
+	ListParameters(ctx context.Context, categoryID uint, parameterType int) ([]entities.NumericParameter, []entities.EnumParameter, error)
 	ApplyToCategory(ctx context.Context, categoryID uint, numericIDs, enumIDs []int) (int, error)
 }
 
@@ -123,12 +123,12 @@ func (s *parametersService) DeleteEnum(ctx context.Context, id uint) (*entities.
 	return deleted, nil
 }
 
-func (s *parametersService) ListParameters(ctx context.Context, categoryID uint) ([]entities.NumericParameter, []entities.EnumParameter, error) {
+func (s *parametersService) ListParameters(ctx context.Context, categoryID uint, parameterType int) ([]entities.NumericParameter, []entities.EnumParameter, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	numeric, enum, err := s.paramRepo.GetParameters(ctx, categoryID, entities.MissingType)
+	numeric, enum, err := s.paramRepo.GetParameters(ctx, categoryID, parameterType)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get parameters: %w", err)
 	}

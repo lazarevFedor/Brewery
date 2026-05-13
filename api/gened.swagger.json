@@ -1270,7 +1270,7 @@
         }
       }
     },
-    "/categories/parameters/{category_id}/apply": {
+    "/categories/parameters/apply/{category_id}": {
       "patch": {
         "tags": [
           "CategoryParams"
@@ -1503,7 +1503,7 @@
         }
       }
     },
-    "/aggregates/{category_id}/apply": {
+    "/aggregates/apply/{category_id}": {
       "patch": {
         "tags": [
           "Aggregates"
