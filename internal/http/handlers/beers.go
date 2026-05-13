@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mailru/easyjson"
@@ -19,6 +20,7 @@ type BeersHandlers interface {
 	UpdateBeer(c *gin.Context)
 	DeleteBeer(c *gin.Context)
 	GetAllBeers(c *gin.Context)
+	SearchBeer(c *gin.Context)
 
 	GetFeature(c *gin.Context)
 	CreateFeature(c *gin.Context)
@@ -178,6 +180,67 @@ func (h *beersHandlers) GetAllBeers(c *gin.Context) {
 		"action=list resource=beer status=success offset=%d limit=%d items=%d",
 		offset, limit, len(beers),
 	))
+}
+
+func (h *beersHandlers) SearchBeer(c *gin.Context) {
+	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+	if !ok {
+		writeError(c, http.StatusInternalServerError, InternalError, "Unexpected error occurred")
+		return
+	}
+	log.Debug(c.Request.Context(), "after logger")
+
+	categoryID, err := getUintParam(c, "id")
+	if err != nil {
+		if err.Error() == "invalid id" {
+			log.Debug(c.Request.Context(), "get uint param", zap.Int("id", int(categoryID)))
+			log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
+			writeError(c, http.StatusBadRequest, InvalidID, "Invalid category id")
+			return
+		}
+	}
+
+	filters := strings.Split(c.Query("filter"), "&")
+	if len(filters) == 0 {
+		log.Error(c.Request.Context(), "Missing filter parameters")
+		writeError(c, http.StatusBadRequest, InvalidParameters, "Missing filter parameters")
+		return
+	}
+
+	validatedFilters := make([]*entities.FilterParameter, len(filters))
+	for i, filter := range filters {
+		vf, err := validateFilterParam(filter)
+		if err != nil {
+			log.Error(c.Request.Context(), fmt.Sprintf("Invalid filter parameter: %v", err))
+			writeError(c, http.StatusBadRequest, InvalidParameters, "Invalid filter parameters")
+			return
+		}
+		validatedFilters[i] = vf
+	}
+
+	log.Debug(c.Request.Context(), "validated filters", zap.Any("filters", validatedFilters))
+	offset, limit, err := getPaginationParams(c)
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Invalid pagination params: %v", err))
+		writeError(c, http.StatusBadRequest, InvalidParameters, "Invalid pagination parameters")
+		return
+	}
+
+	filteredBeers, err := h.uc.FilterBeer(c.Request.Context(), validatedFilters, limit, offset, categoryID)
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to filter beers: %v", err))
+		writeError(c, http.StatusInternalServerError, InternalError, "Unexpected error occurred")
+		return
+	}
+
+	log.Info(
+		c.Request.Context(),
+		fmt.Sprintf(
+			"action=list resource=beer status=success offset=%d limit=%d items=%d",
+			offset, limit, len(filteredBeers),
+		),
+	)
+	c.JSON(http.StatusOK, filteredBeers)
 }
 
 func (h *beersHandlers) GetFeature(c *gin.Context) {

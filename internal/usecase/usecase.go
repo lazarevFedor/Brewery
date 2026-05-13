@@ -26,6 +26,7 @@ type BeerService interface {
 	UpdateBeer(ctx context.Context, id uint, updates map[string]any) (*entities.Beer, error)
 	DeleteBeer(ctx context.Context, id uint) error
 	GetAllBeers(ctx context.Context, limit, offset uint64) ([]entities.Beer, error)
+	FilterBeer(ctx context.Context, filters []*entities.FilterParameter, limit, offset uint64, categoryID uint) ([]entities.Beer, error)
 
 	GetFeatures(ctx context.Context, id uint) ([]string, error)
 	CreateFeature(ctx context.Context, beerID uint, feat string) (uint, error)
@@ -306,6 +307,19 @@ func (s *beerService) GetAllBeers(ctx context.Context, limit, offset uint64) ([]
 	}
 
 	beers, err := s.beerRepo.GetBeers(ctx, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get beers: %w", err)
+	}
+
+	return beers, nil
+}
+
+func (s *beerService) FilterBeer(ctx context.Context, filters []*entities.FilterParameter, limit, offset uint64, categoryID uint) ([]entities.Beer, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, fmt.Errorf("request cancelled: %w", err)
+	}
+
+	beers, err := s.beerRepo.FilterBeer(ctx, filters, limit, offset, categoryID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get beers: %w", err)
 	}

@@ -629,7 +629,7 @@
         "operationId": "searchBeersByCategory",
         "parameters": [
           {
-            "$ref": "#/components/parameters/CategoryId"
+            "$ref": "#/components/parameters/Id"
           },
           {
             "$ref": "#/components/parameters/CategoryBeerFilter"
@@ -1211,12 +1211,17 @@
     },
     "/categories/parameters": {
       "get": {
-        "tags": ["CategoryParams"],
-        "summary": "Get parameters with optional filtering by category and/or type",
+        "tags": [
+          "CategoryParams"
+        ],
+        "summary": "Get all parameters with optional filtering by category and type",
         "operationId": "listCategoryParameters",
         "parameters": [
           {
             "$ref": "#/components/parameters/CategoryIdFilter"
+          },
+          {
+            "$ref": "#/components/parameters/ParamType"
           },
           {
             "name": "type",
@@ -1224,7 +1229,10 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": ["numeric", "enum"]
+              "enum": [
+                "numeric",
+                "enum"
+              ]
             },
             "description": "Filter parameters by type. If omitted, returns both numeric and enum parameters."
           }
@@ -1779,7 +1787,7 @@
                 "$ref": "#/components/schemas/CategoryBase"
               },
               "rating": {
-                "type": "float"
+                "type": "number"
               },
               "features": {
                 "type": "array",
@@ -1909,7 +1917,7 @@
             "type": "string"
           },
           "rating": {
-            "type": "number"
+            "type": "integer"
           }
         }
       },
@@ -2442,7 +2450,7 @@
         }
       },
       "BeerFilter": {
-        "name": "param",
+        "name": "filter",
         "in": "query",
         "required": false,
         "description": "Repeated filter in the form field:op:value. Use eq for exact beer filtering.",
@@ -2457,7 +2465,7 @@
         }
       },
       "CategoryBeerFilter": {
-        "name": "param",
+        "name": "filter",
         "in": "query",
         "required": false,
         "description": "Repeated filter in the form field:op:value. Use gte/lte/in to filter category beers by numeric ranges or allowed enum values.",
@@ -2511,7 +2519,7 @@
       "ParamType": {
         "name": "type",
         "in": "query",
-        "required": true,
+        "required": false,
         "schema": {
           "type": "string",
           "enum": [
