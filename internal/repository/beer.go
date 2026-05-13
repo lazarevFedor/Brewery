@@ -59,6 +59,9 @@ type BeerRepository interface {
 	// GetCityID возвращает ID города по его названию и ID страны. Если города нет, он будет добавлен в базу данных.
 	GetCityID(ctx context.Context, cityName string, countryID uint) (uint, error)
 
+	// GetCityNameByID возвращает название города по его ID.
+	GetCityNameByID(ctx context.Context, id uint) (string, error)
+
 	// GetFeatureID возвращает ID характеристики по ее названию. Если характеристики нет, она будет добавлена в базу данных.
 	GetFeatureID(ctx context.Context, featName string) (uint, error)
 
@@ -231,6 +234,21 @@ func (r *BeerPostgres) getCityIDTx(ctx context.Context, tx pgx.Tx, name string, 
 	}
 
 	return cityID, nil
+}
+
+// GetCityNameByID возвращает название города по его ID.
+// TODO: перенести в queries
+func (r *BeerPostgres) GetCityNameByID(ctx context.Context, id uint) (string, error) {
+	if r.Pool == nil {
+		return "", errors.New("pool is nil")
+	}
+
+	var name string
+	query := "SELECT name FROM cities WHERE id = $1"
+	if err := r.Pool.QueryRow(ctx, query, id).Scan(&name); err != nil {
+		return "", fmt.Errorf("city QueryRow: %w", err)
+	}
+	return name, nil
 }
 
 // getCategoryIDTx возвращает ID категории по ее названию в рамках транзакции. Если категории нет, возвращает 0. Если name пустой, возвращает ошибку.

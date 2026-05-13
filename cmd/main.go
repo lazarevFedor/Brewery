@@ -54,7 +54,7 @@ func main() {
 	parameterRepo := repository.NewParameterRepository(pool)
 	aggregateRepo := repository.NewAggregateRepository(pool)
 
-	beerService := usecase.NewBeerService(beerRepo, ctgRepo)
+	beerService := usecase.NewBeerService(beerRepo, ctgRepo, enumRepo, parameterRepo)
 	enumService := usecase.NewEnumService(enumRepo)
 	parameterService := usecase.NewParametersService(parameterRepo)
 	aggregateService := usecase.NewAggregateService(aggregateRepo)

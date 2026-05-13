@@ -45,10 +45,12 @@ type beerService struct {
 	paramRepo    repository.ParameterRepository
 }
 
-func NewBeerService(beerRepo repository.BeerRepository, categoryRepo repository.CategoryRepository) BeerService {
+func NewBeerService(beerRepo repository.BeerRepository, categoryRepo repository.CategoryRepository, enumRepo repository.EnumRepository, paramRepo repository.ParameterRepository) BeerService {
 	return &beerService{
 		beerRepo:     beerRepo,
 		categoryRepo: categoryRepo,
+		enumRepo:     enumRepo,
+		paramRepo:    paramRepo,
 	}
 }
 
@@ -282,9 +284,40 @@ func (s *beerService) CreateBeer(ctx context.Context, beer *entities.Beer) (*ent
 			return nil, fmt.Errorf("failed to get parameters for category %d: %w", categoryID, err)
 		}
 
-		err = validator.ValidateBeerWithParams(*beer, numericParams, enumParams, func(classID uint) ([]entities.EnumValue, error) {
-			return s.enumRepo.GetEnumValuesByClassID(ctx, classID)
-		}, func(classID uint) (*entities.EnumClass, error) {
+		getEnumValuesWrapped := func(classID uint) ([]entities.EnumValue, error) {
+			vals, err := s.enumRepo.GetEnumValuesByClassID(ctx, classID)
+			if err != nil {
+				return nil, err
+			}
+
+			cls, err := s.enumRepo.GetEnumClassByID(ctx, classID)
+			if err != nil || cls == nil {
+				return vals, nil
+			}
+
+			if (cls.FieldName == "city" || cls.FieldName == "country") && cls.Type == string(entities.EnumValueTypeInt) {
+				conv := make([]entities.EnumValue, 0, len(vals))
+				for _, v := range vals {
+					id, ok := v.Value.(int)
+					if !ok {
+						conv = append(conv, v)
+						continue
+					}
+					name, err := s.beerRepo.GetCityNameByID(ctx, uint(id))
+					if err != nil {
+						conv = append(conv, v)
+						continue
+					}
+					v.Value = name
+					conv = append(conv, v)
+				}
+				return conv, nil
+			}
+
+			return vals, nil
+		}
+
+		err = validator.ValidateBeerWithParams(*beer, numericParams, enumParams, getEnumValuesWrapped, func(classID uint) (*entities.EnumClass, error) {
 			return s.enumRepo.GetEnumClassByID(ctx, classID)
 		})
 		if err != nil {
