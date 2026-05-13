@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -195,10 +194,7 @@ func (p *ParameterPostgres) DeleteEnumParameter(ctx context.Context, id uint) (*
 
 // GetParameters извлекает все числовые и перечисляемые параметры из базы данных и возвращает их.
 func (p *ParameterPostgres) GetParameters(ctx context.Context, categoryID uint, parameterType int) ([]entities.NumericParameter, []entities.EnumParameter, error) {
-	var query squirrel.SelectBuilder
-	if categoryID != 0 {
-		query = queries.SelectParameterIDsByCategory(categoryID, parameterType)
-	}
+	query := queries.SelectParameterIDsByCategory(categoryID, parameterType)
 	sql, args, err := query.ToSql()
 	if err != nil {
 		return nil, nil, err
