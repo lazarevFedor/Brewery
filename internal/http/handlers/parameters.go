@@ -356,20 +356,25 @@ func (h *parametersHandlers) ListCategoryParameters(c *gin.Context) {
 		return
 	}
 
-	categoryIDStr := c.Query("category_id")
-	var categoryID uint
-
-	if categoryIDStr != "" {
-		id, err := strconv.ParseUint(categoryIDStr, 10, 32)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "category_id must be an integer"})
-			log.Error(c.Request.Context(), fmt.Sprintf("Invalid category_id: %v", err))
-			return
-		}
-		categoryID = uint(id)
+	categoryID, err := getUintParam(c, "category_id")
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Invalid enum parameter id: %v", err))
+		return
 	}
 
-	numeric, enum, err := h.uc.ListParameters(c.Request.Context(), categoryID)
+	paramTypeStr := c.Param("type")
+
+	var paramType int
+	switch paramTypeStr {
+	case "numeric":
+		paramType = entities.NumericParameterType
+	case "enum":
+		paramType = entities.EnumParameterType
+	case "":
+		paramType = entities.MissingType
+	}
+
+	numeric, enum, err := h.uc.ListParameters(c.Request.Context(), categoryID, paramType)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to list parameters: %v", err))
 		c.Status(http.StatusInternalServerError)
