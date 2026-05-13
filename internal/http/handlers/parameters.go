@@ -240,6 +240,7 @@ func (h *parametersHandlers) UpdateEnumParameter(c *gin.Context) {
 	log.Info(c.Request.Context(), fmt.Sprintf("action=update resource=enum_parameter status=success id=%d", id))
 }
 
+//nolint:funlen
 func (h *parametersHandlers) UpdateParameter(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
