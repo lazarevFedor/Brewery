@@ -23,6 +23,8 @@ type ParametersHandlers interface {
 	DeleteEnumParameter(c *gin.Context)
 
 	UpdateParameter(c *gin.Context)
+	DeleteParameter(c *gin.Context)
+
 	ListCategoryParameters(c *gin.Context)
 	ApplyParametersToCategory(c *gin.Context)
 }
@@ -312,6 +314,26 @@ func (h *parametersHandlers) UpdateParameter(c *gin.Context) {
 
 		c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
 		log.Info(c.Request.Context(), fmt.Sprintf("action=update resource=enum_parameter status=success id=%d", id))
+	default:
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid type, must be 'numeric' or 'enum'"})
+		return
+	}
+}
+
+func (h *parametersHandlers) DeleteParameter(c *gin.Context) {
+	typ := c.Query("type")
+	if typ == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "type query param is required"})
+		return
+	}
+
+	switch typ {
+	case "numeric":
+		h.DeleteNumericParameter(c)
+		return
+	case "enum":
+		h.DeleteEnumParameter(c)
+		return
 	default:
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid type, must be 'numeric' or 'enum'"})
 		return
