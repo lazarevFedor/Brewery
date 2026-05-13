@@ -63,12 +63,11 @@ func registerCategoryRoutes(api *gin.RouterGroup, h handlers.Handlers) {
 		params := categories.Group("/parameters")
 		{
 			params.GET("", h.ParametersHandler.ListCategoryParameters)
-			params.PATCH("/:category_id/apply", h.ParametersHandler.ApplyParametersToCategory)
+			params.PATCH("/apply/:category_id", h.ParametersHandler.ApplyParametersToCategory)
 			params.POST("/numeric", h.ParametersHandler.CreateNumericParameter)
-			params.PATCH("/numeric/:id", h.ParametersHandler.UpdateNumericParameter)
+			params.PATCH("/:id", h.ParametersHandler.UpdateParameter)
 			params.DELETE("/numeric/:id", h.ParametersHandler.DeleteNumericParameter)
 			params.POST("/enum", h.ParametersHandler.CreateEnumParameter)
-			params.PATCH("/enum/:id", h.ParametersHandler.UpdateEnumParameter)
 			params.DELETE("/enum/:id", h.ParametersHandler.DeleteEnumParameter)
 		}
 	}

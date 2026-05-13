@@ -22,6 +22,7 @@ type ParametersHandlers interface {
 	UpdateEnumParameter(c *gin.Context)
 	DeleteEnumParameter(c *gin.Context)
 
+	UpdateParameter(c *gin.Context)
 	ListCategoryParameters(c *gin.Context)
 	ApplyParametersToCategory(c *gin.Context)
 }
@@ -237,6 +238,83 @@ func (h *parametersHandlers) UpdateEnumParameter(c *gin.Context) {
 
 	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
 	log.Info(c.Request.Context(), fmt.Sprintf("action=update resource=enum_parameter status=success id=%d", id))
+}
+
+func (h *parametersHandlers) UpdateParameter(c *gin.Context) {
+	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+	if !ok {
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	id, err := getUintParam(c, "id")
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Invalid parameter id: %v", err))
+		return
+	}
+
+	typ := c.Query("type")
+	if typ == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "type query param is required"})
+		return
+	}
+
+	body, err := readRequestBody(c)
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read request body: %v", err))
+		return
+	}
+
+	updates := make(map[string]any)
+	if err = json.Unmarshal(body, &updates); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
+		return
+	}
+
+	if len(updates) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "empty update payload"})
+		return
+	}
+
+	switch typ {
+	case "numeric":
+		updated, err := h.uc.UpdateNumeric(c.Request.Context(), id, updates)
+		if err != nil {
+			log.Error(c.Request.Context(), fmt.Sprintf("Failed to update numeric parameter: %v", err))
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		rawBytes, err := json.Marshal(updated)
+		if err != nil {
+			log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal response: %v", err))
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
+			return
+		}
+
+		c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
+		log.Info(c.Request.Context(), fmt.Sprintf("action=update resource=numeric_parameter status=success id=%d", id))
+	case "enum":
+		updated, err := h.uc.UpdateEnum(c.Request.Context(), id, updates)
+		if err != nil {
+			log.Error(c.Request.Context(), fmt.Sprintf("Failed to update enum parameter: %v", err))
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		rawBytes, err := json.Marshal(updated)
+		if err != nil {
+			log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal response: %v", err))
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
+			return
+		}
+
+		c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
+		log.Info(c.Request.Context(), fmt.Sprintf("action=update resource=enum_parameter status=success id=%d", id))
+	default:
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid type, must be 'numeric' or 'enum'"})
+		return
+	}
 }
 
 func (h *parametersHandlers) DeleteEnumParameter(c *gin.Context) {
