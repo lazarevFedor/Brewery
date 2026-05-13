@@ -1,6 +1,19 @@
 ```mermaid
 classDiagram
     direction LR
+    
+    class Aggregate {
+        +int ID
+        +string Name
+        +string Description
+        +int[] NumericParameters
+        +int[] EnumParameters
+        +Create()
+        +Get()
+        +Update()
+        +Delete()
+        +Apply()
+    }
 
     class NumericParameter {
         +int ID
@@ -63,42 +76,49 @@ classDiagram
         +string Unit
         +string City
         +string Country
-        +string Type
         +string[] Features
 
-        +createBeer(beer)
-        +getAllBeers(limit, offset)
-        +updateBeer(id, updates)
-        +deleteBeer(id)
-        +addReview(id, review)
+        +createBeer()
+        +getAllBeers()
+        +updateBeer()
+        +deleteBeer()
+        +addReview()
     }
 
     class ProductCategory {
         +int ID
         +string Name
         +int ParentID
+        +int[] NumericParameters
+        +int[] EnumParameters
 
-        +createCategory(category)
-        +getCategoryById(id)
-        +updateCategory(id, updates)
-        +deleteCategory(id)
+        +createCategory()
+        +getCategoryById()
+        +updateCategory()
+        +deleteCategory()
         +getCategories()
         +getParent(id)
         +getChildren(id)
-        +getBeersByCategory(id, limit, offset)
+        +getBeersByCategory()
     }
 
     class Review {
         +int ID
         +int BeerID
-        +string Text
-        +float Rating
+        +string Body
+        +int Rating
 
-        +createReview(beerID, review)
+        +createReview()
     }
 
+    EnumClass "1" *-- "0..*" EnumValue
+    EnumParameter "*" --> "1" EnumClass
+    ProductCategory "1" o-- "0..*" NumericParameter
+    ProductCategory "1" o-- "0..*" EnumParameter
+    Aggregate ..> ProductCategory
+    Aggregate "1" o-- "0..*" NumericParameter
+    Aggregate "1" o-- "0..*" EnumParameter
     Beer "0..*" --> "1" ProductCategory
     ProductCategory "0..1" <-- "0..*" ProductCategory : parent child
     Beer "1" *-- "0..*" Review
-    EnumClass "1" *-- "0..*" EnumValue
 ```
