@@ -292,7 +292,7 @@ func (s *beerService) CreateBeer(ctx context.Context, beer *entities.Beer) (*ent
 
 			cls, err := s.enumRepo.GetEnumClassByID(ctx, classID)
 			if err != nil || cls == nil {
-				return vals, nil
+				return vals, fmt.Errorf("failed to get enum class by id %d: %w", classID, err)
 			}
 
 			if (cls.FieldName == "city" || cls.FieldName == "country") && cls.Type == string(entities.EnumValueTypeInt) {

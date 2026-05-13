@@ -13,6 +13,11 @@ import (
 	"github.com/mailru/easyjson"
 )
 
+const (
+	enumQuery    = "enum"
+	numericQuery = "numeric"
+)
+
 type ParametersHandlers interface {
 	CreateNumericParameter(c *gin.Context)
 	UpdateNumericParameter(c *gin.Context)
@@ -280,7 +285,7 @@ func (h *parametersHandlers) UpdateParameter(c *gin.Context) {
 	}
 
 	switch typ {
-	case "numeric":
+	case numericQuery:
 		updated, err := h.uc.UpdateNumeric(c.Request.Context(), id, updates)
 		if err != nil {
 			log.Error(c.Request.Context(), fmt.Sprintf("Failed to update numeric parameter: %v", err))
@@ -297,7 +302,7 @@ func (h *parametersHandlers) UpdateParameter(c *gin.Context) {
 
 		c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
 		log.Info(c.Request.Context(), fmt.Sprintf("action=update resource=numeric_parameter status=success id=%d", id))
-	case "enum":
+	case enumQuery:
 		updated, err := h.uc.UpdateEnum(c.Request.Context(), id, updates)
 		if err != nil {
 			log.Error(c.Request.Context(), fmt.Sprintf("Failed to update enum parameter: %v", err))
