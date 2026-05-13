@@ -15,6 +15,7 @@ func RegisterRoutes(e *gin.Engine, h handlers.Handlers) {
 	registerReviewRoutes(api, h)
 	registerCategoryRoutes(api, h)
 	registerEnumRoutes(api, h)
+	registerAggregatesRoutes(api, h)
 
 	e.GET("/metrics", gin.WrapH(promhttp.Handler()))
 }
@@ -88,5 +89,16 @@ func registerEnumRoutes(api *gin.RouterGroup, h handlers.Handlers) {
 			value.PATCH("/:id", h.EnumHandler.UpdateValue)
 			value.DELETE("/:id", h.EnumHandler.DeleteValue)
 		}
+	}
+}
+
+func registerAggregatesRoutes(api *gin.RouterGroup, h handlers.Handlers) {
+	aggregates := api.Group("/aggregates")
+	{
+		aggregates.PATCH("/apply/:category_id", h.AggregatesHandler.ApplyAggregateToCategory)
+		aggregates.PATCH("/:id", h.AggregatesHandler.UpdateAggregate)
+		aggregates.DELETE("/:id", h.AggregatesHandler.DeleteAggregate)
+		aggregates.POST("", h.AggregatesHandler.CreateAggregate)
+		aggregates.GET("", h.AggregatesHandler.GetAggregates)
 	}
 }

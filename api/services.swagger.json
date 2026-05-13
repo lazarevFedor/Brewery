@@ -69,7 +69,7 @@
     "/categories/parameters/{id}": { "$ref": "./path/category/categories_parameters_id.json"},
 
     "/aggregates": { "$ref": "./path/aggregate/aggregates.json" },
-    "/aggregates/{category_id}/apply": { "$ref": "./path/aggregate/apply_aggregate.json" },
+    "/aggregates/apply/{category_id}": { "$ref": "./path/aggregate/apply_aggregate.json" },
     "/aggregates/{id}": { "$ref": "./path/aggregate/aggregates_id.json" }
   }
 }

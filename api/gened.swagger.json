@@ -1503,7 +1503,7 @@
         }
       }
     },
-    "/aggregates/{category_id}/apply": {
+    "/aggregates/apply/{category_id}": {
       "patch": {
         "tags": [
           "Aggregates"
