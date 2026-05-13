@@ -362,7 +362,7 @@ func (h *parametersHandlers) ListCategoryParameters(c *gin.Context) {
 		return
 	}
 
-	paramTypeStr := c.Param("type")
+	paramTypeStr := c.Query("type")
 
 	var paramType int
 	switch paramTypeStr {
@@ -373,6 +373,8 @@ func (h *parametersHandlers) ListCategoryParameters(c *gin.Context) {
 	case "":
 		paramType = entities.MissingType
 	}
+
+	log.Debug(c.Request.Context(), fmt.Sprintf("type: %s, %d", paramTypeStr, paramType))
 
 	numeric, enum, err := h.uc.ListParameters(c.Request.Context(), categoryID, paramType)
 	if err != nil {
