@@ -28,6 +28,7 @@ type EnumParameter struct {
 //easyjson:json
 type EnumParameters []EnumParameter
 
+<<<<<<< feat/parameters_db
 type Operation string
 
 const (
@@ -44,3 +45,10 @@ type FilterParameter struct {
 	Operation Operation `json:"operation,omitempty" info:"Операция сравнения (eq, gt, ge, lt, le, ne)"`
 	Value     float32   `json:"value,omitempty" info:"Значение для сравнения"`
 }
+=======
+const (
+	MissingType = iota
+	NumericParameterType
+	EnumParameterType
+)
+>>>>>>> dev

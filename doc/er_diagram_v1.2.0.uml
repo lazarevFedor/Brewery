@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>DATABASE</ID>
+  <OriginalElement>903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.aggregates</OriginalElement>
+  <nodes>
+    <node x="192.5" y="735.5">903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.beers</node>
+    <node x="381.43197239056576" y="548.1023136465991">903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.enum_parameters</node>
+    <node x="-133.75" y="694.1543448976411">903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.features</node>
+    <node x="595.1687737041718" y="252.18284657788115">903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.aggregates</node>
+    <node x="595.1687737041718" y="735.5">903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.product_categories</node>
+    <node x="87.29500796765427" y="536.6023136465991">903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.enum_values</node>
+    <node x="-158.25" y="468.10182478763215">903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.cities</node>
+    <node x="615.6687737041718" y="479.10231364659904">903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.numeric_parameters</node>
+    <node x="235.36505944797625" y="240.68284657788115">903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.enum_classes</node>
+    <node x="-137.75" y="311.1365585738283">903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.countries</node>
+    <node x="507.657080742728" y="1017.7382383113845">903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.reviews</node>
+    <node x="-119.0" y="906.9268126710156">903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.beer_features</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.cities" target="903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.countries" relationship="REFERENCES">
+      <point x="0.0" y="-54.5" />
+      <point x="-82.75" y="376.27496839443745" />
+      <point x="-82.75" y="376.27496839443745" />
+      <point x="0.0" y="43.0" />
+    </edge>
+    <edge source="903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.enum_values" target="903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.enum_classes" relationship="REFERENCES">
+      <point x="0.0" y="-66.0" />
+      <point x="177.29500796765427" y="486.80096945361447" />
+      <point x="328.36505944797625" y="486.80096945361447" />
+      <point x="0.0" y="89.0" />
+    </edge>
+    <edge source="903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.reviews" target="903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.beers" relationship="REFERENCES">
+      <point x="0.0" y="-66.0" />
+      <point x="571.157080742728" y="1092.25" />
+      <point x="292.0" y="1092.25" />
+      <point x="0.0" y="146.5" />
+    </edge>
+    <edge source="903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.beer_features" target="903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.beers" relationship="REFERENCES">
+      <point x="36.25" y="-42.5" />
+      <point x="-10.25" y="1092.25" />
+      <point x="292.0" y="1092.25" />
+      <point x="0.0" y="146.5" />
+    </edge>
+    <edge source="903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.beers" target="903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.cities" relationship="REFERENCES">
+      <point x="-97.52674128001706" y="-129.2800574890972" />
+      <point x="41.432446333613655" y="752.7199425109028" />
+      <point x="41.432446333613655" y="656.3009123938161" />
+      <point x="-82.75" y="656.3009123938161" />
+      <point x="0.0" y="54.5" />
+    </edge>
+    <edge source="903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.enum_parameters" target="903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.enum_classes" relationship="REFERENCES">
+      <point x="0.0" y="-54.5" />
+      <point x="469.93197239056576" y="486.80096945361447" />
+      <point x="328.36505944797625" y="486.80096945361447" />
+      <point x="0.0" y="89.0" />
+    </edge>
+    <edge source="903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.beers" target="903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.product_categories" relationship="REFERENCES">
+      <point x="49.75" y="-146.5" />
+      <point x="341.75" y="702.0" />
+      <point x="772.9187737041718" y="702.0" />
+      <point x="59.25" y="77.5" />
+    </edge>
+    <edge source="903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.product_categories" target="903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.product_categories" relationship="REFERENCES">
+      <point x="-118.5" y="-0.0" />
+      <point x="553.6687737041718" y="813.0" />
+      <point x="553.6687737041718" y="933.0" />
+      <point x="654.4187737041718" y="933.0" />
+      <point x="-59.25" y="77.5" />
+    </edge>
+    <edge source="903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.beer_features" target="903d297b-28ad-4262-ab78-f3d90074aaa3.TABLE:brewery_db.public.features" relationship="REFERENCES">
+      <point x="-36.25" y="-42.5" />
+      <point x="0.0" y="43.0" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Compact" zoom="0.8383221438529744" showDependencies="false" x="312.5635482947142" y="701.1256926723753" />
+  <SelectedNodes />
+  <Categories>
+    <Category>Columns</Category>
+    <Category>Comments</Category>
+    <Category>Key columns</Category>
+    <Category>Virtual foreign keys</Category>
+  </Categories>
+</Diagram>
+

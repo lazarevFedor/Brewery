@@ -139,7 +139,8 @@ func InsertReview(review entities.Review) sq.InsertBuilder {
 func DeleteReview(id uint) sq.DeleteBuilder {
 	return psql.
 		Delete(reviewsTable).
-		Where(sq.Eq{"id": id}).Suffix("RETURNING beer_id, rating")
+		Where(sq.Eq{"id": id}).
+		Suffix("RETURNING beer_id, rating")
 }
 
 // DeleteBeer возвращает запрос для удаления пива из таблицы beers по его ID.
@@ -230,16 +231,6 @@ func SelectBeersFeature(beerID uint) sq.SelectBuilder {
 		From(beerFeaturesTable + " bf").
 		Join(featuresTable + " f ON f.id = bf.feature_id").
 		Where(sq.Eq{"beer_id": beerID})
-}
-
-// InsertFeature возвращает запрос для втавки особенности пива
-func InsertFeature(name string) sq.InsertBuilder {
-	data := map[string]any{
-		"name": name,
-	}
-	return psql.
-		Insert(featuresTable).
-		SetMap(data)
 }
 
 // SelectOrInsertBeerFeature возвращает запрос для вставки новой связи между пивом и особенностью в таблицу beer_features, если такая связь еще не существует, или ничего не делает, если связь уже есть. Запрос использует конструкцию ON CONFLICT для обработки конфликтов по идентификаторам пива и особенности.

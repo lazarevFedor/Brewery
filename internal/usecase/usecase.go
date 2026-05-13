@@ -4,6 +4,7 @@ package usecase
 import (
 	"Brewery/internal/entities"
 	"Brewery/internal/repository"
+	"Brewery/internal/validator"
 	"context"
 	"errors"
 	"fmt"
@@ -40,6 +41,8 @@ type BeerService interface {
 type beerService struct {
 	beerRepo     repository.BeerRepository
 	categoryRepo repository.CategoryRepository
+	enumRepo     repository.EnumRepository
+	paramRepo    repository.ParameterRepository
 }
 
 func NewBeerService(beerRepo repository.BeerRepository, categoryRepo repository.CategoryRepository) BeerService {
@@ -260,6 +263,33 @@ func (s *beerService) CreateBeer(ctx context.Context, beer *entities.Beer) (*ent
 
 	if beer.Name == "" {
 		return nil, errors.New("beer name is required")
+	}
+
+	var categoryID uint
+	if beer.Category.ID != 0 {
+		categoryID = uint(beer.Category.ID)
+	} else if beer.Category.Name != "" {
+		ctgID, err := s.categoryRepo.GetCategoryID(ctx, beer.Category.Name)
+		if err != nil {
+			return nil, fmt.Errorf("failed to resolve category: %w", err)
+		}
+		categoryID = ctgID
+	}
+
+	if categoryID != 0 {
+		numericParams, enumParams, err := s.paramRepo.GetParameters(ctx, categoryID, entities.MissingType)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get parameters for category %d: %w", categoryID, err)
+		}
+
+		err = validator.ValidateBeerWithParams(*beer, numericParams, enumParams, func(classID uint) ([]entities.EnumValue, error) {
+			return s.enumRepo.GetEnumValuesByClassID(ctx, classID)
+		}, func(classID uint) (*entities.EnumClass, error) {
+			return s.enumRepo.GetEnumClassByID(ctx, classID)
+		})
+		if err != nil {
+			return nil, fmt.Errorf("beer validation failed: %w", err)
+		}
 	}
 
 	beer, err := s.beerRepo.InsertBeer(ctx, *beer)
