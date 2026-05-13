@@ -215,8 +215,6 @@ func (p *ParameterPostgres) GetParameters(
 	if !ok {
 		return nil, nil, nil
 	}
-	log.Debug(ctx, fmt.Sprintf("type: %d", parameterType))
-	log.Debug(ctx, fmt.Sprintf("id: %d", categoryID))
 
 	if categoryID != 0 {
 		query := queries.SelectParameterIDsByCategory(categoryID, parameterType)
@@ -238,14 +236,12 @@ func (p *ParameterPostgres) GetParameters(
 		}
 	}
 
-	log.Debug(ctx, fmt.Sprintf("numericIDs %v", numericIDs))
-	log.Debug(ctx, fmt.Sprintf("enumIDs %v", enumIDs))
-
 	var numericParams []entities.NumericParameter
 	var enumParams []entities.EnumParameter
 
 	if parameterType == entities.MissingType ||
-		parameterType == entities.EnumParameterType {
+		parameterType == entities.NumericParameterType {
+		log.Debug(ctx, "enum")
 		query = queries.SelectNumericParameters(numericIDs)
 		sql, args, err := query.ToSql()
 		if err != nil {

@@ -1,3 +1,4 @@
+// Package routes регистрирует все хендлеры
 package routers
 
 import (
