@@ -1,4 +1,4 @@
-// Package routers содержит регистрацию все url путей сервера
+// Package routes регистрирует все хендлеры
 package routers
 
 import (
@@ -10,59 +10,95 @@ import (
 
 func RegisterRoutes(e *gin.Engine, h handlers.Handlers) {
 	api := e.Group("/api")
-	{
-		beers := api.Group("/beers")
-		{
-			beers.POST("", h.BeersHandler.CreateBeer)
-			beers.PATCH("/:id", h.BeersHandler.UpdateBeer)
-			beers.DELETE("/:id", h.BeersHandler.DeleteBeer)
-			beers.GET("", h.BeersHandler.GetAllBeers)
 
-			features := beers.Group("/feats")
-			{
-				features.GET("/:beer_id", h.BeersHandler.GetFeature)
-				features.POST("/:beer_id", h.BeersHandler.CreateFeature)
-				features.PATCH("/:beer_id", h.BeersHandler.UpdateBeer)
-				features.DELETE("/:beer_id", h.BeersHandler.DeleteFeature)
-			}
-		}
-
-		reviews := api.Group("/reviews")
-		{
-			reviews.POST("/:beer_id", h.ReviewHandler.CreateReview)
-			reviews.GET("/:beer_id", h.ReviewHandler.GetBeersReviews)
-			reviews.DELETE("/:id", h.ReviewHandler.DeleteReview)
-			reviews.PATCH("/:id", h.ReviewHandler.UpdateReview)
-		}
-
-		categories := api.Group("/categories")
-		{
-			categories.POST("", h.CategoryHandler.CreateCategory)
-			categories.GET("/:id", h.CategoryHandler.GetCategoryByID)
-			categories.PATCH("/:id", h.CategoryHandler.UpdateCategory)
-			categories.DELETE("/:id", h.CategoryHandler.DeleteCategory)
-			categories.GET("", h.CategoryHandler.GetAllCategories)
-			categories.GET("/beers/:category_id", h.CategoryHandler.GetBeersByCategory)
-			categories.GET("/parent/:id", h.CategoryHandler.GetParentCategory)
-			categories.GET("/children/:id", h.CategoryHandler.GetChildCategory)
-		}
-
-		enums := api.Group("/enums")
-		{
-			enums.POST("", h.EnumHandler.CreateEnum)
-			enums.GET("", h.EnumHandler.GetEnum)
-			enums.PATCH("/:id", h.EnumHandler.UpdateEnum)
-			enums.DELETE("/:id", h.EnumHandler.DeleteEnum)
-
-			value := enums.Group("value")
-			{
-				value.POST("", h.EnumHandler.CreateValue)
-				value.GET("", h.EnumHandler.GetValue)
-				value.PATCH("/:id", h.EnumHandler.UpdateValue)
-				value.DELETE("/:id", h.EnumHandler.DeleteValue)
-			}
-		}
-	}
+	registerBeerRoutes(api, h)
+	registerReviewRoutes(api, h)
+	registerCategoryRoutes(api, h)
+	registerEnumRoutes(api, h)
+	registerAggregatesRoutes(api, h)
 
 	e.GET("/metrics", gin.WrapH(promhttp.Handler()))
+}
+
+func registerBeerRoutes(api *gin.RouterGroup, h handlers.Handlers) {
+	beers := api.Group("/beers")
+	{
+		beers.POST("", h.BeersHandler.CreateBeer)
+		beers.PATCH("/:id", h.BeersHandler.UpdateBeer)
+		beers.DELETE("/:id", h.BeersHandler.DeleteBeer)
+		beers.GET("", h.BeersHandler.GetAllBeers)
+		beers.GET("/search", h.BeersHandler.SearchBeer)
+
+		features := beers.Group("/feats")
+		{
+			features.GET("/:beer_id", h.BeersHandler.GetFeature)
+			features.POST("/:beer_id", h.BeersHandler.CreateFeature)
+			features.PATCH("/:beer_id", h.BeersHandler.UpdateBeer)
+			features.DELETE("/:beer_id", h.BeersHandler.DeleteFeature)
+		}
+	}
+}
+
+func registerReviewRoutes(api *gin.RouterGroup, h handlers.Handlers) {
+	reviews := api.Group("/reviews")
+	{
+		reviews.POST("/:beer_id", h.ReviewHandler.CreateReview)
+		reviews.GET("/:beer_id", h.ReviewHandler.GetBeersReviews)
+		reviews.DELETE("/:id", h.ReviewHandler.DeleteReview)
+		reviews.PATCH("/:id", h.ReviewHandler.UpdateReview)
+	}
+}
+
+func registerCategoryRoutes(api *gin.RouterGroup, h handlers.Handlers) {
+	categories := api.Group("/categories")
+	{
+		categories.POST("", h.CategoryHandler.CreateCategory)
+		categories.GET("/:id", h.CategoryHandler.GetCategoryByID)
+		categories.PATCH("/:id", h.CategoryHandler.UpdateCategory)
+		categories.DELETE("/:id", h.CategoryHandler.DeleteCategory)
+		categories.GET("", h.CategoryHandler.GetAllCategories)
+		categories.GET("/beers/:category_id", h.CategoryHandler.GetBeersByCategory)
+		categories.GET("/parent/:id", h.CategoryHandler.GetParentCategory)
+		categories.GET("/children/:id", h.CategoryHandler.GetChildCategory)
+		categories.GET("/:id/beers/search", h.BeersHandler.SearchBeer)
+
+		params := categories.Group("/parameters")
+		{
+			params.GET("", h.ParametersHandler.ListCategoryParameters)
+			params.PATCH("/apply/:category_id", h.ParametersHandler.ApplyParametersToCategory)
+			params.POST("/numeric", h.ParametersHandler.CreateNumericParameter)
+			params.PATCH("/:id", h.ParametersHandler.UpdateParameter)
+			params.DELETE("/:id", h.ParametersHandler.DeleteParameter)
+			params.POST("/enum", h.ParametersHandler.CreateEnumParameter)
+		}
+	}
+}
+
+func registerEnumRoutes(api *gin.RouterGroup, h handlers.Handlers) {
+	enums := api.Group("/enums")
+	{
+		enums.POST("", h.EnumHandler.CreateEnum)
+		enums.GET("", h.EnumHandler.GetEnum)
+		enums.PATCH("/:id", h.EnumHandler.UpdateEnum)
+		enums.DELETE("/:id", h.EnumHandler.DeleteEnum)
+
+		value := enums.Group("/value")
+		{
+			value.POST("", h.EnumHandler.CreateValue)
+			value.GET("", h.EnumHandler.GetValue)
+			value.PATCH("/:id", h.EnumHandler.UpdateValue)
+			value.DELETE("/:id", h.EnumHandler.DeleteValue)
+		}
+	}
+}
+
+func registerAggregatesRoutes(api *gin.RouterGroup, h handlers.Handlers) {
+	aggregates := api.Group("/aggregates")
+	{
+		aggregates.PATCH("/apply/:category_id", h.AggregatesHandler.ApplyAggregateToCategory)
+		aggregates.PATCH("/:id", h.AggregatesHandler.UpdateAggregate)
+		aggregates.DELETE("/:id", h.AggregatesHandler.DeleteAggregate)
+		aggregates.POST("", h.AggregatesHandler.CreateAggregate)
+		aggregates.GET("", h.AggregatesHandler.GetAggregates)
+	}
 }

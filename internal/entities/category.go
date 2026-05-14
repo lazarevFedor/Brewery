@@ -1,3 +1,4 @@
+// Package entities содержит слой сущностей
 package entities
 
 // ProductCategory представляет собой структуру, описывающую категорию изделия.

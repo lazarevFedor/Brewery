@@ -1,4 +1,4 @@
-// Package entities contains app's main objects' models
+// Package entities содержит слой сущностей
 package entities
 
 // Beer представляет полное описание пива со всеми связанными данными.

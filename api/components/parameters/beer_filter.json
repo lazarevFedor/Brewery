@@ -1,0 +1,15 @@
+{
+	"BeerFilter": {
+		"name": "filter",
+		"in": "query",
+		"required": false,
+		"description": "Repeated filter in the form field:op:value. Use eq for exact beer filtering.",
+		"schema": { "type": "string" },
+		"examples": {
+			"exact_value": {
+				"summary": "Exact parameter value",
+				"value": "amount:eq:100"
+			}
+		}
+	}
+}

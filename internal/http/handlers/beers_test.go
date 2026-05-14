@@ -2,6 +2,7 @@ package handlers_test
 
 import (
 	"Brewery/internal/entities"
+	"Brewery/internal/http/handlers"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -19,12 +20,11 @@ func TestGetBeersByCategory_NewRoute_WorksWithIDAndPagination(t *testing.T) {
 	testEnv := newTestEnv(t)
 	serviceMock := testEnv.BeerMock
 
+	// Мок должен возвращать столько пива, сколько соответствует пагинации
 	serviceMock.GetBeersByCategoryMock.
 		Expect(minimock.AnyContext, uint(42), uint64(1), uint64(1)).
 		Return([]entities.Beer{
-			{Name: "one", Rating: 4.1},
 			{Name: "two", Rating: 4.2},
-			{Name: "three", Rating: 4.3},
 		}, nil)
 
 	resp := testEnv.DoRequest(ctx, http.MethodGet, "/api/categories/beers/42?offset=1&limit=1", nil)
@@ -33,9 +33,8 @@ func TestGetBeersByCategory_NewRoute_WorksWithIDAndPagination(t *testing.T) {
 
 	var got []entities.Beer
 	require.NoError(t, json.Unmarshal(resp.Body.Bytes(), &got))
-	require.Len(t, got, 3)
-	assert.Equal(t, "one", got[0].Name)
-	assert.Equal(t, "three", got[2].Name)
+	require.Len(t, got, 1)
+	assert.Equal(t, "two", got[0].Name)
 }
 
 // TestGetBeersByCategory_InvalidID_ReturnsBadRequest проверяет, что при запросе пива по категории с нечисловым ID возвращается статус 400 Bad Request и корректное сообщение об ошибке.
@@ -49,7 +48,7 @@ func TestGetBeersByCategory_InvalidID_ReturnsBadRequest(t *testing.T) {
 
 	var got map[string]string
 	require.NoError(t, json.Unmarshal(resp.Body.Bytes(), &got))
-	assert.Equal(t, "invalid id", got["error"])
+	assert.Equal(t, handlers.InvalidID, got["error"])
 }
 
 // TestUpdateBeer_UsesPathParam проверяет, что при обновлении пива используется правильный путь и передается правильный ID в сервис.
@@ -60,7 +59,7 @@ func TestUpdateBeer_UsesPathParam(t *testing.T) {
 
 	serviceMock.UpdateBeerMock.
 		Expect(minimock.AnyContext, uint(77), map[string]any{"name": "ipa"}).
-		Return(uint(77), nil)
+		Return(&entities.Beer{}, nil)
 
 	body := strings.NewReader(`{"name":"ipa"}`)
 	resp := testEnv.DoRequest(ctx, http.MethodPatch, "/api/beers/77", body)
@@ -75,10 +74,10 @@ func TestCreateBeer_ReturnsCreated(t *testing.T) {
 	serviceMock := testEnv.BeerMock
 
 	serviceMock.CreateBeerMock.Set(
-		func(ctx context.Context, beer *entities.Beer) (uint, error) {
+		func(ctx context.Context, beer *entities.Beer) (*entities.Beer, error) {
 			require.Equal(t, "ipa", beer.Name)
 
-			return 1, nil
+			return beer, nil
 		})
 
 	body := strings.NewReader(`{"name":"ipa"}`)
@@ -99,7 +98,7 @@ func TestDeleteBeer_UsesPathParam(t *testing.T) {
 
 	resp := testEnv.DoRequest(ctx, http.MethodDelete, "/api/beers/16", nil)
 
-	require.Equal(t, http.StatusOK, resp.Code)
+	require.Equal(t, http.StatusNoContent, resp.Code)
 }
 
 // TestGetAllBeers_ReturnsOK проверяет, что при запросе всех изделий пива возвращается статус 200 OK и что сервис вызывается с правильными параметрами пагинации.
@@ -131,12 +130,12 @@ func TestCreateBeerReview_UsesPathParam(t *testing.T) {
 	serviceMock.CreateReviewMock.Set(func(ctx context.Context, review *entities.Review) (uint, error) {
 		require.Equal(t, uint(17), review.BeerID)
 		require.Equal(t, "great", review.Body)
-		require.InDelta(t, 4.5, float64(review.Rating), 1e-6)
+		require.InDelta(t, 4, review.Rating, 1e-6)
 
 		return 1, nil
 	})
 
-	body := strings.NewReader(`{"body":"great","rating":4.5}`)
+	body := strings.NewReader(`{"body":"great","rating":4}`)
 	resp := testEnv.DoRequest(ctx, http.MethodPost, "/api/reviews/17", body)
 
 	require.Equal(t, http.StatusOK, resp.Code)

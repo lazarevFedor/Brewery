@@ -3,3 +3,5 @@ configs/.env
 deployments/pgdata
 .vscode/
 .DS_Store
+coverage.out
+hook/

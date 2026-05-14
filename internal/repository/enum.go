@@ -1,3 +1,4 @@
+// Package repository содержит слой для манипуляции объектами в базе данных
 package repository
 
 import (
@@ -36,13 +37,24 @@ type EnumRepository interface {
 	// DeleteEnumValueByID удаляет сущность EnumValue из хранилища.
 	DeleteEnumValueByID(ctx context.Context, id uint) error
 
-	// GetEnumValues получает список сущностей EnumClass по заданным имени таблицы, поля и типу значения.
+	// GetEnumValues получает список сущностей EnumValue по заданным имени таблицы, поля и типу значения.
 	GetEnumValues(ctx context.Context, entity, field string, valueType entities.EnumType) ([]entities.EnumValue, error)
+
+	// GetEnumValuesByClassID получает список сущностей EnumValue по заданному ID класса перечисления.
+	GetEnumValuesByClassID(ctx context.Context, classID uint) ([]entities.EnumValue, error)
+
+	// GetEnumClassByID получает сущность EnumClass по заданному ID класса перечисления.
+	GetEnumClassByID(ctx context.Context, id uint) (*entities.EnumClass, error)
 }
 
 // EnumPostgres хранит в себе пул подключений к БД
 type EnumPostgres struct {
 	Pool *pgxpool.Pool
+}
+
+// NewEnumRepository создает новый экземпляр EnumRepository с переданным пулом соединений.
+func NewEnumRepository(pool *pgxpool.Pool) EnumRepository {
+	return &EnumPostgres{Pool: pool}
 }
 
 // NewEnumPostgres создает новый репозиторий БД
@@ -286,6 +298,64 @@ func (e *EnumPostgres) GetEnumValues(ctx context.Context, entity, field string, 
 	}
 
 	return enumValues, nil
+}
+
+// GetEnumValuesByClassID получает список сущностей EnumValue по заданному ID класса перечисления.
+func (e *EnumPostgres) GetEnumValuesByClassID(ctx context.Context, classID uint) ([]entities.EnumValue, error) {
+	if e.Pool == nil {
+		return nil, errors.New("pool is nil")
+	}
+
+	psql := queries.SelectEnumValuesByClassID(classID)
+
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ToSql", err)
+	}
+
+	rows, err := e.Pool.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "Query", err)
+	}
+	defer rows.Close()
+
+	enumValues := make([]entities.EnumValue, 0)
+
+	for rows.Next() {
+		val, err := scanEnumValue(rows)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan row: %w", err)
+		}
+		enumValues = append(enumValues, *val)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows.Err: %w", err)
+	}
+
+	return enumValues, nil
+}
+
+// GetEnumClassByID получает сущность EnumClass по заданному ID класса перечисления.
+func (e *EnumPostgres) GetEnumClassByID(ctx context.Context, id uint) (*entities.EnumClass, error) {
+	if e.Pool == nil {
+		return nil, errors.New("pool is nil")
+	}
+
+	psql := queries.SelectEnumClassByID(id)
+
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ToSql", err)
+	}
+
+	row := e.Pool.QueryRow(ctx, query, args...)
+	class, err := scanEnumClass(row)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ToRow", err)
+	}
+
+	return class, nil
 }
 
 // scanEnumValue сканирует строку результата запроса и преобразует ее в сущность EnumValue.

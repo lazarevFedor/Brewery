@@ -123,7 +123,7 @@ func easyjson2f096870DecodeBreweryInternalEntities1(in *jlexer.Lexer, out *Revie
 			if in.IsNull() {
 				in.Skip()
 			} else {
-				out.Rating = float32(in.Float32())
+				out.Rating = uint(in.Uint())
 			}
 		default:
 			in.SkipRecursive()
@@ -157,7 +157,7 @@ func easyjson2f096870EncodeBreweryInternalEntities1(out *jwriter.Writer, in Revi
 	{
 		const prefix string = ",\"rating\":"
 		out.RawString(prefix)
-		out.Float32(float32(in.Rating))
+		out.Uint(uint(in.Rating))
 	}
 	out.RawByte('}')
 }
