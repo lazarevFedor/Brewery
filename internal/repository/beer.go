@@ -9,8 +9,6 @@ import (
 	"errors"
 	"fmt"
 
-	_ "embed"
-
 	"go.uber.org/zap"
 
 	"github.com/jackc/pgx/v5"
