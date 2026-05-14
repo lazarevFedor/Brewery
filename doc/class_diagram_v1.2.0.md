@@ -86,6 +86,7 @@ classDiagram
     }
 
     class ProductCategory {
+        <<metaclass>>
         +int ID
         +string Name
         +int ParentID
