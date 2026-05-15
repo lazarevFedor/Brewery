@@ -76,15 +76,13 @@ type BeerPostgres struct {
 	Pool *pgxpool.Pool
 }
 
-var (
-	// beersBufferCapacity определяет начальную емкость среза для хранения сортов пива при чтении из базы данных.
-	beersBufferCapacity = 10
+// beersBufferCapacity определяет начальную емкость среза для хранения сортов пива при чтении из базы данных.
+const beersBufferCapacity = 10
 
-	// beerSlicePool пул слайсов для хранения сортов пива.
-	beerSlicePool = sync.Pool{
-		New: func() any { return new(make([]entities.Beer, 0, beersBufferCapacity)) },
-	}
-)
+// beerSlicePool пул слайсов для хранения сортов пива.
+var beerSlicePool = sync.Pool{
+	New: func() any { return new(make([]entities.Beer, 0, beersBufferCapacity)) },
+}
 
 // NewBeerRepository создает новый экземпляр BeerRepository с переданным пулом соединений.
 func NewBeerRepository(pgPool *pgxpool.Pool) BeerRepository {
