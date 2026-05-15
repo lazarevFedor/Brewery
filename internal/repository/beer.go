@@ -82,7 +82,7 @@ var (
 
 	// beerSlicePool пул слайсов для хранения сортов пива.
 	beerSlicePool = sync.Pool{
-		New: func() any { ; return new(make([]entities.Beer, 0, beersBufferCapacity)) },
+		New: func() any { return new(make([]entities.Beer, 0, beersBufferCapacity)) },
 	}
 )
 
