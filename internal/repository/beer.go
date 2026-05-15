@@ -77,9 +77,12 @@ type BeerPostgres struct {
 }
 
 var (
+	// beersBufferCapacity определяет начальную емкость среза для хранения сортов пива при чтении из базы данных.
 	beersBufferCapacity = 10
-	beerSlicePool       = sync.Pool{
-		New: func() any { b := make([]entities.Beer, 0, beersBufferCapacity); return &b },
+
+	// beerSlicePool пул слайсов для хранения сортов пива.
+	beerSlicePool = sync.Pool{
+		New: func() any { ; return new(make([]entities.Beer, 0, beersBufferCapacity)) },
 	}
 )
 
