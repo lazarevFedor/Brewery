@@ -8,8 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-
-	_ "embed"
+	"sync"
 
 	"go.uber.org/zap"
 
@@ -75,6 +74,14 @@ type BeerRepository interface {
 // BeerPostgres хранит в себе пул подключений к БД
 type BeerPostgres struct {
 	Pool *pgxpool.Pool
+}
+
+// beersBufferCapacity определяет начальную емкость среза для хранения сортов пива при чтении из базы данных.
+const beersBufferCapacity = 10
+
+// beerSlicePool пул слайсов для хранения сортов пива.
+var beerSlicePool = sync.Pool{
+	New: func() any { return new(make([]entities.Beer, 0, beersBufferCapacity)) },
 }
 
 // NewBeerRepository создает новый экземпляр BeerRepository с переданным пулом соединений.
@@ -352,19 +359,32 @@ func (r *BeerPostgres) GetBeers(ctx context.Context, limit, offset uint64) ([]en
 	}
 	defer rows.Close()
 
-	beers := make([]entities.Beer, 0)
+	bufp := beerSlicePool.Get().(*[]entities.Beer)
+	buf := *bufp
 	for rows.Next() {
 		beer, err := scanBeer(rows)
 		if err != nil {
+			clear(buf)
+			*bufp = buf[:0]
+			beerSlicePool.Put(bufp)
 			return nil, fmt.Errorf("failed to scan row: %w", err)
 		}
 
-		beers = append(beers, *beer)
+		buf = append(buf, *beer)
 	}
 
 	if err = rows.Err(); err != nil {
+		clear(buf)
+		*bufp = buf[:0]
+		beerSlicePool.Put(bufp)
 		return nil, fmt.Errorf("rows.Err: %w", err)
 	}
+
+	beers := make([]entities.Beer, len(buf))
+	copy(beers, buf)
+	clear(buf)
+	*bufp = buf[:0]
+	beerSlicePool.Put(bufp)
 
 	return beers, nil
 }
@@ -471,15 +491,33 @@ func (r *BeerPostgres) FilterBeer(ctx context.Context, filters []*entities.Filte
 	}
 	defer rows.Close()
 
-	beers := make([]entities.Beer, 0)
+	bufp := beerSlicePool.Get().(*[]entities.Beer)
+	buf := *bufp
 	for rows.Next() {
 		beer, err := scanBeer(rows)
 		if err != nil {
+			clear(buf)
+			*bufp = buf[:0]
+			beerSlicePool.Put(bufp)
 			return nil, fmt.Errorf("failed to scan row: %w", err)
 		}
 
-		beers = append(beers, *beer)
+		buf = append(buf, *beer)
 	}
+
+	if err = rows.Err(); err != nil {
+		clear(buf)
+		*bufp = buf[:0]
+		beerSlicePool.Put(bufp)
+		return nil, fmt.Errorf("rows.Err: %w", err)
+	}
+
+	beers := make([]entities.Beer, len(buf))
+	copy(beers, buf)
+	clear(buf)
+	*bufp = buf[:0]
+	beerSlicePool.Put(bufp)
+
 	return beers, nil
 }
 
@@ -712,18 +750,31 @@ func (r *BeerPostgres) GetBeersByCategoryID(ctx context.Context, ctgID uint, lim
 	}
 	defer rows.Close()
 
-	beers := make([]entities.Beer, 0)
+	bufp := beerSlicePool.Get().(*[]entities.Beer)
+	buf := *bufp
 	for rows.Next() {
 		beer, err := scanBeer(rows)
 		if err != nil {
+			clear(buf)
+			*bufp = buf[:0]
+			beerSlicePool.Put(bufp)
 			return nil, fmt.Errorf("failed to scan row: %w", err)
 		}
-		beers = append(beers, *beer)
+		buf = append(buf, *beer)
 	}
 
 	if err = rows.Err(); err != nil {
+		clear(buf)
+		*bufp = buf[:0]
+		beerSlicePool.Put(bufp)
 		return nil, fmt.Errorf("rows.Err: %w", err)
 	}
+
+	beers := make([]entities.Beer, len(buf))
+	copy(beers, buf)
+	clear(buf)
+	*bufp = buf[:0]
+	beerSlicePool.Put(bufp)
 
 	return beers, nil
 }
