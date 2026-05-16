@@ -56,7 +56,7 @@ func main() {
 
 	beerService := usecase.NewBeerService(beerRepo, ctgRepo, enumRepo, parameterRepo)
 	enumService := usecase.NewEnumService(enumRepo)
-	parameterService := usecase.NewParametersService(parameterRepo)
+	parameterService := usecase.NewParametersService(parameterRepo, enumRepo)
 	aggregateService := usecase.NewAggregateService(aggregateRepo)
 
 	engine := gin.New()

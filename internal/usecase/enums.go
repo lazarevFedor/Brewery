@@ -1,3 +1,4 @@
+// Package usecase содержит основные операции с сущностями
 package usecase
 
 import (
@@ -7,28 +8,47 @@ import (
 	"fmt"
 )
 
+// EnumService определяет интерфейс для работы с перечислениями и их значениями.
 type EnumService interface {
+
+	// CreateEnum создает новое перечисление и возвращает его ID.
 	CreateEnum(ctx context.Context, enum entities.EnumClass) (uint, error)
+
+	// GetEnum получает список перечислений для заданного поля и типа.
 	GetEnum(ctx context.Context, entityName, fieldName string) ([]entities.EnumClass, error)
+
+	// UpdateEnum обновляет существующее перечисление по его ID.
 	UpdateEnum(ctx context.Context, id uint, updates map[string]any) error
+
+	// DeleteEnum удаляет перечисление по его ID.
 	DeleteEnum(ctx context.Context, id uint) error
 
+	// CreateEnumValue создает новое значение перечисления и возвращает его ID.
 	CreateEnumValue(ctx context.Context, enum entities.EnumValue) (uint, error)
+
+	// GetEnumValue получает список значений перечисления для заданного поля и типа.
 	GetEnumValue(ctx context.Context, entity, field string, valueType entities.EnumType) ([]entities.EnumValue, error)
+
+	// UpdateEnumValue обновляет существующее значение перечисления по его ID.
 	UpdateEnumValue(ctx context.Context, id uint, updates map[string]any) error
+
+	// DeleteEnumValue удаляет значение перечисления по его ID.
 	DeleteEnumValue(ctx context.Context, id uint) error
 }
 
+// enumService реализует интерфейс EnumService.
 type enumService struct {
 	repo repository.EnumRepository
 }
 
+// NewEnumService создает новый EnumService с заданным репозиторием.
 func NewEnumService(enumRepo repository.EnumRepository) EnumService {
 	return &enumService{
 		repo: enumRepo,
 	}
 }
 
+// CreateEnum создает новое перечисление и возвращает его ID.
 func (s *enumService) CreateEnum(ctx context.Context, enum entities.EnumClass) (uint, error) {
 	if err := ctx.Err(); err != nil {
 		return 0, fmt.Errorf("request cancelled: %w", err)
@@ -42,6 +62,7 @@ func (s *enumService) CreateEnum(ctx context.Context, enum entities.EnumClass) (
 	return id, nil
 }
 
+// GetEnum получает список перечислений для заданного поля и типа.
 func (s *enumService) GetEnum(ctx context.Context, entityName, fieldName string) ([]entities.EnumClass, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
@@ -55,6 +76,7 @@ func (s *enumService) GetEnum(ctx context.Context, entityName, fieldName string)
 	return enums, nil
 }
 
+// UpdateEnum обновляет существующее перечисление по его ID.
 func (s *enumService) UpdateEnum(ctx context.Context, id uint, updates map[string]any) error {
 	if err := ctx.Err(); err != nil {
 		return fmt.Errorf("request cancelled: %w", err)
@@ -69,6 +91,7 @@ func (s *enumService) UpdateEnum(ctx context.Context, id uint, updates map[strin
 	return nil
 }
 
+// DeleteEnum удаляет перечисление по его ID.
 func (s *enumService) DeleteEnum(ctx context.Context, id uint) error {
 	if err := ctx.Err(); err != nil {
 		return fmt.Errorf("request cancelled: %w", err)
@@ -82,6 +105,7 @@ func (s *enumService) DeleteEnum(ctx context.Context, id uint) error {
 	return nil
 }
 
+// CreateEnumValue создает новое значение перечисления и возвращает его ID.
 func (s *enumService) CreateEnumValue(ctx context.Context, enum entities.EnumValue) (uint, error) {
 	if err := ctx.Err(); err != nil {
 		return 0, fmt.Errorf("request cancelled: %w", err)
@@ -95,6 +119,7 @@ func (s *enumService) CreateEnumValue(ctx context.Context, enum entities.EnumVal
 	return id, nil
 }
 
+// GetEnumValue получает список значений перечисления для заданного поля и типа.
 func (s *enumService) GetEnumValue(ctx context.Context, entityName, fieldName string, valueType entities.EnumType) ([]entities.EnumValue, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
@@ -108,6 +133,7 @@ func (s *enumService) GetEnumValue(ctx context.Context, entityName, fieldName st
 	return enums, nil
 }
 
+// UpdateEnumValue обновляет существующее значение перечисления по его ID.
 func (s *enumService) UpdateEnumValue(ctx context.Context, id uint, updates map[string]any) error {
 	if err := ctx.Err(); err != nil {
 		return fmt.Errorf("request cancelled: %w", err)
@@ -128,6 +154,7 @@ func (s *enumService) UpdateEnumValue(ctx context.Context, id uint, updates map[
 	return nil
 }
 
+// DeleteEnumValue удаляет значение перечисления по его ID.
 func (s *enumService) DeleteEnumValue(ctx context.Context, id uint) error {
 	if err := ctx.Err(); err != nil {
 		return fmt.Errorf("request cancelled: %w", err)

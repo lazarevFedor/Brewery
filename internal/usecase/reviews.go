@@ -1,3 +1,4 @@
+// Package usecase содержит основные операции с сущностями
 package usecase
 
 import (
@@ -7,6 +8,7 @@ import (
 	"fmt"
 )
 
+// GetBeerReviews получает список отзывов для пива.
 func (s *beerService) GetBeerReviews(ctx context.Context, limit, offset uint64, beerid uint) ([]entities.Review, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
@@ -20,6 +22,7 @@ func (s *beerService) GetBeerReviews(ctx context.Context, limit, offset uint64, 
 	return categories, nil
 }
 
+// CreateReview создает новый отзыв для пива.
 func (s *beerService) CreateReview(ctx context.Context, review *entities.Review) (uint, error) {
 	if err := ctx.Err(); err != nil {
 		return 0, fmt.Errorf("request cancelled: %w", err)
@@ -45,6 +48,7 @@ func (s *beerService) CreateReview(ctx context.Context, review *entities.Review)
 	return id, nil
 }
 
+// UpdateReview обновляет существующий отзыв для пива.
 func (s *beerService) UpdateReview(ctx context.Context, id uint, updates map[string]any) error {
 	if err := ctx.Err(); err != nil {
 		return fmt.Errorf("request cancelled: %w", err)
@@ -108,6 +112,7 @@ func (s *beerService) UpdateReview(ctx context.Context, id uint, updates map[str
 	return nil
 }
 
+// DeleteReview удаляет существующий отзыв для пива.
 func (s *beerService) DeleteReview(ctx context.Context, id uint) error {
 	if err := ctx.Err(); err != nil {
 		return fmt.Errorf("request cancelled: %w", err)
