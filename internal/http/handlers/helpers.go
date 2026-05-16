@@ -1,3 +1,4 @@
+// Package handlers содержит реализацию HTTP-обработчиков для управления пивоварней.
 package handlers
 
 import (
@@ -36,6 +37,7 @@ func writeError(c *gin.Context, code int, errType, message string) {
 
 var numFields = []string{"rating", "abv", "ibu", "amount", "country_id", "city_id"}
 
+// validateFilterParam проверяет правильность параметра фильтрации и возвращает его в виде структуры FilterParameter.
 func validateFilterParam(filter string) (*entities.FilterParameter, error) {
 	filterParams := strings.Split(filter, ":")
 	if len(filterParams) != filterParamArgsNum {

@@ -1,3 +1,4 @@
+// Package handlers содержит реализацию HTTP-обработчиков для управления пивоварней.
 package handlers
 
 import (
@@ -13,24 +14,38 @@ import (
 	"github.com/mailru/easyjson"
 )
 
+// AggregateHandlers - интерфейс для обработки HTTP-запросов, связанных с агрегатами.
 type AggregateHandlers interface {
+
+	// CreateAggregate - обработчик для создания нового агрегата.
 	CreateAggregate(c *gin.Context)
+
+	// GetAggregates - обработчик для получения списка агрегатов, с возможностью фильтрации по имени.
 	GetAggregates(c *gin.Context)
+
+	// UpdateAggregate - обработчик для обновления существующего агрегата по его ID.
 	UpdateAggregate(c *gin.Context)
+
+	// DeleteAggregate - обработчик для удаления агрегата по его ID.
 	DeleteAggregate(c *gin.Context)
+
+	// ApplyAggregateToCategory - обработчик для применения агрегата к категории по их ID.
 	ApplyAggregateToCategory(c *gin.Context)
 }
 
+// aggregateHandlers - реализация интерфейса AggregateHandlers, использующая сервис агрегатов для бизнес-логики.
 type aggregateHandlers struct {
 	uc usecase.AggregateService
 }
 
+// NewAggregateHandlers - конструктор для создания нового экземпляра AggregateHandlers.
 func NewAggregateHandlers(uc usecase.AggregateService) AggregateHandlers {
 	return &aggregateHandlers{
 		uc: uc,
 	}
 }
 
+// CreateAggregate - обработчик для создания нового агрегата.
 func (h *aggregateHandlers) CreateAggregate(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -69,6 +84,7 @@ func (h *aggregateHandlers) CreateAggregate(c *gin.Context) {
 	log.Info(c.Request.Context(), fmt.Sprintf("action=create resource=aggregate status=success id=%d name=%q", created.ID, created.Name))
 }
 
+// GetAggregates - обработчик для получения списка агрегатов, с возможностью фильтрации по имени.
 func (h *aggregateHandlers) GetAggregates(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -96,6 +112,7 @@ func (h *aggregateHandlers) GetAggregates(c *gin.Context) {
 	log.Info(c.Request.Context(), fmt.Sprintf("action=list resource=aggregates status=success count=%d", len(aggregates)))
 }
 
+// UpdateAggregate - обработчик для обновления существующего агрегата по его ID.
 func (h *aggregateHandlers) UpdateAggregate(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -144,6 +161,7 @@ func (h *aggregateHandlers) UpdateAggregate(c *gin.Context) {
 	log.Info(c.Request.Context(), fmt.Sprintf("action=update resource=aggregate status=success id=%d", id))
 }
 
+// DeleteAggregate - обработчик для удаления агрегата по его ID.
 func (h *aggregateHandlers) DeleteAggregate(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -175,6 +193,7 @@ func (h *aggregateHandlers) DeleteAggregate(c *gin.Context) {
 	log.Info(c.Request.Context(), fmt.Sprintf("action=delete resource=aggregate status=success id=%d", id))
 }
 
+// ApplyAggregateToCategory - обработчик для применения агрегата к категории по их ID.
 func (h *aggregateHandlers) ApplyAggregateToCategory(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {

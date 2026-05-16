@@ -1,3 +1,4 @@
+// Package handlers содержит реализацию HTTP-обработчиков для управления пивоварней.
 package handlers
 
 import (
@@ -13,28 +14,47 @@ import (
 	"github.com/mailru/easyjson"
 )
 
+// EnumHandlers определяет интерфейс для обработки HTTP-запросов, связанных с управлением классами перечислений и их значениями.
 type EnumHandlers interface {
+
+	// CreateEnum обрабатывает HTTP-запрос на создание нового класса перечислений.
 	CreateEnum(c *gin.Context)
+
+	// GetEnum обрабатывает HTTP-запрос на получение классов перечислений по имени сущности и поля.
 	GetEnum(c *gin.Context)
+
+	// UpdateEnum обрабатывает HTTP-запрос на обновление существующего класса перечислений.
 	UpdateEnum(c *gin.Context)
+
+	// DeleteEnum обрабатывает HTTP-запрос на удаление существующего класса перечислений.
 	DeleteEnum(c *gin.Context)
 
+	// CreateValue обрабатывает HTTP-запрос на создание нового значения перечисления.
 	CreateValue(c *gin.Context)
+
+	// GetValue обрабатывает HTTP-запрос на получение значений перечисления по имени сущности, поля и типа перечисления.
 	GetValue(c *gin.Context)
+
+	// UpdateValue обрабатывает HTTP-запрос на обновление существующего значения перечисления.
 	UpdateValue(c *gin.Context)
+
+	// DeleteValue обрабатывает HTTP-запрос на удаление существующего значения перечисления.
 	DeleteValue(c *gin.Context)
 }
 
+// enumHandlers реализует интерфейс EnumHandlers.
 type enumHandlers struct {
 	uc usecase.EnumService
 }
 
+// NewEnumHandlers создает новый экземпляр EnumHandlers.
 func NewEnumHandlers(usecase usecase.EnumService) EnumHandlers {
 	return &enumHandlers{
 		uc: usecase,
 	}
 }
 
+// CreateEnum обрабатывает HTTP-запрос на создание нового класса перечислений.
 func (h *enumHandlers) CreateEnum(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -72,6 +92,7 @@ func (h *enumHandlers) CreateEnum(c *gin.Context) {
 	c.Status(http.StatusCreated)
 }
 
+// GetEnum обрабатывает HTTP-запрос на получение классов перечислений по имени сущности и поля.
 func (h *enumHandlers) GetEnum(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -119,6 +140,7 @@ func (h *enumHandlers) GetEnum(c *gin.Context) {
 	)
 }
 
+// UpdateEnum обрабатывает HTTP-запрос на обновление существующего класса перечислений.
 func (h *enumHandlers) UpdateEnum(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -166,6 +188,7 @@ func (h *enumHandlers) UpdateEnum(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+// DeleteEnum обрабатывает HTTP-запрос на удаление существующего класса перечислений.
 func (h *enumHandlers) DeleteEnum(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -193,6 +216,7 @@ func (h *enumHandlers) DeleteEnum(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+// CreateValue обрабатывает HTTP-запрос на создание нового значения перечисления.
 func (h *enumHandlers) CreateValue(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -244,6 +268,7 @@ func (h *enumHandlers) CreateValue(c *gin.Context) {
 	c.Status(http.StatusCreated)
 }
 
+// GetValue обрабатывает HTTP-запрос на получение значений перечисления по имени сущности, поля и типа перечисления.
 func (h *enumHandlers) GetValue(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -281,6 +306,7 @@ func (h *enumHandlers) GetValue(c *gin.Context) {
 	)
 }
 
+// UpdateValue обрабатывает HTTP-запрос на обновление существующего значения перечисления.
 func (h *enumHandlers) UpdateValue(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -328,6 +354,7 @@ func (h *enumHandlers) UpdateValue(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+// DeleteValue обрабатывает HTTP-запрос на удаление существующего значения перечисления.
 func (h *enumHandlers) DeleteValue(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {

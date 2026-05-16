@@ -1,3 +1,4 @@
+// Package handlers содержит реализацию HTTP-обработчиков для управления пивоварней.
 package handlers
 
 import (
@@ -16,14 +17,29 @@ import (
 
 // BeersHandlers определяет интерфейс для обработки HTTP-запросов, связанных с пивом.
 type BeersHandlers interface {
+
+	// CreateBeer обрабатывает HTTP-запрос на создание пива.
 	CreateBeer(c *gin.Context)
+
+	// UpdateBeer обрабатывает HTTP-запрос на обновление пива.
 	UpdateBeer(c *gin.Context)
+
+	// DeleteBeer обрабатывает HTTP-запрос на удаление пива.
 	DeleteBeer(c *gin.Context)
+
+	// GetAllBeers обрабатывает HTTP-запрос на получение всех видов пива.
 	GetAllBeers(c *gin.Context)
+
+	// SearchBeer обрабатывает HTTP-запрос на поиск пива по заданным фильтрам.
 	SearchBeer(c *gin.Context)
 
+	// GetFeature обрабатывает HTTP-запрос на получение характеристик пива.
 	GetFeature(c *gin.Context)
+
+	// CreateFeature обрабатывает HTTP-запрос на создание характеристики пива.
 	CreateFeature(c *gin.Context)
+
+	// DeleteFeature обрабатывает HTTP-запрос на удаление характеристики пива.
 	DeleteFeature(c *gin.Context)
 }
 
@@ -39,7 +55,7 @@ func NewBeersHandlers(useCase usecase.BeerService) BeersHandlers {
 	}
 }
 
-// CreateBeer обрабатывает HTTP-запрос на создание пива
+// CreateBeer обрабатывает HTTP-запрос на создание пива.
 func (h *beersHandlers) CreateBeer(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -182,6 +198,7 @@ func (h *beersHandlers) GetAllBeers(c *gin.Context) {
 	))
 }
 
+// SearchBeer обрабатывает HTTP-запрос на поиск пива по заданным фильтрам.
 func (h *beersHandlers) SearchBeer(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -243,6 +260,7 @@ func (h *beersHandlers) SearchBeer(c *gin.Context) {
 	c.JSON(http.StatusOK, filteredBeers)
 }
 
+// GetFeature обрабатывает HTTP-запрос на получение характеристик пива.
 func (h *beersHandlers) GetFeature(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -281,6 +299,7 @@ func (h *beersHandlers) GetFeature(c *gin.Context) {
 	c.JSON(http.StatusOK, feats)
 }
 
+// CreateFeature обрабатывает HTTP-запрос на создание характеристики пива.
 func (h *beersHandlers) CreateFeature(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -323,6 +342,7 @@ func (h *beersHandlers) CreateFeature(c *gin.Context) {
 	})
 }
 
+// DeleteFeature обрабатывает HTTP-запрос на удаление характеристики пива.
 func (h *beersHandlers) DeleteFeature(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {

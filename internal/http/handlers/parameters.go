@@ -1,3 +1,4 @@
+// Package handlers содержит реализацию HTTP-обработчиков для управления пивоварней.
 package handlers
 
 import (
@@ -18,32 +19,53 @@ const (
 	numericQuery = "numeric"
 )
 
+// ParametersHandlers - интерфейс для обработки HTTP-запросов, связанных с параметрами категорий.
 type ParametersHandlers interface {
+
+	// CreateNumericParameter - обработчик для создания числового параметра.
 	CreateNumericParameter(c *gin.Context)
+
+	// UpdateNumericParameter - обработчик для обновления числового параметра.
 	UpdateNumericParameter(c *gin.Context)
+
+	// DeleteNumericParameter - обработчик для удаления числового параметра.
 	DeleteNumericParameter(c *gin.Context)
 
+	// CreateEnumParameter - обработчик для создания параметра типа "enum".
 	CreateEnumParameter(c *gin.Context)
+
+	// UpdateEnumParameter - обработчик для обновления параметра типа "enum".
 	UpdateEnumParameter(c *gin.Context)
+
+	// DeleteEnumParameter - обработчик для удаления параметра типа "enum".
 	DeleteEnumParameter(c *gin.Context)
 
+	// UpdateParameter - обработчик для обновления параметров.
 	UpdateParameter(c *gin.Context)
+
+	// DeleteParameter - обработчик для удаления параметров.
 	DeleteParameter(c *gin.Context)
 
+	// ListCategoryParameters - обработчик для получения списка параметров, связанных с категорией.
 	ListCategoryParameters(c *gin.Context)
+
+	// ApplyParametersToCategory - обработчик для применения параметров к категории.
 	ApplyParametersToCategory(c *gin.Context)
 }
 
+// parametersHandlers - реализация интерфейса ParametersHandlers.
 type parametersHandlers struct {
 	uc usecase.ParametersService
 }
 
+// NewParametersHandlers - конструктор для создания нового экземпляра ParametersHandlers.
 func NewParametersHandlers(uc usecase.ParametersService) ParametersHandlers {
 	return &parametersHandlers{
 		uc: uc,
 	}
 }
 
+// CreateNumericParameter - обработчик для создания числового параметра.
 func (h *parametersHandlers) CreateNumericParameter(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -82,6 +104,7 @@ func (h *parametersHandlers) CreateNumericParameter(c *gin.Context) {
 	log.Info(c.Request.Context(), fmt.Sprintf("action=create resource=numeric_parameter status=success id=%d", created.ID))
 }
 
+// UpdateNumericParameter - обработчик для обновления числового параметра.
 func (h *parametersHandlers) UpdateNumericParameter(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -130,6 +153,7 @@ func (h *parametersHandlers) UpdateNumericParameter(c *gin.Context) {
 	log.Info(c.Request.Context(), fmt.Sprintf("action=update resource=numeric_parameter status=success id=%d", id))
 }
 
+// DeleteNumericParameter - обработчик для удаления числового параметра.
 func (h *parametersHandlers) DeleteNumericParameter(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -161,6 +185,7 @@ func (h *parametersHandlers) DeleteNumericParameter(c *gin.Context) {
 	log.Info(c.Request.Context(), fmt.Sprintf("action=delete resource=numeric_parameter status=success id=%d", id))
 }
 
+// CreateEnumParameter - обработчик для создания параметра типа "enum".
 func (h *parametersHandlers) CreateEnumParameter(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -199,6 +224,7 @@ func (h *parametersHandlers) CreateEnumParameter(c *gin.Context) {
 	log.Info(c.Request.Context(), fmt.Sprintf("action=create resource=enum_parameter status=success id=%d", created.ID))
 }
 
+// UpdateEnumParameter - обработчик для обновления параметра типа "enum".
 func (h *parametersHandlers) UpdateEnumParameter(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -247,6 +273,8 @@ func (h *parametersHandlers) UpdateEnumParameter(c *gin.Context) {
 	log.Info(c.Request.Context(), fmt.Sprintf("action=update resource=enum_parameter status=success id=%d", id))
 }
 
+// UpdateParameter - обработчик для обновления параметров.
+//
 //nolint:funlen
 func (h *parametersHandlers) UpdateParameter(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
@@ -325,6 +353,7 @@ func (h *parametersHandlers) UpdateParameter(c *gin.Context) {
 	}
 }
 
+// DeleteParameter - обработчик для удаления параметров.
 func (h *parametersHandlers) DeleteParameter(c *gin.Context) {
 	typ := c.Query("type")
 	if typ == "" {
@@ -345,6 +374,7 @@ func (h *parametersHandlers) DeleteParameter(c *gin.Context) {
 	}
 }
 
+// DeleteEnumParameter - обработчик для удаления параметра типа "enum".
 func (h *parametersHandlers) DeleteEnumParameter(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -376,6 +406,7 @@ func (h *parametersHandlers) DeleteEnumParameter(c *gin.Context) {
 	log.Info(c.Request.Context(), fmt.Sprintf("action=delete resource=enum_parameter status=success id=%d", id))
 }
 
+// ListCategoryParameters - обработчик для получения списка параметров, связанных с категорией.
 func (h *parametersHandlers) ListCategoryParameters(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -429,6 +460,7 @@ func (h *parametersHandlers) ListCategoryParameters(c *gin.Context) {
 	log.Info(c.Request.Context(), fmt.Sprintf("action=list resource=parameters status=success numeric_count=%d enum_count=%d", len(numeric), len(enum)))
 }
 
+// ApplyParametersToCategory - обработчик для применения параметров к категории.
 func (h *parametersHandlers) ApplyParametersToCategory(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {

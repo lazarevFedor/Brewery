@@ -1,3 +1,4 @@
+// Package handlers содержит реализацию HTTP-обработчиков для управления пивоварней.
 package handlers
 
 import (
@@ -12,10 +13,19 @@ import (
 	"github.com/mailru/easyjson"
 )
 
+// ReviewsHandlers определяет интерфейс для обработки HTTP-запросов, связанных с отзывами на пиво.
 type ReviewsHandlers interface {
+
+	// CreateReview обрабатывает HTTP-запрос на создание отзыва о пиве.
 	CreateReview(c *gin.Context)
+
+	// UpdateReview обрабатывает HTTP-запрос на обновление отзыва на пиво.
 	UpdateReview(c *gin.Context)
+
+	// DeleteReview обрабатывает HTTP-запрос на удаление на пиво.
 	DeleteReview(c *gin.Context)
+
+	// GetBeersReviews обрабатывает HTTP-запрос на получение всех отзывов на пиво.
 	GetBeersReviews(c *gin.Context)
 }
 
@@ -165,7 +175,7 @@ func (h *reviewsHandlers) UpdateReview(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// DeleteReviews обрабатывает HTTP-запрос на удаление на пиво.
+// DeleteReview обрабатывает HTTP-запрос на удаление на пиво.
 func (h *reviewsHandlers) DeleteReview(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
