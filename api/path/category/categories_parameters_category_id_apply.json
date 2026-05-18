@@ -1,0 +1,38 @@
+{
+  "patch": {
+    "tags": ["CategoryParams"],
+    "summary": "Apply parameters to category",
+    "operationId": "applyParametersToCategory",
+    "parameters": [
+      { "$ref": "../../components/parameters/category_id.json#/CategoryId" }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+          "application/json": {
+            "schema": { "$ref": "../../components/schemas/category_parameters_apply.json#/CategoryParamsApply" }
+          }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Parameters applied successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": { "type": "string" },
+                "params_added": { "type": "integer" }
+              }
+            }
+          }
+        }
+      },
+      "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+      "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
+    }
+  }
+}
+

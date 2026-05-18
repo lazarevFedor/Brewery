@@ -1,0 +1,58 @@
+{
+  "NumericParameterBase": {
+    "type": "object",
+    "properties": {
+      "field_name": {
+        "type": "string",
+        "example": "amount"
+      },
+      "entity_name": {
+        "type": "string",
+        "example": "beers"
+      },
+      "min_val": {
+        "type": "integer",
+        "example": 150
+      },
+      "max_val": {
+        "type": "integer",
+        "example": 300
+      },
+      "inheritable": {
+        "type": "boolean",
+        "example": false
+      }
+    }
+  },
+  "NumericParameterCreate": {
+    "allOf": [
+      { "$ref": "#/NumericParameterBase" },
+      { "required": [ "field_name", "entity_name", "min_val", "max_val", "inheritable" ] }
+    ]
+  },
+  "NumericParameter": {
+    "allOf": [
+      {
+        "$ref": "#/NumericParameterBase"
+      },
+      {
+        "type": "object",
+        "required": [ "id", "field_name", "entity_name", "min_val", "max_val", "inheritable" ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 10
+          }
+        }
+      }
+    ]
+  },
+  "NumericParameterUpdate": {
+    "type": "object",
+    "properties": {
+      "min_val": { "type": "integer" },
+      "max_val": { "type": "integer" },
+      "inheritable": { "type": "boolean" }
+    }
+  }
+}

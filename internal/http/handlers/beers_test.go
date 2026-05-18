@@ -1,8 +1,8 @@
 package handlers_test
 
 import (
-	"Brewery/internal/entities"
 	"Brewery/internal/apperrors"
+	"Brewery/internal/entities"
 	"context"
 	"encoding/json"
 	"net/http"

@@ -237,7 +237,6 @@ func ConnectBeerAndFeature(featID, beerID uint) sq.InsertBuilder {
 		Suffix("ON CONFLICT DO NOTHING")
 }
 
-
 // SelectBeersFeature возвращает запрос для получения списка особенностей пива
 func SelectBeersFeature(beerID uint) sq.SelectBuilder {
 	return psql.

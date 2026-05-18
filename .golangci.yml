@@ -29,6 +29,7 @@ linters:
     - gomoddirectives # manages the use of 'replace', 'retract', and 'excludes' directives in go.mod
     - goprintffuncname # checks that printf-like functions are named with f at the end
     - gosec # inspects source code for security problems
+    - govet # reports suspicious constructs, such as Printf calls whose arguments do not align with the format string
     - iface # checks the incorrect use of interfaces, helping developers avoid interface pollution
     - ineffassign # detects when assignments to existing variables are not used
     - intrange # finds places where for loops could make use of an integer range
@@ -38,9 +39,12 @@ linters:
     - modernize # suggests simplifications to Go code, using modern language and library features
     - musttag # enforces field tags in (un)marshaled structs
     - nakedret # finds naked returns in functions greater than a specified function length
+    - nestif # reports deeply nested if statements
     - nilerr # finds the code that returns nil even if it checks that the error is not nil
     - nilnesserr # reports that it checks for err != nil, but it returns a different nil value error (powered by nilness and nilerr)
+    - nilnil # checks that there is no simultaneous return of nil error and an invalid value
     - noctx # finds sending http request without context.Context
+    - nolintlint # reports ill-formed or insufficient nolint directives
     - nonamedreturns # reports all named returns
     - nosprintfhostport # checks for misuse of Sprintf to construct a host with port in a URL
     - perfsprint # checks that fmt.Sprintf can be replaced with a faster alternative
@@ -58,6 +62,7 @@ linters:
     - tparallel # detects inappropriate usage of t.Parallel() method in your Go test codes
     - unconvert # removes unnecessary type conversions
     - unparam # reports unused function parameters
+    - unqueryvet # detects SELECT * in SQL queries and SQL builders, encouraging explicit column selection
     - unused # checks for unused constants, variables, functions and types
     - usestdlibvars # detects the possibility to use variables/constants from the Go standard library
     - usetesting # reports uses of functions with replacement inside the testing package
