@@ -52,13 +52,13 @@ func insertCategoryTree(t *testing.T, ctx context.Context) (uint, uint, uint) {
 
 	repo := repository.NewCategoryPostgres(testDB)
 
-	rootID, err := repo.InsertCategory(ctx, entities.ProductCategory{Name: "param_root"})
+	rootID, err := repo.InsertCategory(ctx, nil, entities.ProductCategory{Name: "param_root"})
 	require.NoError(t, err)
 
-	childID, err := repo.InsertCategory(ctx, entities.ProductCategory{Name: "param_child", ParentID: int(rootID)})
+	childID, err := repo.InsertCategory(ctx, nil, entities.ProductCategory{Name: "param_child", ParentID: int(rootID)})
 	require.NoError(t, err)
 
-	grandChildID, err := repo.InsertCategory(ctx, entities.ProductCategory{Name: "param_grand_child", ParentID: int(childID)})
+	grandChildID, err := repo.InsertCategory(ctx, nil, entities.ProductCategory{Name: "param_grand_child", ParentID: int(childID)})
 	require.NoError(t, err)
 
 	return rootID, childID, grandChildID

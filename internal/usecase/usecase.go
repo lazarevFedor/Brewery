@@ -271,7 +271,7 @@ func (s *beerService) CreateBeer(ctx context.Context, beer *entities.Beer) (*ent
 	if beer.Category.ID != 0 {
 		categoryID = uint(beer.Category.ID)
 	} else if beer.Category.Name != "" {
-		ctgID, err := s.categoryRepo.GetCategoryID(ctx, beer.Category.Name)
+		ctgID, err := s.categoryRepo.GetCategoryID(ctx, nil, beer.Category.Name)
 		if err != nil {
 			return nil, fmt.Errorf("failed to resolve category: %w", err)
 		}
