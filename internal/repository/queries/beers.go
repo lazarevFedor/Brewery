@@ -17,7 +17,7 @@ const (
 	beerFeaturesTable = "beer_features"
 )
 
-// FullBeerSelect возвращает pапрос на проверку наличия сущности пива по id
+// Exists возвращает pапрос на проверку наличия сущности пива по id
 func Exists(id uint) sq.SelectBuilder {
 	return psql.Select("EXISTS(SELECT 1 FROM beers WHERE id = $1)")
 }
@@ -82,6 +82,43 @@ func UpdateBeerRating(beerID, rating uint, operation string) sq.UpdateBuilder {
 		Set("review_amount", sq.Expr("review_amount + ?", reviewAmount)).
 		Set("review_rating_sum", sq.Expr("review_rating_sum + ?", reviewRatingSum)).
 		Where(sq.Eq{"id": beerID})
+}
+
+func FilterBeers(filters []*entities.FilterParameter, categoryID uint) sq.SelectBuilder {
+	query := FullBeerSelect()
+	if len(filters) != 0 {
+		for _, filter := range filters {
+			field := filter.FieldName
+			val := filter.Value
+			var pred any
+			if field == "rating" {
+				oper := filter.Operation
+				pred = sq.Expr("COALESCE(b.review_rating_sum::float / NULLIF(b.review_amount, 0), 0) "+string(oper)+" ?", val)
+			} else {
+				oper := filter.Operation
+				switch oper {
+				case entities.OpEqual:
+					pred = sq.Eq{field: val}
+				case entities.OpGreater:
+					pred = sq.Gt{field: val}
+				case entities.OpGreaterEqual:
+					pred = sq.GtOrEq{field: val}
+				case entities.OpLess:
+					pred = sq.Lt{field: val}
+				case entities.OpLessEqual:
+					pred = sq.LtOrEq{field: val}
+				case entities.OpNotEqual:
+					pred = sq.NotEq{field: val}
+				}
+			}
+			query = query.Where(pred)
+		}
+	}
+
+	if categoryID != 0 {
+		query = query.Where(sq.Eq{"category_id": categoryID})
+	}
+	return query
 }
 
 // InsertReview возвращает запрос для вставки нового отзыва в таблицу reviews и возвращает ID вставленного отзыва.
@@ -208,16 +245,6 @@ func SelectBeersFeature(beerID uint) sq.SelectBuilder {
 		From(beerFeaturesTable + " bf").
 		Join(featuresTable + " f ON f.id = bf.feature_id").
 		Where(sq.Eq{"beer_id": beerID})
-}
-
-// InsertFeature возвращает запрос для втавки особенности пива
-func InsertFeature(name string) sq.InsertBuilder {
-	data := map[string]any{
-		"name": name,
-	}
-	return psql.
-		Insert(featuresTable).
-		SetMap(data)
 }
 
 // SelectOrInsertBeerFeature возвращает запрос для вставки новой связи между пивом и особенностью в таблицу beer_features, если такая связь еще не существует, или ничего не делает, если связь уже есть. Запрос использует конструкцию ON CONFLICT для обработки конфликтов по идентификаторам пива и особенности.

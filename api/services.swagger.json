@@ -65,11 +65,11 @@
     "/categories/parameters/numeric": { "$ref": "./path/category/categories_parameters_numeric.json"},
     "/categories/parameters/enum": { "$ref": "./path/category/categories_parameters_enum.json"},
     "/categories/parameters": { "$ref": "./path/category/categories_parameters.json"},
-    "/categories/parameters/{category_id}/apply": { "$ref": "./path/category/categories_parameters_category_id_apply.json"},
+    "/categories/parameters/apply/{category_id}": { "$ref": "./path/category/categories_parameters_category_id_apply.json"},
     "/categories/parameters/{id}": { "$ref": "./path/category/categories_parameters_id.json"},
 
     "/aggregates": { "$ref": "./path/aggregate/aggregates.json" },
-    "/aggregates/{category_id}/apply": { "$ref": "./path/aggregate/apply_aggregate.json" },
+    "/aggregates/apply/{category_id}": { "$ref": "./path/aggregate/apply_aggregate.json" },
     "/aggregates/{id}": { "$ref": "./path/aggregate/aggregates_id.json" }
   }
 }

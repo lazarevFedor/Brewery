@@ -5,14 +5,14 @@ repos:
       
       - id: go-fmt
         name: 🧹 Run go fmt
-        entry: make check_fmt
+        entry: bash -c "make check_fmt || (echo '❌ Код автоматически отформатирован! Добавьте изменения (git add) и повторите коммит.' && exit 1)"
         language: system
         pass_filenames: false
-        stages: [pre-commit]
+        stages: [pre-push]
 
       - id: go-mod-tidy
         name: 📦 Check go mod chores
-        entry: bash -c "go mod tidy && git diff --exit-code go.mod go.sum"
+        entry: make check_mod
         language: system
         pass_filenames: false
         stages: [manual, pre-push] 
@@ -37,4 +37,4 @@ repos:
         entry: make check_building
         language: system
         pass_filenames: false
-        stages: [pre-push] 
+        stages: [pre-push]

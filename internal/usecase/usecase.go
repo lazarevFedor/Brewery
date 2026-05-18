@@ -4,6 +4,7 @@ package usecase
 import (
 	"Brewery/internal/entities"
 	"Brewery/internal/repository"
+	"Brewery/internal/validator"
 	"context"
 	"errors"
 	"fmt"
@@ -25,6 +26,7 @@ type BeerService interface {
 	UpdateBeer(ctx context.Context, id uint, updates map[string]any) (*entities.Beer, error)
 	DeleteBeer(ctx context.Context, id uint) error
 	GetAllBeers(ctx context.Context, limit, offset uint64) ([]entities.Beer, error)
+	FilterBeer(ctx context.Context, filters []*entities.FilterParameter, limit, offset uint64, categoryID uint) ([]entities.Beer, error)
 
 	GetFeatures(ctx context.Context, id uint) ([]string, error)
 	CreateFeature(ctx context.Context, beerID uint, feat string) (uint, error)
@@ -39,12 +41,16 @@ type BeerService interface {
 type beerService struct {
 	beerRepo     repository.BeerRepository
 	categoryRepo repository.CategoryRepository
+	enumRepo     repository.EnumRepository
+	paramRepo    repository.ParameterRepository
 }
 
-func NewBeerService(beerRepo repository.BeerRepository, categoryRepo repository.CategoryRepository) BeerService {
+func NewBeerService(beerRepo repository.BeerRepository, categoryRepo repository.CategoryRepository, enumRepo repository.EnumRepository, paramRepo repository.ParameterRepository) BeerService {
 	return &beerService{
 		beerRepo:     beerRepo,
 		categoryRepo: categoryRepo,
+		enumRepo:     enumRepo,
+		paramRepo:    paramRepo,
 	}
 }
 
@@ -261,6 +267,64 @@ func (s *beerService) CreateBeer(ctx context.Context, beer *entities.Beer) (*ent
 		return nil, errors.New("beer name is required")
 	}
 
+	var categoryID uint
+	if beer.Category.ID != 0 {
+		categoryID = uint(beer.Category.ID)
+	} else if beer.Category.Name != "" {
+		ctgID, err := s.categoryRepo.GetCategoryID(ctx, beer.Category.Name)
+		if err != nil {
+			return nil, fmt.Errorf("failed to resolve category: %w", err)
+		}
+		categoryID = ctgID
+	}
+
+	if categoryID != 0 {
+		numericParams, enumParams, err := s.paramRepo.GetParameters(ctx, categoryID, entities.MissingType)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get parameters for category %d: %w", categoryID, err)
+		}
+
+		getEnumValuesWrapped := func(classID uint) ([]entities.EnumValue, error) {
+			vals, err := s.enumRepo.GetEnumValuesByClassID(ctx, classID)
+			if err != nil {
+				return nil, err
+			}
+
+			cls, err := s.enumRepo.GetEnumClassByID(ctx, classID)
+			if err != nil || cls == nil {
+				return vals, fmt.Errorf("failed to get enum class by id %d: %w", classID, err)
+			}
+
+			if (cls.FieldName == "city" || cls.FieldName == "country") && cls.Type == string(entities.EnumValueTypeInt) {
+				conv := make([]entities.EnumValue, 0, len(vals))
+				for _, v := range vals {
+					id, ok := v.Value.(int)
+					if !ok {
+						conv = append(conv, v)
+						continue
+					}
+					name, err := s.beerRepo.GetCityNameByID(ctx, uint(id))
+					if err != nil {
+						conv = append(conv, v)
+						continue
+					}
+					v.Value = name
+					conv = append(conv, v)
+				}
+				return conv, nil
+			}
+
+			return vals, nil
+		}
+
+		err = validator.ValidateBeerWithParams(*beer, numericParams, enumParams, getEnumValuesWrapped, func(classID uint) (*entities.EnumClass, error) {
+			return s.enumRepo.GetEnumClassByID(ctx, classID)
+		})
+		if err != nil {
+			return nil, fmt.Errorf("beer validation failed: %w", err)
+		}
+	}
+
 	beer, err := s.beerRepo.InsertBeer(ctx, *beer)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create beer: %w", err)
@@ -276,6 +340,19 @@ func (s *beerService) GetAllBeers(ctx context.Context, limit, offset uint64) ([]
 	}
 
 	beers, err := s.beerRepo.GetBeers(ctx, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get beers: %w", err)
+	}
+
+	return beers, nil
+}
+
+func (s *beerService) FilterBeer(ctx context.Context, filters []*entities.FilterParameter, limit, offset uint64, categoryID uint) ([]entities.Beer, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, fmt.Errorf("request cancelled: %w", err)
+	}
+
+	beers, err := s.beerRepo.FilterBeer(ctx, filters, limit, offset, categoryID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get beers: %w", err)
 	}

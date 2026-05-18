@@ -9,8 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-
-	_ "embed"
+	"sync"
 
 	"go.uber.org/zap"
 
@@ -36,6 +35,9 @@ type BeerRepository interface {
 	// DeleteBeer удаляет сущность Beer из хранилища
 	DeleteBeer(ctx context.Context, id uint) error
 
+	// FilterBeer возвращает список сущностей пиво по фильтру
+	FilterBeer(ctx context.Context, filters []*entities.FilterParameter, limit, offset uint64, categoryID uint) ([]entities.Beer, error)
+
 	// InsertReview сохраняет новую сущность Review в хранилище.
 	InsertReview(ctx context.Context, review entities.Review) (uint, error)
 
@@ -57,6 +59,9 @@ type BeerRepository interface {
 	// GetCityID возвращает ID города по его названию и ID страны. Если города нет, он будет добавлен в базу данных.
 	GetCityID(ctx context.Context, tx pgx.Tx, cityName string, countryID uint) (uint, error)
 
+	// GetCityNameByID возвращает название города по его ID.
+	GetCityNameByID(ctx context.Context, id uint) (string, error)
+
 	// GetFeatureID возвращает ID характеристики по ее названию. Если характеристики нет, она будет добавлена в базу данных.
 	GetFeatureID(ctx context.Context, tx pgx.Tx, featName string) (uint, error)
 
@@ -70,6 +75,14 @@ type BeerRepository interface {
 // BeerPostgres хранит в себе пул подключений к БД
 type BeerPostgres struct {
 	Pool *pgxpool.Pool
+}
+
+// beersBufferCapacity определяет начальную емкость среза для хранения сортов пива при чтении из базы данных.
+const beersBufferCapacity = 10
+
+// beerSlicePool пул слайсов для хранения сортов пива.
+var beerSlicePool = sync.Pool{
+	New: func() any { return new(make([]entities.Beer, 0, beersBufferCapacity)) },
 }
 
 // NewBeerRepository создает новый экземпляр BeerRepository с переданным пулом соединений.
@@ -185,6 +198,142 @@ func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (*ent
 	return createdBeer, nil
 }
 
+// getCountryIDTx возвращает ID страны по ее названию в рамках транзакции. Если страны нет, она будет добавлена в базу данных. Если name пустой, возвращает ошибку.
+func (r *BeerPostgres) getCountryIDTx(ctx context.Context, tx pgx.Tx, name string) (uint, error) {
+	if name == "" {
+		return 0, errors.New("country name is empty")
+	}
+
+	var countryID uint
+	psql := queries.SelectOrInsertCountry(name)
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", "ToSql", err)
+	}
+
+	err = tx.QueryRow(ctx, query, args...).Scan(&countryID)
+	if err != nil {
+		return 0, fmt.Errorf("country QueryRow: %w", err)
+	}
+
+	return countryID, nil
+}
+
+// getCityIDTx
+func (r *BeerPostgres) getCityIDTx(ctx context.Context, tx pgx.Tx, name string, countryID uint) (uint, error) {
+	if name == "" {
+		return 0, errors.New("city name is empty")
+	}
+
+	var cityID uint
+	psql := queries.SelectOrInsertCity(name, countryID)
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", "ToSql", err)
+	}
+
+	err = tx.QueryRow(ctx, query, args...).Scan(&cityID)
+	if err != nil {
+		return 0, fmt.Errorf("city QueryRow: %w", err)
+	}
+
+	return cityID, nil
+}
+
+// GetCityNameByID возвращает название города по его ID.
+// TODO: перенести в queries
+func (r *BeerPostgres) GetCityNameByID(ctx context.Context, id uint) (string, error) {
+	if r.Pool == nil {
+		return "", errors.New("pool is nil")
+	}
+
+	var name string
+	query := "SELECT name FROM cities WHERE id = $1"
+	if err := r.Pool.QueryRow(ctx, query, id).Scan(&name); err != nil {
+		return "", fmt.Errorf("city QueryRow: %w", err)
+	}
+	return name, nil
+}
+
+// getCategoryIDTx возвращает ID категории по ее названию в рамках транзакции. Если категории нет, возвращает 0. Если name пустой, возвращает ошибку.
+func (r *BeerPostgres) getCategoryIDTx(ctx context.Context, tx pgx.Tx, categoryName string) (uint, error) {
+	if categoryName == "" {
+		return 0, errors.New("category name cannot be empty")
+	}
+
+	var categoryID uint
+	psql := queries.SelectCategoryByName(categoryName)
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", "ToSql", err)
+	}
+
+	err = tx.QueryRow(ctx, query, args...).Scan(&categoryID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, nil
+		}
+
+		return 0, fmt.Errorf("scan: %w", err)
+	}
+
+	return categoryID, nil
+}
+
+// insertCategoryTx вставляет категорию в базу данных в рамках транзакции и возвращает ее ID. Если name пустой, возвращает ошибку.
+func (r *BeerPostgres) insertCategoryTx(ctx context.Context, tx pgx.Tx, category entities.ProductCategory) (uint, error) {
+	psql := queries.CategoryInsert(category)
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", "ToSql", err)
+	}
+
+	var categoryID uint
+	err = tx.QueryRow(ctx, query, args...).Scan(&categoryID)
+	if err != nil {
+		return 0, fmt.Errorf("exec: %w", err)
+	}
+
+	if categoryID == 0 {
+		return 0, errors.New("zero id")
+	}
+
+	return categoryID, nil
+}
+
+// getFeatureIDTx возвращает ID характеристики по ее названию в рамках транзакции. Если характеристики нет, она будет добавлена в базу данных. Если name пустой, возвращает ошибку.
+func (r *BeerPostgres) getFeatureIDTx(ctx context.Context, tx pgx.Tx, name string) (uint, error) {
+	var featID uint
+	psql := queries.SelectOrInsertFeature(name)
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", "ToSql", err)
+	}
+
+	err = tx.QueryRow(ctx, query, args...).Scan(&featID)
+	if err != nil {
+		return 0, fmt.Errorf("QueryRow: %w", err)
+	}
+
+	return featID, nil
+}
+
+// insertBeerFeatureTx связывает характеристику с сортом пива в рамках транзакции. Если связь уже существует, она не будет добавлена повторно. Если featID или beerID равны 0, возвращает ошибку.
+func (r *BeerPostgres) insertBeerFeatureTx(ctx context.Context, tx pgx.Tx, featID, beerID uint) error {
+	psql := queries.SelectOrInsertBeerFeature(featID, beerID)
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: %w", "ToSql", err)
+	}
+
+	_, err = tx.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("QueryRow: %w", err)
+	}
+
+	return nil
+}
+
 // GetBeers возвращает список всех сортов пива. Если limit не равен 0, возвращает не более limit сортов пива, начиная с позиции offset.
 func (r *BeerPostgres) GetBeers(ctx context.Context, limit, offset uint64) ([]entities.Beer, error) {
 	if r.Pool == nil {
@@ -207,19 +356,32 @@ func (r *BeerPostgres) GetBeers(ctx context.Context, limit, offset uint64) ([]en
 	}
 	defer rows.Close()
 
-	beers := make([]entities.Beer, 0)
+	bufp := beerSlicePool.Get().(*[]entities.Beer)
+	buf := *bufp
 	for rows.Next() {
 		beer, err := scanBeer(rows)
 		if err != nil {
+			clear(buf)
+			*bufp = buf[:0]
+			beerSlicePool.Put(bufp)
 			return nil, err
 		}
 
-		beers = append(beers, *beer)
+		buf = append(buf, *beer)
 	}
 
 	if err = rows.Err(); err != nil {
+		clear(buf)
+		*bufp = buf[:0]
+		beerSlicePool.Put(bufp)
 		return nil, apperrors.Internal(fmt.Errorf("rows.Err: %w", err))
 	}
+
+	beers := make([]entities.Beer, len(buf))
+	copy(beers, buf)
+	clear(buf)
+	*bufp = buf[:0]
+	beerSlicePool.Put(bufp)
 
 	return beers, nil
 }
@@ -300,6 +462,57 @@ func (r *BeerPostgres) DeleteBeer(ctx context.Context, id uint) error {
 	return nil
 }
 
+func (r *BeerPostgres) FilterBeer(ctx context.Context, filters []*entities.FilterParameter, limit, offset uint64, categoryID uint) ([]entities.Beer, error) {
+	if r.Pool == nil {
+		return nil, errors.New("pool is nil")
+	}
+
+	psql := queries.FilterBeers(filters, categoryID).Offset(offset)
+	if limit != 0 {
+		psql = psql.Limit(limit)
+	}
+
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ToSql", err)
+	}
+
+	rows, err := r.Pool.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("query: %w", err)
+	}
+	defer rows.Close()
+
+	bufp := beerSlicePool.Get().(*[]entities.Beer)
+	buf := *bufp
+	for rows.Next() {
+		beer, err := scanBeer(rows)
+		if err != nil {
+			clear(buf)
+			*bufp = buf[:0]
+			beerSlicePool.Put(bufp)
+			return nil, fmt.Errorf("failed to scan row: %w", err)
+		}
+
+		buf = append(buf, *beer)
+	}
+
+	if err = rows.Err(); err != nil {
+		clear(buf)
+		*bufp = buf[:0]
+		beerSlicePool.Put(bufp)
+		return nil, fmt.Errorf("rows.Err: %w", err)
+	}
+
+	beers := make([]entities.Beer, len(buf))
+	copy(beers, buf)
+	clear(buf)
+	*bufp = buf[:0]
+	beerSlicePool.Put(bufp)
+
+	return beers, nil
+}
+
 // InsertReview сохраняет новую сущность Review в хранилище. Если сорт пива, к которому относится отзыв, не найден, возвращает ошибку.
 func (r *BeerPostgres) InsertReview(ctx context.Context, review entities.Review) (uint, error) {
 	if r.Pool == nil {
@@ -355,10 +568,10 @@ func (r *BeerPostgres) DeleteReview(ctx context.Context, id uint) error {
 	if err != nil{
 		return apperrors.Internal(fmt.Errorf("beer exec: %w", err))
 	}
-	
+
 	if result.RowsAffected() == 0 {
 		return apperrors.NotFound("review not found", nil)
-	}	
+	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
@@ -391,18 +604,18 @@ func (r *BeerPostgres) UpdateReview(ctx context.Context, id uint, updates map[st
 	if err != nil {
 		return apperrors.Internal(fmt.Errorf("%s: %w", "Exec", err))
 	}
-	
+
 	updatePsql := queries.UpdateBeerRating(beerID, rating, "delete")
 	query, args, err = updatePsql.ToSql()
 	if err != nil {
 		return fmt.Errorf("%s: %w", "ToSql", err)
 	}
-	
+
 	result, err := r.Pool.Exec(ctx, query, args...)
 	if err != nil{
 		return apperrors.Internal(fmt.Errorf("beer: exec: %w", err))
 	}
-	
+
 	if result.RowsAffected() == 0 {
 		return apperrors.NotFound("review not found", nil)
 	}
@@ -475,18 +688,31 @@ func (r *BeerPostgres) GetBeersByCategoryID(ctx context.Context, ctgID uint, lim
 	}
 	defer rows.Close()
 
-	beers := make([]entities.Beer, 0)
+	bufp := beerSlicePool.Get().(*[]entities.Beer)
+	buf := *bufp
 	for rows.Next() {
 		beer, err := scanBeer(rows)
 		if err != nil {
+			clear(buf)
+			*bufp = buf[:0]
+			beerSlicePool.Put(bufp)
 			return nil, err
 		}
-		beers = append(beers, *beer)
+		buf = append(buf, *beer)
 	}
 
 	if err = rows.Err(); err != nil {
+		clear(buf)
+		*bufp = buf[:0]
+		beerSlicePool.Put(bufp)
 		return nil, apperrors.Internal(fmt.Errorf("rows.Err: %w", err))
 	}
+
+	beers := make([]entities.Beer, len(buf))
+	copy(beers, buf)
+	clear(buf)
+	*bufp = buf[:0]
+	beerSlicePool.Put(bufp)
 
 	return beers, nil
 }
@@ -555,7 +781,7 @@ func (r *BeerPostgres) GetCountryID(ctx context.Context, tx pgx.Tx, name string)
 	if r.Pool == nil {
 		return 0, apperrors.Internal(errors.New("pool is nil"))
 	}
-	
+
 	psql := queries.SelectOrInsertCountry(name)
 	query, args, err := psql.ToSql()
 	if err != nil {

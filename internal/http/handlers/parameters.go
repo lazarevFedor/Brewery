@@ -13,6 +13,11 @@ import (
 	"github.com/mailru/easyjson"
 )
 
+const (
+	enumQuery    = "enum"
+	numericQuery = "numeric"
+)
+
 type ParametersHandlers interface {
 	CreateNumericParameter(c *gin.Context)
 	UpdateNumericParameter(c *gin.Context)
@@ -21,6 +26,9 @@ type ParametersHandlers interface {
 	CreateEnumParameter(c *gin.Context)
 	UpdateEnumParameter(c *gin.Context)
 	DeleteEnumParameter(c *gin.Context)
+
+	UpdateParameter(c *gin.Context)
+	DeleteParameter(c *gin.Context)
 
 	ListCategoryParameters(c *gin.Context)
 	ApplyParametersToCategory(c *gin.Context)
@@ -239,6 +247,104 @@ func (h *parametersHandlers) UpdateEnumParameter(c *gin.Context) {
 	log.Info(c.Request.Context(), fmt.Sprintf("action=update resource=enum_parameter status=success id=%d", id))
 }
 
+//nolint:funlen
+func (h *parametersHandlers) UpdateParameter(c *gin.Context) {
+	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+	if !ok {
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	id, err := getUintParam(c, "id")
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Invalid parameter id: %v", err))
+		return
+	}
+
+	typ := c.Query("type")
+	if typ == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "type query param is required"})
+		return
+	}
+
+	body, err := readRequestBody(c)
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read request body: %v", err))
+		return
+	}
+
+	updates := make(map[string]any)
+	if err = json.Unmarshal(body, &updates); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
+		return
+	}
+
+	if len(updates) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "empty update payload"})
+		return
+	}
+
+	switch typ {
+	case numericQuery:
+		updated, err := h.uc.UpdateNumeric(c.Request.Context(), id, updates)
+		if err != nil {
+			log.Error(c.Request.Context(), fmt.Sprintf("Failed to update numeric parameter: %v", err))
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		rawBytes, err := json.Marshal(updated)
+		if err != nil {
+			log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal response: %v", err))
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
+			return
+		}
+
+		c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
+		log.Info(c.Request.Context(), fmt.Sprintf("action=update resource=numeric_parameter status=success id=%d", id))
+	case enumQuery:
+		updated, err := h.uc.UpdateEnum(c.Request.Context(), id, updates)
+		if err != nil {
+			log.Error(c.Request.Context(), fmt.Sprintf("Failed to update enum parameter: %v", err))
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		rawBytes, err := json.Marshal(updated)
+		if err != nil {
+			log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal response: %v", err))
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
+			return
+		}
+
+		c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
+		log.Info(c.Request.Context(), fmt.Sprintf("action=update resource=enum_parameter status=success id=%d", id))
+	default:
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid type, must be 'numeric' or 'enum'"})
+		return
+	}
+}
+
+func (h *parametersHandlers) DeleteParameter(c *gin.Context) {
+	typ := c.Query("type")
+	if typ == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "type query param is required"})
+		return
+	}
+
+	switch typ {
+	case "numeric":
+		h.DeleteNumericParameter(c)
+		return
+	case "enum":
+		h.DeleteEnumParameter(c)
+		return
+	default:
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid type, must be 'numeric' or 'enum'"})
+		return
+	}
+}
+
 func (h *parametersHandlers) DeleteEnumParameter(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
@@ -277,20 +383,27 @@ func (h *parametersHandlers) ListCategoryParameters(c *gin.Context) {
 		return
 	}
 
-	categoryIDStr := c.Query("category_id")
-	var categoryID uint
-
-	if categoryIDStr != "" {
-		id, err := strconv.ParseUint(categoryIDStr, 10, 32)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "category_id must be an integer"})
-			log.Error(c.Request.Context(), fmt.Sprintf("Invalid category_id: %v", err))
-			return
-		}
-		categoryID = uint(id)
+	categoryID, err := getUintParam(c, "category_id")
+	if err != nil {
+		log.Error(c.Request.Context(), fmt.Sprintf("Invalid enum parameter id: %v", err))
+		return
 	}
 
-	numeric, enum, err := h.uc.ListParameters(c.Request.Context(), categoryID)
+	paramTypeStr := c.Query("type")
+
+	var paramType int
+	switch paramTypeStr {
+	case "numeric":
+		paramType = entities.NumericParameterType
+	case "enum":
+		paramType = entities.EnumParameterType
+	case "":
+		paramType = entities.MissingType
+	}
+
+	log.Debug(c.Request.Context(), fmt.Sprintf("type: %s, %d", paramTypeStr, paramType))
+
+	numeric, enum, err := h.uc.ListParameters(c.Request.Context(), categoryID, paramType)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to list parameters: %v", err))
 		c.Status(http.StatusInternalServerError)

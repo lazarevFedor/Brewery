@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Go Version](https://img.shields.io/badge/go-1.26.1-blue.svg)](#prerequisites)
 
-Microbrewery management service that allows you to work with categories, beers, reviews, enum classes and enum values.
+Microbrewery management service that allows you to work with categories, beers, reviews, enum classes and enum values, numeric and enum parameters, parameter aggregates.
 
 ## Features
 
@@ -152,6 +152,16 @@ make genapi
 - `scripts/` — DB fill and clean helpers
 
 ## Releases
+
+### v1.2.0
+
+**New features:**
+- Numeric and enum parameters for Product Categories
+- Parameter aggregates which can be applied to Product Categories
+- Extended search capabilities for beers (filtering by parameters)
+
+**Fixes:**
+- Various bug fixes and stability improvements
 
 ### v1.1.0
 

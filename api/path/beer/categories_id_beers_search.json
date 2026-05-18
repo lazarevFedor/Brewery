@@ -4,7 +4,7 @@
     "summary": "Search beers in category by parameter ranges",
     "operationId": "searchBeersByCategory",
     "parameters": [
-      { "$ref": "../../components/parameters/category_id.json#/CategoryId" },
+      { "$ref": "../../components/parameters/id.json#/Id" },
       { "$ref": "../../components/parameters/category_beer_filter.json#/CategoryBeerFilter" },
       { "$ref": "../../components/parameters/limit_offset.json#/Offset" },
       { "$ref": "../../components/parameters/limit_offset.json#/Limit" }
