@@ -1,0 +1,66 @@
+{
+  "patch": {
+	"tags": ["CategoryParams"],
+	"summary": "Update parameter",
+	"operationId": "updateCategoryParameter",
+	"parameters": [
+	  { "$ref": "../../components/parameters/id.json#/Id" },
+	  { "$ref": "../../components/parameters/parameter_type.json#/ParamType" }
+	],
+	"requestBody": {
+	  "required": true,
+	  "content": {
+		"application/json": {
+		  "schema": {
+			"oneOf": [
+			  { "$ref": "../../components/parameters/numeric_parameter.json#/NumericParameterUpdate" },
+			  { "$ref": "../../components/parameters/enum_parameter.json#/EnumParameterUpdate" }
+			]
+		  },
+		  "examples": {
+			"numeric": { "$ref": "../../components/parameters/numeric_parameter.json#/NumericParameterUpdate" },
+			"enum": { "$ref": "../../components/parameters/enum_parameter.json#/EnumParameterUpdate" }
+		  }
+		}
+	  }
+	},
+	"responses": {
+	  "200": {
+		"description": "Parameter updated",
+		"content": {
+		  "application/json": {
+			"schema": {
+			  "oneOf": [
+				{ "$ref": "../../components/parameters/numeric_parameter.json#/NumericParameter" },
+				{ "$ref": "../../components/parameters/enum_parameter.json#/EnumParameter" }
+			  ]
+			},
+			"examples": {
+			  "numeric": { "$ref": "../../components/parameters/numeric_parameter.json#/NumericParameter" },
+			  "enum": { "$ref": "../../components/parameters/enum_parameter.json#/EnumParameter" }
+			}
+		  }
+		}
+	  },
+	  "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+	  "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
+	  "422": { "$ref": "../../components/schemas/responses/422_validation_error.json" },
+	  "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
+	}
+  },
+  "delete": {
+	"tags": ["CategoryParams"],
+	"summary": "Delete parameter",
+	"operationId": "deleteCategoryParameter",
+	"parameters": [
+	  { "$ref": "../../components/parameters/id.json#/Id" },
+	  { "$ref": "../../components/parameters/parameter_type.json#/ParamType" }
+	],
+	"responses": {
+	  "204": { "description": "Parameter deleted" },
+	  "400": { "$ref": "../../components/schemas/responses/400_bad_request.json" },
+	  "404": { "$ref": "../../components/schemas/responses/404_not_found.json" },
+	  "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
+	}
+  }
+}
