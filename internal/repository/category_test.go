@@ -2,6 +2,7 @@
 package repository_test
 
 import (
+	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
 	"errors"
 	"testing"
@@ -22,13 +23,13 @@ func TestCategoryRepository_InsertCategory(t *testing.T) {
 		err := seedTestData(ctx)
 		require.NoError(t, err)
 
-		rootID, err := ctgRepo.GetCategoryID(ctx, "test_category")
+		rootID, err := ctgRepo.GetCategoryID(ctx, nil, "test_category")
 		require.NoError(t, err)
 		require.NotZero(t, rootID)
 
 		testCtg = entities.ProductCategory{Name: "test", ParentID: int(rootID)}
 
-		ctgID, err := ctgRepo.InsertCategory(ctx, testCtg)
+		ctgID, err := ctgRepo.InsertCategory(ctx, nil, testCtg)
 		require.NoError(t, err)
 		require.NotZero(t, ctgID)
 
@@ -45,25 +46,31 @@ func TestCategoryRepository_InsertCategory(t *testing.T) {
 	t.Run("Дублирование категории", func(t *testing.T) {
 		// Заполняем первый раз
 		testCtg := entities.ProductCategory{Name: "test"}
-		ctgID, err := ctgRepo.InsertCategory(ctx, testCtg)
+		ctgID, err := ctgRepo.InsertCategory(ctx, nil, testCtg)
 
 		require.NoError(t, err)
 		assert.NotZero(t, ctgID)
 
 		// Заполняем второй раз
-		_, err = ctgRepo.InsertCategory(ctx, testCtg)
+		_, err = ctgRepo.InsertCategory(ctx, nil, testCtg)
 
 		if err == nil {
 			t.Error("Ожидалась ошибка уникальности, но запись создалась")
 		}
 
-		if pgErr, ok := errors.AsType[*pgconn.PgError](err); ok {
-			if pgErr.Code != "23505" {
-				t.Errorf("ожидался код ошибки 23505, получили %s", pgErr.Code)
+		var appErr *apperrors.AppError
+		if errors.As(err, &appErr) {
+			if pgErr, ok := errors.AsType[*pgconn.PgError](appErr.Err); ok {
+				if pgErr.Code != "23505" {
+					t.Errorf("ожидался код ошибки 23505, получили %s", pgErr.Code)
+				}
+			} else {
+				t.Errorf("ожидалась ошибка pgconn.PgError, получили %T", appErr)
 			}
 		} else {
-			t.Errorf("ожидалась ошибка pgconn.PgError, получили %T", err)
+			t.Errorf("Ожидалась ошибка типа AppError")
 		}
+
 		t.Cleanup(func() {
 			cleanDB(t, ctx, "product_categories")
 		})
@@ -88,7 +95,7 @@ func TestCategoryRepository_GetCategories(t *testing.T) {
 
 	t.Run("Успешное нахождение 1 категории", func(t *testing.T) {
 		testCtg := entities.ProductCategory{Name: "test"}
-		_, err := ctgRepo.InsertCategory(ctx, testCtg)
+		_, err := ctgRepo.InsertCategory(ctx, nil, testCtg)
 		require.NoError(t, err)
 
 		ctgs, err := ctgRepo.GetCategories(ctx)
@@ -111,12 +118,12 @@ func TestCategoryRepository_UpdateCategory(t *testing.T) {
 		err := seedTestData(ctx)
 		require.NoError(t, err)
 
-		rootID, err := ctgRepo.GetCategoryID(ctx, "test_category")
+		rootID, err := ctgRepo.GetCategoryID(ctx, nil, "test_category")
 		require.NoError(t, err)
 		require.NotZero(t, rootID)
 
 		testCtg := entities.ProductCategory{Name: "test", ParentID: int(rootID)}
-		ctgID, err := ctgRepo.InsertCategory(ctx, testCtg)
+		ctgID, err := ctgRepo.InsertCategory(ctx, nil, testCtg)
 		require.NoError(t, err)
 		require.NotZero(t, ctgID)
 
@@ -145,12 +152,12 @@ func TestCategoryRepository_DeleteCategoryByID(t *testing.T) {
 		err := seedTestData(ctx)
 		require.NoError(t, err)
 
-		rootID, err := ctgRepo.GetCategoryID(ctx, "test_category")
+		rootID, err := ctgRepo.GetCategoryID(ctx, nil, "test_category")
 		require.NoError(t, err)
 		require.NotZero(t, rootID)
 
 		testCtg = entities.ProductCategory{Name: "test", ParentID: int(rootID)}
-		ctgID, err := ctgRepo.InsertCategory(ctx, testCtg)
+		ctgID, err := ctgRepo.InsertCategory(ctx, nil, testCtg)
 		require.NoError(t, err)
 		require.NotZero(t, ctgID)
 
@@ -174,10 +181,10 @@ func TestCategoryRepository_GetCategoryID(t *testing.T) {
 	t.Run("Успешное удаление", func(t *testing.T) {
 		cleanDB(t, ctx, "product_categories")
 
-		ctgID, _ := ctgRepo.InsertCategory(ctx, testCtg)
+		ctgID, _ := ctgRepo.InsertCategory(ctx, nil, testCtg)
 		require.NotZero(t, ctgID)
 
-		getCtgID, err := ctgRepo.GetCategoryID(ctx, testCtg.Name)
+		getCtgID, err := ctgRepo.GetCategoryID(ctx, nil, testCtg.Name)
 		require.NoError(t, err)
 		require.Equal(t, ctgID, getCtgID)
 

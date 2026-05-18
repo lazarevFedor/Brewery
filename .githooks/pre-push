@@ -9,6 +9,8 @@ echo "--- Запуск локальных проверок перед Push ---"
 
 echo "Обновление зависимостей"
 go mod tidy
+git add go.mod go.sum
+git commit --amend --no-edit 
 
 echo "🔍 Запуск линтера..."
 make lint

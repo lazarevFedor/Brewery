@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"Brewery/internal/apperrors"
 	"github.com/gin-gonic/gin"
 	"github.com/mailru/easyjson"
 )
@@ -296,21 +297,21 @@ func (h *categoriesHandlers) GetChildCategory(c *gin.Context) {
 func (h *categoriesHandlers) GetBeersByCategory(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
-		writeError(c, http.StatusInternalServerError, InternalError, "Unexpected error occurred")
+		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
 		return
 	}
 
 	id, err := getUintParam(c, "category_id")
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
-		writeError(c, http.StatusBadRequest, InvalidID, "Invalid category id")
+		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidID, "Invalid category id")
 		return
 	}
 
 	offset, limit, err := getPaginationParams(c)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid pagination params: %v", err))
-		writeError(c, http.StatusBadRequest, InvalidParameters, "Invalid pagination parameters")
+		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidParameters, "Invalid pagination parameters")
 		return
 	}
 

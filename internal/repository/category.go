@@ -3,6 +3,7 @@ package repository
 
 import (
 	"Brewery/internal/entities"
+	"Brewery/internal/apperrors"
 	"Brewery/internal/repository/queries"
 	"Brewery/pkg/logger"
 	"context"
@@ -19,7 +20,7 @@ type CategoryRepository interface {
 	GetCategories(ctx context.Context) ([]entities.ProductCategory, error)
 
 	// InsertCategory вставляет новую категорию в базу данных.
-	InsertCategory(ctx context.Context, category entities.ProductCategory) (uint, error)
+	InsertCategory(ctx context.Context, tx pgx.Tx, category entities.ProductCategory) (uint, error)
 
 	// GetCategoryByID получает категорию по её ID.
 	GetCategoryByID(ctx context.Context, id uint) (*entities.ProductCategory, error)
@@ -31,7 +32,7 @@ type CategoryRepository interface {
 	DeleteCategoryByID(ctx context.Context, id uint) error
 
 	// GetCategoryID получает ID категории по её имени.
-	GetCategoryID(ctx context.Context, ctgName string) (uint, error)
+	GetCategoryID(ctx context.Context, tx pgx.Tx, ctgName string) (uint, error)
 }
 
 // CategoryPostgres реализует интерфейс CategoryRepository для работы с категориями в базе данных PostgreSQL.
@@ -86,30 +87,30 @@ func (r *CategoryPostgres) GetCategories(ctx context.Context) ([]entities.Produc
 // InsertCategory вставляет новую категорию в базу данных. Если категория с таким именем уже существует,
 // возвращает ошибку. Если ParentID не равен 0, проверяет, что родительская категория существует.
 // Возвращает ID новой категории.
-func (r *CategoryPostgres) InsertCategory(
-	ctx context.Context, category entities.ProductCategory,
-) (uint, error) {
+func (r *CategoryPostgres) InsertCategory(ctx context.Context, tx pgx.Tx, category entities.ProductCategory) (uint, error){
 	if r.Pool == nil {
-		return 0, errors.New("pool is nil")
+		return 0, apperrors.Internal(errors.New("pool is nil"))
 	}
 
 	psql := queries.CategoryInsert(category)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return 0, fmt.Errorf("%s: %w", "ToSql", err)
+		return 0, apperrors.Internal(fmt.Errorf("%s: %w", "ToSql", err))
 	}
 
-	var newID uint
-	err = r.Pool.QueryRow(ctx, query, args...).Scan(&newID)
-	if err != nil {
-		return 0, fmt.Errorf("%s: %w", "Exec", err)
+	var row pgx.Row
+	if tx != nil {
+		row = tx.QueryRow(ctx, query, args...)
+	} else {
+		row = r.Pool.QueryRow(ctx, query, args...)
 	}
 
-	if newID == 0 {
-		return 0, errors.New("zero id")
+	var categoryID uint
+	if err = row.Scan(&categoryID); err != nil {
+		return 0, apperrors.Internal(fmt.Errorf("category QueryRow: %w", err))
 	}
 
-	return newID, nil
+	return categoryID, nil
 }
 
 // GetCategoryByID получает категорию по её ID. Если категория не найдена, возвращает nil и ошибку.
@@ -247,34 +248,30 @@ func (r *CategoryPostgres) DeleteCategoryByID(ctx context.Context, id uint) erro
 }
 
 // GetCategoryID получает ID категории по её имени. Если категория не найдена, возвращает 0 и ошибку.
-func (r *CategoryPostgres) GetCategoryID(ctx context.Context, ctgName string) (uint, error) {
+func (r *CategoryPostgres) GetCategoryID(ctx context.Context, tx pgx.Tx, ctgName string) (uint, error){
 	if r.Pool == nil {
-		return 0, errors.New("pool is nil")
+		return 0, apperrors.Internal(errors.New("pool is nil"))
 	}
 
-	if ctgName == "" {
-		return 0, errors.New("category name cannot be empty")
-	}
-
-	var categoryID uint
 	psql := queries.SelectCategoryByName(ctgName)
 	query, args, err := psql.ToSql()
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", "ToSql", err)
 	}
 
-	rows, err := r.Pool.Query(ctx, query, args...)
-	if err != nil {
-		return 0, fmt.Errorf("%s: %w", "Query", err)
+	var row pgx.Row
+	if tx != nil {
+		row = tx.QueryRow(ctx, query, args...)
+	} else {
+		row = r.Pool.QueryRow(ctx, query, args...)
 	}
 
-	if rows.Next() {
-		err = rows.Scan(&categoryID)
-		if err != nil {
-			return 0, fmt.Errorf("scan: %w", err)
+	var categoryID uint
+	if err = row.Scan(&categoryID); err != nil {
+		if !errors.Is(err, pgx.ErrNoRows){
+			return 0, apperrors.Internal(fmt.Errorf("QueryRow: %w", err))
 		}
 	}
-	rows.Close()
 
 	return categoryID, nil
 }

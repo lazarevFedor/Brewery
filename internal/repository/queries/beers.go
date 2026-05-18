@@ -19,7 +19,7 @@ const (
 
 // Exists возвращает pапрос на проверку наличия сущности пива по id
 func Exists(id uint) sq.SelectBuilder {
-	return psql.Select("id").From(beersTable).Where(sq.Eq{"id": id})
+	return psql.Select("EXISTS(SELECT 1 FROM beers WHERE id = $1)")
 }
 
 // FullBeerSelect возвращает базовый запрос для получения полной информации о пиве, включая его характеристики, город и страну производства, категорию и особенности.
@@ -223,6 +223,20 @@ func SelectOrInsertFeature(featName string) sq.InsertBuilder {
 			"SET name = EXCLUDED.name " +
 			"RETURNING id")
 }
+
+// ConnectBeerAndFeature возвращает запрос для вставки новой связи между пивом и особенностью в таблицу beer_features, если такая связь еще не существует, или ничего не делает, если связь уже есть. Запрос использует конструкцию ON CONFLICT для обработки конфликтов по идентификаторам пива и особенности.
+func ConnectBeerAndFeature(featID, beerID uint) sq.InsertBuilder {
+	data := map[string]any{
+		"beer_id":    beerID,
+		"feature_id": featID,
+	}
+
+	return psql.
+		Insert(beerFeaturesTable).
+		SetMap(data).
+		Suffix("ON CONFLICT DO NOTHING")
+}
+
 
 // SelectBeersFeature возвращает запрос для получения списка особенностей пива
 func SelectBeersFeature(beerID uint) sq.SelectBuilder {

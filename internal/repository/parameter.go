@@ -239,8 +239,8 @@ func (p *ParameterPostgres) GetParameters(
 	var numericParams []entities.NumericParameter
 	var enumParams []entities.EnumParameter
 
-	if parameterType == entities.MissingType ||
-		parameterType == entities.NumericParameterType {
+	if ((parameterType == entities.MissingType ||
+		parameterType == entities.NumericParameterType) && categoryID == 0) || len(numericIDs) > 0 {
 		log.Debug(ctx, "enum")
 		query = queries.SelectNumericParameters(numericIDs)
 		sql, args, err := query.ToSql()
@@ -263,8 +263,8 @@ func (p *ParameterPostgres) GetParameters(
 			numericParams = append(numericParams, *param)
 		}
 	}
-	if parameterType == entities.MissingType ||
-		parameterType == entities.EnumParameterType {
+	if ((parameterType == entities.MissingType ||
+		parameterType == entities.EnumParameterType) && categoryID == 0) || len(numericIDs) > 0 {
 		query = queries.SelectEnumParameters(enumIDs)
 		sql, args, err := query.ToSql()
 		if err != nil {
