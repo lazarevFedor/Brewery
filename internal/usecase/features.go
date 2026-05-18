@@ -57,7 +57,23 @@ func (s *beerService) CreateFeature(ctx context.Context, beerID uint, feat strin
 }
 
 // DeleteFeature удаляет характеристику у пива по его ID.
-// TODO: реализовать
-func (s *beerService) DeleteFeature(ctx context.Context, id uint) error {
+func (s *beerService) DeleteFeature(ctx context.Context, beerID uint) error {
+	if err := ctx.Err(); err != nil {
+		return fmt.Errorf("request cancelled: %w", err)
+	}
+
+	exists, err := s.beerRepo.BeerExists(ctx, beerID)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return errors.New("тут надо передать ошибку 404")
+	}
+
+	err = s.beerRepo.DisconnectBeerAndFeature(ctx, nil, beerID)
+	if err != nil {
+		return fmt.Errorf("failed to disconnect beer: %w", err)
+	}
+
 	return nil
 }

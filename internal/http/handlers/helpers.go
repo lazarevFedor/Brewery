@@ -88,7 +88,10 @@ func getUintParam(c *gin.Context, name string) (uint, error) {
 	}
 
 	uintParam, err := strconv.Atoi(param)
-	if err != nil || uintParam <= 0 {
+	if err != nil {
+		return 0, err
+	}
+	if uintParam <= 0 {
 		return 0, errors.New("invalid id")
 	}
 

@@ -59,7 +59,7 @@ type BeerService interface {
 	CreateFeature(ctx context.Context, beerID uint, feat string) (uint, error)
 
 	// DeleteFeature удаляет характеристику у пива по его ID.
-	DeleteFeature(ctx context.Context, id uint) error
+	DeleteFeature(ctx context.Context, beerID uint) error
 
 	// GetBeerReviews получает список отзывов для пива.
 	GetBeerReviews(ctx context.Context, limit, offset uint64, beerid uint) ([]entities.Review, error)

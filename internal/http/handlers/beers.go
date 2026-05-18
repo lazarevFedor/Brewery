@@ -351,7 +351,7 @@ func (h *beersHandlers) DeleteFeature(c *gin.Context) {
 		return
 	}
 
-	id, err := getUintParam(c, "id")
+	id, err := getUintParam(c, "beer_id")
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Invalid beer id: %v", err))
 		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidID, "Invalid beer id")

@@ -18,7 +18,7 @@ const (
 )
 
 // Exists возвращает pапрос на проверку наличия сущности пива по id
-func Exists(id uint) sq.SelectBuilder {
+func Exists() sq.SelectBuilder {
 	return psql.Select("EXISTS(SELECT 1 FROM beers WHERE id = $1)")
 }
 
@@ -237,6 +237,12 @@ func ConnectBeerAndFeature(featID, beerID uint) sq.InsertBuilder {
 		Suffix("ON CONFLICT DO NOTHING")
 }
 
+func DisconnectBeerAndFeature(beerID uint) sq.DeleteBuilder {
+	return psql.
+		Delete(beerFeaturesTable).
+		Where(sq.Eq{"beer_id": beerID})
+}
+
 // SelectBeersFeature возвращает запрос для получения списка особенностей пива
 func SelectBeersFeature(beerID uint) sq.SelectBuilder {
 	return psql.
@@ -244,19 +250,6 @@ func SelectBeersFeature(beerID uint) sq.SelectBuilder {
 		From(beerFeaturesTable + " bf").
 		Join(featuresTable + " f ON f.id = bf.feature_id").
 		Where(sq.Eq{"beer_id": beerID})
-}
-
-// SelectOrInsertBeerFeature возвращает запрос для вставки новой связи между пивом и особенностью в таблицу beer_features, если такая связь еще не существует, или ничего не делает, если связь уже есть. Запрос использует конструкцию ON CONFLICT для обработки конфликтов по идентификаторам пива и особенности.
-func SelectOrInsertBeerFeature(featID, beerID uint) sq.InsertBuilder {
-	data := map[string]any{
-		"beer_id":    beerID,
-		"feature_id": featID,
-	}
-
-	return psql.
-		Insert(beerFeaturesTable).
-		SetMap(data).
-		Suffix("ON CONFLICT DO NOTHING")
 }
 
 // InsertBeer возвращает запрос для вставки нового пива в таблицу beers с использованием данных из переданной структуры beer и идентификаторов города и категории. Запрос возвращает ID вставленного пива.
@@ -276,4 +269,12 @@ func InsertBeer(beer entities.Beer, cityID, categoryID uint) sq.InsertBuilder {
 		Insert(beersTable).
 		SetMap(data).
 		Suffix("RETURNING *")
+}
+
+// SelectCityNameByID возвращает запрос для получения названия города по его ID из таблицы cities.
+func SelectCityNameByID(cityID uint) sq.SelectBuilder {
+	return psql.
+		Select("name").
+		From(citiesTable).
+		Where(sq.Eq{"id": cityID})
 }
