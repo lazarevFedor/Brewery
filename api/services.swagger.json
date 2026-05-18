@@ -41,6 +41,8 @@
   ],
 
   "paths": {
+    "/login": { "$ref": "./path/auth/login.json"},
+
     "/categories": { "$ref": "./path/category/categories.json" },
     "/categories/{id}": { "$ref": "./path/category/categories_id.json" },
     "/categories/parent/{id}": { "$ref": "./path/category/categories_parent_id.json" },

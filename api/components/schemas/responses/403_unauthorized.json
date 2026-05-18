@@ -1,0 +1,12 @@
+{
+    "description": "Unauthorized",
+    "content": {
+        "application/json": {
+            "schema": { "$ref": "./error_response.json#/ErrorResponse" },
+            "example": {
+                "error": "Unauthorized",
+                "message": "Unauthorized"
+            }
+        }
+    }
+}

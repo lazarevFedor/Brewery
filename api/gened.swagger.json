@@ -41,6 +41,48 @@
     }
   ],
   "paths": {
+    "/login": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "login admin",
+        "operationId": "AuthAdmin",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Auth"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/403_unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
     "/categories": {
       "get": {
         "tags": [
@@ -1642,6 +1684,38 @@
   },
   "components": {
     "schemas": {
+      "Auth": {
+        "type": "object",
+        "properties": {
+          "login": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "example": {
+          "login": "admin",
+          "password": "admin"
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": [
+          "error",
+          "message"
+        ],
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "VALIDATION_ERROR"
+          },
+          "message": {
+            "type": "string",
+            "example": "Invalid request"
+          }
+        }
+      },
       "CategoryBase": {
         "type": "object",
         "required": [
@@ -1676,23 +1750,6 @@
             }
           }
         ]
-      },
-      "ErrorResponse": {
-        "type": "object",
-        "required": [
-          "error",
-          "message"
-        ],
-        "properties": {
-          "error": {
-            "type": "string",
-            "example": "VALIDATION_ERROR"
-          },
-          "message": {
-            "type": "string",
-            "example": "Invalid request"
-          }
-        }
       },
       "CategoryCreate": {
         "allOf": [
@@ -2334,6 +2391,20 @@
       }
     },
     "responses": {
+      "403_unauthorized": {
+        "description": "Unauthorized",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": "Unauthorized",
+              "message": "Unauthorized"
+            }
+          }
+        }
+      },
       "500_internal_server_error": {
         "description": "Internal server error",
         "content": {
