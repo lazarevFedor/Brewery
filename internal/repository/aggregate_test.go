@@ -19,13 +19,13 @@ func TestAggregateRepository_InsertGetApply(t *testing.T) {
 	cleanDB(t, ctx, "numeric_parameters")
 	cleanDB(t, ctx, "enum_parameters")
 
-	rootID, err := ctgRepo.GetCategoryID(ctx, "test_category")
+	rootID, err := ctgRepo.GetCategoryID(ctx, nil, "test_category")
 	require.NoError(t, err)
 	require.NotZero(t, rootID)
 
-	childID, err := ctgRepo.InsertCategory(ctx, entities.ProductCategory{Name: "agg_child", ParentID: int(rootID)})
+	childID, err := ctgRepo.InsertCategory(ctx, nil, entities.ProductCategory{Name: "agg_child", ParentID: int(rootID)})
 	require.NoError(t, err)
-	grandChildID, err := ctgRepo.InsertCategory(ctx, entities.ProductCategory{Name: "agg_grand_child", ParentID: int(childID)})
+	grandChildID, err := ctgRepo.InsertCategory(ctx, nil, entities.ProductCategory{Name: "agg_grand_child", ParentID: int(childID)})
 	require.NoError(t, err)
 
 	nInherit := insertNumericParam(t, ctx, 1, 10, "n_inherit", true)
@@ -86,11 +86,11 @@ func TestAggregateRepository_UpdateAndDelete(t *testing.T) {
 	cleanDB(t, ctx, "numeric_parameters")
 	cleanDB(t, ctx, "enum_parameters")
 
-	rootID, err := ctgRepo.GetCategoryID(ctx, "test_category")
+	rootID, err := ctgRepo.GetCategoryID(ctx, nil, "test_category")
 	require.NoError(t, err)
 	require.NotZero(t, rootID)
 
-	childID, err := ctgRepo.InsertCategory(ctx, entities.ProductCategory{Name: "agg_upd_child", ParentID: int(rootID)})
+	childID, err := ctgRepo.InsertCategory(ctx, nil, entities.ProductCategory{Name: "agg_upd_child", ParentID: int(rootID)})
 	require.NoError(t, err)
 
 	n1 := insertNumericParam(t, ctx, 1, 2, "u_n1", false)

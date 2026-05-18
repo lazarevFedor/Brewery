@@ -113,9 +113,9 @@ func TestBeerRepository_InsertGetBeer(t *testing.T) {
 	}
 
 	t.Run("Успешная вставка", func(t *testing.T) {
-		beerID, err := beerRepo.InsertBeer(ctx, testBeers[0])
+		beer, err := beerRepo.InsertBeer(ctx, testBeers[0])
 		require.NoError(t, err)
-		require.NotZero(t, beerID)
+		require.NotNil(t, beer)
 
 		beers, err := beerRepo.GetBeers(ctx, 0, 0)
 
@@ -201,7 +201,7 @@ func TestBeerRepository_InsertGetBeer(t *testing.T) {
 	})
 
 	t.Run("Вставка с новой дочерней категорией", func(t *testing.T) {
-		rootID, err := ctgRepo.GetCategoryID(ctx, "test_category")
+		rootID, err := ctgRepo.GetCategoryID(ctx, nil, "test_category")
 		require.NoError(t, err)
 		require.NotZero(t, rootID)
 
@@ -477,7 +477,7 @@ func TestBeerRepository_DeleteReview(t *testing.T) {
 	t.Run("Удаление несуществующего отзыва", func(t *testing.T) {
 		err := beerRepo.DeleteReview(ctx, 999999)
 		require.Error(t, err)
-		require.EqualError(t, err, "Exec: no rows in result set")
+		require.EqualError(t, err, "exec: no rows in result set")
 	})
 
 	t.Run("Удаление отзыва с неинициализированным репозиторием", func(t *testing.T) {
@@ -518,7 +518,7 @@ func TestBeerRepository_UpdateReview_Fields(t *testing.T) {
 		reviews, err := beerRepo.GetReviews(ctx, 0, 0, createdBeer.ID)
 		require.NoError(t, err)
 		require.Len(t, reviews, 1)
-		require.Equal(t, "Updated review text", reviews[0].Body)
+		require.Equal(t, updates["body"], reviews[0].Body)
 		require.Equal(t, uint(5), reviews[0].Rating)
 
 		t.Cleanup(func() {
@@ -601,7 +601,7 @@ func TestBeerRepository_UpdateReview_Errors(t *testing.T) {
 		}
 		err := beerRepo.UpdateReview(ctx, 999999, updates)
 		require.Error(t, err)
-		require.EqualError(t, err, "QueryRow: no rows in result set")
+		require.EqualError(t, err, "Exec: no rows in result set")
 	})
 
 	t.Run("Обновление с пустым набором полей", func(t *testing.T) {
@@ -776,7 +776,7 @@ func TestBeerRepository_GetBeersByCategoryID(t *testing.T) {
 		beer, _ := beerRepo.GetBeerByID(ctx, createdBeer.ID)
 		require.NotNil(t, beer, "GetBeerByID Error")
 
-		ctgID, _ := ctgRepo.GetCategoryID(ctx, beer.Category.Name)
+		ctgID, _ := ctgRepo.GetCategoryID(ctx, nil, beer.Category.Name)
 		require.NotZero(t, ctgID, "GetCategoryID Error")
 
 		beers, err := beerRepo.GetBeersByCategoryID(ctx, ctgID, 0, 0)
@@ -805,7 +805,7 @@ func TestBeerRepository_GetBeersByCategoryID(t *testing.T) {
 		require.NoError(t, err)
 		require.NotZero(t, secondID)
 
-		ctgID, err := ctgRepo.GetCategoryID(ctx, firstBeer.Category.Name)
+		ctgID, err := ctgRepo.GetCategoryID(ctx, nil, firstBeer.Category.Name)
 		require.NoError(t, err)
 		require.NotZero(t, ctgID)
 
@@ -915,11 +915,11 @@ func TestBeerRepository_GetCountryID(t *testing.T) {
 	ctx := t.Context()
 
 	t.Run("Успешное получение ID страны", func(t *testing.T) {
-		countryID, err := beerRepo.GetCountryID(ctx, "test_country")
+		countryID, err := beerRepo.GetCountryID(ctx, nil, "test_country")
 		require.NoError(t, err)
 		require.NotZero(t, countryID)
 
-		countryIDSecond, err := beerRepo.GetCountryID(ctx, "test_country")
+		countryIDSecond, err := beerRepo.GetCountryID(ctx, nil, "test_country")
 		require.NoError(t, err)
 		require.Equal(t, countryID, countryIDSecond)
 
@@ -929,7 +929,7 @@ func TestBeerRepository_GetCountryID(t *testing.T) {
 	})
 
 	t.Run("Пустое имя страны", func(t *testing.T) {
-		countryID, err := beerRepo.GetCountryID(ctx, "")
+		countryID, err := beerRepo.GetCountryID(ctx, nil, "")
 		require.Error(t, err)
 		require.Zero(t, countryID)
 
@@ -941,7 +941,7 @@ func TestBeerRepository_GetCountryID(t *testing.T) {
 	t.Run("Получение страны с неинициализированным репозиторием", func(t *testing.T) {
 		uninitializedBeerRepo := repository.BeerPostgres{}
 
-		countryID, err := uninitializedBeerRepo.GetCountryID(ctx, "test_country")
+		countryID, err := uninitializedBeerRepo.GetCountryID(ctx, nil, "test_country")
 		require.Error(t, err)
 		require.Zero(t, countryID)
 
@@ -956,15 +956,15 @@ func TestBeerRepository_GetCityID(t *testing.T) {
 	ctx := t.Context()
 
 	t.Run("Успешное получение ID города", func(t *testing.T) {
-		countryID, err := beerRepo.GetCountryID(ctx, "test_country")
+		countryID, err := beerRepo.GetCountryID(ctx, nil, "test_country")
 		require.NoError(t, err)
 		require.NotZero(t, countryID)
 
-		cityID, err := beerRepo.GetCityID(ctx, "test_city", countryID)
+		cityID, err := beerRepo.GetCityID(ctx, nil, "test_city", countryID)
 		require.NoError(t, err)
 		require.NotZero(t, cityID)
 
-		cityIDSecond, err := beerRepo.GetCityID(ctx, "test_city", countryID)
+		cityIDSecond, err := beerRepo.GetCityID(ctx, nil, "test_city", countryID)
 		require.NoError(t, err)
 		require.Equal(t, cityID, cityIDSecond)
 
@@ -974,7 +974,7 @@ func TestBeerRepository_GetCityID(t *testing.T) {
 	})
 
 	t.Run("Пустое имя города", func(t *testing.T) {
-		cityID, err := beerRepo.GetCityID(ctx, "", 1)
+		cityID, err := beerRepo.GetCityID(ctx, nil, "", 1)
 		require.Error(t, err)
 		require.Zero(t, cityID)
 
@@ -986,7 +986,7 @@ func TestBeerRepository_GetCityID(t *testing.T) {
 	t.Run("Получение города с неинициализированным репозиторием", func(t *testing.T) {
 		uninitializedBeerRepo := repository.BeerPostgres{}
 
-		cityID, err := uninitializedBeerRepo.GetCityID(ctx, "test_city", 1)
+		cityID, err := uninitializedBeerRepo.GetCityID(ctx, nil, "test_city", 1)
 		require.Error(t, err)
 		require.Zero(t, cityID)
 
@@ -1005,14 +1005,11 @@ func TestBeerRepository_GetFeatureIDAndInsertBeerFeature(t *testing.T) {
 		require.NoError(t, err)
 		require.NotZero(t, createdBeer.ID)
 
-		featureID, err := beerRepo.GetFeatureID(ctx, "manual_feature")
+		featureID, err := beerRepo.GetFeatureID(ctx, nil, "manual_feature")
 		require.NoError(t, err)
 		require.NotZero(t, featureID)
 
-		err = beerRepo.InsertBeerFeature(ctx, featureID, createdBeer.ID)
-		require.NoError(t, err)
-
-		err = beerRepo.InsertBeerFeature(ctx, featureID, createdBeer.ID)
+		err = beerRepo.ConnectBeerAndFeature(ctx, nil, featureID, createdBeer.ID)
 		require.NoError(t, err)
 
 		t.Cleanup(func() {
@@ -1023,7 +1020,7 @@ func TestBeerRepository_GetFeatureIDAndInsertBeerFeature(t *testing.T) {
 	t.Run("Получение feature с неинициализированным репозиторием", func(t *testing.T) {
 		uninitializedBeerRepo := repository.BeerPostgres{}
 
-		featureID, err := uninitializedBeerRepo.GetFeatureID(ctx, "feat")
+		featureID, err := uninitializedBeerRepo.GetFeatureID(ctx, nil, "feat")
 		require.Error(t, err)
 		require.Zero(t, featureID)
 
@@ -1035,7 +1032,7 @@ func TestBeerRepository_GetFeatureIDAndInsertBeerFeature(t *testing.T) {
 	t.Run("Вставка beer-feature с неинициализированным репозиторием", func(t *testing.T) {
 		uninitializedBeerRepo := repository.BeerPostgres{}
 
-		err := uninitializedBeerRepo.InsertBeerFeature(ctx, 1, 1)
+		err := uninitializedBeerRepo.ConnectBeerAndFeature(ctx, nil, 1, 1)
 		require.Error(t, err)
 
 		t.Cleanup(func() {
@@ -1112,7 +1109,7 @@ func TestBeerRepository_CanceledContext(t *testing.T) {
 	})
 
 	t.Run("Получение страны с отмененным контекстом", func(t *testing.T) {
-		countryID, err := beerRepo.GetCountryID(ctx, "x")
+		countryID, err := beerRepo.GetCountryID(ctx, nil, "x")
 		require.Error(t, err)
 		require.Zero(t, countryID)
 
@@ -1122,7 +1119,7 @@ func TestBeerRepository_CanceledContext(t *testing.T) {
 	})
 
 	t.Run("Получение города с отмененным контекстом", func(t *testing.T) {
-		cityID, err := beerRepo.GetCityID(ctx, "x", 1)
+		cityID, err := beerRepo.GetCityID(ctx, nil, "x", 1)
 		require.Error(t, err)
 		require.Zero(t, cityID)
 
@@ -1132,7 +1129,7 @@ func TestBeerRepository_CanceledContext(t *testing.T) {
 	})
 
 	t.Run("Получение feature с отмененным контекстом", func(t *testing.T) {
-		featureID, err := beerRepo.GetFeatureID(ctx, "x")
+		featureID, err := beerRepo.GetFeatureID(ctx, nil, "x")
 		require.Error(t, err)
 		require.Zero(t, featureID)
 
@@ -1142,7 +1139,7 @@ func TestBeerRepository_CanceledContext(t *testing.T) {
 	})
 
 	t.Run("Вставка связи beer-feature с отмененным контекстом", func(t *testing.T) {
-		err := beerRepo.InsertBeerFeature(ctx, 1, 1)
+		err := beerRepo.ConnectBeerAndFeature(ctx, nil, 1, 1)
 		require.Error(t, err)
 
 		t.Cleanup(func() {

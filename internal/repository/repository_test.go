@@ -101,7 +101,7 @@ func cleanDB(t *testing.T, ctx context.Context, tablename string) {
 
 // seedTestData выполняет начальную загрузку тестовых данных в базу данных, обеспечивая наличие необходимых записей для тестов.
 func seedTestData(ctx context.Context) error {
-	countryID, err := beerRepo.GetCountryID(ctx, "test_country")
+	countryID, err := beerRepo.GetCountryID(ctx, nil, "test_country")
 	if err != nil {
 		return fmt.Errorf("seed country: %w", err)
 	}
@@ -110,7 +110,7 @@ func seedTestData(ctx context.Context) error {
 		return errors.New("seed country: zero id")
 	}
 
-	cityID, err := beerRepo.GetCityID(ctx, "test_city", countryID)
+	cityID, err := beerRepo.GetCityID(ctx, nil, "test_city", countryID)
 	if err != nil {
 		return fmt.Errorf("seed city: %w", err)
 	}
@@ -118,22 +118,17 @@ func seedTestData(ctx context.Context) error {
 	if cityID == 0 {
 		return errors.New("seed city: zero id")
 	}
-
-	categoryID, err := ctgRepo.GetCategoryID(ctx, "test_category")
+	var categoryID uint
+	categoryID, err = ctgRepo.GetCategoryID(ctx, nil, "test_category")
 	if err != nil {
 		return fmt.Errorf("seed category get id: %w", err)
 	}
 
 	if categoryID == 0 {
-		categoryID, err = ctgRepo.InsertCategory(ctx, entities.ProductCategory{Name: "test_category"})
+		_, err = ctgRepo.InsertCategory(ctx, nil, entities.ProductCategory{Name: "test_category"})
 		if err != nil {
 			return fmt.Errorf("seed category insert: %w", err)
 		}
 	}
-
-	if categoryID == 0 {
-		return errors.New("seed category: zero id")
-	}
-
 	return nil
 }

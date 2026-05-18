@@ -43,12 +43,12 @@ func (s *beerService) CreateFeature(ctx context.Context, beerID uint, feat strin
 		return 0, errors.New("тут надо передать ошибку 404")
 	}
 
-	featID, err := s.beerRepo.GetFeatureID(ctx, feat)
+	featID, err := s.beerRepo.GetFeatureID(ctx, nil, feat)
 	if err != nil {
 		return 0, fmt.Errorf("GetFeatureID: %w", err)
 	}
 
-	err = s.beerRepo.InsertBeerFeature(ctx, featID, beerID)
+	err = s.beerRepo.ConnectBeerAndFeature(ctx, nil, featID, beerID)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get categories: %w", err)
 	}

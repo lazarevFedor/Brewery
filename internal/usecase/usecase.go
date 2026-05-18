@@ -126,7 +126,7 @@ func (s *beerService) CreateCategory(ctx context.Context, ctg *entities.ProductC
 		}
 	}
 
-	id, err := s.categoryRepo.InsertCategory(ctx, *ctg)
+	id, err := s.categoryRepo.InsertCategory(ctx, nil, *ctg)
 	if err != nil {
 		return 0, fmt.Errorf("failed to create category: %w", err)
 	}
@@ -310,7 +310,7 @@ func (s *beerService) CreateBeer(ctx context.Context, beer *entities.Beer) (*ent
 	if beer.Category.ID != 0 {
 		categoryID = uint(beer.Category.ID)
 	} else if beer.Category.Name != "" {
-		ctgID, err := s.categoryRepo.GetCategoryID(ctx, beer.Category.Name)
+		ctgID, err := s.categoryRepo.GetCategoryID(ctx, nil, beer.Category.Name)
 		if err != nil {
 			return nil, fmt.Errorf("failed to resolve category: %w", err)
 		}
@@ -460,7 +460,7 @@ func (s *beerService) validateUpdates(ctx context.Context, updates map[string]an
 					return nil, errors.New("category name datatype error")
 				}
 
-				ctgID, err := s.categoryRepo.GetCategoryID(ctx, ctgNameStr)
+				ctgID, err := s.categoryRepo.GetCategoryID(ctx, nil, ctgNameStr)
 				if err != nil {
 					return nil, fmt.Errorf("failed to get Category ID: %w", err)
 				}
@@ -474,7 +474,7 @@ func (s *beerService) validateUpdates(ctx context.Context, updates map[string]an
 					if !ok {
 						return nil, errors.New("parent_id datatype error")
 					}
-					ctgID, err = s.categoryRepo.InsertCategory(ctx, entities.ProductCategory{
+					ctgID, err = s.categoryRepo.InsertCategory(ctx, nil, entities.ProductCategory{
 						Name:     ctgNameStr,
 						ParentID: parentIDFloat,
 					})
@@ -509,7 +509,7 @@ func (s *beerService) resolveCityUpdate(ctx context.Context, updates map[string]
 	if !ok {
 		return 0, errors.New("country Datatype error")
 	}
-	countryID, err := s.beerRepo.GetCountryID(ctx, countryName)
+	countryID, err := s.beerRepo.GetCountryID(ctx, nil, countryName)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get Country ID: %w", err)
 	}
@@ -519,7 +519,7 @@ func (s *beerService) resolveCityUpdate(ctx context.Context, updates map[string]
 	if !ok {
 		return 0, errors.New("cityName Datatype error")
 	}
-	cityID, err := s.beerRepo.GetCityID(ctx, cityName, countryID)
+	cityID, err := s.beerRepo.GetCityID(ctx, nil, cityName, countryID)
 	if err != nil {
 		return 0, err
 	}

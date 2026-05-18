@@ -2,6 +2,7 @@
 package handlers
 
 import (
+	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
 	"errors"
 	"io"
@@ -54,7 +55,7 @@ func validateFilterParam(filter string) (*entities.FilterParameter, error) {
 	rawVal := filterParams[2]
 	val, err := strconv.ParseFloat(rawVal, 32)
 	if err != nil {
-		return nil, errors.New(InvalidParameters)
+		return nil, errors.New(apperrors.CodeInvalidParameters)
 	}
 	filterEntity.Value = float32(val)
 	var oper entities.Operation

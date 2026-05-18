@@ -1,4 +1,4 @@
-package errors
+package apperrors
 
 const (
 	CodeBadRequest        = "BAD_REQUEST"
