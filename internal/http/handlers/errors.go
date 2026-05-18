@@ -9,9 +9,7 @@ import (
 )
 
 func handleError(c *gin.Context, err error) {
-	var appErr *apperrors.AppError
-
-	if errors.As(err, &appErr) {
+	if appErr, ok := errors.AsType[*apperrors.AppError](err); ok {
 		c.JSON(appErr.HTTPStatus, gin.H{
 			"error":   appErr.APIErr.ErrorCode,
 			"message": appErr.APIErr.Message,
