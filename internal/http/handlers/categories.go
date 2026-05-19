@@ -303,14 +303,14 @@ func (h *categoriesHandlers) GetBeersByCategory(c *gin.Context) {
 
 	id, err := getUintParam(c, "category_id")
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
+		log.Info(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
 		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidID, "Invalid category id")
 		return
 	}
 
 	offset, limit, err := getPaginationParams(c)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid pagination params: %v", err))
+		log.Info(c.Request.Context(), fmt.Sprintf("Invalid pagination params: %v", err))
 		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidParameters, "Invalid pagination parameters")
 		return
 	}

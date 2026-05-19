@@ -27,7 +27,7 @@ func TestGetBeersByCategory_NewRoute_WorksWithIDAndPagination(t *testing.T) {
 			{Name: "two", Rating: 4.2},
 		}, nil)
 
-	resp := testEnv.DoRequest(ctx, http.MethodGet, "/api/categories/beers/42?offset=1&limit=1", nil)
+	resp := testEnv.DoRequest(ctx, "", http.MethodGet, "/api/categories/beers/42?offset=1&limit=1", nil)
 
 	require.Equal(t, http.StatusOK, resp.Code)
 
@@ -42,7 +42,7 @@ func TestGetBeersByCategory_InvalidID_ReturnsBadRequest(t *testing.T) {
 	ctx := t.Context()
 	testEnv := newTestEnv(t)
 
-	resp := testEnv.DoRequest(ctx, http.MethodGet, "/api/categories/beers/not-a-number", nil)
+	resp := testEnv.DoRequest(ctx, "", http.MethodGet, "/api/categories/beers/not-a-number", nil)
 
 	require.Equal(t, http.StatusBadRequest, resp.Code)
 
@@ -62,7 +62,7 @@ func TestUpdateBeer_UsesPathParam(t *testing.T) {
 		Return(&entities.Beer{}, nil)
 
 	body := strings.NewReader(`{"name":"ipa"}`)
-	resp := testEnv.DoRequest(ctx, http.MethodPatch, "/api/beers/77", body)
+	resp := testEnv.DoRequest(ctx, testEnv.JWT, http.MethodPatch, "/api/beers/77", body)
 
 	require.Equal(t, http.StatusOK, resp.Code)
 }
@@ -81,7 +81,7 @@ func TestCreateBeer_ReturnsCreated(t *testing.T) {
 		})
 
 	body := strings.NewReader(`{"name":"ipa"}`)
-	resp := testEnv.DoRequest(ctx, http.MethodPost, "/api/beers", body)
+	resp := testEnv.DoRequest(ctx, testEnv.JWT, http.MethodPost, "/api/beers", body)
 
 	require.Equal(t, http.StatusCreated, resp.Code)
 }
@@ -96,7 +96,7 @@ func TestDeleteBeer_UsesPathParam(t *testing.T) {
 		Expect(minimock.AnyContext, 16).
 		Return(nil)
 
-	resp := testEnv.DoRequest(ctx, http.MethodDelete, "/api/beers/16", nil)
+	resp := testEnv.DoRequest(ctx, testEnv.JWT, http.MethodDelete, "/api/beers/16", nil)
 
 	require.Equal(t, http.StatusNoContent, resp.Code)
 }
@@ -111,7 +111,7 @@ func TestGetAllBeers_ReturnsOK(t *testing.T) {
 		Expect(minimock.AnyContext, uint64(10), uint64(0)).
 		Return([]entities.Beer{{Name: "ipa", Rating: 4.5}}, nil)
 
-	resp := testEnv.DoRequest(ctx, http.MethodGet, "/api/beers?offset=0&limit=10", nil)
+	resp := testEnv.DoRequest(ctx, "", http.MethodGet, "/api/beers?offset=0&limit=10", nil)
 
 	require.Equal(t, http.StatusOK, resp.Code)
 
@@ -136,7 +136,7 @@ func TestCreateBeerReview_UsesPathParam(t *testing.T) {
 	})
 
 	body := strings.NewReader(`{"body":"great","rating":4}`)
-	resp := testEnv.DoRequest(ctx, http.MethodPost, "/api/reviews/17", body)
+	resp := testEnv.DoRequest(ctx, "", http.MethodPost, "/api/reviews/17", body)
 
 	require.Equal(t, http.StatusOK, resp.Code)
 }

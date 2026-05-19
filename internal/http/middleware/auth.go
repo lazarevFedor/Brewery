@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gin-gonic/gin"
 	"Brewery/internal/http/handlers"
+	"github.com/gin-gonic/gin"
 )
 
 // AdminAuth — middleware, проверяет JWT токен в заголовке Authorization

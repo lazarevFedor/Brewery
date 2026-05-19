@@ -32,7 +32,7 @@ func NewAuthHandlers() AuthHandlers {
 
 type AdminClaims struct {
 	jwt.RegisteredClaims
-	
+
 	Username string `json:"username"`
 }
 

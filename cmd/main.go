@@ -93,7 +93,7 @@ func main() {
 		EnumHandler:       handlers.NewEnumHandlers(enumService),
 		ParametersHandler: handlers.NewParametersHandlers(parameterService),
 		AggregatesHandler: handlers.NewAggregateHandlers(aggregateService),
-		AuthHandler: handlers.NewAuthHandlers(),
+		AuthHandler:       handlers.NewAuthHandlers(),
 	}
 
 	routers.RegisterRoutes(router.Engine, h)

@@ -16,8 +16,8 @@ func RegisterRoutes(e *gin.Engine, h handlers.Handlers) {
 	registerBeerRoutes(api, admin, h)
 	registerReviewRoutes(api, admin, h)
 	registerCategoryRoutes(api, admin, h)
-	registerEnumRoutes(api, admin, h)
-	registerAggregatesRoutes(api, admin, h)
+	registerEnumRoutes(api, h)
+	registerAggregatesRoutes(api, h)
 
 	api.POST("/login", h.AuthHandler.Login)
 	e.GET("/metrics", gin.WrapH(promhttp.Handler()))
@@ -53,12 +53,12 @@ func registerBeerRoutes(api *gin.RouterGroup, admin *gin.RouterGroup, h handlers
 func registerReviewRoutes(api *gin.RouterGroup, admin *gin.RouterGroup, h handlers.Handlers) {
 	reviews := api.Group("/reviews")
 	{
+		reviews.POST("/:beer_id", h.ReviewHandler.CreateReview)
 		reviews.GET("/:beer_id", h.ReviewHandler.GetBeersReviews)
 	}
 
 	adminReviews := admin.Group("/reviews")
 	{
-		adminReviews.POST("/:beer_id", h.ReviewHandler.CreateReview)
 		adminReviews.DELETE("/:id", h.ReviewHandler.DeleteReview)
 		adminReviews.PATCH("/:id", h.ReviewHandler.UpdateReview)
 	}
@@ -93,7 +93,11 @@ func registerCategoryRoutes(api *gin.RouterGroup, admin *gin.RouterGroup, h hand
 	}
 }
 
-func registerEnumRoutes(api *gin.RouterGroup, admin *gin.RouterGroup, h handlers.Handlers) {
+func registerEnumRoutes(
+	api *gin.RouterGroup,
+	// admin *gin.RouterGroup,
+	h handlers.Handlers,
+) {
 	enums := api.Group("/enums")
 	{
 		enums.POST("", h.EnumHandler.CreateEnum)
@@ -111,7 +115,11 @@ func registerEnumRoutes(api *gin.RouterGroup, admin *gin.RouterGroup, h handlers
 	}
 }
 
-func registerAggregatesRoutes(api *gin.RouterGroup, admin *gin.RouterGroup, h handlers.Handlers) {
+func registerAggregatesRoutes(
+	api *gin.RouterGroup,
+	// admin *gin.RouterGroup,
+	h handlers.Handlers,
+) {
 	aggregates := api.Group("/aggregates")
 	{
 		aggregates.PATCH("/apply/:category_id", h.AggregatesHandler.ApplyAggregateToCategory)
