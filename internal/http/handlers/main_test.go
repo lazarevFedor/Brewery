@@ -54,6 +54,7 @@ func setupIntegrationRouter(beerServiceM *mocks.BeerServiceMock, enumServiceM *m
 		EnumHandler:       handlers.NewEnumHandlers(enumServiceM),
 		ParametersHandler: handlers.NewParametersHandlers(parametersServiseM),
 		AggregatesHandler: handlers.NewAggregateHandlers(aggregateServiceM),
+		AuthHandler:       handlers.NewAuthHandlers(),
 	}
 	routers.RegisterRoutes(engine, h)
 

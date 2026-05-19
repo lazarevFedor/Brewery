@@ -5,6 +5,7 @@ import (
 	"Brewery/internal/entities"
 	"errors"
 	"io"
+	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -131,4 +132,24 @@ func getPaginationParams(c *gin.Context) (uint64, uint64, error) {
 	}
 
 	return uint64(offset), uint64(limit), nil
+}
+
+func jwtSecret() []byte {
+	s := os.Getenv("JWT_SECRET")
+	if s == "" {
+		s = "change-me-in-production" // поменяй или выставь JWT_SECRET в env
+	}
+	return []byte(s)
+}
+
+func adminLogin() (string, string) {
+	user := os.Getenv("ADMIN_USERNAME")
+	pass := os.Getenv("ADMIN_PASSWORD")
+	if user == "" {
+		user = "admin"
+	}
+	if pass == "" {
+		pass = "admin"
+	}
+	return user, pass
 }

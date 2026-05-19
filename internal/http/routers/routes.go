@@ -1,8 +1,9 @@
-// Package routes регистрирует все хендлеры
+// Package routers регистрирует все хендлеры
 package routers
 
 import (
 	"Brewery/internal/http/handlers"
+	"Brewery/internal/http/middleware"
 
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -16,25 +17,38 @@ func RegisterRoutes(e *gin.Engine, h handlers.Handlers) {
 	registerCategoryRoutes(api, h)
 	registerEnumRoutes(api, h)
 	registerAggregatesRoutes(api, h)
+	registerAdminRoutes(api, h)
 
 	e.GET("/metrics", gin.WrapH(promhttp.Handler()))
+}
+
+func registerAdminRoutes(api *gin.RouterGroup, h handlers.Handlers){
+	api.POST("/login", h.AuthHandler.Login)
+	admin := api.Group("", middleware.AdminAuth())
+	beers := admin.Group("/beers")
+	{
+		beers.POST("", h.BeersHandler.CreateBeer)
+		beers.PATCH("/:id", h.BeersHandler.UpdateBeer)
+		beers.DELETE("/:id", h.BeersHandler.DeleteBeer)
+
+		features := beers.Group("/feats")
+		{
+			features.POST("/:beer_id", h.BeersHandler.CreateFeature)
+			features.PATCH("/:beer_id", h.BeersHandler.UpdateBeer)
+			features.DELETE("/:beer_id", h.BeersHandler.DeleteFeature)
+		}
+	}
 }
 
 func registerBeerRoutes(api *gin.RouterGroup, h handlers.Handlers) {
 	beers := api.Group("/beers")
 	{
-		beers.POST("", h.BeersHandler.CreateBeer)
-		beers.PATCH("/:id", h.BeersHandler.UpdateBeer)
-		beers.DELETE("/:id", h.BeersHandler.DeleteBeer)
 		beers.GET("", h.BeersHandler.GetAllBeers)
 		beers.GET("/search", h.BeersHandler.SearchBeer)
 
 		features := beers.Group("/feats")
 		{
 			features.GET("/:beer_id", h.BeersHandler.GetFeature)
-			features.POST("/:beer_id", h.BeersHandler.CreateFeature)
-			features.PATCH("/:beer_id", h.BeersHandler.UpdateBeer)
-			features.DELETE("/:beer_id", h.BeersHandler.DeleteFeature)
 		}
 	}
 }
