@@ -8,8 +8,20 @@
   "servers": [
     { "url": "http://localhost:80/api" }
   ],
-  
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },  
   "tags": [
+    {
+      "name": "Auth",
+      "description": "Авторизация для действий Админа"
+    },
     {
       "name": "Categories",
       "description": "Все операции, связанные с категориями товаров"

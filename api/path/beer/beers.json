@@ -28,6 +28,11 @@
     "tags": ["Beers"],
     "summary": "Create beer",
     "operationId": "createBeer",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
     "requestBody": {
       "required": true,
       "content": {

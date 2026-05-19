@@ -12,6 +12,10 @@
   ],
   "tags": [
     {
+      "name": "Auth",
+      "description": "Авторизация для действий Админа"
+    },
+    {
       "name": "Categories",
       "description": "Все операции, связанные с категориями товаров"
     },
@@ -42,7 +46,7 @@
   ],
   "paths": {
     "/login": {
-      "get": {
+      "post": {
         "tags": [
           "Auth"
         ],
@@ -68,6 +72,9 @@
                   "properties": {
                     "status": {
                       "type": "integer"
+                    },
+                    "token": {
+                      "type": "string"
                     }
                   }
                 }
@@ -368,6 +375,11 @@
         ],
         "summary": "Create beer",
         "operationId": "createBeer",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -1683,11 +1695,18 @@
     }
   },
   "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
     "schemas": {
       "Auth": {
         "type": "object",
         "properties": {
-          "login": {
+          "username": {
             "type": "string"
           },
           "password": {
@@ -1695,7 +1714,7 @@
           }
         },
         "example": {
-          "login": "admin",
+          "username": "admin",
           "password": "admin"
         }
       },
