@@ -1,3 +1,4 @@
+// Package usecase содержит основные операции с сущностями
 package usecase
 
 import (
@@ -6,6 +7,7 @@ import (
 	"fmt"
 )
 
+// GetFeatures возвращает список характеристик для пива по его ID.
 func (s *beerService) GetFeatures(ctx context.Context, beerID uint) ([]string, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
@@ -27,6 +29,7 @@ func (s *beerService) GetFeatures(ctx context.Context, beerID uint) ([]string, e
 	return features, nil
 }
 
+// CreateFeature добавляет характеристику к пиву по его ID.
 func (s *beerService) CreateFeature(ctx context.Context, beerID uint, feat string) (uint, error) {
 	if err := ctx.Err(); err != nil {
 		return 0, fmt.Errorf("request cancelled: %w", err)
@@ -53,6 +56,24 @@ func (s *beerService) CreateFeature(ctx context.Context, beerID uint, feat strin
 	return 0, nil
 }
 
-func (s *beerService) DeleteFeature(ctx context.Context, id uint) error {
+// DeleteFeature удаляет характеристику у пива по его ID.
+func (s *beerService) DeleteFeature(ctx context.Context, beerID uint) error {
+	if err := ctx.Err(); err != nil {
+		return fmt.Errorf("request cancelled: %w", err)
+	}
+
+	exists, err := s.beerRepo.BeerExists(ctx, beerID)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return errors.New("тут надо передать ошибку 404")
+	}
+
+	err = s.beerRepo.DisconnectBeerAndFeature(ctx, nil, beerID)
+	if err != nil {
+		return fmt.Errorf("failed to disconnect beer: %w", err)
+	}
+
 	return nil
 }

@@ -1,3 +1,4 @@
+// Package usecase содержит основные операции с сущностями
 package usecase
 
 import (
@@ -8,24 +9,38 @@ import (
 	"fmt"
 )
 
+// AggregateService определяет интерфейс для работы с агрегатами.
 type AggregateService interface {
+
+	// CreateAggregate создает новый агрегат.
 	CreateAggregate(ctx context.Context, aggregate *entities.Aggregate) (*entities.Aggregate, error)
+
+	// GetAggregates получает список агрегатов, фильтруя по имени.
 	GetAggregates(ctx context.Context, name string) ([]entities.Aggregate, error)
+
+	// UpdateAggregate обновляет существующий агрегат по его ID.
 	UpdateAggregate(ctx context.Context, id uint, updates map[string]any) (*entities.Aggregate, error)
+
+	// DeleteAggregate удаляет агрегат по его ID.
 	DeleteAggregate(ctx context.Context, id uint) (*entities.Aggregate, error)
+
+	// ApplyAggregateToCategory применяет агрегат к категории, возвращая количество добавленных связей.
 	ApplyAggregateToCategory(ctx context.Context, categoryID, aggregateID uint) (int, error)
 }
 
+// aggregateService реализует интерфейс AggregateService.
 type aggregateService struct {
 	aggregateRepo repository.AggregateRepository
 }
 
+// NewAggregateService создает новый экземпляр AggregateService.
 func NewAggregateService(aggregateRepo repository.AggregateRepository) AggregateService {
 	return &aggregateService{
 		aggregateRepo: aggregateRepo,
 	}
 }
 
+// CreateAggregate создает новый агрегат.
 func (s *aggregateService) CreateAggregate(ctx context.Context, aggregate *entities.Aggregate) (*entities.Aggregate, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
@@ -43,6 +58,7 @@ func (s *aggregateService) CreateAggregate(ctx context.Context, aggregate *entit
 	return created, nil
 }
 
+// GetAggregates получает список агрегатов, фильтруя по имени.
 func (s *aggregateService) GetAggregates(ctx context.Context, name string) ([]entities.Aggregate, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
@@ -56,6 +72,7 @@ func (s *aggregateService) GetAggregates(ctx context.Context, name string) ([]en
 	return aggregates, nil
 }
 
+// UpdateAggregate обновляет существующий агрегат по его ID.
 func (s *aggregateService) UpdateAggregate(ctx context.Context, id uint, updates map[string]any) (*entities.Aggregate, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
@@ -73,6 +90,7 @@ func (s *aggregateService) UpdateAggregate(ctx context.Context, id uint, updates
 	return updated, nil
 }
 
+// DeleteAggregate удаляет агрегат по его ID.
 func (s *aggregateService) DeleteAggregate(ctx context.Context, id uint) (*entities.Aggregate, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
@@ -86,6 +104,7 @@ func (s *aggregateService) DeleteAggregate(ctx context.Context, id uint) (*entit
 	return deleted, nil
 }
 
+// ApplyAggregateToCategory применяет агрегат к категории, возвращая количество добавленных связей.
 func (s *aggregateService) ApplyAggregateToCategory(ctx context.Context, categoryID, aggregateID uint) (int, error) {
 	if err := ctx.Err(); err != nil {
 		return 0, fmt.Errorf("request cancelled: %w", err)

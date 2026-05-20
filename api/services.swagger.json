@@ -62,7 +62,7 @@
 
     "/beers": { "$ref": "./path/beer/beers.json" },
     "/beers/{id}": { "$ref": "./path/beer/beers_id.json" },
-    "/beers/feats/{id}": { "$ref": "./path/beer/beers_feats_id.json" },
+    "/beers/feats/{beer_id}": { "$ref": "./path/beer/beers_feats_id.json" },
     "/categories/beers/{category_id}": { "$ref": "./path/beer/categories_beers_category_id.json" },
     "/beers/search": { "$ref": "./path/beer/beers_search.json" },
     "/categories/{id}/beers/search": { "$ref": "./path/beer/categories_id_beers_search.json" },

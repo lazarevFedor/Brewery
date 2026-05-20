@@ -1,4 +1,4 @@
-// Package handlers содержит реализацию HTTP-обработчиков для управления категориями продуктов в пивоварне.
+// Package handlers содержит реализацию HTTP-обработчиков для управления пивоварней.
 package handlers
 
 import (
@@ -16,14 +16,29 @@ import (
 
 // CategoriesHandlers определяет интерфейс для обработки HTTP-запросов, связанных с категориями продуктов.
 type CategoriesHandlers interface {
+
+	// CreateCategory обрабатывает HTTP-запрос на создание новой категории продукта.
 	CreateCategory(c *gin.Context)
+
+	// GetCategoryByID обрабатывает HTTP-запрос на получение категории продукта по ее идентификатору.
 	GetCategoryByID(c *gin.Context)
+
+	// UpdateCategory обрабатывает HTTP-запрос на обновление существующей категории продукта по ее идентификатору.
 	UpdateCategory(c *gin.Context)
+
+	// DeleteCategory обрабатывает HTTP-запрос на удаление категории по ее идентификатору.
 	DeleteCategory(c *gin.Context)
+
+	// GetAllCategories обрабатывает HTTP-запрос на получение всех категорий продуктов.
 	GetAllCategories(c *gin.Context)
 
+	// GetBeersByCategory обрабатывает HTTP-запрос на получение пива по заданной идентификатором категории.
 	GetBeersByCategory(c *gin.Context)
+
+	// GetParentCategory обрабатывает HTTP-запрос на получение родительской категории для заданной категории по ее идентификатору.
 	GetParentCategory(c *gin.Context)
+
+	// GetChildCategory обрабатывает HTTP-запрос на получение дочерней категории для заданной категории по ее идентификатору.
 	GetChildCategory(c *gin.Context)
 }
 
@@ -71,14 +86,12 @@ func (h *categoriesHandlers) CreateCategory(c *gin.Context) {
 	log.Debug(c.Request.Context(), fmt.Sprintf("ctgID=%d", ctgID))
 	log.Info(
 		c.Request.Context(),
-		// fmt.Sprintf("action=create resource=category status=success name=%q level=%d",
-		// 	req.Name, req.Level))
 		fmt.Sprintf("action=create resource=category status=success name=%q", req.Name),
 	)
 	c.Status(http.StatusCreated)
 }
 
-// GetCategoryById обрабатывает HTTP-запрос на получение категории продукта по ее идентификатору.
+// GetCategoryByID обрабатывает HTTP-запрос на получение категории продукта по ее идентификатору.
 //
 //nolint:staticcheck, ineffassign, wastedassign
 func (h *categoriesHandlers) GetCategoryByID(c *gin.Context) {
