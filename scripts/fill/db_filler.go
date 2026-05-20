@@ -79,28 +79,30 @@ func parseFile(filename string) ([]entities.Beer, error) {
 	return beers, nil
 }
 
-func fillDB(ctx context.Context, filename string, repo *repository.BeerPostgres) error {
+func fillDB(ctx context.Context, filename string, beerRepo *repository.BeerPostgres, categoryRepo *repository.CategoryPostgres) error {
 	beers, err := parseFile(filename)
 	if err != nil {
 		return fmt.Errorf("parseFile: %w", err)
 	}
+
+	rootCategory := entities.ProductCategory{
+		Name:     "Beer",
+		ParentID: 0,
+	}
+
+	_, err = categoryRepo.InsertCategory(ctx, nil, rootCategory)
+	if err != nil {
+		return fmt.Errorf("InsertCategory: %w", err)
+	}
+
 	for _, beer := range beers {
-		_, err = repo.InsertBeer(ctx, beer)
+		_, err = categoryRepo.InsertCategory(ctx, nil, beer.Category)
+		_, err = beerRepo.InsertBeer(ctx, beer)
 		if err != nil {
 			return fmt.Errorf("InsertBeer: %w", err)
 		}
 	}
 	return nil
-}
-
-func getBeers(ctx context.Context, repo *repository.BeerPostgres) {
-	beers, err := repo.GetBeers(ctx, 1, 0)
-	if err != nil {
-		fmt.Print("GetBeers: ", err)
-	}
-	for _, beer := range beers {
-		fmt.Println(beer)
-	}
 }
 
 func main() {
@@ -124,7 +126,9 @@ func main() {
 	}
 
 	beerRepo := repository.NewBeerPostgres(pool)
-	err = fillDB(ctx, "scripts/beers.csv", beerRepo)
+	categoryRepo := repository.NewCategoryPostgres(pool)
+
+	err = fillDB(ctx, "scripts/beers.csv", beerRepo, categoryRepo)
 	if err != nil {
 		panic(err)
 	}
