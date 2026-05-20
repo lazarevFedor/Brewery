@@ -158,7 +158,6 @@ func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (*ent
 	}
 
 	if categoryID == 0 {
-		//categoryID, err = ctgRepo.InsertCategory(ctx, tx, beer.Category)
 		return nil, apperrors.BadRequest("category not found", fmt.Errorf("category not found: %s", beer.Category.Name))
 	}
 
