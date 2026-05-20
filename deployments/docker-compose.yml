@@ -75,6 +75,20 @@ services:
     networks:
       - app_net
 
+  postgres_exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter:latest
+    container_name: postgres_exporter
+    env_file:
+      - ../configs/.env
+    environment:
+      - DATA_SOURCE_NAME=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable
+    ports:
+      - "${POSTGRES_EXPORTER_PORT}:${POSTGRES_EXPORTER_PORT}"
+    depends_on:
+      - postgres
+    networks:
+      - app_net
+
   nginx:
     container_name: nginx
     build:
