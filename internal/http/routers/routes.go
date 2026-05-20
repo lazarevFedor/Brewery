@@ -77,11 +77,6 @@ func registerCategoryRoutes(api *gin.RouterGroup, admin *gin.RouterGroup, h hand
 		parameters := categories.Group("/parameters")
 		{
 			parameters.GET("", h.ParametersHandler.ListCategoryParameters)
-			parameters.PATCH("/apply/:category_id", h.ParametersHandler.ApplyParametersToCategory)
-			parameters.POST("/numeric", h.ParametersHandler.CreateNumericParameter)
-			parameters.PATCH("/:id", h.ParametersHandler.UpdateParameter)
-			parameters.DELETE("/:id", h.ParametersHandler.DeleteParameter)
-			parameters.POST("/enum", h.ParametersHandler.CreateEnumParameter)
 		}
 	}
 
@@ -90,15 +85,23 @@ func registerCategoryRoutes(api *gin.RouterGroup, admin *gin.RouterGroup, h hand
 		adminCategories.POST("", h.CategoryHandler.CreateCategory)
 		adminCategories.PATCH("/:id", h.CategoryHandler.UpdateCategory)
 		adminCategories.DELETE("/:id", h.CategoryHandler.DeleteCategory)
+
+		adminParameters := categories.Group("/parameters")
+		{
+			adminParameters.PATCH("/apply/:category_id", h.ParametersHandler.ApplyParametersToCategory)
+			adminParameters.POST("/numeric", h.ParametersHandler.CreateNumericParameter)
+			adminParameters.PATCH("/:id", h.ParametersHandler.UpdateParameter)
+			adminParameters.DELETE("/:id", h.ParametersHandler.DeleteParameter)
+			adminParameters.POST("/enum", h.ParametersHandler.CreateEnumParameter)
+		}
 	}
 }
 
 func registerEnumRoutes(
-	api *gin.RouterGroup,
-	// admin *gin.RouterGroup,
+	admin *gin.RouterGroup,
 	h handlers.Handlers,
 ) {
-	enums := api.Group("/enums")
+	enums := admin.Group("/enums")
 	{
 		enums.POST("", h.EnumHandler.CreateEnum)
 		enums.GET("", h.EnumHandler.GetEnum)
@@ -116,11 +119,10 @@ func registerEnumRoutes(
 }
 
 func registerAggregatesRoutes(
-	api *gin.RouterGroup,
-	// admin *gin.RouterGroup,
+	admin *gin.RouterGroup,
 	h handlers.Handlers,
 ) {
-	aggregates := api.Group("/aggregates")
+	aggregates := admin.Group("/aggregates")
 	{
 		aggregates.PATCH("/apply/:category_id", h.AggregatesHandler.ApplyAggregateToCategory)
 		aggregates.PATCH("/:id", h.AggregatesHandler.UpdateAggregate)
