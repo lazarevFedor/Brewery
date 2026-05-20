@@ -430,7 +430,7 @@
         }
       }
     },
-    "/beers/feats/{id}": {
+    "/beers/feats/{beer_id}": {
       "get": {
         "tags": [
           "Beers"

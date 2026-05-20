@@ -70,6 +70,9 @@ type BeerRepository interface {
 
 	// ConnectBeerAndFeature связывает характеристику с сортом пива. Если связь уже существует, она не будет добавлена повторно.
 	ConnectBeerAndFeature(ctx context.Context, tx pgx.Tx, featID, beerID uint) error
+
+	// DisconnectBeerAndFeature удаляет связь характеристики с сортом пива. Если связи нет, возвращает ошибку.
+	DisconnectBeerAndFeature(ctx context.Context, tx pgx.Tx, beerID uint) error
 }
 
 // BeerPostgres хранит в себе пул подключений к БД
@@ -110,14 +113,14 @@ func (r *BeerPostgres) BeerExists(ctx context.Context, id uint) (bool, error) {
 		return false, apperrors.Internal(errors.New("pool is nil"))
 	}
 
-	psql := queries.Exists(id)
-	query, args, err := psql.ToSql()
+	psql := queries.Exists()
+	query, _, err := psql.ToSql()
 	if err != nil {
 		return false, apperrors.Internal(fmt.Errorf("toSql: %w", err))
 	}
 
 	var exists bool
-	err = r.Pool.QueryRow(ctx, query, args...).Scan(&exists)
+	err = r.Pool.QueryRow(ctx, query, id).Scan(&exists)
 	if err != nil {
 		return false, apperrors.Internal(fmt.Errorf("query: %w", err))
 	}
@@ -199,15 +202,19 @@ func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (*ent
 }
 
 // GetCityNameByID возвращает название города по его ID.
-// TODO: перенести в queries
 func (r *BeerPostgres) GetCityNameByID(ctx context.Context, id uint) (string, error) {
 	if r.Pool == nil {
 		return "", errors.New("pool is nil")
 	}
 
 	var name string
-	query := "SELECT name FROM cities WHERE id = $1"
-	if err := r.Pool.QueryRow(ctx, query, id).Scan(&name); err != nil {
+	psql := queries.SelectCityNameByID(id)
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return "", fmt.Errorf("toSql: %w", err)
+	}
+
+	if err = r.Pool.QueryRow(ctx, query, args...).Scan(&name); err != nil {
 		return "", fmt.Errorf("city QueryRow: %w", err)
 	}
 	return name, nil
@@ -634,6 +641,31 @@ func (r *BeerPostgres) ConnectBeerAndFeature(ctx context.Context, tx pgx.Tx, fea
 		return apperrors.Internal(errors.New("pool is nil"))
 	}
 	psql := queries.ConnectBeerAndFeature(featID, beerID)
+	query, args, err := psql.ToSql()
+	if err != nil {
+		return apperrors.Internal(fmt.Errorf("toSql: %w", err))
+	}
+
+	if tx != nil {
+		_, err = tx.Exec(ctx, query, args...)
+	} else {
+		_, err = r.Pool.Exec(ctx, query, args...)
+	}
+
+	if err != nil {
+		return apperrors.Internal(fmt.Errorf("exec: %w", err))
+	}
+
+	return nil
+}
+
+// DisconnectBeerAndFeature удаляет связь характеристики с сортом пива. Если связи нет, возвращает ошибку.
+func (r *BeerPostgres) DisconnectBeerAndFeature(ctx context.Context, tx pgx.Tx, beerID uint) error {
+	if r.Pool == nil {
+		return apperrors.Internal(errors.New("pool is nil"))
+	}
+
+	psql := queries.DisconnectBeerAndFeature(beerID)
 	query, args, err := psql.ToSql()
 	if err != nil {
 		return apperrors.Internal(fmt.Errorf("toSql: %w", err))
