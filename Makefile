@@ -61,3 +61,6 @@ check_mod:
 		git commit --amend --no-edit; \
 		echo "Зависимости обновлены и добавлены в коммит!"; \
 	fi
+
+gentoken:
+	openssl rand -base64 32
