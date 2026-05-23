@@ -142,7 +142,7 @@ func getPaginationParams(c *gin.Context) (uint64, uint64, error) {
 func jwtSecret() []byte {
 	s := os.Getenv("JWT_SECRET")
 	if s == "" {
-		s = "change-me-in-production" // поменяй или выставь JWT_SECRET в env
+		panic("JWT_SECRET environment variable is not set")
 	}
 	return []byte(s)
 }
@@ -151,10 +151,10 @@ func adminLogin() (string, string) {
 	user := os.Getenv("ADMIN_USERNAME")
 	pass := os.Getenv("ADMIN_PASSWORD")
 	if user == "" {
-		user = "admin"
+		panic("ADMIN_USERNAME env variable is not set")
 	}
 	if pass == "" {
-		pass = "admin"
+		panic("ADMIN_PASSWORD env variable is not set")
 	}
 	return user, pass
 }
