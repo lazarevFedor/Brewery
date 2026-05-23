@@ -28,6 +28,14 @@ type testEnv struct {
 	JWT string
 }
 
+// setupTestEnv устанавливает необходимые переменные окружения для тестов.
+func setupTestEnv(t *testing.T) {
+	t.Helper()
+	t.Setenv("JWT_SECRET", "test-secret-key-for-jwt")
+	t.Setenv("ADMIN_USERNAME", "admin")
+	t.Setenv("ADMIN_PASSWORD", "admin")
+}
+
 // setupIntegrationRouter инициализирует тестовый сервер с моками и необходимыми middleware для интеграционных тестов.
 func setupIntegrationRouter(beerServiceM *mocks.BeerServiceMock, enumServiceM *mocks.EnumServiceMock, parametersServiseM *mocks.ParametersServiceMock, aggregateServiceM *mocks.AggregateServiceMock) *gin.Engine {
 	gin.SetMode(gin.TestMode)
@@ -68,6 +76,7 @@ func setupIntegrationRouter(beerServiceM *mocks.BeerServiceMock, enumServiceM *m
 
 func newTestEnv(t *testing.T) *testEnv {
 	t.Helper()
+	setupTestEnv(t)
 
 	mc := minimock.NewController(t)
 	beerServiceMock := mocks.NewBeerServiceMock(mc)
