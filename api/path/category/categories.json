@@ -23,6 +23,11 @@
     "tags": ["Categories"],
     "summary": "Create category",
     "operationId": "createCategory",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
     "requestBody": {
       "required": true,
       "content": {

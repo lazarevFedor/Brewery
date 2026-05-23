@@ -25,6 +25,11 @@
     "tags": ["Categories"],
     "summary": "Update category",
     "operationId": "updateCategory",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
     "parameters": [
       { "$ref": "../../components/parameters/id.json#/Id" }
     ],
@@ -55,6 +60,11 @@
     "tags": ["Categories"],
     "summary": "Delete category",
     "operationId": "deleteCategory",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
     "parameters": [
       { "$ref": "../../components/parameters/id.json#/Id" }
     ],

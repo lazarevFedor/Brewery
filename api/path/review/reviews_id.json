@@ -3,6 +3,11 @@
     "tags": ["Reviews"],
     "summary": "Delete beer's review",
     "operationId": "deleteReview",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
     "parameters": [
       { "$ref": "../../components/parameters/id.json#/Id" }
     ],
@@ -20,6 +25,11 @@
     "tags": ["Reviews"],
     "summary": "Update beer's review",
     "operationId": "updateReview",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
     "parameters": [
       { "$ref": "../../components/parameters/id.json#/Id" }
     ],

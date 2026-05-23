@@ -3,6 +3,11 @@
     "tags": ["EnumsClass"],
     "summary": "Create enum class",
     "operationId": "createEnumClass",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
     "requestBody": {
       "required": true,
       "content": {
@@ -32,6 +37,11 @@
     "tags": ["EnumsClass"],
     "summary": "Get enum classes",
     "operationId": "listEnumClasses",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
     "parameters": [
       { "$ref": "../../components/parameters/entity_name.json#/EntityName" },
       { "$ref": "../../components/parameters/field_name.json#/FieldName" }

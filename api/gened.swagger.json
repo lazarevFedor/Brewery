@@ -122,6 +122,11 @@
         ],
         "summary": "Create category",
         "operationId": "createCategory",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -195,6 +200,11 @@
         ],
         "summary": "Update category",
         "operationId": "updateCategory",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
@@ -238,6 +248,11 @@
         ],
         "summary": "Delete category",
         "operationId": "deleteCategory",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
@@ -420,6 +435,11 @@
         ],
         "summary": "Update beer",
         "operationId": "updateBeer",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
@@ -463,6 +483,11 @@
         ],
         "summary": "Delete beer",
         "operationId": "deleteBeer",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
@@ -527,6 +552,11 @@
         ],
         "summary": "Create beer's feature",
         "operationId": "createBeerFeature",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -568,6 +598,11 @@
         ],
         "summary": "Delete beer's feature",
         "operationId": "deleteBeerFeature",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/BeerId"
@@ -809,6 +844,11 @@
         ],
         "summary": "Delete beer's review",
         "operationId": "deleteReview",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
@@ -835,6 +875,11 @@
         ],
         "summary": "Update beer's review",
         "operationId": "updateReview",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
@@ -880,6 +925,11 @@
         ],
         "summary": "Create enum class",
         "operationId": "createEnumClass",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -918,6 +968,11 @@
         ],
         "summary": "Get enum classes",
         "operationId": "listEnumClasses",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/EntityName"
@@ -959,6 +1014,11 @@
         ],
         "summary": "Update enum class",
         "operationId": "updateEnumClass",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
@@ -1002,6 +1062,11 @@
         ],
         "summary": "Delete enum class",
         "operationId": "deleteEnumClass",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
@@ -1030,6 +1095,11 @@
         ],
         "summary": "Create enum's value",
         "operationId": "createEnumValue",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -1068,6 +1138,11 @@
         ],
         "summary": "Get enum's values",
         "operationId": "listEnumValues",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/EnumType"
@@ -1112,6 +1187,11 @@
         ],
         "summary": "Delete enum's value",
         "operationId": "deleteEnumValue",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
@@ -1138,6 +1218,11 @@
         ],
         "summary": "Update enum's value",
         "operationId": "updateEnumValue",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
@@ -1183,6 +1268,11 @@
         ],
         "summary": "Create numeric parameter",
         "operationId": "createNumericParameter",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -1226,6 +1316,11 @@
         ],
         "summary": "Create enum parameter",
         "operationId": "createEnumParameter",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -1331,6 +1426,11 @@
         ],
         "summary": "Apply parameters to category",
         "operationId": "applyParametersToCategory",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CategoryId"
@@ -1384,6 +1484,11 @@
         ],
         "summary": "Update parameter",
         "operationId": "updateCategoryParameter",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
@@ -1463,6 +1568,11 @@
         ],
         "summary": "Delete parameter",
         "operationId": "deleteCategoryParameter",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
@@ -1494,6 +1604,11 @@
         ],
         "summary": "Create parameter aggregate",
         "operationId": "createParameterAggregate",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -1532,6 +1647,11 @@
         ],
         "summary": "Get all parameter aggregates",
         "operationId": "listParameterAggregates",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/AggregateName"
@@ -1564,6 +1684,11 @@
         ],
         "summary": "Apply parameter aggregate to category",
         "operationId": "applyParameterAggregate",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/CategoryId"
@@ -1607,6 +1732,11 @@
         ],
         "summary": "Update parameter aggregate",
         "operationId": "updateParameterAggregate",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
@@ -1675,6 +1805,11 @@
         ],
         "summary": "Delete parameter aggregate",
         "operationId": "deleteParameterAggregate",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
