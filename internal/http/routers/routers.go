@@ -9,21 +9,21 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-func RegisterRoutes(e *gin.Engine, h handlers.Handlers) {
+func RegisterRouters(e *gin.Engine, h handlers.Handlers) {
 	api := e.Group("/api")
 	admin := api.Group("", middleware.AdminAuth())
 
-	registerBeerRoutes(api, admin, h)
-	registerReviewRoutes(api, admin, h)
-	registerCategoryRoutes(api, admin, h)
-	registerEnumRoutes(api, h)
-	registerAggregatesRoutes(api, h)
+	registerBeerRouters(api, admin, h)
+	registerReviewRouters(api, admin, h)
+	registerCategoryRouters(api, admin, h)
+	registerEnumRouters(api, h)
+	registerAggregatesRouters(api, h)
 
 	api.POST("/login", h.AuthHandler.Login)
 	e.GET("/metrics", gin.WrapH(promhttp.Handler()))
 }
 
-func registerBeerRoutes(api *gin.RouterGroup, admin *gin.RouterGroup, h handlers.Handlers) {
+func registerBeerRouters(api *gin.RouterGroup, admin *gin.RouterGroup, h handlers.Handlers) {
 	beers := api.Group("/beers")
 	{
 		beers.GET("", h.BeersHandler.GetAllBeers)
@@ -50,7 +50,7 @@ func registerBeerRoutes(api *gin.RouterGroup, admin *gin.RouterGroup, h handlers
 	}
 }
 
-func registerReviewRoutes(api *gin.RouterGroup, admin *gin.RouterGroup, h handlers.Handlers) {
+func registerReviewRouters(api *gin.RouterGroup, admin *gin.RouterGroup, h handlers.Handlers) {
 	reviews := api.Group("/reviews")
 	{
 		reviews.POST("/:beer_id", h.ReviewHandler.CreateReview)
@@ -64,7 +64,7 @@ func registerReviewRoutes(api *gin.RouterGroup, admin *gin.RouterGroup, h handle
 	}
 }
 
-func registerCategoryRoutes(api *gin.RouterGroup, admin *gin.RouterGroup, h handlers.Handlers) {
+func registerCategoryRouters(api *gin.RouterGroup, admin *gin.RouterGroup, h handlers.Handlers) {
 	categories := api.Group("/categories")
 	{
 		categories.GET("/:id", h.CategoryHandler.GetCategoryByID)
@@ -97,7 +97,7 @@ func registerCategoryRoutes(api *gin.RouterGroup, admin *gin.RouterGroup, h hand
 	}
 }
 
-func registerEnumRoutes(
+func registerEnumRouters(
 	admin *gin.RouterGroup,
 	h handlers.Handlers,
 ) {
@@ -118,7 +118,7 @@ func registerEnumRoutes(
 	}
 }
 
-func registerAggregatesRoutes(
+func registerAggregatesRouters(
 	admin *gin.RouterGroup,
 	h handlers.Handlers,
 ) {

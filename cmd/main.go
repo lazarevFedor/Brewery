@@ -96,7 +96,7 @@ func main() {
 		AuthHandler:       handlers.NewAuthHandlers(),
 	}
 
-	routers.RegisterRoutes(router.Engine, h)
+	routers.RegisterRouters(router.Engine, h)
 
 	log.Info(ctx, fmt.Sprintf("server listening on port %s", cfg.Port))
 
