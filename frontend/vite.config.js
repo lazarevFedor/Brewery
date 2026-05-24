@@ -1,5 +1,9 @@
 // frontend/vite.config.js
-export default {
+
+import { defineConfig } from 'vite'
+import { resolve } from 'path'
+
+export default defineConfig({
   server: {
     port: 5173,
     proxy: {
@@ -10,7 +14,21 @@ export default {
       }
     }
   },
+
+  root: '.',
+
   build: {
-    outDir: '../static', // билд сразу в папку, которую раздаёт Gin
-  }
-}
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        outDir: '../static', // билд сразу в папку, которую раздаёт Gin
+      },
+    },
+  },
+
+  esbuild: {
+    jsxFactory: 'h',
+    jsxFragment: 'Fragment',
+    jsxInject: `import React from 'react'`, // если используете React
+  },
+})

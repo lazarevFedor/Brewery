@@ -1,6 +1,6 @@
 // src/router.js
-import { renderCatalog } from './pages/catalog.js'
-import { renderDetail } from './pages/detail.js'
+import { renderCatalog } from './pages/catalog.jsx'
+import { renderDetail } from './pages/beerDetail.jsx'
 // import { renderSearch } from './pages/search.js'
 // import { renderAdmin } from './pages/admin.js'
 
