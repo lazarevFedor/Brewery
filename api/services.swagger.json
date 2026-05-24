@@ -6,7 +6,7 @@
     "description": "API for managing categories, beers, reviews, enums, category parameters and parameter's aggregates"
   },
   "servers": [
-    { "url": "http://localhost:80/api" }
+    { "url": "http://localhost/api" }
   ],
   "components": {
     "securitySchemes": {

@@ -9,7 +9,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-func RegisterRouters(e *gin.Engine, h handlers.Handlers) {
+func RegisterRoutes(e *gin.Engine, h handlers.Handlers) {
+	e.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	api := e.Group("/api")
 	admin := api.Group("", middleware.AdminAuth())
 
@@ -20,7 +21,6 @@ func RegisterRouters(e *gin.Engine, h handlers.Handlers) {
 	registerAggregatesRouters(api, h)
 
 	api.POST("/login", h.AuthHandler.Login)
-	e.GET("/metrics", gin.WrapH(promhttp.Handler()))
 }
 
 func registerBeerRouters(api *gin.RouterGroup, admin *gin.RouterGroup, h handlers.Handlers) {

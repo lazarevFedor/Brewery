@@ -95,8 +95,11 @@ func main() {
 		AggregatesHandler: handlers.NewAggregateHandlers(aggregateService),
 		AuthHandler:       handlers.NewAuthHandlers(),
 	}
+	router.NoRoute(func(c *gin.Context) {
+    	c.File("./static/index.html")  // ← всегда отдаёт один и тот же файл
+	})
 
-	routers.RegisterRouters(router.Engine, h)
+	routers.RegisterRoutes(router.Engine, h)
 
 	log.Info(ctx, fmt.Sprintf("server listening on port %s", cfg.Port))
 
