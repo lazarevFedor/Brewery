@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Как заказать | ПивоКаталог</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;700&family=Mulish:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="order-info.css">
+    <link rel="stylesheet" href="main.css">
+
+</head>
+<body>
+<div class="app">
+    <nav class="navbar">
+        <a href="catalog.html" class="nav-logo">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 11H6a4 4 0 0 0 0 8h11"/><path d="M17 11a4 4 0 0 1 0 8"/>
+                <path d="M10 3v5a2 2 0 0 0 2 2h0"/><path d="M14 3v5a2 2 0 0 0-2 2"/>
+            </svg>
+            ПивоКаталог
+        </a>
+        <div class="nav-links">
+            <a href="catalog.html" class="nav-link">Каталог</a>
+            <a href="promotions.html" class="nav-link">Акции</a>
+            <a href="order-info.html" class="nav-link active">Как заказать</a>
+            <a href="contacts.html" class="nav-link">Контакты</a>
+        </div>
+        <div>
+            <button class="admin-login-btn" id="adminBtn" onclick="handleAdminClick()">🔐 Вход для админа</button>
+        </div>
+    </nav>
+
+    <main class="main">
+        <div style="text-align:center; margin-bottom:2rem">
+            <h1 style="font-size:32px; margin-bottom:0.5rem">📞 Как сделать заказ</h1>
+            <p style="color: var(--text-muted); font-size:16px">Просто свяжитесь с нами — мы всё сделаем сами!</p>
+        </div>
+
+        <!-- ОСНОВНОЙ БЛОК С КОНТАКТАМИ ДЛЯ ЗАКАЗА -->
+        <div class="order-contacts">
+            <h2>🍺 Хотите наше пиво?</h2>
+            <p>Позвоните нам или напишите на почту — и мы оформим заказ, подберём сорта и организуем доставку!</p>
+            <div class="phone-big">
+                📞 +7 (495) 123-45-67
+            </div>
+            <div class="email-big">
+                ✉️ order@beer-catalog.ru
+            </div>
+            <div class="order-note">
+                💡 Наш менеджер поможет выбрать пиво под ваш вкус, рассчитает стоимость и согласует удобное время доставки.
+            </div>
+        </div>
+
+        <div class="steps-container" style="margin-top: 2rem;">
+            <div class="step"><div class="step-number">1</div><div class="step-icon">📞</div><div class="step-title">Позвоните или напишите</div><div class="step-desc">Свяжитесь с нами по телефону или email</div></div>
+            <div class="step"><div class="step-number">2</div><div class="step-icon">🍺</div><div class="step-title">Выберите пиво</div><div class="step-desc">Менеджер поможет подобрать сорта</div></div>
+            <div class="step"><div class="step-number">3</div><div class="step-icon">✅</div><div class="step-title">Подтверждение заказа</div><div class="step-desc">Мы согласуем детали и стоимость</div></div>
+            <div class="step"><div class="step-number">4</div><div class="step-icon">🚚</div><div class="step-title">Доставка</div><div class="step-desc">Получите заказ в удобное время</div></div>
+        </div>
+
+        <div class="info-block"><h3>🚚 Варианты доставки</h3><table class="delivery-table"><tr><td style="width:140px; font-weight:600">🚴 Курьером</td><td>200-400 рублей</td><td>1-2 дня</td></tr>
+            <tr><td style="font-weight:600">📦 Почта России</td><td>от 250 рублей</td><td>3-7 дней</td></tr>
+            <tr><td style="font-weight:600">🏪 Самовывоз</td><td>Бесплатно</td><td>сегодня-завтра</td></tr>
+        </table><p style="margin-top:16px; font-size:12px">* Бесплатная доставка от 3000 рублей</p></div>
+
+        <div class="info-block"><h3>💳 Способы оплаты</h3><div class="payment-methods">
+            <div class="payment-method">💳 Картой онлайн</div>
+            <div class="payment-method">📱 Apple Pay / Google Pay</div>
+            <div class="payment-method">💸 Наличными курьеру</div>
+            <div class="payment-method">🏦 Безналичный расчёт</div>
+        </div></div>
+
+        <div class="info-block"><h3>❓ Часто задаваемые вопросы</h3>
+            <div class="faq-item" onclick="toggleFaq(this)"><div class="faq-question">Можно ли вернуть пиво? <span>▼</span></div><div class="faq-answer">Да, в течение 14 дней при сохранении товарного вида.</div></div>
+            <div class="faq-item" onclick="toggleFaq(this)"><div class="faq-question">Есть ли доставка в другие города? <span>▼</span></div><div class="faq-answer">Да, по всей России через СДЭК и Почту России.</div></div>
+            <div class="faq-item" onclick="toggleFaq(this)"><div class="faq-question">Как отследить заказ? <span>▼</span></div><div class="faq-answer">После отправки вы получите SMS и email с трек-номером.</div></div>
+            <div class="faq-item" onclick="toggleFaq(this)"><div class="faq-question">Нужна ли предоплата? <span>▼</span></div><div class="faq-answer">Предоплата не требуется для заказов по Москве.</div></div>
+        </div>
+    </main>
+</div>
+
+<!-- Модальное окно для входа в админку -->
+<div class="modal-overlay" id="admin-login-modal">
+    <div class="modal">
+        <button class="modal-close" onclick="closeAdminModal()">✕</button>
+        <div class="modal-title">🔐 Вход в админ-панель</div>
+        <div class="form-row">
+            <label class="form-label">Логин</label>
+            <input type="text" class="form-input" id="admin-login" placeholder="admin">
+        </div>
+        <div class="form-row">
+            <label class="form-label">Пароль</label>
+            <input type="password" class="form-input" id="admin-password" placeholder="********">
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" onclick="closeAdminModal()">Отмена</button>
+            <button class="btn btn-primary" onclick="checkAdminLogin()">Войти</button>
+        </div>
+        <div style="margin-top:16px; font-size:11px; color:var(--text-hint); text-align:center">Тестовые данные: admin / admin123</div>
+    </div>
+</div>
+
+<script>
+    function toggleFaq(el) {
+        const answer = el.querySelector('.faq-answer');
+        const arrow = el.querySelector('.faq-question span');
+        answer.classList.toggle('show');
+        arrow.textContent = answer.classList.contains('show') ? '▲' : '▼';
+    }
+
+    // АДМИНКА
+    function handleAdminClick() {
+        const isLoggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
+        if (isLoggedIn) {
+            window.location.href = 'admin-params.html';
+        } else {
+            document.getElementById('admin-login-modal').classList.add('open');
+        }
+    }
+
+    function closeAdminModal() {
+        document.getElementById('admin-login-modal').classList.remove('open');
+    }
+
+    function checkAdminLogin() {
+        const login = document.getElementById('admin-login').value.trim();
+        const password = document.getElementById('admin-password').value;
+
+        if (login === 'admin' && password === 'admin123') {
+            localStorage.setItem('isAdminLoggedIn', 'true');
+            closeAdminModal();
+            const adminBtn = document.getElementById('adminBtn');
+            adminBtn.innerHTML = '⚙️ Админ-панель';
+            adminBtn.classList.add('admin-panel-btn');
+            alert('Добро пожаловать в админ-панель!');
+        } else {
+            alert('Неверный логин или пароль');
+        }
+    }
+
+    if (localStorage.getItem('isAdminLoggedIn') === 'true') {
+        const adminBtn = document.getElementById('adminBtn');
+        adminBtn.innerHTML = '⚙️ Админ-панель';
+        adminBtn.classList.add('admin-panel-btn');
+    }
+
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('open'); });
+    });
+</script>
+</body>
+</html>

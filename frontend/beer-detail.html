@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Карточка пива | ПивоКаталог</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;700&family=Mulish:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="detail.css">
+    <link rel="stylesheet" href="main.css">
+
+</head>
+<body>
+<div class="app">
+    <nav class="navbar">
+        <a href="catalog.html" class="nav-logo">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 11H6a4 4 0 0 0 0 8h11"/><path d="M17 11a4 4 0 0 1 0 8"/>
+                <path d="M10 3v5a2 2 0 0 0 2 2h0"/><path d="M14 3v5a2 2 0 0 0-2 2"/>
+            </svg>
+            ПивоКаталог
+        </a>
+        <div class="nav-links">
+            <a href="catalog.html" class="nav-link">Каталог</a>
+            <a href="promotions.html" class="nav-link">Акции</a>
+            <a href="order-info.html" class="nav-link">Как заказать</a>
+            <a href="contacts.html" class="nav-link">Контакты</a>
+        </div>
+    </nav>
+
+    <main class="main">
+        <div class="breadcrumb">
+            <a href="catalog.html">Все</a>
+            <span class="sep">›</span>
+            <a href="catalog.html">Эль</a>
+            <span class="sep">›</span>
+            <a href="catalog.html">IPA</a>
+            <span class="sep">›</span>
+            <span id="detail-breadcrumb" style="font-weight:600"></span>
+        </div>
+
+        <div class="detail-grid">
+            <div class="beer-hero" id="detail-emoji">🍺</div>
+            <div class="detail-info">
+                <div class="detail-title" id="detail-name"></div>
+                <div class="detail-cat" id="detail-meta"></div>
+
+                <div class="feat-grid" id="detail-feats"></div>
+
+                <div class="btn-row">
+                    <button class="btn btn-primary" onclick="scrollToReviewForm()">✍️ Оставить отзыв</button>
+                </div>
+
+                <div class="section-title">Отзывы</div>
+                <div class="reviews-list" id="reviews-list"></div>
+
+                <div class="review-form-box" id="review-form">
+                    <div class="section-title" style="border:none; padding-bottom:0">Ваш отзыв</div>
+                    <label class="form-label">Оценка</label>
+                    <div class="star-pick" id="star-pick">
+                        <span onclick="setStars(1)">★</span>
+                        <span onclick="setStars(2)">★</span>
+                        <span onclick="setStars(3)">★</span>
+                        <span onclick="setStars(4)">★</span>
+                        <span onclick="setStars(5)">★</span>
+                    </div>
+                    <label class="form-label">Имя</label>
+                    <input type="text" class="form-input" id="review-name" placeholder="Ваше имя...">
+                    <label class="form-label">Комментарий</label>
+                    <textarea class="form-input" id="review-text" placeholder="Что думаете об этом пиве?" rows="3"></textarea>
+                    <button class="btn btn-primary" onclick="submitReview()">Отправить отзыв</button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="data.js"></script>
+<script>
+    let currentBeer = null;
+    let reviewStars = 0;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const beerId = parseInt(urlParams.get('id'));
+
+    function loadBeer() {
+        currentBeer = BEERS.find(b => b.id === beerId);
+        if (!currentBeer) {
+            window.location.href = 'catalog.html';
+            return;
+        }
+
+        document.getElementById('detail-breadcrumb').textContent = currentBeer.name;
+        document.getElementById('detail-name').textContent = currentBeer.name;
+        document.getElementById('detail-emoji').textContent = currentBeer.emoji;
+        document.getElementById('detail-meta').textContent = `${currentBeer.style} · ${currentBeer.country}`;
+
+        document.getElementById('detail-feats').innerHTML = `
+      <div class="feat-card"><div class="feat-card-label">Крепость</div><div class="feat-card-val">${currentBeer.abv}<span class="feat-card-unit">%</span></div></div>
+      <div class="feat-card"><div class="feat-card-label">Горечь</div><div class="feat-card-val">${currentBeer.ibu}<span class="feat-card-unit"> IBU</span></div></div>
+      <div class="feat-card"><div class="feat-card-label">Страна</div><div class="feat-card-val" style="font-size:14px; margin-top:6px">${currentBeer.country}</div></div>
+      <div class="feat-card"><div class="feat-card-label">Стиль</div><div class="feat-card-val" style="font-size:14px; margin-top:6px">${currentBeer.style}</div></div>
+    `;
+
+        renderReviews();
+    }
+
+    function renderReviews() {
+        const reviews = REVIEWS_DATA[currentBeer?.id] || [];
+        const container = document.getElementById('reviews-list');
+
+        if (reviews.length === 0) {
+            container.innerHTML = '<p class="text-hint">Отзывов пока нет. Будьте первым!</p>';
+            return;
+        }
+
+        container.innerHTML = reviews.map(r => `
+      <div class="review-item">
+        <div class="review-head" style="display:flex; justify-content:space-between; margin-bottom:5px">
+          <div class="review-author">${r.author}</div>
+          <div class="stars">${'★'.repeat(r.stars)}${'☆'.repeat(5 - r.stars)}</div>
+        </div>
+        <div class="review-text">${r.text}</div>
+      </div>
+    `).join('');
+    }
+
+    function setStars(n) {
+        reviewStars = n;
+        document.querySelectorAll('#star-pick span').forEach((s, i) => {
+            s.classList.toggle('lit', i < n);
+        });
+    }
+
+    function scrollToReviewForm() {
+        document.getElementById('review-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function submitReview() {
+        const name = document.getElementById('review-name').value.trim();
+        const text = document.getElementById('review-text').value.trim();
+
+        if (!name || !text || reviewStars === 0) {
+            alert('Пожалуйста, заполните все поля и выберите оценку');
+            return;
+        }
+
+        if (!REVIEWS_DATA[currentBeer.id]) {
+            REVIEWS_DATA[currentBeer.id] = [];
+        }
+
+        REVIEWS_DATA[currentBeer.id].push({
+            author: name,
+            stars: reviewStars,
+            text: text
+        });
+
+        saveReviews();
+        renderReviews();
+
+        document.getElementById('review-name').value = '';
+        document.getElementById('review-text').value = '';
+        setStars(0);
+
+        alert('Спасибо! Отзыв добавлен.');
+    }
+
+    loadBeer();
+</script>
+</body>
+</html>

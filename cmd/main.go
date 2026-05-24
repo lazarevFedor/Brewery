@@ -96,7 +96,7 @@ func main() {
 		AuthHandler:       handlers.NewAuthHandlers(),
 	}
 	router.NoRoute(func(c *gin.Context) {
-    	c.File("./static/index.html")  // ← всегда отдаёт один и тот же файл
+		c.File("./static/index.html") // ← всегда отдаёт один и тот же файл
 	})
 
 	routers.RegisterRoutes(router.Engine, h)

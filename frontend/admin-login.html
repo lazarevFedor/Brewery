@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход в админ-панель | ПивоКаталог</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;700&family=Mulish:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="admin.css">
+
+    <style>
+        .login-container { min-height: 70vh; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+        .login-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; max-width: 420px; width: 100%; box-shadow: var(--shadow-md); }
+        .login-icon { font-size: 56px; text-align: center; margin-bottom: 1rem; }
+        .login-title { font-family: 'Unbounded', sans-serif; font-size: 20px; font-weight: 700; text-align: center; margin-bottom: 0.5rem; }
+        .login-sub { font-size: 13px; color: var(--text-muted); text-align: center; margin-bottom: 1.5rem; }
+        .error-message { background: #fdf0f0; color: #c0392b; border: 1px solid #f5c6c6; border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; margin-bottom: 1rem; display: none; }
+        .form-group { margin-bottom: 1.25rem; }
+        .input-icon { position: relative; }
+        .input-icon input { padding-left: 40px; width: 100%; }
+        .input-icon span { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 18px; color: var(--text-hint); }
+        .btn-login { width: 100%; padding: 12px; font-size: 14px; }
+        .admin-hint { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-hint); text-align: center; }
+        .back-link { display: inline-block; margin-top: 1rem; text-align: center; width: 100%; color: var(--blue); text-decoration: none; font-size: 13px; }
+    </style>
+</head>
+<body>
+<div class="app">
+    <nav class="navbar">
+        <a href="catalog.html" class="nav-logo">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 11H6a4 4 0 0 0 0 8h11"/><path d="M17 11a4 4 0 0 1 0 8"/>
+                <path d="M10 3v5a2 2 0 0 0 2 2h0"/><path d="M14 3v5a2 2 0 0 0-2 2"/>
+            </svg>
+            ПивоКаталог
+        </a>
+        <div class="nav-links">
+            <a href="catalog.html" class="nav-link">Каталог</a>
+            <a href="promotions.html" class="nav-link">Акции</a>
+            <a href="order-info.html" class="nav-link">Как заказать</a>
+            <a href="contacts.html" class="nav-link">Контакты</a>
+        </div>
+    </nav>
+
+    <main class="main">
+        <div class="login-container">
+            <div class="login-card">
+                <div class="login-icon">🔐</div>
+                <div class="login-title">Вход в админ-панель</div>
+                <div class="login-sub">Только для администраторов</div>
+
+                <div class="error-message" id="error-message">⚠️ Неверный логин или пароль</div>
+
+                <div class="form-group">
+                    <div class="input-icon">
+                        <span>👤</span>
+                        <input type="text" class="form-input" id="username" placeholder="Логин" autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="input-icon">
+                        <span>🔒</span>
+                        <input type="password" class="form-input" id="password" placeholder="Пароль">
+                    </div>
+                </div>
+
+                <button class="btn btn-primary btn-login" onclick="login()">Войти в админ-панель</button>
+
+                <div class="admin-hint">🔑 Тестовые данные: <strong>admin</strong> / <strong>admin123</strong></div>
+                <a href="catalog.html" class="back-link">← Вернуться в каталог</a>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    function login() {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+
+        if (username === 'admin' && password === 'admin123') {
+            localStorage.setItem('isAdminLoggedIn', 'true');
+            window.location.href = 'admin-params.html';
+        } else {
+            const errorEl = document.getElementById('error-message');
+            errorEl.style.display = 'block';
+            setTimeout(() => { errorEl.style.display = 'none'; }, 3000);
+        }
+    }
+
+    if (localStorage.getItem('isAdminLoggedIn') === 'true') {
+        window.location.href = 'admin-params.html';
+    }
+</script>
+</body>
+</html>
