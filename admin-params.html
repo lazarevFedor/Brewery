@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Параметры категорий | Админ-панель</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;700&family=Mulish:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="admin.css">
+
+</head>
+<body>
+<div class="app">
+    <nav class="navbar">
+        <a href="catalog.html" class="nav-logo">⚙️ ПивоКаталог</a>
+        <div class="nav-links">
+            <a href="catalog.html" class="nav-link">Каталог</a>
+            <a href="admin-params.html" class="nav-link active">Параметры</a>
+            <a href="admin-enums.html" class="nav-link">Enum</a>
+            <a href="#" onclick="logout()" class="nav-link" style="margin-left: auto;">🚪 Выйти</a>
+        </div>
+    </nav>
+
+    <main class="main">
+        <div class="admin-header">
+            <div>
+                <div class="admin-title">Параметры категории</div>
+                <div class="admin-sub">IPA › Эль · наследуемые параметры подсвечены</div>
+            </div>
+            <button class="btn btn-primary" onclick="openParamModal()">+ Добавить параметр</button>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr><th>Поле</th><th>Тип</th><th>Диапазон / Enum-класс</th><th>Наследуется</th><th></th></tr>
+                </thead>
+                <tbody id="params-tbody"></tbody>
+            </table>
+        </div>
+    </main>
+</div>
+
+<div class="modal-overlay" id="param-modal">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModal()">✕</button>
+        <div class="modal-title">Новый параметр</div>
+        <div class="form-row">
+            <label class="form-label">Поле (field name)</label>
+            <input type="text" class="form-input" id="new-param-field" placeholder="например: abv, ibu, country">
+        </div>
+        <div class="form-row">
+            <label class="form-label">Тип</label>
+            <select class="form-input" id="new-param-type" onchange="toggleParamType()">
+                <option value="numeric">numeric</option>
+                <option value="enum">enum</option>
+            </select>
+        </div>
+        <div id="numeric-fields">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
+                <input type="number" class="form-input" id="new-param-min" placeholder="Минимум">
+                <input type="number" class="form-input" id="new-param-max" placeholder="Максимум">
+            </div>
+        </div>
+        <div id="enum-fields" style="display:none">
+            <select class="form-input" id="new-param-enum">
+                <option>CountryEnum</option>
+                <option>BeerStyleEnum</option>
+                <option>ColorEnum</option>
+            </select>
+        </div>
+        <div class="form-row">
+            <label class="form-check">
+                <input type="checkbox" id="new-param-inh" checked> Наследуется дочерними категориями
+            </label>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" onclick="closeModal()">Отмена</button>
+            <button class="btn btn-primary" onclick="saveParam()">Сохранить</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"><span id="toast-msg"></span></div>
+
+<script src="data.js"></script>
+<script>
+    // ПРОВЕРКА АВТОРИЗАЦИИ
+    if (localStorage.getItem('isAdminLoggedIn') !== 'true') {
+        window.location.href = 'login.html';
+    }
+
+    function renderParams() {
+        const tbody = document.getElementById('params-tbody');
+        tbody.innerHTML = PARAMS.map((p, i) => `
+      <tr>
+        <td><strong>${p.field}</strong></td>
+        <td><span class="badge badge-${p.type}">${p.type}</span></td>
+        <td style="color:var(--text-muted)">${p.range}</td>
+        <td><span class="badge ${p.inherited ? 'badge-yes' : 'badge-no'}">${p.inherited ? 'да' : 'нет'}</span></td>
+        <td><button class="icon-btn del" onclick="deleteParam(${i})" title="Удалить">🗑</button></td>
+      </tr>
+    `).join('');
+    }
+
+    function openParamModal() {
+        document.getElementById('new-param-field').value = '';
+        document.getElementById('new-param-type').value = 'numeric';
+        document.getElementById('new-param-min').value = '';
+        document.getElementById('new-param-max').value = '';
+        document.getElementById('new-param-inh').checked = true;
+        toggleParamType();
+        document.getElementById('param-modal').classList.add('open');
+    }
+
+    function closeModal() {
+        document.getElementById('param-modal').classList.remove('open');
+    }
+
+    function toggleParamType() {
+        const type = document.getElementById('new-param-type').value;
+        document.getElementById('numeric-fields').style.display = type === 'numeric' ? 'block' : 'none';
+        document.getElementById('enum-fields').style.display = type === 'enum' ? 'block' : 'none';
+    }
+
+    function saveParam() {
+        const field = document.getElementById('new-param-field').value.trim();
+        if (!field) { showToast('Введите название поля', 'error'); return; }
+
+        const type = document.getElementById('new-param-type').value;
+        let range = '';
+        if (type === 'numeric') {
+            const min = document.getElementById('new-param-min').value || 0;
+            const max = document.getElementById('new-param-max').value || 100;
+            range = `${min} — ${max}`;
+        } else {
+            range = document.getElementById('new-param-enum').value;
+        }
+
+        const inherited = document.getElementById('new-param-inh').checked;
+
+        PARAMS.push({ field, type, range, inherited });
+        saveParams();
+        renderParams();
+        closeModal();
+        showToast(`Параметр «${field}» добавлен`, 'success');
+    }
+
+    function deleteParam(index) {
+        if (!confirm(`Удалить параметр «${PARAMS[index].field}»?`)) return;
+        PARAMS.splice(index, 1);
+        saveParams();
+        renderParams();
+        showToast('Параметр удалён', 'success');
+    }
+
+    function showToast(msg, type) {
+        const toast = document.getElementById('toast');
+        document.getElementById('toast-msg').textContent = msg;
+        toast.className = 'toast show ' + (type || '');
+        setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    function logout() {
+        localStorage.removeItem('isAdminLoggedIn');
+        window.location.href = 'login.html';
+    }
+
+    renderParams();
+
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) overlay.classList.remove('open');
+        });
+    });
+</script>
+</body>
+</html>

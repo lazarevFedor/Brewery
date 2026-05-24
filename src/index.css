@@ -1,0 +1,17 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Mulish', sans-serif;
+    background: #F7F4EE;
+    color: #1A1714;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+h1, h2, h3, h4 {
+    font-family: 'Unbounded', sans-serif;
+}

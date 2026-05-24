@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enum-справочники | Админ-панель</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;700&family=Mulish:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+<div class="app">
+    <nav class="navbar">
+        <a href="catalog.html" class="nav-logo">📚 ПивоКаталог</a>
+        <div class="nav-links">
+            <a href="catalog.html" class="nav-link">Каталог</a>
+            <a href="admin-params.html" class="nav-link">Параметры</a>
+            <a href="admin-enums.html" class="nav-link active">Enum</a>
+            <a href="#" onclick="logout()" class="nav-link" style="margin-left: auto;">🚪 Выйти</a>
+        </div>
+    </nav>
+
+    <main class="main">
+        <div class="admin-header">
+            <div>
+                <div class="admin-title">Enum-справочники</div>
+                <div class="admin-sub">Управление перечислениями значений</div>
+            </div>
+            <button class="btn btn-primary" onclick="addEnumClass()">+ Новый класс</button>
+        </div>
+
+        <div class="enum-layout">
+            <div class="enum-list" id="enum-classes-list"></div>
+
+            <div>
+                <div class="admin-header" style="margin-bottom:12px">
+                    <div>
+                        <div style="font-size:14px; font-weight:600" id="enum-values-title">CountryEnum</div>
+                        <div class="admin-sub" id="enum-values-sub">12 значений</div>
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th style="width:60px">ID</th><th>Значение</th><th style="width:70px"></th></tr></thead>
+                        <tbody id="enum-values-tbody"></tbody>
+                    </table>
+                    <div class="add-val-row">
+                        <input type="text" id="new-enum-val" placeholder="Новое значение..." onkeydown="if(event.key==='Enter') addEnumValue()">
+                        <button class="btn btn-primary" onclick="addEnumValue()">Добавить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div class="toast" id="toast"><span id="toast-msg"></span></div>
+
+<script src="data.js"></script>
+<script>
+    // ПРОВЕРКА АВТОРИЗАЦИИ
+    if (localStorage.getItem('isAdminLoggedIn') !== 'true') {
+        window.location.href = 'login.html';
+    }
+
+    function renderEnumClasses() {
+        const container = document.getElementById('enum-classes-list');
+        container.innerHTML = Object.keys(ENUM_DATA).map(key => `
+      <div class="enum-class-item ${key === activeEnum ? 'active' : ''}" onclick="selectEnum('${key}')">
+        ${key} <span class="cnt">${ENUM_DATA[key].length}</span>
+      </div>
+    `).join('');
+    }
+
+    function selectEnum(name) {
+        activeEnum = name;
+        renderEnumClasses();
+        renderEnumValues();
+        document.getElementById('enum-values-title').textContent = name;
+        document.getElementById('enum-values-sub').textContent = ENUM_DATA[name].length + ' значений';
+    }
+
+    function renderEnumValues() {
+        const vals = ENUM_DATA[activeEnum] || [];
+        const tbody = document.getElementById('enum-values-tbody');
+        tbody.innerHTML = vals.map((val, idx) => `
+      <tr>
+        <td style="color:var(--text-hint)">${idx + 1}</td>
+        <td>${val}</td>
+        <td><button class="icon-btn del" onclick="deleteEnumValue(${idx})">🗑</button></td>
+      </tr>
+    `).join('');
+    }
+
+    function addEnumValue() {
+        const input = document.getElementById('new-enum-val');
+        const value = input.value.trim();
+        if (!value) return;
+
+        if (ENUM_DATA[activeEnum].includes(value)) {
+            showToast('Такое значение уже существует', 'error');
+            return;
+        }
+
+        ENUM_DATA[activeEnum].push(value);
+        saveEnums();
+        renderEnumValues();
+        renderEnumClasses();
+        document.getElementById('enum-values-sub').textContent = ENUM_DATA[activeEnum].length + ' значений';
+        input.value = '';
+        showToast(`«${value}» добавлено`, 'success');
+    }
+
+    function deleteEnumValue(index) {
+        const value = ENUM_DATA[activeEnum][index];
+        if (!confirm(`Удалить значение «${value}»?`)) return;
+
+        ENUM_DATA[activeEnum].splice(index, 1);
+        saveEnums();
+        renderEnumValues();
+        renderEnumClasses();
+        document.getElementById('enum-values-sub').textContent = ENUM_DATA[activeEnum].length + ' значений';
+        showToast(`«${value}» удалено`, 'success');
+    }
+
+    function addEnumClass() {
+        const name = prompt('Название нового Enum-класса:');
+        if (!name || !name.trim()) return;
+        const key = name.trim();
+
+        if (ENUM_DATA[key]) {
+            showToast('Такой класс уже существует', 'error');
+            return;
+        }
+
+        ENUM_DATA[key] = [];
+        saveEnums();
+        selectEnum(key);
+        showToast(`Класс «${key}» создан`, 'success');
+    }
+
+    function showToast(msg, type) {
+        const toast = document.getElementById('toast');
+        document.getElementById('toast-msg').textContent = msg;
+        toast.className = 'toast show ' + (type || '');
+        setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    function logout() {
+        localStorage.removeItem('isAdminLoggedIn');
+        window.location.href = 'login.html';
+    }
+
+    selectEnum(activeEnum);
+</script>
+</body>
+</html>
