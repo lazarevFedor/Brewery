@@ -6,6 +6,7 @@ import (
 	"Brewery/internal/entities"
 	"errors"
 	"io"
+	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -136,4 +137,24 @@ func getPaginationParams(c *gin.Context) (uint64, uint64, error) {
 	}
 
 	return uint64(offset), uint64(limit), nil
+}
+
+func jwtSecret() []byte {
+	s := os.Getenv("JWT_SECRET")
+	if s == "" {
+		panic("JWT_SECRET environment variable is not set")
+	}
+	return []byte(s)
+}
+
+func adminLogin() (string, string) {
+	user := os.Getenv("ADMIN_USERNAME")
+	pass := os.Getenv("ADMIN_PASSWORD")
+	if user == "" {
+		panic("ADMIN_USERNAME env variable is not set")
+	}
+	if pass == "" {
+		panic("ADMIN_PASSWORD env variable is not set")
+	}
+	return user, pass
 }

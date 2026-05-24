@@ -21,7 +21,7 @@ func Test_GetCategoryByID_UsesPathParam(t *testing.T) {
 		Expect(minimock.AnyContext, 123).
 		Return(&entities.ProductCategory{ID: 123, Name: "lager"}, nil)
 
-	resp := testEnv.DoRequest(ctx, http.MethodGet, "/api/categories/123", nil)
+	resp := testEnv.DoRequest(ctx, "", http.MethodGet, "/api/categories/123", nil)
 
 	require.Equal(t, http.StatusOK, resp.Code)
 }
@@ -40,7 +40,7 @@ func Test_CreateCategory_ReturnsCreated(t *testing.T) {
 	})
 
 	body := strings.NewReader(`{"name":"lager","parent_id":1}`)
-	resp := testEnv.DoRequest(ctx, http.MethodPost, "/api/categories", body)
+	resp := testEnv.DoRequest(ctx, testEnv.JWT, http.MethodPost, "/api/categories", body)
 
 	require.Equal(t, http.StatusCreated, resp.Code)
 }
@@ -56,7 +56,7 @@ func Test_UpdateCategory_UsesPathParam(t *testing.T) {
 		Return(nil)
 
 	body := strings.NewReader(`{"name":"ale"}`)
-	resp := testEnv.DoRequest(ctx, http.MethodPatch, "/api/categories/12", body)
+	resp := testEnv.DoRequest(ctx, testEnv.JWT, http.MethodPatch, "/api/categories/12", body)
 
 	require.Equal(t, http.StatusOK, resp.Code)
 }
@@ -71,7 +71,7 @@ func Test_DeleteCategory_UsesPathParam(t *testing.T) {
 		Expect(minimock.AnyContext, 13).
 		Return(nil)
 
-	resp := testEnv.DoRequest(ctx, http.MethodDelete, "/api/categories/13", nil)
+	resp := testEnv.DoRequest(ctx, testEnv.JWT, http.MethodDelete, "/api/categories/13", nil)
 
 	require.Equal(t, http.StatusOK, resp.Code)
 }
@@ -86,7 +86,7 @@ func Test_GetAllCategories_ReturnsOK(t *testing.T) {
 		Expect(minimock.AnyContext).
 		Return([]entities.ProductCategory{{ID: 1, Name: "lager"}}, nil)
 
-	resp := testEnv.DoRequest(ctx, http.MethodGet, "/api/categories", nil)
+	resp := testEnv.DoRequest(ctx, "", http.MethodGet, "/api/categories", nil)
 
 	require.Equal(t, http.StatusOK, resp.Code)
 }
@@ -101,7 +101,7 @@ func Test_GetParentCategory_UsesPathParam(t *testing.T) {
 		Expect(minimock.AnyContext, 14).
 		Return(&entities.ProductCategory{ID: 1, Name: "parent"}, nil)
 
-	resp := testEnv.DoRequest(ctx, http.MethodGet, "/api/categories/parent/14", nil)
+	resp := testEnv.DoRequest(ctx, "", http.MethodGet, "/api/categories/parent/14", nil)
 
 	require.Equal(t, http.StatusOK, resp.Code)
 }
@@ -116,7 +116,7 @@ func Test_GetChildCategory_UsesPathParam(t *testing.T) {
 		Expect(minimock.AnyContext, 15).
 		Return([]entities.ProductCategory{{ID: 2, Name: "child"}}, nil)
 
-	resp := testEnv.DoRequest(ctx, http.MethodGet, "/api/categories/children/15", nil)
+	resp := testEnv.DoRequest(ctx, "", http.MethodGet, "/api/categories/children/15", nil)
 
 	require.Equal(t, http.StatusOK, resp.Code)
 }

@@ -93,9 +93,10 @@ func main() {
 		EnumHandler:       handlers.NewEnumHandlers(enumService),
 		ParametersHandler: handlers.NewParametersHandlers(parameterService),
 		AggregatesHandler: handlers.NewAggregateHandlers(aggregateService),
+		AuthHandler:       handlers.NewAuthHandlers(),
 	}
 
-	routers.RegisterRoutes(router.Engine, h)
+	routers.RegisterRouters(router.Engine, h)
 
 	log.Info(ctx, fmt.Sprintf("server listening on port %s", cfg.Port))
 

@@ -28,6 +28,11 @@
     "tags": ["Beers"],
     "summary": "Create beer's feature",
     "operationId": "createBeerFeature",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
     "requestBody": {
       "required": true,
       "content": {
@@ -56,6 +61,11 @@
     "tags": ["Beers"],
     "summary": "Delete beer's feature",
     "operationId": "deleteBeerFeature",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
     "parameters": [
       { "$ref": "../../components/parameters/beer_id.json#/BeerId" }
     ],

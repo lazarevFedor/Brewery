@@ -3,6 +3,11 @@
     "tags": ["Aggregates"],
     "summary": "Apply parameter aggregate to category",
     "operationId": "applyParameterAggregate",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
     "parameters": [
       { "$ref": "../../components/parameters/category_id.json#/CategoryId" },
       { "$ref": "../../components/parameters/aggregate_id.json#/AggregateId" }

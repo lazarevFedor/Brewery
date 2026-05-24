@@ -3,6 +3,11 @@
     "tags": ["Aggregates"],
     "summary": "Create parameter aggregate",
     "operationId": "createParameterAggregate",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
     "requestBody": {
       "required": true,
       "content": {
@@ -29,6 +34,11 @@
     "tags": ["Aggregates"],
     "summary": "Get all parameter aggregates",
     "operationId": "listParameterAggregates",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
     "parameters": [
       { "$ref": "../../components/parameters/aggregate_name_filter.json#/AggregateName" }
     ],

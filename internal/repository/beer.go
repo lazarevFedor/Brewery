@@ -158,10 +158,7 @@ func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (*ent
 	}
 
 	if categoryID == 0 {
-		categoryID, err = ctgRepo.InsertCategory(ctx, tx, beer.Category)
-		if err != nil {
-			return nil, err
-		}
+		return nil, apperrors.BadRequest("category not found", fmt.Errorf("category not found: %s", beer.Category.Name))
 	}
 
 	psql := queries.InsertBeer(beer, cityID, categoryID)

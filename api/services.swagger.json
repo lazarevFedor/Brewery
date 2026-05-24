@@ -8,8 +8,20 @@
   "servers": [
     { "url": "http://localhost:80/api" }
   ],
-  
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },  
   "tags": [
+    {
+      "name": "Auth",
+      "description": "Авторизация для действий Админа"
+    },
     {
       "name": "Categories",
       "description": "Все операции, связанные с категориями товаров"
@@ -41,6 +53,8 @@
   ],
 
   "paths": {
+    "/login": { "$ref": "./path/auth/login.json"},
+
     "/categories": { "$ref": "./path/category/categories.json" },
     "/categories/{id}": { "$ref": "./path/category/categories_id.json" },
     "/categories/parent/{id}": { "$ref": "./path/category/categories_parent_id.json" },

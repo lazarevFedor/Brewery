@@ -32,6 +32,7 @@ func CategoryInsert(category entities.ProductCategory) sq.InsertBuilder {
 	if category.ParentID != 0 {
 		data[categoryParentIDCol] = category.ParentID
 	}
+
 	return psql.Insert(tableCategories).
 		SetMap(data).
 		Suffix("RETURNING id")

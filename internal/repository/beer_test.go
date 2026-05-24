@@ -200,26 +200,20 @@ func TestBeerRepository_InsertGetBeer(t *testing.T) {
 		})
 	})
 
-	t.Run("Вставка с новой дочерней категорией", func(t *testing.T) {
+	t.Run("Вставка с невалидной категорией", func(t *testing.T) {
 		rootID, err := ctgRepo.GetCategoryID(ctx, nil, "test_category")
 		require.NoError(t, err)
 		require.NotZero(t, rootID)
 
 		beer := testBeers[0]
-		beer.Name = "test_success_new_child_category"
+		beer.Name = "test_failed_new_child_category"
 		beer.Category = entities.ProductCategory{
 			Name:     "test_category_child",
 			ParentID: int(rootID),
 		}
 
-		createdBeer, err := beerRepo.InsertBeer(ctx, beer)
-		require.NoError(t, err)
-		require.NotNil(t, beer)
-
-		gotBeer, err := beerRepo.GetBeerByID(ctx, createdBeer.ID)
-		require.NoError(t, err)
-		require.NotNil(t, gotBeer)
-		require.Equal(t, beer.Category.Name, gotBeer.Category.Name)
+		_, err = beerRepo.InsertBeer(ctx, beer)
+		require.Error(t, err)
 
 		t.Cleanup(func() {
 			cleanDB(t, ctx, "beers")

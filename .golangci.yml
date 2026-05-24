@@ -72,6 +72,7 @@ linters:
     gosec:
       excludes:
         - G115
+        - G117
 
     wsl_v5:
       allow-first-in-block: true

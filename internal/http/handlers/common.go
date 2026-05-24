@@ -7,4 +7,5 @@ type Handlers struct {
 	EnumHandler       EnumHandlers
 	ParametersHandler ParametersHandlers
 	AggregatesHandler AggregateHandlers
+	AuthHandler       AuthHandlers
 }

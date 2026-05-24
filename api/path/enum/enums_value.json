@@ -3,6 +3,11 @@
     "tags": ["EnumsValue"],
     "summary": "Create enum's value",
     "operationId": "createEnumValue",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
     "requestBody": {
       "required": true,
       "content": {
@@ -32,6 +37,11 @@
     "tags": ["EnumsValue"],
     "summary": "Get enum's values",
     "operationId": "listEnumValues",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
     "parameters":[
       {"$ref": "../../components/parameters/enum_type.json#/EnumType"},
       {"$ref": "../../components/parameters/entity_name.json#/EntityName"},

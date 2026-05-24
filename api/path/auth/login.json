@@ -1,0 +1,33 @@
+{
+  "post": {
+    "tags": ["Auth"],
+    "summary": "login admin",
+    "operationId": "AuthAdmin",
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+            "schema": { "$ref": "../../components/schemas/auth.json#/Auth" }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Authorized",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": { "type": "integer" },
+                "token": { "type": "string" }
+              }
+            }
+          }
+        }
+      },
+      "403": { "$ref": "../../components/schemas/responses/403_unauthorized.json" },
+      "500": { "$ref": "../../components/schemas/responses/500_internal_server_error.json" }
+    }
+  }
+}

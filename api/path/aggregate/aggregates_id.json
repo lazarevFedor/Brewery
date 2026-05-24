@@ -3,6 +3,11 @@
     "tags": ["Aggregates"],
     "summary": "Update parameter aggregate",
     "operationId": "updateParameterAggregate",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
     "parameters": [
       { "$ref": "../../components/parameters/id.json#/Id" }
     ],
@@ -53,6 +58,11 @@
     "tags": ["Aggregates"],
     "summary": "Delete parameter aggregate",
     "operationId": "deleteParameterAggregate",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
     "parameters": [
       { "$ref": "../../components/parameters/id.json#/Id" }
     ],

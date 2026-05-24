@@ -21,6 +21,8 @@ require (
 	go.uber.org/zap v1.27.1
 )
 
+require github.com/golang-jwt/jwt/v5 v5.3.1
+
 require (
 	dario.cat/mergo v1.0.2 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c // indirect
