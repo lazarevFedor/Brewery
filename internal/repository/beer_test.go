@@ -601,7 +601,7 @@ func TestBeerRepository_UpdateReview_Errors(t *testing.T) {
 		}
 		err := beerRepo.UpdateReview(ctx, 999999, updates)
 		require.Error(t, err)
-		require.EqualError(t, err, "Exec: no rows in result set")
+		require.EqualError(t, err, "execute UpdateReview query: no rows in result set")
 	})
 
 	t.Run("Обновление с пустым набором полей", func(t *testing.T) {

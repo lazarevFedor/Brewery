@@ -103,7 +103,7 @@ var rollbackFunc = func(tx pgx.Tx, ctx context.Context) {
 	log, ok := logger.GetLoggerFromCtx(ctx)
 	if ok {
 		if rollbackErr != nil && !errors.Is(rollbackErr, pgx.ErrTxClosed) {
-			log.Error(ctx, "InsertBeer: rollback error:", zap.Error(rollbackErr))
+			log.Error(ctx, "roll back transaction: ", zap.Error(rollbackErr))
 		}
 	}
 }
@@ -116,13 +116,13 @@ func (r *BeerPostgres) BeerExists(ctx context.Context, id uint) (bool, error) {
 	psql := queries.Exists()
 	query, _, err := psql.ToSql()
 	if err != nil {
-		return false, apperrors.Internal(fmt.Errorf("toSql: %w", err))
+		return false, apperrors.Internal(fmt.Errorf("build exists query: %w", err))
 	}
 
 	var exists bool
 	err = r.Pool.QueryRow(ctx, query, id).Scan(&exists)
 	if err != nil {
-		return false, apperrors.Internal(fmt.Errorf("query: %w", err))
+		return false, apperrors.Internal(fmt.Errorf("execute and scan exists query: %w", err))
 	}
 
 	return exists, nil
@@ -138,43 +138,43 @@ func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (*ent
 
 	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
-		return nil, apperrors.Internal(fmt.Errorf("begin: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("begin InsertBeer transaction: %w", err))
 	}
 	defer rollbackFunc(tx, ctx)
 
 	countryID, err := r.GetCountryID(ctx, tx, beer.Country)
 	if err != nil {
-		return nil, err
+		return nil, apperrors.BadRequest("can't get or insert country", fmt.Errorf("get country ID: %w", err))
 	}
 
 	cityID, err := r.GetCityID(ctx, tx, beer.City, countryID)
 	if err != nil {
-		return nil, err
+		return nil, apperrors.BadRequest("can't get or insert city", fmt.Errorf("get city ID: %w", err))
 	}
 
 	categoryID, err := ctgRepo.GetCategoryID(ctx, tx, beer.Category.Name)
 	if err != nil {
-		return nil, err
+		return nil, apperrors.BadRequest("can't get or insert category", fmt.Errorf("get category ID: %w", err))
 	}
 
 	if categoryID == 0 {
 		categoryID, err = ctgRepo.InsertCategory(ctx, tx, beer.Category)
 		if err != nil {
-			return nil, err
+			return nil, apperrors.BadRequest("can't insert category", fmt.Errorf("insert category: %w", err))
 		}
 	}
 
 	psql := queries.InsertBeer(beer, cityID, categoryID)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return nil, apperrors.Internal(fmt.Errorf("toSql: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("build InsertBeer query: %w", err))
 	}
 
 	row := tx.QueryRow(ctx, query, args...)
 	createdBeer, err := scanBeerBase(row)
 
 	if err != nil {
-		return nil, apperrors.Internal(fmt.Errorf("beer QueryRow: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("scan inserted beer: %w", err))
 	}
 
 	createdBeer.City = beer.City
@@ -184,19 +184,19 @@ func (r *BeerPostgres) InsertBeer(ctx context.Context, beer entities.Beer) (*ent
 	for _, featName := range beer.Features {
 		featID, err := r.GetFeatureID(ctx, tx, featName)
 		if err != nil {
-			return nil, err
+			return nil, apperrors.Internal(fmt.Errorf("get or insert feature: %w", err))
 		}
 
 		err = r.ConnectBeerAndFeature(ctx, tx, featID, createdBeer.ID)
 		if err != nil {
-			return nil, err
+			return nil, apperrors.Internal(fmt.Errorf("connect beer and feature: %w", err))
 		}
 	}
 	createdBeer.Features = beer.Features
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		return nil, apperrors.Internal(fmt.Errorf("commit: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("commit insert beer transaction: %w", err))
 	}
 	return createdBeer, nil
 }
@@ -211,11 +211,11 @@ func (r *BeerPostgres) GetCityNameByID(ctx context.Context, id uint) (string, er
 	psql := queries.SelectCityNameByID(id)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return "", fmt.Errorf("toSql: %w", err)
+		return "", fmt.Errorf("build SelectCityNameByID query: %w", err)
 	}
 
 	if err = r.Pool.QueryRow(ctx, query, args...).Scan(&name); err != nil {
-		return "", fmt.Errorf("city QueryRow: %w", err)
+		return "", fmt.Errorf("execute and scan city name: %w", err)
 	}
 	return name, nil
 }
@@ -233,12 +233,12 @@ func (r *BeerPostgres) GetBeers(ctx context.Context, limit, offset uint64) ([]en
 
 	query, _, err := psql.ToSql()
 	if err != nil {
-		return nil, apperrors.Internal(fmt.Errorf("toSql: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("build FullBeerSelect query: %w", err))
 	}
 
 	rows, err := r.Pool.Query(ctx, query)
 	if err != nil {
-		return nil, apperrors.Internal(fmt.Errorf("query: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("execute FullBeerSelect query: %w", err))
 	}
 	defer rows.Close()
 
@@ -250,7 +250,7 @@ func (r *BeerPostgres) GetBeers(ctx context.Context, limit, offset uint64) ([]en
 			clear(buf)
 			*bufp = buf[:0]
 			beerSlicePool.Put(bufp)
-			return nil, err
+			return nil, apperrors.Internal(fmt.Errorf("scan beer's row into Beer struct: %w", err))
 		}
 
 		buf = append(buf, *beer)
@@ -260,7 +260,7 @@ func (r *BeerPostgres) GetBeers(ctx context.Context, limit, offset uint64) ([]en
 		clear(buf)
 		*bufp = buf[:0]
 		beerSlicePool.Put(bufp)
-		return nil, apperrors.Internal(fmt.Errorf("rows.Err: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("scan beer's rows: %w", err))
 	}
 
 	beers := make([]entities.Beer, len(buf))
@@ -281,15 +281,15 @@ func (r *BeerPostgres) GetBeerByID(ctx context.Context, id uint) (*entities.Beer
 	psql := queries.SelectBeerByID(id)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return nil, apperrors.Internal(fmt.Errorf("toSql: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("build SelectBeerByID query: %w", err))
 	}
 
 	beer, err := scanBeer(r.Pool.QueryRow(ctx, query, args...))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, apperrors.NotFound("beer not found", err)
+			return nil, apperrors.NotFound("beer with this ID is not found", err)
 		}
-		return nil, apperrors.Internal(fmt.Errorf("query: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("scan row into Beer struct: %w", err))
 	}
 
 	return beer, nil
@@ -304,13 +304,13 @@ func (r *BeerPostgres) UpdateBeer(ctx context.Context, id uint, updates map[stri
 	psql := queries.UpdateBeer(id, updates)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return nil, apperrors.Internal(fmt.Errorf("toSql: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("build UpdateBeer query: %w", err))
 	}
 
 	row := r.Pool.QueryRow(ctx, query, args...)
 	beer, err := scanBeerBase(row)
 	if err != nil {
-		return nil, err
+		return nil, apperrors.Internal(fmt.Errorf("scan updated beer: %w", err))
 	}
 
 	return beer, nil
@@ -324,30 +324,31 @@ func (r *BeerPostgres) DeleteBeer(ctx context.Context, id uint) error {
 
 	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
-		return apperrors.Internal(fmt.Errorf("%s: %w", "Begin", err))
+		return apperrors.Internal(fmt.Errorf("begin DeleteBeer transaction: %w", err))
 	}
 	defer rollbackFunc(tx, ctx)
 
 	psql := queries.DeleteBeer(id)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return apperrors.Internal(fmt.Errorf("toSql: %w", err))
+		return apperrors.Internal(fmt.Errorf("build DeleteBeer query: %w", err))
 	}
 	result, err := tx.Exec(ctx, query, args...)
 	if err != nil {
-		return apperrors.Internal(fmt.Errorf("%s: %w", "Exec", err))
+		return apperrors.Internal(fmt.Errorf("execute DeleteBeer query: %w", err))
 	}
 	if result.RowsAffected() == 0 {
-		return apperrors.NotFound("beer not found", nil)
+		return apperrors.NotFound("beer with this ID is not found", nil)
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		return apperrors.Internal(fmt.Errorf("commit: %w", err))
+		return apperrors.Internal(fmt.Errorf("commit DeleteBeer transaction: %w", err))
 	}
 	return nil
 }
 
+// FilterBeer возвращает список сущностей пиво по фильтру
 func (r *BeerPostgres) FilterBeer(ctx context.Context, filters []*entities.FilterParameter, limit, offset uint64, categoryID uint) ([]entities.Beer, error) {
 	if r.Pool == nil {
 		return nil, errors.New("pool is nil")
@@ -360,12 +361,12 @@ func (r *BeerPostgres) FilterBeer(ctx context.Context, filters []*entities.Filte
 
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "ToSql", err)
+		return nil, fmt.Errorf("%s: %w", "build FilterBeers query", err)
 	}
 
 	rows, err := r.Pool.Query(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("query: %w", err)
+		return nil, fmt.Errorf("execute FilterBeers query: %w", err)
 	}
 	defer rows.Close()
 
@@ -377,7 +378,7 @@ func (r *BeerPostgres) FilterBeer(ctx context.Context, filters []*entities.Filte
 			clear(buf)
 			*bufp = buf[:0]
 			beerSlicePool.Put(bufp)
-			return nil, fmt.Errorf("failed to scan row: %w", err)
+			return nil, fmt.Errorf("scan row into Beer struct: %w", err)
 		}
 
 		buf = append(buf, *beer)
@@ -387,7 +388,7 @@ func (r *BeerPostgres) FilterBeer(ctx context.Context, filters []*entities.Filte
 		clear(buf)
 		*bufp = buf[:0]
 		beerSlicePool.Put(bufp)
-		return nil, fmt.Errorf("rows.Err: %w", err)
+		return nil, fmt.Errorf("scan Beer's rows: %w", err)
 	}
 
 	beers := make([]entities.Beer, len(buf))
@@ -408,13 +409,13 @@ func (r *BeerPostgres) InsertReview(ctx context.Context, review entities.Review)
 	psql := queries.InsertReview(review)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return 0, apperrors.Internal(fmt.Errorf("toSql: %w", err))
+		return 0, apperrors.Internal(fmt.Errorf("build InsertReview query: %w", err))
 	}
 
 	var reviewID uint
 	err = r.Pool.QueryRow(ctx, query, args...).Scan(&reviewID)
 	if err != nil {
-		return 0, apperrors.Internal(fmt.Errorf("%s: %w", "scan", err))
+		return 0, apperrors.Internal(fmt.Errorf("execute and scan inserted review: %w", err))
 	}
 
 	return reviewID, nil
@@ -428,7 +429,7 @@ func (r *BeerPostgres) DeleteReview(ctx context.Context, id uint) error {
 
 	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
-		return fmt.Errorf("%s: %w", "Begin", err)
+		return apperrors.Internal(fmt.Errorf("begin DeleteReview transaction: %w", err))
 	}
 	defer rollbackFunc(tx, ctx)
 
@@ -441,7 +442,10 @@ func (r *BeerPostgres) DeleteReview(ctx context.Context, id uint) error {
 	var rating, beerID uint
 	err = tx.QueryRow(ctx, query, args...).Scan(&beerID, &rating)
 	if err != nil {
-		return apperrors.Internal(fmt.Errorf("exec: %w", err))
+		if errors.Is(err, pgx.ErrNoRows) {
+			return apperrors.NotFound("review not found", fmt.Errorf("exec: %w", err))
+		}
+		return apperrors.Internal(fmt.Errorf("execute DeleteReview query: %w", err))
 	}
 
 	updatePsql := queries.UpdateBeerRating(beerID, rating, "delete")
@@ -450,18 +454,18 @@ func (r *BeerPostgres) DeleteReview(ctx context.Context, id uint) error {
 		return fmt.Errorf("%s: %w", "ToSql", err)
 	}
 
-	result, err := r.Pool.Exec(ctx, query, args...)
+	result, err := tx.Exec(ctx, query, args...)
 	if err != nil {
-		return apperrors.Internal(fmt.Errorf("beer exec: %w", err))
+		return apperrors.Internal(fmt.Errorf("execute UpdateBeerRating query: %w", err))
 	}
 
 	if result.RowsAffected() == 0 {
-		return apperrors.NotFound("review not found", nil)
+		return apperrors.NotFound("review is not found", nil)
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		return apperrors.Internal(fmt.Errorf("commit: %w", err))
+		return apperrors.Internal(fmt.Errorf("commit DeleteReview transaction: %w", err))
 	}
 	return nil
 }
@@ -474,7 +478,7 @@ func (r *BeerPostgres) UpdateReview(ctx context.Context, id uint, updates map[st
 
 	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
-		return fmt.Errorf("%s: %w", "Begin", err)
+		return apperrors.Internal(fmt.Errorf("begin UpdateReview transaction: %w", err))
 	}
 	defer rollbackFunc(tx, ctx)
 
@@ -488,27 +492,30 @@ func (r *BeerPostgres) UpdateReview(ctx context.Context, id uint, updates map[st
 	var rating, beerID uint
 	err = tx.QueryRow(ctx, query, args...).Scan(&beerID, &rating)
 	if err != nil {
-		return apperrors.Internal(fmt.Errorf("%s: %w", "Exec", err))
+		if errors.Is(err, pgx.ErrNoRows) {
+			return apperrors.NotFound("review not found", fmt.Errorf("execute UpdateReview query: %w", err))
+		}
+		return apperrors.Internal(fmt.Errorf("execute UpdateReview query: %w", err))
 	}
 
-	updatePsql := queries.UpdateBeerRating(beerID, rating, "delete")
+	updatePsql := queries.UpdateBeerRating(beerID, rating, "update")
 	query, args, err = updatePsql.ToSql()
 	if err != nil {
-		return fmt.Errorf("%s: %w", "ToSql", err)
+		return apperrors.Internal(fmt.Errorf("build UpdateBeerRating query: %w", err))
 	}
 
-	result, err := r.Pool.Exec(ctx, query, args...)
+	result, err := tx.Exec(ctx, query, args...)
 	if err != nil {
-		return apperrors.Internal(fmt.Errorf("beer: exec: %w", err))
+		return apperrors.Internal(fmt.Errorf("execute UpdateBeerRating query: %w", err))
 	}
 
 	if result.RowsAffected() == 0 {
-		return apperrors.NotFound("review not found", nil)
+		return apperrors.NotFound("review is not found", nil)
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		return apperrors.Internal(fmt.Errorf("commit: %w", err))
+		return apperrors.Internal(fmt.Errorf("commit UpdateReview transaction: %w", err))
 	}
 	return err
 }
@@ -526,12 +533,12 @@ func (r *BeerPostgres) GetReviews(ctx context.Context, limit, offset uint64, bee
 
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return nil, apperrors.Internal(fmt.Errorf("toSql: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("build SelectReviewByBeerID query: %w", err))
 	}
 
 	rows, err := r.Pool.Query(ctx, query, args...)
 	if err != nil {
-		return nil, apperrors.Internal(fmt.Errorf("query: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("execute SelectReviewByBeerID query: %w", err))
 	}
 	defer rows.Close()
 
@@ -541,14 +548,14 @@ func (r *BeerPostgres) GetReviews(ctx context.Context, limit, offset uint64, bee
 
 		err = rows.Scan(&review.ID, &review.Body, &review.BeerID, &review.Rating)
 		if err != nil {
-			return nil, apperrors.Internal(fmt.Errorf("scan: %w", err))
+			return nil, apperrors.Internal(fmt.Errorf("scan review's row into Review struct: %w", err))
 		}
 
 		reviews = append(reviews, review)
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, apperrors.Internal(fmt.Errorf("rows.Err: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("scan review's rows: %w", err))
 	}
 
 	return reviews, nil
@@ -566,11 +573,11 @@ func (r *BeerPostgres) GetBeersByCategoryID(ctx context.Context, ctgID uint, lim
 	}
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return nil, apperrors.Internal(fmt.Errorf("toSql: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("build SelectBeerByCategoryID query: %w", err))
 	}
 	rows, err := r.Pool.Query(ctx, query, args...)
 	if err != nil {
-		return nil, apperrors.Internal(fmt.Errorf("query: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("execute SelectBeerByCategoryID query: %w", err))
 	}
 	defer rows.Close()
 
@@ -582,7 +589,7 @@ func (r *BeerPostgres) GetBeersByCategoryID(ctx context.Context, ctgID uint, lim
 			clear(buf)
 			*bufp = buf[:0]
 			beerSlicePool.Put(bufp)
-			return nil, err
+			return nil, apperrors.Internal(fmt.Errorf("scan Beer's row into Beer struct: %w", err))
 		}
 		buf = append(buf, *beer)
 	}
@@ -591,7 +598,7 @@ func (r *BeerPostgres) GetBeersByCategoryID(ctx context.Context, ctgID uint, lim
 		clear(buf)
 		*bufp = buf[:0]
 		beerSlicePool.Put(bufp)
-		return nil, apperrors.Internal(fmt.Errorf("rows.Err: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("scan beer's rows: %w", err))
 	}
 
 	beers := make([]entities.Beer, len(buf))
@@ -612,12 +619,12 @@ func (r *BeerPostgres) GetBeerFeature(ctx context.Context, beerID uint) ([]strin
 	psql := queries.SelectBeersFeature(beerID)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return nil, apperrors.Internal(fmt.Errorf("toSql: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("build SelectBeersFeature query: %w", err))
 	}
 
 	rows, err := r.Pool.Query(ctx, query, args...)
 	if err != nil {
-		return nil, apperrors.Internal(fmt.Errorf("feature QueryRow: %w", err))
+		return nil, apperrors.Internal(fmt.Errorf("execute SelectBeersFeature query: %w", err))
 	}
 	defer rows.Close()
 
@@ -627,9 +634,13 @@ func (r *BeerPostgres) GetBeerFeature(ctx context.Context, beerID uint) ([]strin
 	for rows.Next() {
 		err := rows.Scan(&featName)
 		if err != nil {
-			return nil, apperrors.Internal(fmt.Errorf("scan: %w", err))
+			return nil, apperrors.Internal(fmt.Errorf("scan feature name: %w", err))
 		}
 		features = append(features, featName)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, apperrors.Internal(fmt.Errorf("scan rows with feature names: %w", err))
 	}
 
 	return features, nil
@@ -643,7 +654,7 @@ func (r *BeerPostgres) ConnectBeerAndFeature(ctx context.Context, tx pgx.Tx, fea
 	psql := queries.ConnectBeerAndFeature(featID, beerID)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return apperrors.Internal(fmt.Errorf("toSql: %w", err))
+		return apperrors.Internal(fmt.Errorf("build ConnectBeerAndFeature query: %w", err))
 	}
 
 	if tx != nil {
@@ -653,7 +664,7 @@ func (r *BeerPostgres) ConnectBeerAndFeature(ctx context.Context, tx pgx.Tx, fea
 	}
 
 	if err != nil {
-		return apperrors.Internal(fmt.Errorf("exec: %w", err))
+		return apperrors.Internal(fmt.Errorf("execute ConnectBeerAndFeature query: %w", err))
 	}
 
 	return nil
@@ -668,7 +679,7 @@ func (r *BeerPostgres) DisconnectBeerAndFeature(ctx context.Context, tx pgx.Tx, 
 	psql := queries.DisconnectBeerAndFeature(beerID)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return apperrors.Internal(fmt.Errorf("toSql: %w", err))
+		return apperrors.Internal(fmt.Errorf("build DisconnectBeerAndFeature query: %w", err))
 	}
 
 	if tx != nil {
@@ -678,7 +689,7 @@ func (r *BeerPostgres) DisconnectBeerAndFeature(ctx context.Context, tx pgx.Tx, 
 	}
 
 	if err != nil {
-		return apperrors.Internal(fmt.Errorf("exec: %w", err))
+		return apperrors.Internal(fmt.Errorf("execute DisconnectBeerAndFeature query: %w", err))
 	}
 
 	return nil
@@ -696,7 +707,7 @@ func (r *BeerPostgres) GetCountryID(ctx context.Context, tx pgx.Tx, name string)
 	psql := queries.SelectOrInsertCountry(name)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return 0, apperrors.Internal(fmt.Errorf("toSql: %w", err))
+		return 0, apperrors.Internal(fmt.Errorf("build SelectOrInsertCountry query: %w", err))
 	}
 
 	var row pgx.Row
@@ -708,7 +719,7 @@ func (r *BeerPostgres) GetCountryID(ctx context.Context, tx pgx.Tx, name string)
 
 	var countryID uint
 	if err := row.Scan(&countryID); err != nil {
-		return 0, apperrors.Internal(fmt.Errorf("scan: %w", err))
+		return 0, apperrors.Internal(fmt.Errorf("scan country ID: %w", err))
 	}
 	return countryID, nil
 }
@@ -725,7 +736,7 @@ func (r *BeerPostgres) GetCityID(ctx context.Context, tx pgx.Tx, name string, co
 	psql := queries.SelectOrInsertCity(name, countryID)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return 0, apperrors.Internal(fmt.Errorf("toSql: %w", err))
+		return 0, apperrors.Internal(fmt.Errorf("build SelectOrInsertCity query: %w", err))
 	}
 
 	var row pgx.Row
@@ -737,7 +748,7 @@ func (r *BeerPostgres) GetCityID(ctx context.Context, tx pgx.Tx, name string, co
 
 	var cityID uint
 	if err = row.Scan(&cityID); err != nil {
-		return 0, apperrors.Internal(fmt.Errorf("city QueryRow: %w", err))
+		return 0, apperrors.Internal(fmt.Errorf("scan city ID: %w", err))
 	}
 
 	return cityID, nil
@@ -745,6 +756,10 @@ func (r *BeerPostgres) GetCityID(ctx context.Context, tx pgx.Tx, name string, co
 
 // GetFeatureID возвращает ID характеристики по ее названию. Если характеристики нет, она будет добавлена в базу данных. Если name пустой, возвращает ошибку.
 func (r *BeerPostgres) GetFeatureID(ctx context.Context, tx pgx.Tx, name string) (uint, error) {
+	if name == "" {
+		return 0, apperrors.BadRequest("feature name is empty", errors.New("feature name is empty"))
+	}
+
 	if r.Pool == nil {
 		return 0, apperrors.Internal(errors.New("pool is nil"))
 	}
@@ -752,7 +767,7 @@ func (r *BeerPostgres) GetFeatureID(ctx context.Context, tx pgx.Tx, name string)
 	psql := queries.SelectOrInsertFeature(name)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return 0, apperrors.Internal(fmt.Errorf("toSql: %w", err))
+		return 0, apperrors.Internal(fmt.Errorf("build SelectOrInsertFeature query: %w", err))
 	}
 
 	var row pgx.Row
@@ -764,7 +779,7 @@ func (r *BeerPostgres) GetFeatureID(ctx context.Context, tx pgx.Tx, name string)
 
 	var featID uint
 	if err = row.Scan(&featID); err != nil {
-		return 0, apperrors.Internal(fmt.Errorf("city QueryRow: %w", err))
+		return 0, apperrors.Internal(fmt.Errorf("scan feature ID: %w", err))
 	}
 	return featID, nil
 }
@@ -779,7 +794,7 @@ func scanBeer(row pgx.Row) (*entities.Beer, error) {
 		&beer.Category.Name, &beer.Features,
 		&reviewRatingSum, &reviewAmount)
 	if err != nil {
-		return nil, apperrors.Internal(fmt.Errorf("%s: %w", "Scan", err))
+		return nil, err
 	}
 
 	return &beer, nil
@@ -794,7 +809,7 @@ func scanBeerBase(row pgx.Row) (*entities.Beer, error) {
 		&beer.Amount, &beer.Unit, &cityID, &categoryID,
 		&reviewRatingSum, &reviewAmount)
 	if err != nil {
-		return nil, apperrors.Internal(fmt.Errorf("%s: %w", "Scan", err))
+		return nil, err
 	}
 
 	return &beer, nil

@@ -55,18 +55,18 @@ func NewCategoryPostgres(pool *pgxpool.Pool) *CategoryPostgres {
 // GetCategories получает все категории из базы данных. Если категорий нет, возвращает пустой срез и nil.
 func (r *CategoryPostgres) GetCategories(ctx context.Context) ([]entities.ProductCategory, error) {
 	if r.Pool == nil {
-		return nil, errors.New("pool is nil")
+		return nil, apperrors.Internal(errors.New("pool is nil"))
 	}
 
 	psql := queries.FullCategorySelect()
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("ToSql: %w", err)
+		return nil, apperrors.Internal(fmt.Errorf("build FullCategorySelect query: %w", err))
 	}
 
 	rows, err := r.Pool.Query(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "Query", err)
+		return nil, apperrors.Internal(fmt.Errorf("execute FullCategorySelect query: %w", err))
 	}
 
 	categories := make([]entities.ProductCategory, 0)
@@ -76,7 +76,7 @@ func (r *CategoryPostgres) GetCategories(ctx context.Context) ([]entities.Produc
 
 		err = rows.Scan(&ctg.ID, &ctg.Name, &ctg.ParentID)
 		if err != nil {
-			return nil, fmt.Errorf("%s: %w", "Scan", err)
+			return nil, apperrors.Internal(fmt.Errorf("scan category's row into ProductCategory struct: %w", err))
 		}
 		categories = append(categories, ctg)
 	}
@@ -95,7 +95,7 @@ func (r *CategoryPostgres) InsertCategory(ctx context.Context, tx pgx.Tx, catego
 	psql := queries.CategoryInsert(category)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return 0, apperrors.Internal(fmt.Errorf("%s: %w", "ToSql", err))
+		return 0, apperrors.Internal(fmt.Errorf("build CategoryInsert query: %w", err))
 	}
 
 	var row pgx.Row
@@ -107,7 +107,7 @@ func (r *CategoryPostgres) InsertCategory(ctx context.Context, tx pgx.Tx, catego
 
 	var categoryID uint
 	if err = row.Scan(&categoryID); err != nil {
-		return 0, apperrors.Internal(fmt.Errorf("category QueryRow: %w", err))
+		return 0, apperrors.Internal(fmt.Errorf("scan category's row: %w", err))
 	}
 
 	return categoryID, nil
@@ -116,19 +116,19 @@ func (r *CategoryPostgres) InsertCategory(ctx context.Context, tx pgx.Tx, catego
 // GetCategoryByID получает категорию по её ID. Если категория не найдена, возвращает nil и ошибку.
 func (r *CategoryPostgres) GetCategoryByID(ctx context.Context, id uint) (*entities.ProductCategory, error) {
 	if r.Pool == nil {
-		return nil, errors.New("pool is nil")
+		return nil, apperrors.Internal(errors.New("pool is nil"))
 	}
 
 	psql := queries.SelectCategoryByID(id)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "ToSql", err)
+		return nil, apperrors.Internal(fmt.Errorf("build SelectCategoryByID query: %w", err))
 	}
 
 	var ctg entities.ProductCategory
 	err = r.Pool.QueryRow(ctx, query, args...).Scan(&ctg.ID, &ctg.Name, &ctg.ParentID)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "QueryRow", err)
+		return nil, apperrors.Internal(fmt.Errorf("execute SelectCategoryByID query and scan ProductCategory: %w", err))
 	}
 
 	return &ctg, nil
@@ -138,14 +138,14 @@ func (r *CategoryPostgres) GetCategoryByID(ctx context.Context, id uint) (*entit
 func (r *CategoryPostgres) UpdateCategory(ctx context.Context, id uint, updates map[string]any) error {
 	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
-		return fmt.Errorf("begin: %w", err)
+		return apperrors.Internal(fmt.Errorf("begin UpdateCategory transaction: %w", err))
 	}
 	defer func(tx pgx.Tx, ctx context.Context) {
 		rollbackErr := tx.Rollback(ctx)
 		log, ok := logger.GetLoggerFromCtx(ctx)
 		if ok {
 			if rollbackErr != nil && !errors.Is(rollbackErr, pgx.ErrTxClosed) {
-				log.Error(ctx, "InsertBeer: rollback error:", zap.Error(rollbackErr))
+				log.Error(ctx, "roll back UpdateCategory transaction", zap.Error(rollbackErr))
 			}
 		}
 	}(tx, ctx)
@@ -153,20 +153,20 @@ func (r *CategoryPostgres) UpdateCategory(ctx context.Context, id uint, updates 
 	psql := queries.UpdateCategory(id, updates)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return fmt.Errorf("%s: %w", "ToSql", err)
+		return apperrors.Internal(fmt.Errorf("build UpdateCategory query: %w", err))
 	}
 	result, err := tx.Exec(ctx, query, args...)
 	if err != nil {
-		return fmt.Errorf("%s: %w", "QueryRow", err)
+		return apperrors.Internal(fmt.Errorf("execute UpdateCategory query: %w", err))
 	}
 
 	if result.RowsAffected() == 0 {
-		return errors.New("failed to update category: no such category")
+		return apperrors.BadRequest("no such category", errors.New("failed to update category: no such category"))
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		return fmt.Errorf("commit: %w", err)
+		return apperrors.Internal(fmt.Errorf("commit UpdateCategory transaction: %w", err))
 	}
 	return nil
 }
@@ -175,7 +175,7 @@ func (r *CategoryPostgres) UpdateCategory(ctx context.Context, id uint, updates 
 func (r *CategoryPostgres) DeleteCategoryByID(ctx context.Context, id uint) error {
 	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
-		return fmt.Errorf("begin: %w", err)
+		return apperrors.Internal(fmt.Errorf("begin DeleteCategoryByID transaction: %w", err))
 	}
 	defer func(tx pgx.Tx, ctx context.Context) {
 		rollbackErr := tx.Rollback(ctx)
@@ -183,36 +183,36 @@ func (r *CategoryPostgres) DeleteCategoryByID(ctx context.Context, id uint) erro
 		log, ok := logger.GetLoggerFromCtx(ctx)
 		if ok {
 			if rollbackErr != nil && !errors.Is(rollbackErr, pgx.ErrTxClosed) {
-				log.Error(ctx, fmt.Sprintf("%s InsertBeer: Rollback:", "InsertBeer"), zap.Error(rollbackErr))
+				log.Error(ctx, "roll back DeleteCategoryByID transaction", zap.Error(rollbackErr))
 			}
 		}
 	}(tx, ctx)
 
 	category, err := r.GetCategoryByID(ctx, id)
 	if err != nil {
-		return fmt.Errorf("get category by id: %w", err)
+		return err
 	}
 
 	if category.ParentID == 0 {
-		return errors.New("cannot delete root category")
+		return apperrors.BadRequest("cannot delete root category", errors.New("cannot delete root category"))
 	}
 
 	childrenPsql := queries.SelectChildrenCategories(id)
 	query, args, err := childrenPsql.ToSql()
 	if err != nil {
-		return fmt.Errorf("%s: %w", "ToSql", err)
+		return apperrors.Internal(fmt.Errorf("build SelectChildrenCategories query: %w", err))
 	}
 
 	rows, err := tx.Query(ctx, query, args...)
 	if err != nil {
-		return fmt.Errorf("%s: %w", "Query", err)
+		return apperrors.Internal(fmt.Errorf("execute SelectChildrenCategories query: %w", err))
 	}
 
 	for rows.Next() {
 		childID := 0
 		err = rows.Scan(&childID)
 		if err != nil {
-			return fmt.Errorf("children scanning: %w", err)
+			return apperrors.Internal(fmt.Errorf("scan category's children: %w", err))
 		}
 		if childID != 0 {
 			err = r.UpdateCategory(ctx, uint(childID),
@@ -220,7 +220,7 @@ func (r *CategoryPostgres) DeleteCategoryByID(ctx context.Context, id uint) erro
 					"parent_id": category.ParentID,
 				})
 			if err != nil {
-				return fmt.Errorf("failed to update category: %w", err)
+				return err
 			}
 		}
 	}
@@ -228,21 +228,21 @@ func (r *CategoryPostgres) DeleteCategoryByID(ctx context.Context, id uint) erro
 	deletePsql := queries.DeleteCategory(id)
 	query, args, err = deletePsql.ToSql()
 	if err != nil {
-		return fmt.Errorf("%s: %w", "ToSql", err)
+		return apperrors.Internal(fmt.Errorf("build DeleteCategory query: %w", err))
 	}
 
 	result, err := tx.Exec(ctx, query, args...)
 	if err != nil {
-		return fmt.Errorf("%s: %w", "Exec", err)
+		return fmt.Errorf("execute DeleteCategory query: %w", err)
 	}
 
 	if result.RowsAffected() == 0 {
-		return errors.New("failed to delete category: no such category")
+		return apperrors.BadRequest("no such category", errors.New("failed to delete category: no such category"))
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		return fmt.Errorf("commit: %w", err)
+		return apperrors.Internal(fmt.Errorf("commit DeleteCategoryByID transaction: %w", err))
 	}
 	return nil
 }
@@ -256,7 +256,7 @@ func (r *CategoryPostgres) GetCategoryID(ctx context.Context, tx pgx.Tx, ctgName
 	psql := queries.SelectCategoryByName(ctgName)
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return 0, fmt.Errorf("%s: %w", "ToSql", err)
+		return 0, apperrors.Internal(fmt.Errorf("build SelectCategoryByName query: %w", err))
 	}
 
 	var row pgx.Row
@@ -269,7 +269,7 @@ func (r *CategoryPostgres) GetCategoryID(ctx context.Context, tx pgx.Tx, ctgName
 	var categoryID uint
 	if err = row.Scan(&categoryID); err != nil {
 		if !errors.Is(err, pgx.ErrNoRows) {
-			return 0, apperrors.Internal(fmt.Errorf("QueryRow: %w", err))
+			return 0, apperrors.Internal(fmt.Errorf("scan category ID from row: %w", err))
 		}
 	}
 
