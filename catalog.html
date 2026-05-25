@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Каталог пива | ПивоКаталог</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;700&family=Mulish:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="components/styles.css">
+</head>
+<body>
+<div class="app">
+    <nav class="navbar">
+        <a href="catalog.html" class="nav-logo">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 11H6a4 4 0 0 0 0 8h11"/><path d="M17 11a4 4 0 0 1 0 8"/>
+                <path d="M10 3v5a2 2 0 0 0 2 2h0"/><path d="M14 3v5a2 2 0 0 0-2 2"/>
+            </svg>
+            ПивоКаталог
+        </a>
+        <div class="nav-links">
+            <a href="catalog.html" class="nav-link active">Каталог</a>
+            <a href="promotions.html" class="nav-link">Акции</a>
+            <a href="order-info.html" class="nav-link">Как заказать</a>
+            <a href="contacts.html" class="nav-link">Контакты</a>
+        </div>
+        <div>
+            <button class="admin-login-btn" id="adminBtn" onclick="handleAdminClick()">🔐 Вход для админа</button>
+        </div>
+    </nav>
+
+    <main class="main">
+        <div class="catalog-layout">
+            <aside class="sidebar">
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Категории</div>
+                    <div class="tree-item" data-cat="Лагер" onclick="selectCat(this, 'Лагер')">Лагер <span class="tree-cnt">120</span></div>
+                    <div class="tree-item" data-cat="Эль" onclick="selectCat(this, 'Эль')">Эль <span class="tree-cnt">85</span></div>
+                    <div class="tree-sub">
+                        <div class="tree-item" data-cat="IPA" onclick="selectCat(this, 'IPA')">IPA <span class="tree-cnt">42</span></div>
+                        <div class="tree-item" data-cat="Пейл эль" onclick="selectCat(this, 'Пейл эль')">Пейл эль <span class="tree-cnt">28</span></div>
+                        <div class="tree-item" data-cat="Сэзон" onclick="selectCat(this, 'Сэзон')">Сэзон <span class="tree-cnt">15</span></div>
+                    </div>
+                    <div class="tree-item" data-cat="Пшеничное" onclick="selectCat(this, 'Пшеничное')">Пшеничное <span class="tree-cnt">34</span></div>
+                    <div class="tree-item" data-cat="Стаут" onclick="selectCat(this, 'Стаут')">Стаут <span class="tree-cnt">19</span></div>
+                    <div class="tree-item" data-cat="Портер" onclick="selectCat(this, 'Портер')">Портер <span class="tree-cnt">11</span></div>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Крепость (% ABV)</div>
+                    <div class="range-wrapper">
+                        <div class="range-row">
+                            <input type="range" min="0" max="20" value="0" id="abv-min" step="0.5">
+                            <span class="range-val" id="abv-min-val">0%</span>
+                        </div>
+                        <div class="range-row">
+                            <input type="range" min="0" max="20" value="20" id="abv-max" step="0.5">
+                            <span class="range-val" id="abv-max-val">20%</span>
+                        </div>
+                        <div class="range-bounds"><span>0%</span><span>20%</span></div>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Горечь (IBU)</div>
+                    <div class="range-wrapper">
+                        <div class="range-row">
+                            <input type="range" min="0" max="120" value="0" id="ibu-min">
+                            <span class="range-val" id="ibu-min-val">0</span>
+                        </div>
+                        <div class="range-row">
+                            <input type="range" min="0" max="120" value="120" id="ibu-max">
+                            <span class="range-val" id="ibu-max-val">120</span>
+                        </div>
+                        <div class="range-bounds"><span>0</span><span>120</span></div>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Страна</div>
+                    <label class="check-row"><input type="checkbox" value="Бельгия" class="country-filter" checked> Бельгия</label>
+                    <label class="check-row"><input type="checkbox" value="Германия" class="country-filter" checked> Германия</label>
+                    <label class="check-row"><input type="checkbox" value="США" class="country-filter"> США</label>
+                    <label class="check-row"><input type="checkbox" value="Чехия" class="country-filter"> Чехия</label>
+                    <label class="check-row"><input type="checkbox" value="Россия" class="country-filter"> Россия</label>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Стиль</div>
+                    <label class="check-row"><input type="checkbox" value="IPA" class="style-filter" checked> IPA</label>
+                    <label class="check-row"><input type="checkbox" value="Пейл эль" class="style-filter"> Пейл эль</label>
+                    <label class="check-row"><input type="checkbox" value="Сэзон" class="style-filter"> Сэзон</label>
+                    <label class="check-row"><input type="checkbox" value="Трапист" class="style-filter"> Трапист</label>
+                    <label class="check-row"><input type="checkbox" value="Стаут" class="style-filter"> Стаут</label>
+                </div>
+
+                <!-- КНОПКА НАЙТИ -->
+                <button class="search-btn" onclick="applyFilters()">🔍 Найти пиво</button>
+                <button class="reset-filters" onclick="resetFilters()">⟳ Сбросить все фильтры</button>
+                <div class="filter-summary" id="filter-summary"></div>
+            </aside>
+
+            <div>
+                <div class="content-header">
+                    <div class="breadcrumb">
+                        <a href="catalog.html">Все</a>
+                        <span class="sep">›</span>
+                        <span id="cat-label" style="font-weight:600">Все сорта</span>
+                    </div>
+                    <span class="result-count" id="result-count">7 сортов</span>
+                </div>
+                <div class="beer-grid" id="beer-grid"></div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div class="modal-overlay" id="admin-login-modal">
+    <div class="modal">
+        <button class="modal-close" onclick="closeAdminModal()">✕</button>
+        <div class="modal-title">🔐 Вход в админ-панель</div>
+        <div class="form-row">
+            <label class="form-label">Логин</label>
+            <input type="text" class="form-input" id="admin-login" placeholder="admin" autocomplete="off">
+        </div>
+        <div class="form-row">
+            <label class="form-label">Пароль</label>
+            <input type="password" class="form-input" id="admin-password" placeholder="********">
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" onclick="closeAdminModal()">Отмена</button>
+            <button class="btn btn-primary" onclick="checkAdminLogin()">Войти</button>
+        </div>
+        <div class="admin-hint" style="margin-top: 16px; font-size: 11px; color: var(--text-hint); text-align: center;">
+            Тестовые данные: admin / admin123
+        </div>
+    </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+    let currentCategory = 'Все';
+
+    // Функция применения фильтров
+    function applyFilters() {
+        const abvMin = parseFloat(document.getElementById('abv-min').value);
+        const abvMax = parseFloat(document.getElementById('abv-max').value);
+        const ibuMin = parseInt(document.getElementById('ibu-min').value);
+        const ibuMax = parseInt(document.getElementById('ibu-max').value);
+
+        const selectedCountries = Array.from(document.querySelectorAll('.country-filter:checked')).map(cb => cb.value);
+        const selectedStyles = Array.from(document.querySelectorAll('.style-filter:checked')).map(cb => cb.value);
+
+        // Фильтрация BEERS
+        let filtered = BEERS.filter(beer => {
+            const abv = parseFloat(beer.abv);
+            const ibu = beer.ibu;
+
+            // Фильтр по крепости
+            if (abv < abvMin || abv > abvMax) return false;
+
+            // Фильтр по горечи
+            if (ibu < ibuMin || ibu > ibuMax) return false;
+
+            // Фильтр по стране
+            if (!selectedCountries.includes(beer.country)) return false;
+
+            // Фильтр по стилю
+            if (!selectedStyles.includes(beer.style)) return false;
+
+            return true;
+        });
+
+        renderFilteredGrid(filtered);
+
+        // Обновляем счетчик
+        document.getElementById('result-count').textContent = filtered.length + ' ' + getWordForm(filtered.length, ['сорт', 'сорта', 'сортов']);
+
+        // Обновляем текст с суммой фильтров
+        updateFilterSummary(selectedCountries, selectedStyles, abvMin, abvMax, ibuMin, ibuMax);
+    }
+
+    function getWordForm(n, forms) {
+        n = Math.abs(n) % 100;
+        const n1 = n % 10;
+        if (n > 10 && n < 20) return forms[2];
+        if (n1 > 1 && n1 < 5) return forms[1];
+        if (n1 === 1) return forms[0];
+        return forms[2];
+    }
+
+    function updateFilterSummary(countries, styles, abvMin, abvMax, ibuMin, ibuMax) {
+        const summaryEl = document.getElementById('filter-summary');
+        const parts = [];
+        if (abvMin > 0 || abvMax < 20) parts.push(`крепость ${abvMin}–${abvMax}%`);
+        if (ibuMin > 0 || ibuMax < 120) parts.push(`горечь ${ibuMin}–${ibuMax} IBU`);
+        if (countries.length > 0 && countries.length < 6) parts.push(`страны: ${countries.join(', ')}`);
+        if (styles.length > 0 && styles.length < 5) parts.push(`стили: ${styles.join(', ')}`);
+
+        if (parts.length > 0) {
+            summaryEl.textContent = `⚡ Фильтры: ${parts.join(' · ')}`;
+        } else {
+            summaryEl.textContent = '';
+        }
+    }
+
+    function renderFilteredGrid(beers) {
+        const grid = document.getElementById('beer-grid');
+        if (beers.length === 0) {
+            grid.innerHTML = `<div class="no-results">🍺 Ничего не найдено<br><span style="font-size:12px">Попробуйте изменить параметры поиска</span></div>`;
+            return;
+        }
+        grid.innerHTML = beers.map(beer => `
+      <a href="beer-detail.html?id=${beer.id}" class="beer-card">
+        <div class="beer-thumb">${beer.emoji}</div>
+        <div class="beer-name">${beer.name}</div>
+        <div class="beer-sub">${beer.country} · ${beer.abv}% · ${beer.ibu} IBU</div>
+        <div class="beer-tag">${beer.style}</div>
+      </a>
+    `).join('');
+    }
+
+    function renderBeerGrid() {
+        renderFilteredGrid(BEERS);
+        document.getElementById('result-count').textContent = BEERS.length + ' ' + getWordForm(BEERS.length, ['сорт', 'сорта', 'сортов']);
+    }
+
+    function selectCat(el, name) {
+        document.querySelectorAll('.tree-item').forEach(item => item.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById('cat-label').textContent = name;
+        currentCategory = name;
+
+        // При выборе категории сбрасываем фильтры стилей и применяем фильтр по категории
+        if (name !== 'Все') {
+            // Снимаем все галочки со стилей
+            document.querySelectorAll('.style-filter').forEach(cb => cb.checked = false);
+            // Ставим галочку на выбранном стиле, если он есть в списке
+            const styleCheckbox = Array.from(document.querySelectorAll('.style-filter')).find(cb => cb.value === name);
+            if (styleCheckbox) styleCheckbox.checked = true;
+        }
+
+        applyFilters();
+    }
+
+    function updateRange() {
+        const abvMin = document.getElementById('abv-min').value;
+        const abvMax = document.getElementById('abv-max').value;
+        const ibuMin = document.getElementById('ibu-min').value;
+        const ibuMax = document.getElementById('ibu-max').value;
+
+        document.getElementById('abv-min-val').textContent = abvMin + '%';
+        document.getElementById('abv-max-val').textContent = abvMax + '%';
+        document.getElementById('ibu-min-val').textContent = ibuMin;
+        document.getElementById('ibu-max-val').textContent = ibuMax;
+    }
+
+    function resetFilters() {
+        // Сброс крепости
+        document.getElementById('abv-min').value = 0;
+        document.getElementById('abv-max').value = 20;
+        // Сброс горечи
+        document.getElementById('ibu-min').value = 0;
+        document.getElementById('ibu-max').value = 120;
+        // Сброс стран (все галочки)
+        document.querySelectorAll('.country-filter').forEach(cb => cb.checked = false);
+        document.querySelectorAll('.country-filter').forEach(cb => {
+            if (cb.value === 'Бельгия' || cb.value === 'Германия') cb.checked = true;
+        });
+        // Сброс стилей (все галочки)
+        document.querySelectorAll('.style-filter').forEach(cb => cb.checked = true);
+        // Сброс активной категории
+        document.querySelectorAll('.tree-item').forEach(item => item.classList.remove('active'));
+        document.getElementById('cat-label').textContent = 'Все сорта';
+        currentCategory = 'Все';
+
+        updateRange();
+        applyFilters();
+    }
+
+    // Добавляем слушатели на слайдеры для实时ного обновления (опционально)
+    function initRangeListeners() {
+        const ranges = ['abv-min', 'abv-max', 'ibu-min', 'ibu-max'];
+        ranges.forEach(id => {
+            document.getElementById(id).addEventListener('input', updateRange);
+        });
+    }
+
+    // АДМИНКА
+    function handleAdminClick() {
+        const isLoggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
+        if (isLoggedIn) {
+            window.location.href = 'admin-params.html';
+        } else {
+            document.getElementById('admin-login-modal').classList.add('open');
+        }
+    }
+
+    function closeAdminModal() {
+        document.getElementById('admin-login-modal').classList.remove('open');
+    }
+
+    function checkAdminLogin() {
+        const login = document.getElementById('admin-login').value.trim();
+        const password = document.getElementById('admin-password').value;
+
+        if (login === 'admin' && password === 'admin123') {
+            localStorage.setItem('isAdminLoggedIn', 'true');
+            closeAdminModal();
+            const adminBtn = document.getElementById('adminBtn');
+            adminBtn.innerHTML = '⚙️ Админ-панель';
+            adminBtn.classList.add('admin-panel-btn');
+            showToast('Добро пожаловать в админ-панель!', 'success');
+        } else {
+            showToast('Неверный логин или пароль', 'error');
+        }
+    }
+
+    function showToast(msg, type) {
+        let toast = document.getElementById('custom-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'custom-toast';
+            toast.className = 'toast';
+            toast.innerHTML = '<span id="toast-msg"></span>';
+            document.body.appendChild(toast);
+        }
+        document.getElementById('toast-msg').textContent = msg;
+        toast.className = 'toast show ' + (type || '');
+        setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    function showAdminPanelMenu() {
+        const adminBtn = document.getElementById('adminBtn');
+        adminBtn.innerHTML = '⚙️ Админ-панель';
+        adminBtn.classList.add('admin-panel-btn');
+        adminBtn.onclick = () => {
+            window.location.href = 'admin-params.html';
+        };
+    }
+
+    // Проверяем статус админа при загрузке
+    if (localStorage.getItem('isAdminLoggedIn') === 'true') {
+        const adminBtn = document.getElementById('adminBtn');
+        adminBtn.innerHTML = '⚙️ Админ-панель';
+        adminBtn.classList.add('admin-panel-btn');
+        adminBtn.onclick = () => {
+            window.location.href = 'admin-params.html';
+        };
+    }
+
+    // Инициализация
+    initRangeListeners();
+    updateRange();
+    renderBeerGrid();
+
+    // Закрытие модалки по клику на overlay
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) overlay.classList.remove('open');
+        });
+    });
+</script>
+</body>
+</html>

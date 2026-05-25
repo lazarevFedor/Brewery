@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Контакты | ПивоКаталог</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;700&family=Mulish:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="contacts.css">
+    <link rel="stylesheet" href="main.css">
+
+
+</head>
+<body>
+<div class="app">
+    <nav class="navbar">
+        <a href="catalog.html" class="nav-logo">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 11H6a4 4 0 0 0 0 8h11"/><path d="M17 11a4 4 0 0 1 0 8"/>
+                <path d="M10 3v5a2 2 0 0 0 2 2h0"/><path d="M14 3v5a2 2 0 0 0-2 2"/>
+            </svg>
+            ПивоКаталог
+        </a>
+        <div class="nav-links">
+            <a href="catalog.html" class="nav-link">Каталог</a>
+            <a href="promotions.html" class="nav-link">Акции</a>
+            <a href="order-info.html" class="nav-link">Как заказать</a>
+            <a href="contacts.html" class="nav-link active">Контакты</a>
+        </div>
+        <div>
+            <button class="admin-login-btn" id="adminBtn" onclick="handleAdminClick()">🔐 Вход для админа</button>
+        </div>
+    </nav>
+
+    <main class="main">
+        <div style="text-align:center; margin-bottom:2rem"><h1 style="font-size:32px">📞 Контакты</h1><p>Свяжитесь с нами любым удобным способом</p></div>
+
+        <div class="contacts-grid">
+            <div class="contact-card"><div class="contact-icon">📍</div><h3>Адрес</h3><p>г. Москва, ул. Пивная, д. 1<br>ТЦ "Пивной Дом", 3 этаж</p></div>
+            <div class="contact-card"><div class="contact-icon">📞</div><h3>Телефон</h3><p>+7 (495) 123-45-67<br>+7 (800) 555-35-35</p>
+                <div class="order-phone"><a href="tel:+74951234567">📞 Позвонить и заказать</a></div>
+            </div>
+            <div class="contact-card"><div class="contact-icon">✉️</div><h3>Email</h3><p>info@beer-catalog.ru<br>order@beer-catalog.ru</p>
+                <div class="order-phone"><a href="mailto:order@beer-catalog.ru">✉️ Написать для заказа</a></div>
+            </div>
+            <div class="contact-card"><div class="contact-icon">🕐</div><h3>Часы работы</h3><p>Пн-Пт: 10:00 – 20:00<br>Сб-Вс: 11:00 – 18:00</p></div>
+        </div>
+
+        <div class="map-placeholder">🗺️ Карта проезда (интерактивная карта)</div>
+    </main>
+</div>
+
+<!-- Модальное окно для входа в админку -->
+<div class="modal-overlay" id="admin-login-modal">
+    <div class="modal">
+        <button class="modal-close" onclick="closeAdminModal()">✕</button>
+        <div class="modal-title">🔐 Вход в админ-панель</div>
+        <div class="form-row"><label class="form-label">Логин</label><input type="text" class="form-input" id="admin-login" placeholder="admin"></div>
+        <div class="form-row"><label class="form-label">Пароль</label><input type="password" class="form-input" id="admin-password" placeholder="********"></div>
+        <div class="modal-footer"><button class="btn btn-ghost" onclick="closeAdminModal()">Отмена</button><button class="btn btn-primary" onclick="checkAdminLogin()">Войти</button></div>
+        <div style="margin-top:16px; font-size:11px; text-align:center">Тестовые данные: admin / admin123</div>
+    </div>
+</div>
+
+<script>
+    function handleAdminClick() {
+        const isLoggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
+        if (isLoggedIn) {
+            window.location.href = 'admin-params.html';
+        } else {
+            document.getElementById('admin-login-modal').classList.add('open');
+        }
+    }
+    function closeAdminModal() { document.getElementById('admin-login-modal').classList.remove('open'); }
+    function checkAdminLogin() {
+        const login = document.getElementById('admin-login').value.trim();
+        const password = document.getElementById('admin-password').value;
+        if (login === 'admin' && password === 'admin123') {
+            localStorage.setItem('isAdminLoggedIn', 'true');
+            closeAdminModal();
+            const btn = document.getElementById('adminBtn');
+            btn.innerHTML = '⚙️ Админ-панель';
+            btn.classList.add('admin-panel-btn');
+            alert('Вход выполнен!');
+        } else { alert('Неверный логин или пароль'); }
+    }
+    if (localStorage.getItem('isAdminLoggedIn') === 'true') {
+        const btn = document.getElementById('adminBtn');
+        btn.innerHTML = '⚙️ Админ-панель';
+        btn.classList.add('admin-panel-btn');
+    }
+    document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if(e.target === o) o.classList.remove('open'); }));
+</script>
+</body>
+</html>
