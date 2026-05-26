@@ -1,4 +1,4 @@
-// src/router.js
+// src/router.jsx
 import { renderCatalog } from './pages/catalog.jsx'
 import { renderDetail } from './pages/beerDetail.jsx'
 // import { renderSearch } from './pages/search.js'

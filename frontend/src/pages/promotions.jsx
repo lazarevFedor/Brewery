@@ -1,4 +1,4 @@
-import './styles/promotions.css'
+import '../styles/promotions.css'
 
 const promotions = [
     { id: 1, icon: '🎄', discount: '-25%', badge: 'Сезонная', title: 'Новогодний сет', desc: 'При покупке от 3 литров — скидка 25% на весь заказ.', date: 'до 15 января 2026', code: 'НОВЫЙГОД25' },

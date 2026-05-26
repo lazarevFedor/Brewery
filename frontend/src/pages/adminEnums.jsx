@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { enumApi, enumValueApi } from '../api/client'
 import { useToast } from '../hooks/useToast'
 import { Modal } from '../components/Modal'
-import './styles/admin.css'
+import '../styles/admin.css'
 
 export function AdminEnums() {
     const [classes, setClasses] = useState([])
@@ -62,9 +62,12 @@ export function AdminEnums() {
     const handleAddValue = async () => {
         if (!selectedClass || !newValue.trim()) return
         try {
+            const valueType = ['int', 'float'].includes(selectedClass.enum_type)
+                ? selectedClass.enum_type
+                : 'string'
             await enumValueApi.create({
                 class_id: selectedClass.id,
-                enum_type: selectedClass.enum_type,
+                enum_type: valueType,
                 value: newValue,
                 position: values.length + 1,
             })

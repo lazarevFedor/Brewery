@@ -1,20 +1,18 @@
 import { useState, useEffect } from 'react'
-import { categoriesApi, parametersApi, aggregatesApi } from '../api/client'
+import { categoriesApi } from '../api/client'
 import { useToast } from '../hooks/useToast'
 import { Modal } from '../components/Modal'
-import './styles/admin.css'
+import '../styles/admin.css'
 
 export function AdminCategories() {
     const [categories, setCategories] = useState([])
-    const [selectedCategory, setSelectedCategory] = useState(null)
+    const [path, setPath] = useState([])          // breadcrumb: [{id, name}]
     const [modalOpen, setModalOpen] = useState(false)
     const [newCategoryName, setNewCategoryName] = useState('')
     const [newParentId, setNewParentId] = useState(null)
     const { showToast } = useToast()
 
-    useEffect(() => {
-        loadCategories()
-    }, [])
+    useEffect(() => { loadCategories() }, [])
 
     const loadCategories = async () => {
         try {
@@ -25,12 +23,22 @@ export function AdminCategories() {
         }
     }
 
+    const currentParentId = path.length > 0 ? path[path.length - 1].id : null
+
+    const visibleChildren = categories.filter(c =>
+        currentParentId === null ? !c.parent_id : c.parent_id === currentParentId
+    )
+
+    const enterCategory = (cat) => setPath([...path, { id: cat.id, name: cat.name }])
+    const goToLevel = (idx) => setPath(path.slice(0, idx + 1))
+    const goToRoot = () => setPath([])
+
     const handleCreate = async () => {
         if (!newCategoryName.trim()) return
         try {
             await categoriesApi.create({
                 name: newCategoryName,
-                parent_id: newParentId || null,
+                parent_id: newParentId ?? (currentParentId ?? null),
             })
             showToast('Категория создана', 'success')
             setModalOpen(false)
@@ -42,7 +50,8 @@ export function AdminCategories() {
         }
     }
 
-    const handleDelete = async (id) => {
+    const handleDelete = async (id, e) => {
+        e.stopPropagation()
         if (!confirm('Удалить категорию?')) return
         try {
             await categoriesApi.delete(id)
@@ -53,65 +62,88 @@ export function AdminCategories() {
         }
     }
 
-    const renderTree = (parentId = null, level = 0) => {
-        const children = categories.filter(c => c.parent_id === parentId)
-        if (children.length === 0) return null
-        return children.map(cat => (
-            <div key={cat.id} style={{ marginLeft: `${level * 20}px` }} className="tree-item" onClick={() => setSelectedCategory(cat)}>
-                {cat.name} <span className="tree-cnt">{categories.filter(c => c.parent_id === cat.id).length}</span>
-                <button className="icon-btn del" onClick={(e) => { e.stopPropagation(); handleDelete(cat.id) }} style={{ marginLeft: 'auto' }}>🗑</button>
-                {renderTree(cat.id, level + 1)}
-            </div>
-        ))
-    }
+    const childCount = (id) => categories.filter(c => c.parent_id === id).length
 
     return (
         <div>
             <div className="admin-header">
                 <div>
                     <div className="admin-title">Категории</div>
-                    <div className="admin-sub">Управление иерархией категорий</div>
+                    <div className="admin-sub">{categories.length} категорий всего</div>
                 </div>
-                <button className="btn btn-primary" onClick={() => setModalOpen(true)}>+ Новая категория</button>
+                <button className="btn btn-primary" onClick={() => { setNewParentId(currentParentId); setModalOpen(true) }}>
+                    + Новая категория
+                </button>
             </div>
 
-            <div className="table-wrap" style={{ padding: '16px' }}>
-                <div className="enum-list">
-                    <div className="tree-item" onClick={() => setSelectedCategory({ id: null, name: 'Корень', parent_id: null })}>
-                        📁 Корень
-                    </div>
-                    {renderTree(null)}
-                </div>
+            {/* Breadcrumb */}
+            <div className="breadcrumb" style={{ marginBottom: '12px' }}>
+                <a style={{ cursor: 'pointer', color: 'var(--blue)' }} onClick={goToRoot}>Все категории</a>
+                {path.map((p, i) => (
+                    <span key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span className="sep">›</span>
+                        {i < path.length - 1
+                            ? <a style={{ cursor: 'pointer', color: 'var(--blue)' }} onClick={() => goToLevel(i)}>{p.name}</a>
+                            : <span style={{ fontWeight: 600 }}>{p.name}</span>
+                        }
+                    </span>
+                ))}
             </div>
 
-            {selectedCategory && (
-                <div style={{ marginTop: '24px' }}>
-                    <div className="admin-header">
-                        <div>
-                            <div className="admin-title">Параметры категории: {selectedCategory.name}</div>
-                            <div className="admin-sub">Наследуемые параметры будут применены автоматически</div>
-                        </div>
-                    </div>
-                    <div className="table-wrap">
-                        <table>
-                            <thead><tr><th>Параметр</th><th>Тип</th><th>Значение</th><th>Источник</th></tr></thead>
-                            <tbody>
-                            <tr><td colSpan="4" style={{ textAlign: 'center', color: '#999' }}>Выберите категорию для просмотра параметров</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
+            {/* Category list */}
+            <div className="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Название</th>
+                            <th style={{ width: 80, textAlign: 'center' }}>Подкатегорий</th>
+                            <th style={{ width: 40 }}></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {visibleChildren.length === 0 && (
+                            <tr><td colSpan={3} style={{ textAlign: 'center', color: 'var(--text-hint)', padding: '24px' }}>
+                                Нет категорий на этом уровне
+                            </td></tr>
+                        )}
+                        {visibleChildren.map(cat => (
+                            <tr key={cat.id} style={{ cursor: childCount(cat.id) > 0 ? 'pointer' : 'default' }}
+                                onClick={() => childCount(cat.id) > 0 && enterCategory(cat)}>
+                                <td>
+                                    <span style={{ fontWeight: 500 }}>{cat.name}</span>
+                                    {childCount(cat.id) > 0 && (
+                                        <span style={{ marginLeft: 8, fontSize: 11, color: 'var(--blue)' }}>
+                                            открыть подкатегории →
+                                        </span>
+                                    )}
+                                </td>
+                                <td style={{ textAlign: 'center' }}>
+                                    {childCount(cat.id) > 0
+                                        ? <span className="badge badge-numeric">{childCount(cat.id)}</span>
+                                        : <span style={{ color: 'var(--text-hint)', fontSize: 12 }}>—</span>
+                                    }
+                                </td>
+                                <td>
+                                    <button className="icon-btn del" onClick={(e) => handleDelete(cat.id, e)}>🗑</button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
 
             <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title="Новая категория">
                 <div className="form-row">
-                    <label className="form-label">Название категории</label>
-                    <input type="text" className="form-input" value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} />
+                    <label className="form-label">Название</label>
+                    <input type="text" className="form-input" value={newCategoryName}
+                        autoFocus
+                        onChange={(e) => setNewCategoryName(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleCreate()} />
                 </div>
                 <div className="form-row">
                     <label className="form-label">Родительская категория</label>
-                    <select className="form-select" value={newParentId || ''} onChange={(e) => setNewParentId(e.target.value ? parseInt(e.target.value) : null)}>
-                        <option value="">Корневая категория</option>
+                    <select className="form-select" value={newParentId ?? ''} onChange={(e) => setNewParentId(e.target.value ? parseInt(e.target.value) : null)}>
+                        <option value="">Корневая</option>
                         {categories.map(cat => (
                             <option key={cat.id} value={cat.id}>{cat.name}</option>
                         ))}

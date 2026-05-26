@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import './styles/order-info.css'
+import '../styles/order-info.css'
 
 export function OrderInfo() {
   const [openFaq, setOpenFaq] = useState(null)

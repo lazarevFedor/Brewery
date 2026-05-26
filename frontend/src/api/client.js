@@ -1,9 +1,17 @@
-const BASE = import.meta.env.VITE_API_URL ?? ''
+const BASE = import.meta.env.VITE_API_URL ?? '/api'
 
-async function request(method, path, body) {
-  const res = await fetch(BASE + path, {
+async function request(method, path, body, token = null) {
+  const url = BASE + path
+  console.log('Request:', method, url)
+
+  const headers = { 'Content-Type': 'application/json' }
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
+  const res = await fetch(url, {
     method,
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: body ? JSON.stringify(body) : undefined,
   })
 
@@ -26,67 +34,85 @@ async function request(method, path, body) {
   }
 }
 
-export const http = {
-  get: (path) => request('GET', path),
-  post: (path, body) => request('POST', path, body),
-  put: (path, body) => request('PUT', path, body),
-  patch: (path, body) => request('PATCH', path, body),
-  delete: (path) => request('DELETE', path),
+// Сохранение токена
+let adminToken = localStorage.getItem('admin_token')
+export const setToken = (token) => {
+  adminToken = token
+  if (token) localStorage.setItem('admin_token', token)
+  else localStorage.removeItem('admin_token')
 }
+export const getToken = () => adminToken
 
-// Фильтры для каталога
-export function buildFilters(params) {
-  const filters = []
-  if (params.abv_min !== undefined) filters.push(`abv:gte:${params.abv_min}`)
-  if (params.abv_max !== undefined) filters.push(`abv:lte:${params.abv_max}`)
-  if (params.ibu_min !== undefined) filters.push(`ibu:gte:${params.ibu_min}`)
-  if (params.ibu_max !== undefined) filters.push(`ibu:lte:${params.ibu_max}`)
-  if (params.countries?.length) filters.push(`country:in:${params.countries.join(',')}`)
-  if (params.styles?.length) filters.push(`style:in:${params.styles.join(',')}`)
-  return filters
-}
-
-// Авторизация
+// Auth
 export const auth = {
-  login: (password) => {
-    if (password === 'admin123') {
-      localStorage.setItem('admin_token', 'dummy-token')
-      return Promise.resolve(true)
+  login: async (username, password) => {
+    const res = await fetch(`${BASE}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.message || 'Ошибка авторизации')
     }
-    return Promise.reject(new Error('Неверный пароль'))
+    const data = await res.json()
+    if (data.token) {
+      setToken(data.token)
+      return true
+    }
+    throw new Error('Токен не получен')
   },
-  logout: () => localStorage.removeItem('admin_token'),
-  isAuthenticated: () => localStorage.getItem('admin_token') !== null,
+  logout: () => setToken(null),
+  isAuthenticated: () => !!getToken(),
 }
 
-// Категории
+// Categories
 export const categoriesApi = {
-  getAll: () => http.get('/categories'),
-  getById: (id) => http.get(`/categories/${id}`),
-  create: (data) => http.post('/categories', data),
-  update: (id, data) => http.patch(`/categories/${id}`, data),
-  delete: (id) => http.delete(`/categories/${id}`),
+  getAll: () => request('GET', '/categories'),
+  getById: (id) => request('GET', `/categories/${id}`),
+  getChildren: (id) => request('GET', `/categories/children/${id}`),
+  getParent: (id) => request('GET', `/categories/parent/${id}`),
+  create: (data) => request('POST', '/categories', data, getToken()),
+  update: (id, data) => request('PATCH', `/categories/${id}`, data, getToken()),
+  delete: (id) => request('DELETE', `/categories/${id}`, null, getToken()),
 }
 
-// ENUM классы
+// Beers
+export const beersApi = {
+  getAll: (offset = 0, limit = 100) => request('GET', `/beers?offset=${offset}&limit=${limit}`),
+  getById: (id) => request('GET', `/beers/${id}`),
+  getByCategory: (categoryId, offset = 0, limit = 100) =>
+      request('GET', `/categories/beers/${categoryId}?offset=${offset}&limit=${limit}`),
+  create: (data) => request('POST', '/beers', data, getToken()),
+  update: (id, data) => request('PATCH', `/beers/${id}`, data, getToken()),
+  delete: (id) => request('DELETE', `/beers/${id}`, null, getToken()),
+}
+
+// Reviews
+export const reviewsApi = {
+  getByBeerId: (beerId) => request('GET', `/reviews/${beerId}`),
+  create: (beerId, data) => request('POST', `/reviews/${beerId}`, data),
+  update: (id, data) => request('PATCH', `/reviews/${id}`, data, getToken()),
+  delete: (id) => request('DELETE', `/reviews/${id}`, null, getToken()),
+}
+
+// Остальные API...
 export const enumApi = {
   getAll: (entityName = '', fieldName = '') =>
-      http.get(`/enums?entity_name=${entityName}&field_name=${fieldName}`),
-  create: (data) => http.post('/enums', data),
-  update: (id, data) => http.patch(`/enums/${id}`, data),
-  delete: (id) => http.delete(`/enums/${id}`),
+      request('GET', `/enums?entity_name=${entityName}&field_name=${fieldName}`, null, getToken()),
+  create: (data) => request('POST', '/enums', data, getToken()),
+  update: (id, data) => request('PATCH', `/enums/${id}`, data, getToken()),
+  delete: (id) => request('DELETE', `/enums/${id}`, null, getToken()),
 }
 
-// ENUM значения
 export const enumValueApi = {
   getAll: (entityName = '', fieldName = '', enumType = '') =>
-      http.get(`/enums/value?entity_name=${entityName}&field_name=${fieldName}&enum_type=${enumType}`),
-  create: (data) => http.post('/enums/value', data),
-  update: (id, data) => http.patch(`/enums/value/${id}`, data),
-  delete: (id) => http.delete(`/enums/value/${id}`),
+      request('GET', `/enums/value?entity_name=${entityName}&field_name=${fieldName}&enum_type=${enumType}`, null, getToken()),
+  create: (data) => request('POST', '/enums/value', data, getToken()),
+  update: (id, data) => request('PATCH', `/enums/value/${id}`, data, getToken()),
+  delete: (id) => request('DELETE', `/enums/value/${id}`, null, getToken()),
 }
 
-// Параметры категорий
 export const parametersApi = {
   getAll: (categoryId = null, type = null) => {
     let url = '/categories/parameters'
@@ -95,21 +121,23 @@ export const parametersApi = {
     if (type) params.append('type', type)
     const query = params.toString()
     if (query) url += `?${query}`
-    return http.get(url)
+    return request('GET', url, null, getToken())
   },
-  createNumeric: (data) => http.post('/categories/parameters/numeric', data),
-  createEnum: (data) => http.post('/categories/parameters/enum', data),
-  deleteNumeric: (id) => http.delete(`/categories/parameters/${id}?type=numeric`),
-  deleteEnum: (id) => http.delete(`/categories/parameters/${id}?type=enum`),
+  createNumeric: (data) => request('POST', '/categories/parameters/numeric', data, getToken()),
+  createEnum: (data) => request('POST', '/categories/parameters/enum', data, getToken()),
+  deleteNumeric: (id) => request('DELETE', `/categories/parameters/${id}?type=numeric`, null, getToken()),
+  deleteEnum: (id) => request('DELETE', `/categories/parameters/${id}?type=enum`, null, getToken()),
+  applyToCategory: (categoryId, numericIds, enumIds) =>
+      request('PATCH', `/categories/parameters/apply/${categoryId}`,
+          { numeric_param_ids: numericIds, enum_param_ids: enumIds }, getToken()),
 }
 
-// Агрегаты
 export const aggregatesApi = {
-  getAll: (name = '') => http.get(`/aggregates?name=${name}`),
-  getById: (id) => http.get(`/aggregates/${id}`),
-  create: (data) => http.post('/aggregates', data),
-  update: (id, data) => http.patch(`/aggregates/${id}`, data),
-  delete: (id) => http.delete(`/aggregates/${id}`),
+  getAll: (name = '') => request('GET', `/aggregates?name=${name}`, null, getToken()),
+  getById: (id) => request('GET', `/aggregates/${id}`, null, getToken()),
+  create: (data) => request('POST', '/aggregates', data, getToken()),
+  update: (id, data) => request('PATCH', `/aggregates/${id}`, data, getToken()),
+  delete: (id) => request('DELETE', `/aggregates/${id}`, null, getToken()),
   applyToCategory: (categoryId, aggregateId) =>
-      http.patch(`/aggregates/${categoryId}/apply?aggregate_id=${aggregateId}`),
+      request('PATCH', `/aggregates/apply/${categoryId}?aggregate_id=${aggregateId}`, null, getToken()),
 }

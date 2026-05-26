@@ -49,6 +49,8 @@ type BeerService interface {
 	// GetAllBeers возвращает список всех сущностей пиво.
 	GetAllBeers(ctx context.Context, limit, offset uint64) ([]entities.Beer, error)
 
+	GetBeerByID(ctx context.Context, id uint) (*entities.Beer, error) // добавить
+
 	// FilterBeer возвращает список сущностей пиво, отфильтрованных по заданным параметрам.
 	FilterBeer(ctx context.Context, filters []*entities.FilterParameter, limit, offset uint64, categoryID uint) ([]entities.Beer, error)
 
@@ -90,6 +92,20 @@ func NewBeerService(beerRepo repository.BeerRepository, categoryRepo repository.
 		enumRepo:     enumRepo,
 		paramRepo:    paramRepo,
 	}
+}
+
+// GetBeerByID реализация
+func (s *beerService) GetBeerByID(ctx context.Context, id uint) (*entities.Beer, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, fmt.Errorf("request cancelled: %w", err)
+	}
+
+	beer, err := s.beerRepo.GetBeerByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get beer: %w", err)
+	}
+
+	return beer, nil
 }
 
 // CreateCategory создает и возвращает новый узел дерева категорий.

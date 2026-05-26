@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { parametersApi, enumApi } from '../api/client'
 import { useToast } from '../hooks/useToast'
-import { Modal } from '../components/Modal'
-import './styles/admin.css'
+import { Modal } from '../components/modal'
+import '../styles/admin.css'
 
 export function AdminParams() {
     const [params, setParams] = useState([])

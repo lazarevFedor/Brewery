@@ -1,18 +1,20 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { Layout } from './components/Layout'
-import { PrivateRoute } from './components/PrivateRoute'
-import { Login } from './pages/Login'
-import { Catalog } from './pages/catalog.jsx'
-import { BeerDetail } from './pages/BeerDetail'
+import { Catalog } from './pages/catalog'
+import { BeerDetail } from './pages/beerDetail'
 import { Promotions } from './pages/Promotions'
 import { OrderInfo } from './pages/OrderInfo'
 import { Contacts } from './pages/Contacts'
+import { Login } from './pages/Login'
+import { AdminPanel } from './pages/AdminPanel'
 import { AdminParams } from './pages/AdminParams'
 import { AdminEnums } from './pages/AdminEnums'
 import { AdminCategories } from './pages/AdminCategories'
 import { AdminAggregates } from './pages/AdminAggregates'
-import { Toast } from './components/Toast'
+import { AdminBeers } from './pages/AdminBeers'
+import { Layout } from './components/Layout'
+import { PrivateRoute } from './components/PrivateRoute'
 import { ToastProvider } from './hooks/useToast'
+import { Toast } from './components/Toast'
 
 function App() {
     return (
@@ -26,12 +28,14 @@ function App() {
                     <Route path="promotions" element={<Promotions />} />
                     <Route path="order-info" element={<OrderInfo />} />
                     <Route path="contacts" element={<Contacts />} />
-
-                    <Route path="admin" element={<PrivateRoute><AdminParams /></PrivateRoute>} />
-                    <Route path="admin/params" element={<PrivateRoute><AdminParams /></PrivateRoute>} />
-                    <Route path="admin/enums" element={<PrivateRoute><AdminEnums /></PrivateRoute>} />
-                    <Route path="admin/categories" element={<PrivateRoute><AdminCategories /></PrivateRoute>} />
-                    <Route path="admin/aggregates" element={<PrivateRoute><AdminAggregates /></PrivateRoute>} />
+                    <Route path="admin" element={<PrivateRoute><AdminPanel /></PrivateRoute>}>
+                        <Route index element={<Navigate to="beers" replace />} />
+                        <Route path="beers" element={<AdminBeers />} />
+                        <Route path="params" element={<AdminParams />} />
+                        <Route path="aggregates" element={<AdminAggregates />} />
+                        <Route path="categories" element={<AdminCategories />} />
+                        <Route path="enums" element={<AdminEnums />} />
+                    </Route>
                 </Route>
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

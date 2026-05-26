@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -42,6 +43,8 @@ type BeersHandlers interface {
 
 	// DeleteFeature обрабатывает HTTP-запрос на удаление характеристики пива.
 	DeleteFeature(c *gin.Context)
+
+	GetBeerByID(c *gin.Context)
 }
 
 // beersHandlers реализует интерфейс BeersHandlers и использует сервис BeerService для обработки бизнес-логики.
@@ -54,6 +57,20 @@ func NewBeersHandlers(useCase usecase.BeerService) BeersHandlers {
 	return &beersHandlers{
 		uc: useCase,
 	}
+}
+
+func (h *beersHandlers) GetBeerByID(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+	beer, err := h.uc.GetBeerByID(c.Request.Context(), uint(id))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "beer not found"})
+		return
+	}
+	c.JSON(http.StatusOK, beer)
 }
 
 // CreateBeer обрабатывает HTTP-запрос на создание пива.

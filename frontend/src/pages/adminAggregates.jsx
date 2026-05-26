@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { aggregatesApi, parametersApi, categoriesApi } from '../api/client'
 import { useToast } from '../hooks/useToast'
 import { Modal } from '../components/Modal'
-import './styles/admin.css'
+import '../styles/admin.css'
 
 export function AdminAggregates() {
     const [aggregates, setAggregates] = useState([])
@@ -27,7 +27,7 @@ export function AdminAggregates() {
     const loadAggregates = async () => {
         try {
             const data = await aggregatesApi.getAll()
-            setAggregates(data)
+            setAggregates(data || [])
         } catch {
             showToast('Ошибка загрузки агрегатов', 'error')
         }
