@@ -5,3 +5,5 @@ deployments/pgdata
 .DS_Store
 coverage.out
 hook/
+node_modules/
+package-lock.json

@@ -1,0 +1,77 @@
+import { useState } from 'react'
+import '../styles/order-info.css'
+
+export function OrderInfo() {
+  const [openFaq, setOpenFaq] = useState(null)
+
+  const faqs = [
+    { q: 'Можно ли вернуть пиво?', a: 'Да, в течение 14 дней при сохранении товарного вида.' },
+    { q: 'Есть ли доставка в другие города?', a: 'Да, по всей России через СДЭК и Почту России.' },
+    { q: 'Как отследить заказ?', a: 'После отправки вы получите SMS и email с трек-номером.' },
+    { q: 'Нужна ли предоплата?', a: 'Предоплата не требуется для заказов по Москве.' },
+  ]
+
+  return (
+    <>
+      <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+        <h1 style={{ fontSize: '32px', marginBottom: '0.5rem' }}>📞 Как сделать заказ</h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: '16px' }}>Просто свяжитесь с нами — мы всё сделаем сами!</p>
+      </div>
+
+      <div className="order-contacts">
+        <h2>🍺 Хотите наше пиво?</h2>
+        <p>Позвоните нам или напишите на почту — и мы оформим заказ, подберём сорта и организуем доставку!</p>
+        <div className="phone-big">📞 +7 (495) 123-45-67</div>
+        <div className="email-big">✉️ order@beer-catalog.ru</div>
+        <div className="order-note">💡 Наш менеджер поможет выбрать пиво под ваш вкус, рассчитает стоимость и согласует удобное время доставки.</div>
+      </div>
+
+      <div className="steps-container">
+        {['📞', '🍺', '✅', '🚚'].map((icon, i) => (
+          <div key={i} className="step">
+            <div className="step-number">{i + 1}</div>
+            <div className="step-icon">{icon}</div>
+            <div className="step-title">
+              {['Позвоните или напишите', 'Выберите пиво', 'Подтверждение заказа', 'Доставка'][i]}
+            </div>
+            <div className="step-desc">
+              {['Свяжитесь с нами по телефону или email', 'Менеджер поможет подобрать сорта', 'Мы согласуем детали и стоимость', 'Получите заказ в удобное время'][i]}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="info-block">
+        <h3>🚚 Варианты доставки</h3>
+        <table className="delivery-table">
+          <tbody>
+            <tr><td style={{ width: '140px', fontWeight: 600 }}>🚴 Курьером</td><td>200-400 рублей</td><td>1-2 дня</td></tr>
+            <tr><td style={{ fontWeight: 600 }}>📦 Почта России</td><td>от 250 рублей</td><td>3-7 дней</td></tr>
+            <tr><td style={{ fontWeight: 600 }}>🏪 Самовывоз</td><td>Бесплатно</td><td>сегодня-завтра</td></tr>
+          </tbody>
+        </table>
+        <p style={{ marginTop: '16px', fontSize: '12px' }}>* Бесплатная доставка от 3000 рублей</p>
+      </div>
+
+      <div className="info-block">
+        <h3>💳 Способы оплаты</h3>
+        <div className="payment-methods">
+          <div className="payment-method">💳 Картой онлайн</div>
+          <div className="payment-method">📱 Apple Pay / Google Pay</div>
+          <div className="payment-method">💸 Наличными курьеру</div>
+          <div className="payment-method">🏦 Безналичный расчёт</div>
+        </div>
+      </div>
+
+      <div className="info-block">
+        <h3>❓ Часто задаваемые вопросы</h3>
+        {faqs.map((faq, i) => (
+          <div key={i} className="faq-item" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
+            <div className="faq-question">{faq.q} <span>{openFaq === i ? '▲' : '▼'}</span></div>
+            <div className={`faq-answer ${openFaq === i ? 'show' : ''}`}>{faq.a}</div>
+          </div>
+        ))}
+      </div>
+    </>
+  )
+}

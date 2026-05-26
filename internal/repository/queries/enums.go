@@ -46,16 +46,23 @@ func DeleteEnumClass(id uint) sq.DeleteBuilder {
 }
 
 // SelectEnumClasses возвращает запрос на получения классов перечислений по имени таблицы и поля.
+// Если entity или field пустые — фильтр по ним не применяется (возвращаются все записи).
 func SelectEnumClasses(entity, field string) sq.SelectBuilder {
-	return psql.Select(
+	q := psql.Select(
 		"id",
 		"enum_type",
 		"entity_name",
 		"field_name",
 		"unit",
 		"is_active",
-	).From(enumClassesTable).
-		Where(sq.Eq{"entity_name": entity, "field_name": field})
+	).From(enumClassesTable)
+	if entity != "" {
+		q = q.Where(sq.Eq{"entity_name": entity})
+	}
+	if field != "" {
+		q = q.Where(sq.Eq{"field_name": field})
+	}
+	return q
 }
 
 // SelectEnumClassByID возвращает запрос на получения классов перечислений по имени таблицы и поля.
@@ -76,6 +83,7 @@ func InsertEnumValue(enumValue entities.EnumValueRow) sq.InsertBuilder {
 	data := map[string]any{
 		"enum_class_id": enumValue.EnumClassID,
 		"value_raw":     enumValue.ValueRaw,
+		"value_type":    enumValue.ValueType,
 		"position":      enumValue.Position,
 	}
 
@@ -90,10 +98,10 @@ func SelectEnumValues(entity, field string, valueType entities.EnumType) sq.Sele
 	return psql.
 		Select(
 			"val.id",
-			"enum_class_id",
-			"value_raw",
-			"cls.enum_type AS value_type",
-			"position",
+			"val.enum_class_id",
+			"val.value_raw",
+			"val.value_type",
+			"val.position",
 		).
 		From(enumValuesTable + " val").
 		Join("enum_classes cls ON val.enum_class_id = cls.id").
@@ -108,7 +116,7 @@ func SelectEnumValuesByClassID(classID uint) sq.SelectBuilder {
 			"val.id",
 			"val.enum_class_id",
 			"val.value_raw",
-			"cls.enum_type AS value_type",
+			"val.value_type",
 			"val.position",
 		).
 		From(enumValuesTable + " val").

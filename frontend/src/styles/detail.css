@@ -1,0 +1,133 @@
+.detail-grid {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+.beer-hero {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 220px;
+    font-size: 64px;
+    position: sticky;
+    top: 72px;
+}
+
+.detail-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.detail-cat {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+}
+
+.feat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.feat-card {
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+}
+
+.feat-card-label {
+    font-size: 10px;
+    color: var(--text-hint);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.feat-card-val {
+    font-size: 18px;
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.btn-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.section-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+}
+
+.reviews-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.review-item {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.review-head {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
+
+.review-author {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.stars {
+    display: flex;
+    gap: 2px;
+    font-size: 14px;
+    color: #f59e0b;
+}
+
+.review-text {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+.review-form-box {
+    background: var(--bg);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-top: 14px;
+    border: 1px solid var(--border);
+}
+
+.star-pick {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 10px;
+}
+
+.star-pick span {
+    font-size: 22px;
+    cursor: pointer;
+    color: var(--border-strong);
+    transition: color .1s;
+}
+
+.star-pick span.lit {
+    color: #f59e0b;
+}

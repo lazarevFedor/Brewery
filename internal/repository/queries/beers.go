@@ -124,6 +124,7 @@ func FilterBeers(filters []*entities.FilterParameter, categoryID uint) sq.Select
 // InsertReview возвращает запрос для вставки нового отзыва в таблицу reviews и возвращает ID вставленного отзыва.
 func InsertReview(review entities.Review) sq.InsertBuilder {
 	data := map[string]any{
+		"author":  review.Author,
 		"body":    review.Body,
 		"rating":  review.Rating,
 		"beer_id": review.BeerID,
@@ -163,6 +164,7 @@ func UpdateReview(id uint, updates map[string]any) sq.UpdateBuilder {
 func SelectReviewByBeerID(beerID uint) sq.SelectBuilder {
 	return psql.Select(
 		"id",
+		"COALESCE(author, '')",
 		"body",
 		"beer_id",
 		"rating").

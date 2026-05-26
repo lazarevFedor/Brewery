@@ -28,7 +28,7 @@ func registerBeerRouters(api *gin.RouterGroup, admin *gin.RouterGroup, h handler
 	{
 		beers.GET("", h.BeersHandler.GetAllBeers)
 		beers.GET("/search", h.BeersHandler.SearchBeer)
-
+		beers.GET("/:id", h.BeersHandler.GetBeerByID)
 		features := beers.Group("/feats")
 		{
 			features.GET("/:beer_id", h.BeersHandler.GetFeature)

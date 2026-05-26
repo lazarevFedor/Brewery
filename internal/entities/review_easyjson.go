@@ -107,6 +107,12 @@ func easyjson2f096870DecodeBreweryInternalEntities1(in *jlexer.Lexer, out *Revie
 			} else {
 				out.ID = uint(in.Uint())
 			}
+		case "author":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Author = string(in.String())
+			}
 		case "body":
 			if in.IsNull() {
 				in.Skip()
@@ -143,6 +149,11 @@ func easyjson2f096870EncodeBreweryInternalEntities1(out *jwriter.Writer, in Revi
 		const prefix string = ",\"id\":"
 		out.RawString(prefix[1:])
 		out.Uint(uint(in.ID))
+	}
+	{
+		const prefix string = ",\"author\":"
+		out.RawString(prefix)
+		out.String(string(in.Author))
 	}
 	{
 		const prefix string = ",\"body\":"

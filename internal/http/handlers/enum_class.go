@@ -102,18 +102,7 @@ func (h *enumHandlers) GetEnum(c *gin.Context) {
 	}
 
 	entityName := c.Query("entity_name")
-	if entityName == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-		log.Error(c.Request.Context(), errors.New("entity_name is empty").Error())
-		return
-	}
-
 	fieldName := c.Query("field_name")
-	if fieldName == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-		log.Error(c.Request.Context(), errors.New("field_name is empty").Error())
-		return
-	}
 
 	enums, err := h.uc.GetEnum(c.Request.Context(), entityName, fieldName)
 	if err != nil {

@@ -1,0 +1,50 @@
+/*    сетка контактов */
+.contacts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 24px;
+    margin-bottom: 2rem;
+}
+
+/*    карточка контакта */
+.contact-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    text-align: center;
+}
+
+.contact-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+/*    карта (заглушка) */
+.map-placeholder {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    height: 280px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-hint);
+    margin-top: 24px;
+}
+
+/*    быстрая кнопка заказа */
+.order-phone {
+    background: var(--green-light);
+    padding: 12px;
+    border-radius: var(--radius);
+    margin-top: 16px;
+    text-align: center;
+}
+
+.order-phone a {
+    color: var(--green);
+    font-weight: 700;
+    text-decoration: none;
+    font-size: 18px;
+}

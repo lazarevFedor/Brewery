@@ -73,6 +73,8 @@ type BeerRepository interface {
 
 	// DisconnectBeerAndFeature удаляет связь характеристики с сортом пива. Если связи нет, возвращает ошибку.
 	DisconnectBeerAndFeature(ctx context.Context, tx pgx.Tx, beerID uint) error
+
+	GetBeerByID(ctx context.Context, id uint) (*entities.Beer, error)
 }
 
 // BeerPostgres хранит в себе пул подключений к БД
@@ -85,7 +87,10 @@ const beersBufferCapacity = 10
 
 // beerSlicePool пул слайсов для хранения сортов пива.
 var beerSlicePool = sync.Pool{
-	New: func() any { return new(make([]entities.Beer, 0, beersBufferCapacity)) },
+	New: func() any {
+		s := make([]entities.Beer, 0, beersBufferCapacity)
+		return &s
+	},
 }
 
 // NewBeerRepository создает новый экземпляр BeerRepository с переданным пулом соединений.
@@ -536,7 +541,7 @@ func (r *BeerPostgres) GetReviews(ctx context.Context, limit, offset uint64, bee
 	for rows.Next() {
 		var review entities.Review
 
-		err = rows.Scan(&review.ID, &review.Body, &review.BeerID, &review.Rating)
+		err = rows.Scan(&review.ID, &review.Author, &review.Body, &review.BeerID, &review.Rating)
 		if err != nil {
 			return nil, apperrors.Internal(fmt.Errorf("scan: %w", err))
 		}
