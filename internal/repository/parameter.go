@@ -2,6 +2,7 @@
 package repository
 
 import (
+	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
 	"Brewery/internal/repository/queries"
 	"Brewery/pkg/logger"
@@ -62,13 +63,13 @@ func (p *ParameterPostgres) InsertNumericParameter(ctx context.Context, param *e
 	query := queries.InsertNumericParameter(param)
 	sql, args, err := query.ToSql()
 	if err != nil {
-		return nil, err
+		return nil, apperrors.Internal(fmt.Errorf("build insert numeric parameter query: %w", err))
 	}
 
 	var id uint
 	err = p.Pool.QueryRow(ctx, sql, args...).Scan(&id)
 	if err != nil {
-		return nil, err
+		return nil, apperrors.Internal(fmt.Errorf("execute insert numeric parameter query: %w", err))
 	}
 
 	param.ID = id
@@ -78,28 +79,28 @@ func (p *ParameterPostgres) InsertNumericParameter(ctx context.Context, param *e
 // UpdateNumericParameter обновляет существующий числовой параметр в базе данных и возвращает его.
 func (p *ParameterPostgres) UpdateNumericParameter(ctx context.Context, id uint, updates map[string]any) (*entities.NumericParameter, error) {
 	if len(updates) == 0 {
-		return nil, errors.New("no updates provided")
+		return nil, apperrors.BadRequest("no updates provided", errors.New("no updates provided"))
 	}
 
 	oldParam, err := p.fetchNumericParameterByID(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, apperrors.Internal(fmt.Errorf("fetch numeric parameter by id: %w", err))
 	}
 
 	query := queries.UpdateNumericParameter(id, updates)
 	sql, args, err := query.ToSql()
 	if err != nil {
-		return nil, err
+		return nil, apperrors.Internal(fmt.Errorf("build update numeric parameter query: %w", err))
 	}
 
 	var param *entities.NumericParameter
 	param, err = scanNumericParameter(p.Pool.QueryRow(ctx, sql, args...))
 	if err != nil {
-		return nil, err
+		return nil, apperrors.Internal(fmt.Errorf("execute update numeric parameter query: %w", err))
 	}
 
 	if err = p.toggleInheritance(ctx, false, id, oldParam.Inheritable, param.Inheritable); err != nil {
-		return nil, err
+		return nil, apperrors.Internal(fmt.Errorf("toggle inheritance: %w", err))
 	}
 
 	return param, nil
@@ -109,18 +110,18 @@ func (p *ParameterPostgres) UpdateNumericParameter(ctx context.Context, id uint,
 func (p *ParameterPostgres) DeleteNumericParameter(ctx context.Context, id uint) (*entities.NumericParameter, error) {
 	param, err := p.fetchNumericParameterByID(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, apperrors.Internal(fmt.Errorf("fetch numeric parameter by id: %w", err))
 	}
 
 	deleteQuery := queries.DeleteNumericParameter(id)
 	sql, args, err := deleteQuery.ToSql()
 	if err != nil {
-		return nil, err
+		return nil, apperrors.Internal(fmt.Errorf("build delete numeric parameter query: %w", err))
 	}
 
 	_, err = p.Pool.Exec(ctx, sql, args...)
 	if err != nil {
-		return nil, err
+		return nil, apperrors.Internal(fmt.Errorf("execute delete numeric parameter query: %w", err))
 	}
 
 	return param, nil
@@ -131,13 +132,13 @@ func (p *ParameterPostgres) InsertEnumParameter(ctx context.Context, param *enti
 	query := queries.InsertEnumParameter(param)
 	sql, args, err := query.ToSql()
 	if err != nil {
-		return nil, err
+		return nil, apperrors.Internal(fmt.Errorf("build insert enum parameter query: %w", err))
 	}
 
 	var id uint
 	err = p.Pool.QueryRow(ctx, sql, args...).Scan(&id)
 	if err != nil {
-		return nil, err
+		return nil, apperrors.Internal(fmt.Errorf("execute insert enum parameter query: %w", err))
 	}
 
 	param.ID = id
@@ -147,28 +148,28 @@ func (p *ParameterPostgres) InsertEnumParameter(ctx context.Context, param *enti
 // UpdateEnumParameter обновляет существующий перечисляемый параметр в базе данных и возвращает его.
 func (p *ParameterPostgres) UpdateEnumParameter(ctx context.Context, id uint, updates map[string]any) (*entities.EnumParameter, error) {
 	if len(updates) == 0 {
-		return nil, errors.New("no updates provided")
+		return nil, apperrors.BadRequest("no updates provided", errors.New("no updates provided"))
 	}
 
 	oldParam, err := p.fetchEnumParameterByID(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, apperrors.Internal(fmt.Errorf("fetch enum parameter by id: %w", err))
 	}
 
 	query := queries.UpdateEnumParameter(id, updates)
 	sql, args, err := query.ToSql()
 	if err != nil {
-		return nil, err
+		return nil, apperrors.Internal(fmt.Errorf("build update enum parameter query: %w", err))
 	}
 
 	var param *entities.EnumParameter
 	param, err = scanEnumParameter(p.Pool.QueryRow(ctx, sql, args...))
 	if err != nil {
-		return nil, err
+		return nil, apperrors.Internal(fmt.Errorf("execute update enum parameter query: %w", err))
 	}
 
 	if err = p.toggleInheritance(ctx, true, id, oldParam.Inheritable, param.Inheritable); err != nil {
-		return nil, err
+		return nil, apperrors.Internal(fmt.Errorf("toggle inheritance: %w", err))
 	}
 
 	return param, nil
@@ -178,18 +179,18 @@ func (p *ParameterPostgres) UpdateEnumParameter(ctx context.Context, id uint, up
 func (p *ParameterPostgres) DeleteEnumParameter(ctx context.Context, id uint) (*entities.EnumParameter, error) {
 	param, err := p.fetchEnumParameterByID(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, apperrors.Internal(fmt.Errorf("fetch enum parameter by id: %w", err))
 	}
 
 	deleteQuery := queries.DeleteEnumParameter(id)
 	sql, args, err := deleteQuery.ToSql()
 	if err != nil {
-		return nil, err
+		return nil, apperrors.Internal(fmt.Errorf("build delete enum parameter query: %w", err))
 	}
 
 	_, err = p.Pool.Exec(ctx, sql, args...)
 	if err != nil {
-		return nil, err
+		return nil, apperrors.Internal(fmt.Errorf("execute delete enum parameter query: %w", err))
 	}
 
 	return param, nil
@@ -217,10 +218,10 @@ func (p *ParameterPostgres) GetParameters(
 	}
 
 	if categoryID != 0 {
-		query := queries.SelectParameterIDsByCategory(categoryID, parameterType)
+		query = queries.SelectParameterIDsByCategory(categoryID, parameterType)
 		sql, args, err := query.ToSql()
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, apperrors.Internal(fmt.Errorf("build select parameter ids by category query: %w", err))
 		}
 
 		switch parameterType {
@@ -232,7 +233,7 @@ func (p *ParameterPostgres) GetParameters(
 			err = p.Pool.QueryRow(ctx, sql, args...).Scan(&enumIDs)
 		}
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, apperrors.Internal(fmt.Errorf("execute select parameter ids by category query: %w", err))
 		}
 	}
 
@@ -245,12 +246,12 @@ func (p *ParameterPostgres) GetParameters(
 		query = queries.SelectNumericParameters(numericIDs)
 		sql, args, err := query.ToSql()
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, apperrors.Internal(fmt.Errorf("build select numeric parameters query: %w", err))
 		}
 
 		rows, err := p.Pool.Query(ctx, sql, args...)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, apperrors.Internal(fmt.Errorf("execute select numeric parameters query: %w", err))
 		}
 		defer rows.Close()
 
@@ -258,7 +259,7 @@ func (p *ParameterPostgres) GetParameters(
 			var param *entities.NumericParameter
 			param, err = scanNumericParameter(rows)
 			if err != nil {
-				return nil, nil, err
+				return nil, nil, apperrors.Internal(fmt.Errorf("scan numeric parameter: %w", err))
 			}
 			numericParams = append(numericParams, *param)
 		}
@@ -268,12 +269,12 @@ func (p *ParameterPostgres) GetParameters(
 		query = queries.SelectEnumParameters(enumIDs)
 		sql, args, err := query.ToSql()
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, apperrors.Internal(fmt.Errorf("build select enum parameters query: %w", err))
 		}
 
 		rows, err := p.Pool.Query(ctx, sql, args...)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, apperrors.Internal(fmt.Errorf("execute select enum parameters query: %w", err))
 		}
 		defer rows.Close()
 
@@ -281,7 +282,7 @@ func (p *ParameterPostgres) GetParameters(
 			var param *entities.EnumParameter
 			param, err = scanEnumParameter(rows)
 			if err != nil {
-				return nil, nil, err
+				return nil, nil, apperrors.Internal(fmt.Errorf("scan enum parameter: %w", err))
 			}
 			enumParams = append(enumParams, *param)
 		}
@@ -298,13 +299,13 @@ func (p *ParameterPostgres) ApplyParameters(ctx context.Context, categoryID uint
 		addQuery := queries.AddNumericParametersToCategories(numericParameters, []int{int(categoryID)})
 		sql, args, err := addQuery.ToSql()
 		if err != nil {
-			return 0, err
+			return 0, apperrors.Internal(fmt.Errorf("build AddNumericParametersToCategories query: %w", err))
 		}
 
 		var affected int
 		err = p.Pool.QueryRow(ctx, sql, args...).Scan(&affected)
 		if err != nil {
-			return 0, err
+			return 0, apperrors.Internal(fmt.Errorf("execute AddNumericParametersToCategories query: %w", err))
 		}
 		rowsAffected += affected
 	}
@@ -313,13 +314,13 @@ func (p *ParameterPostgres) ApplyParameters(ctx context.Context, categoryID uint
 		addQuery := queries.AddEnumParametersToCategories(enumParameters, []int{int(categoryID)})
 		sql, args, err := addQuery.ToSql()
 		if err != nil {
-			return 0, err
+			return 0, apperrors.Internal(fmt.Errorf("build AddEnumParametersToCategories query: %w", err))
 		}
 
 		var affected int
 		err = p.Pool.QueryRow(ctx, sql, args...).Scan(&affected)
 		if err != nil {
-			return 0, err
+			return 0, apperrors.Internal(fmt.Errorf("execute AddEnumParametersToCategories query: %w", err))
 		}
 		rowsAffected += affected
 	}
@@ -327,13 +328,13 @@ func (p *ParameterPostgres) ApplyParameters(ctx context.Context, categoryID uint
 	inheritQuery := queries.InheritParametersToChildren(int(categoryID))
 	sql, args, err := inheritQuery.ToSql()
 	if err != nil {
-		return 0, err
+		return 0, apperrors.Internal(fmt.Errorf("build InheritParametersToChildren query: %w", err))
 	}
 
 	var inheritAffected int
 	err = p.Pool.QueryRow(ctx, sql, args...).Scan(&inheritAffected)
 	if err != nil {
-		return 0, err
+		return 0, apperrors.Internal(fmt.Errorf("execute InheritParametersToChildren query: %w", err))
 	}
 	rowsAffected += inheritAffected
 
@@ -347,7 +348,7 @@ func scanNumericParameter(row pgx.Row) (*entities.NumericParameter, error) {
 		&param.MaxValue, &param.FieldName,
 		&param.EntityName, &param.Inheritable)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "Scan", err)
+		return nil, apperrors.Internal(fmt.Errorf("scan numeric parameter: %w", err))
 	}
 
 	return &param, nil
@@ -358,7 +359,7 @@ func scanEnumParameter(row pgx.Row) (*entities.EnumParameter, error) {
 	var param entities.EnumParameter
 	err := row.Scan(&param.ID, &param.EnumClassID, &param.Inheritable)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "Scan", err)
+		return nil, apperrors.Internal(fmt.Errorf("scan enum parameter: %w", err))
 	}
 
 	return &param, nil
@@ -369,7 +370,7 @@ func (p *ParameterPostgres) fetchNumericParameterByID(ctx context.Context, id ui
 	selectQuery := queries.SelectNumericParameters([]uint{id})
 	sql, args, err := selectQuery.ToSql()
 	if err != nil {
-		return nil, err
+		return nil, apperrors.Internal(fmt.Errorf("build select numeric parameter by id query: %w", err))
 	}
 	return scanNumericParameter(p.Pool.QueryRow(ctx, sql, args...))
 }
@@ -379,7 +380,7 @@ func (p *ParameterPostgres) fetchEnumParameterByID(ctx context.Context, id uint)
 	selectQuery := queries.SelectEnumParameters([]uint{id})
 	sql, args, err := selectQuery.ToSql()
 	if err != nil {
-		return nil, err
+		return nil, apperrors.Internal(fmt.Errorf("build select enum parameter by id query: %w", err))
 	}
 	return scanEnumParameter(p.Pool.QueryRow(ctx, sql, args...))
 }
@@ -401,12 +402,12 @@ func (p *ParameterPostgres) toggleInheritance(ctx context.Context, isEnum bool, 
 
 	sql, args, err := categoriesQuery.ToSql()
 	if err != nil {
-		return err
+		return apperrors.Internal(fmt.Errorf("build select categories with parameter query: %w", err))
 	}
 
 	rows, err := p.Pool.Query(ctx, sql, args...)
 	if err != nil {
-		return err
+		return apperrors.Internal(fmt.Errorf("execute select categories with parameter query: %w", err))
 	}
 	defer rows.Close()
 
@@ -414,7 +415,7 @@ func (p *ParameterPostgres) toggleInheritance(ctx context.Context, isEnum bool, 
 	for rows.Next() {
 		var categoryID int
 		if err = rows.Scan(&categoryID); err != nil {
-			return err
+			return apperrors.Internal(fmt.Errorf("scan category id: %w", err))
 		}
 		categoryIDs = append(categoryIDs, categoryID)
 	}
@@ -434,7 +435,7 @@ func (p *ParameterPostgres) toggleInheritance(ctx context.Context, isEnum bool, 
 
 	tx, err := p.Pool.Begin(ctx)
 	if err != nil {
-		return err
+		return apperrors.Internal(fmt.Errorf("begin transaction: %w", err))
 	}
 	defer func() {
 		_ = tx.Rollback(ctx)
@@ -445,15 +446,15 @@ func (p *ParameterPostgres) toggleInheritance(ctx context.Context, isEnum bool, 
 			inheritQuery := queries.InheritParametersToChildren(categoryID)
 			sql, args, err = inheritQuery.ToSql()
 			if err != nil {
-				return err
+				return apperrors.Internal(fmt.Errorf("build InheritParametersToChildren query: %w", err))
 			}
 
 			if _, err = tx.Exec(ctx, sql, args...); err != nil {
-				return err
+				return apperrors.Internal(fmt.Errorf("execute InheritParametersToChildren query: %w", err))
 			}
 		}
 		if err = tx.Commit(ctx); err != nil {
-			return err
+			return apperrors.Internal(fmt.Errorf("commit transaction: %w", err))
 		}
 		return nil
 	}
@@ -466,11 +467,11 @@ func (p *ParameterPostgres) toggleInheritance(ctx context.Context, isEnum bool, 
 		}
 
 		if _, err = tx.Exec(ctx, sql, args...); err != nil {
-			return err
+			return apperrors.Internal(fmt.Errorf("execute RemoveEnumParametersFromDescendants query: %w", err))
 		}
 
-		if err := tx.Commit(ctx); err != nil {
-			return err
+		if err = tx.Commit(ctx); err != nil {
+			return apperrors.Internal(fmt.Errorf("commit transaction: %w", err))
 		}
 
 		return nil
@@ -479,15 +480,15 @@ func (p *ParameterPostgres) toggleInheritance(ctx context.Context, isEnum bool, 
 	removeQuery := queries.RemoveNumericParametersFromDescendants([]int{int(id)}, uniq)
 	sql, args, err = removeQuery.ToSql()
 	if err != nil {
-		return err
+		return apperrors.Internal(fmt.Errorf("build RemoveNumericParametersFromDescendants query: %w", err))
 	}
 
 	if _, err = tx.Exec(ctx, sql, args...); err != nil {
-		return err
+		return apperrors.Internal(fmt.Errorf("execute RemoveNumericParametersFromDescendants query: %w", err))
 	}
 
 	if err = tx.Commit(ctx); err != nil {
-		return err
+		return apperrors.Internal(fmt.Errorf("commit transaction: %w", err))
 	}
 
 	return nil

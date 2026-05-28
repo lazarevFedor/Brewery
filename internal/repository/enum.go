@@ -2,6 +2,7 @@
 package repository
 
 import (
+	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
 	"Brewery/internal/repository/queries"
 	"context"
@@ -65,7 +66,7 @@ func NewEnumPostgres(pool *pgxpool.Pool) *EnumPostgres {
 // InsertEnumClass сохраняет новую сущность EnumClass в хранилище.
 func (e *EnumPostgres) InsertEnumClass(ctx context.Context, enumClass entities.EnumClass) (uint, error) {
 	if e.Pool == nil {
-		return 0, errors.New("pool is nil")
+		return 0, apperrors.Internal(errors.New("pool is nil"))
 	}
 
 	var enumID uint
@@ -74,12 +75,12 @@ func (e *EnumPostgres) InsertEnumClass(ctx context.Context, enumClass entities.E
 
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return 0, fmt.Errorf("%s: %w", "ToSql", err)
+		return 0, apperrors.Internal(fmt.Errorf("build InsertEnumClass query: %w", err))
 	}
 
 	err = e.Pool.QueryRow(ctx, query, args...).Scan(&enumID)
 	if err != nil {
-		return 0, fmt.Errorf("%s: %w", "QueryRow", err)
+		return 0, apperrors.Internal(fmt.Errorf("execute InsertEnumClass query: %w", err))
 	}
 
 	return enumID, nil
@@ -88,19 +89,19 @@ func (e *EnumPostgres) InsertEnumClass(ctx context.Context, enumClass entities.E
 // UpdateEnumClass обновляет сущность EnumClass в хранилище.
 func (e *EnumPostgres) UpdateEnumClass(ctx context.Context, id uint, updates map[string]any) error {
 	if e.Pool == nil {
-		return errors.New("pool is nil")
+		return apperrors.Internal(errors.New("pool is nil"))
 	}
 
 	psql := queries.UpdateEnumClass(id, updates)
 
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return fmt.Errorf("%s: %w", "ToSql", err)
+		return apperrors.Internal(fmt.Errorf("build UpdateEnumClass query: %w", err))
 	}
 
 	_, err = e.Pool.Exec(ctx, query, args...)
 	if err != nil {
-		return fmt.Errorf("%s: %w", "Exec", err)
+		return apperrors.Internal(fmt.Errorf("execute UpdateEnumClass query: %w", err))
 	}
 
 	return nil
@@ -109,19 +110,19 @@ func (e *EnumPostgres) UpdateEnumClass(ctx context.Context, id uint, updates map
 // DeleteEnumClassByID удаляет сущность EnumClass из хранилища.
 func (e *EnumPostgres) DeleteEnumClassByID(ctx context.Context, id uint) error {
 	if e.Pool == nil {
-		return errors.New("pool is nil")
+		return apperrors.Internal(errors.New("pool is nil"))
 	}
 
 	psql := queries.DeleteEnumClass(id)
 
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return fmt.Errorf("%s: %w", "ToSql", err)
+		return apperrors.Internal(fmt.Errorf("build DeleteEnumClassByID query: %w", err))
 	}
 
 	_, err = e.Pool.Exec(ctx, query, args...)
 	if err != nil {
-		return fmt.Errorf("%s: %w", "Exec", err)
+		return apperrors.Internal(fmt.Errorf("execute DeleteEnumClassByID query: %w", err))
 	}
 
 	return nil
@@ -130,19 +131,19 @@ func (e *EnumPostgres) DeleteEnumClassByID(ctx context.Context, id uint) error {
 // GetEnumClasses получает список сущностей EnumClass по заданным имени таблицы и поля.
 func (e *EnumPostgres) GetEnumClasses(ctx context.Context, entity, field string) ([]entities.EnumClass, error) {
 	if e.Pool == nil {
-		return nil, errors.New("pool is nil")
+		return nil, apperrors.Internal(errors.New("pool is nil"))
 	}
 
 	psql := queries.SelectEnumClasses(entity, field)
 
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "ToSql", err)
+		return nil, apperrors.Internal(fmt.Errorf("build GetEnumClasses query: %w", err))
 	}
 
 	rows, err := e.Pool.Query(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "Query", err)
+		return nil, apperrors.Internal(fmt.Errorf("execute GetEnumClasses query: %w", err))
 	}
 	defer rows.Close()
 
@@ -151,13 +152,13 @@ func (e *EnumPostgres) GetEnumClasses(ctx context.Context, entity, field string)
 	for rows.Next() {
 		class, err := scanEnumClass(rows)
 		if err != nil {
-			return nil, fmt.Errorf("failed to scan row: %w", err)
+			return nil, err
 		}
 		enumClasses = append(enumClasses, *class)
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, fmt.Errorf("rows.Err: %w", err)
+		return nil, apperrors.Internal(fmt.Errorf("failed to fetch rows: %w", err))
 	}
 
 	return enumClasses, nil
@@ -170,7 +171,7 @@ func scanEnumClass(row pgx.Row) (*entities.EnumClass, error) {
 
 	err := row.Scan(&class.ID, &class.Type, &class.EntityName, &class.FieldName, &unit, &class.IsActive)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "Scan", err)
+		return nil, apperrors.Internal(fmt.Errorf("scan EnumClass: %w", err))
 	}
 
 	if unit.Valid {
@@ -185,30 +186,30 @@ func scanEnumClass(row pgx.Row) (*entities.EnumClass, error) {
 // InsertEnumValue сохраняет новую сущность EnumValue в хранилище.
 func (e *EnumPostgres) InsertEnumValue(ctx context.Context, enumValue entities.EnumValue) (uint, error) {
 	if e.Pool == nil {
-		return 0, errors.New("pool is nil")
+		return 0, apperrors.Internal(errors.New("pool is nil"))
 	}
 
 	var valID uint
 
 	enumValueRow, err := enumValue.ToRow()
 	if err != nil || enumValueRow == nil {
-		return 0, fmt.Errorf("%s: %w", "ToRow", err)
+		return 0, apperrors.Internal(fmt.Errorf("convert EnumValue to EnumValueRow: %w", err))
 	}
 
 	psql := queries.InsertEnumValue(*enumValueRow)
 
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return 0, fmt.Errorf("%s: %w", "ToSql", err)
+		return 0, apperrors.Internal(fmt.Errorf("build InsertEnumValue query: %w", err))
 	}
 
 	err = e.Pool.QueryRow(ctx, query, args...).Scan(&valID)
 	if err != nil {
-		return 0, fmt.Errorf("%s: %w", "QueryRow", err)
+		return 0, apperrors.Internal(fmt.Errorf("execute InsertEnumValue query: %w", err))
 	}
 
 	if valID == 0 {
-		return 0, errors.New("failed to insert enum value")
+		return 0, apperrors.Internal(errors.New("failed to insert enum value"))
 	}
 
 	return valID, nil
@@ -217,7 +218,7 @@ func (e *EnumPostgres) InsertEnumValue(ctx context.Context, enumValue entities.E
 // UpdateEnumValue обновляет сущность EnumValue в хранилище.
 func (e *EnumPostgres) UpdateEnumValue(ctx context.Context, id uint, updates map[string]any) error {
 	if e.Pool == nil {
-		return errors.New("pool is nil")
+		return apperrors.Internal(errors.New("pool is nil"))
 	}
 
 	if value, ok := updates["value_raw"]; ok {
@@ -233,12 +234,12 @@ func (e *EnumPostgres) UpdateEnumValue(ctx context.Context, id uint, updates map
 
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return fmt.Errorf("%s: %w", "ToSql", err)
+		return apperrors.Internal(fmt.Errorf("build UpdateEnumValue query: %w", err))
 	}
 
 	_, err = e.Pool.Exec(ctx, query, args...)
 	if err != nil {
-		return fmt.Errorf("%s: %w", "Exec", err)
+		return apperrors.Internal(fmt.Errorf("execute UpdateEnumValue query: %w", err))
 	}
 
 	return nil
@@ -247,19 +248,19 @@ func (e *EnumPostgres) UpdateEnumValue(ctx context.Context, id uint, updates map
 // DeleteEnumValueByID удаляет сущность EnumValue из хранилища.
 func (e *EnumPostgres) DeleteEnumValueByID(ctx context.Context, id uint) error {
 	if e.Pool == nil {
-		return errors.New("pool is nil")
+		return apperrors.Internal(errors.New("pool is nil"))
 	}
 
 	psql := queries.DeleteEnumValue(id)
 
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return fmt.Errorf("%s: %w", "ToSql", err)
+		return apperrors.Internal(fmt.Errorf("build DeleteEnumValueByID query: %w", err))
 	}
 
 	_, err = e.Pool.Exec(ctx, query, args...)
 	if err != nil {
-		return fmt.Errorf("%s: %w", "Exec", err)
+		return apperrors.Internal(fmt.Errorf("execute DeleteEnumValueByID query: %w", err))
 	}
 	return nil
 }
@@ -267,19 +268,19 @@ func (e *EnumPostgres) DeleteEnumValueByID(ctx context.Context, id uint) error {
 // GetEnumValues получает список сущностей EnumClass по заданным имени таблицы, поля и типу значения.
 func (e *EnumPostgres) GetEnumValues(ctx context.Context, entity, field string, valueType entities.EnumType) ([]entities.EnumValue, error) {
 	if e.Pool == nil {
-		return nil, errors.New("pool is nil")
+		return nil, apperrors.Internal(errors.New("pool is nil"))
 	}
 
 	psql := queries.SelectEnumValues(entity, field, valueType)
 
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "ToSql", err)
+		return nil, apperrors.Internal(fmt.Errorf("build GetEnumValues query: %w", err))
 	}
 
 	rows, err := e.Pool.Query(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "Query", err)
+		return nil, apperrors.Internal(fmt.Errorf("execute GetEnumValues query: %w", err))
 	}
 	defer rows.Close()
 
@@ -288,13 +289,13 @@ func (e *EnumPostgres) GetEnumValues(ctx context.Context, entity, field string, 
 	for rows.Next() {
 		val, err := scanEnumValue(rows)
 		if err != nil {
-			return nil, fmt.Errorf("failed to scan row: %w", err)
+			return nil, err
 		}
 		enumValues = append(enumValues, *val)
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, fmt.Errorf("rows.Err: %w", err)
+		return nil, apperrors.Internal(fmt.Errorf("failed to fetch rows: %w", err))
 	}
 
 	return enumValues, nil
@@ -303,19 +304,19 @@ func (e *EnumPostgres) GetEnumValues(ctx context.Context, entity, field string, 
 // GetEnumValuesByClassID получает список сущностей EnumValue по заданному ID класса перечисления.
 func (e *EnumPostgres) GetEnumValuesByClassID(ctx context.Context, classID uint) ([]entities.EnumValue, error) {
 	if e.Pool == nil {
-		return nil, errors.New("pool is nil")
+		return nil, apperrors.Internal(errors.New("pool is nil"))
 	}
 
 	psql := queries.SelectEnumValuesByClassID(classID)
 
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "ToSql", err)
+		return nil, apperrors.Internal(fmt.Errorf("build SelectEnumValuesByClassID query: %w", err))
 	}
 
 	rows, err := e.Pool.Query(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "Query", err)
+		return nil, apperrors.Internal(fmt.Errorf("execute SelectEnumValuesByClassID query: %w", err))
 	}
 	defer rows.Close()
 
@@ -324,13 +325,13 @@ func (e *EnumPostgres) GetEnumValuesByClassID(ctx context.Context, classID uint)
 	for rows.Next() {
 		val, err := scanEnumValue(rows)
 		if err != nil {
-			return nil, fmt.Errorf("failed to scan row: %w", err)
+			return nil, err
 		}
 		enumValues = append(enumValues, *val)
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, fmt.Errorf("rows.Err: %w", err)
+		return nil, apperrors.Internal(fmt.Errorf("failed to fetch rows: %w", err))
 	}
 
 	return enumValues, nil
@@ -339,20 +340,20 @@ func (e *EnumPostgres) GetEnumValuesByClassID(ctx context.Context, classID uint)
 // GetEnumClassByID получает сущность EnumClass по заданному ID класса перечисления.
 func (e *EnumPostgres) GetEnumClassByID(ctx context.Context, id uint) (*entities.EnumClass, error) {
 	if e.Pool == nil {
-		return nil, errors.New("pool is nil")
+		return nil, apperrors.Internal(errors.New("pool is nil"))
 	}
 
 	psql := queries.SelectEnumClassByID(id)
 
 	query, args, err := psql.ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "ToSql", err)
+		return nil, apperrors.Internal(fmt.Errorf("build SelectEnumClassByID query: %w", err))
 	}
 
 	row := e.Pool.QueryRow(ctx, query, args...)
 	class, err := scanEnumClass(row)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "ToRow", err)
+		return nil, err
 	}
 
 	return class, nil
@@ -364,12 +365,12 @@ func scanEnumValue(row pgx.Row) (*entities.EnumValue, error) {
 
 	err := row.Scan(&valRow.ID, &valRow.EnumClassID, &valRow.ValueRaw, &valRow.ValueType, &valRow.Position)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", "Scan", err)
+		return nil, apperrors.Internal(fmt.Errorf("scan EnumValue: %w", err))
 	}
 
 	val, err := valRow.FromRow()
 	if err != nil || val == nil {
-		return nil, fmt.Errorf("%s: %w", "FromRow", err)
+		return nil, apperrors.Internal(fmt.Errorf("convert EnumValueRow to EnumValue: %w", err))
 	}
 
 	return val, nil
