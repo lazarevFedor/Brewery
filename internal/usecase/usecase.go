@@ -2,6 +2,7 @@
 package usecase
 
 import (
+	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
 	"Brewery/internal/repository"
 	"Brewery/internal/validator"
@@ -95,40 +96,40 @@ func NewBeerService(beerRepo repository.BeerRepository, categoryRepo repository.
 // CreateCategory создает и возвращает новый узел дерева категорий.
 func (s *beerService) CreateCategory(ctx context.Context, ctg *entities.ProductCategory) (uint, error) {
 	if err := ctx.Err(); err != nil {
-		return 0, fmt.Errorf("request cancelled: %w", err)
+		return 0, apperrors.Internal(fmt.Errorf("request cancelled: %w", err))
 	}
 
 	if ctg == nil {
-		return 0, errors.New("category is nil")
+		return 0, apperrors.BadRequest("category is nil", errors.New("category is nil"))
 	}
 
 	if ctg.Name == "" {
-		return 0, errors.New("category name is required")
+		return 0, apperrors.BadRequest("category name is required", errors.New("category name is required"))
 	}
 
 	if ctg.ParentID == 0 {
 		categories, err := s.categoryRepo.GetCategories(ctx)
 		if err != nil {
-			return 0, fmt.Errorf("failed to check existing categories: %w", err)
+			return 0, err
 		}
 		for _, c := range categories {
 			if c.ParentID == 0 {
-				return 0, errors.New("root category already exists")
+				return 0, apperrors.BadRequest(fmt.Sprintf("root category already exists with id %d", c.ID), errors.New("root category already exists"))
 			}
 		}
 	} else {
 		parent, err := s.categoryRepo.GetCategoryByID(ctx, uint(ctg.ParentID))
 		if err != nil {
-			return 0, fmt.Errorf("failed to get parent category: %w", err)
+			return 0, err
 		}
 		if parent == nil {
-			return 0, errors.New("parent category not found")
+			return 0, apperrors.NotFound(fmt.Sprintf("parent category with id %d not found", ctg.ParentID), errors.New("parent category not found"))
 		}
 	}
 
 	id, err := s.categoryRepo.InsertCategory(ctx, nil, *ctg)
 	if err != nil {
-		return 0, fmt.Errorf("failed to create category: %w", err)
+		return 0, err
 	}
 
 	return id, nil
@@ -137,16 +138,16 @@ func (s *beerService) CreateCategory(ctx context.Context, ctg *entities.ProductC
 // GetCategoryByID возвращает узел дерева категорий по id.
 func (s *beerService) GetCategoryByID(ctx context.Context, id uint) (*entities.ProductCategory, error) {
 	if err := ctx.Err(); err != nil {
-		return nil, fmt.Errorf("request cancelled: %w", err)
+		return nil, apperrors.Internal(fmt.Errorf("request cancelled: %w", err))
 	}
 
 	if id == 0 {
-		return nil, errors.New("invalid category id")
+		return nil, apperrors.BadRequest("invalid category id", errors.New("invalid category id"))
 	}
 
 	ctg, err := s.categoryRepo.GetCategoryByID(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get category: %w", err)
+		return nil, err
 	}
 
 	return ctg, nil
@@ -155,15 +156,15 @@ func (s *beerService) GetCategoryByID(ctx context.Context, id uint) (*entities.P
 // UpdateCategory обновляет узел дерева категорий.
 func (s *beerService) UpdateCategory(ctx context.Context, id uint, updates map[string]any) error {
 	if err := ctx.Err(); err != nil {
-		return fmt.Errorf("request cancelled: %w", err)
+		return apperrors.Internal(fmt.Errorf("request cancelled: %w", err))
 	}
 
 	if id == 0 {
-		return errors.New("invalid category id")
+		return apperrors.BadRequest("invalid category id", errors.New("invalid category id"))
 	}
 
 	if len(updates) == 0 {
-		return errors.New("no fields to update")
+		return apperrors.BadRequest("no updates provided", errors.New("no updates provided"))
 	}
 
 	parentID, ok := updates["parent_id"]
@@ -175,7 +176,7 @@ func (s *beerService) UpdateCategory(ctx context.Context, id uint, updates map[s
 			} else {
 				err := s.ensureCategoryParentIsNotDescendant(ctx, id, uint(parentIDFloat))
 				if err != nil {
-					return fmt.Errorf("failed to update parent category: %w", err)
+					return err
 				}
 			}
 		}
@@ -183,7 +184,7 @@ func (s *beerService) UpdateCategory(ctx context.Context, id uint, updates map[s
 
 	err := s.categoryRepo.UpdateCategory(ctx, id, updates)
 	if err != nil {
-		return fmt.Errorf("failed to update category: %w", err)
+		return err
 	}
 
 	return nil
@@ -196,20 +197,20 @@ func (s *beerService) ensureCategoryParentIsNotDescendant(ctx context.Context, c
 
 	for currentID != 0 {
 		if _, seen := visited[currentID]; seen {
-			return errors.New("category hierarchy contains a cycle")
+			return apperrors.Conflict("cycle detected in category hierarchy", errors.New("cycle detected in category hierarchy"))
 		}
 		visited[currentID] = struct{}{}
 
 		category, err := s.categoryRepo.GetCategoryByID(ctx, currentID)
 		if err != nil {
-			return fmt.Errorf("failed to get parent category: %w", err)
+			return err
 		}
 		if category == nil {
-			return errors.New("parent category not found")
+			return apperrors.NotFound(fmt.Sprintf("category with id %d not found", currentID), errors.New("category not found"))
 		}
 
 		if category.ID == int(categoryID) {
-			return errors.New("category parent creates a cycle")
+			return apperrors.Conflict("cannot set parent category to a descendant", errors.New("cannot set parent category to a descendant"))
 		}
 
 		currentID = uint(category.ParentID)
@@ -221,16 +222,16 @@ func (s *beerService) ensureCategoryParentIsNotDescendant(ctx context.Context, c
 // DeleteCategory удаляет узел дерева категорий.
 func (s *beerService) DeleteCategory(ctx context.Context, id uint) error {
 	if err := ctx.Err(); err != nil {
-		return fmt.Errorf("request cancelled: %w", err)
+		return apperrors.Internal(fmt.Errorf("request cancelled: %w", err))
 	}
 
 	if id == 0 {
-		return errors.New("invalid category id")
+		return apperrors.BadRequest("invalid category id", errors.New("invalid category id"))
 	}
 
 	err := s.categoryRepo.DeleteCategoryByID(ctx, id)
 	if err != nil {
-		return fmt.Errorf("failed to delete category: %w", err)
+		return err
 	}
 
 	return nil
@@ -239,12 +240,12 @@ func (s *beerService) DeleteCategory(ctx context.Context, id uint) error {
 // GetAllCategories возвращает список всех узлов дерева категорий.
 func (s *beerService) GetAllCategories(ctx context.Context) ([]entities.ProductCategory, error) {
 	if err := ctx.Err(); err != nil {
-		return nil, fmt.Errorf("request cancelled: %w", err)
+		return nil, apperrors.Internal(fmt.Errorf("request cancelled: %w", err))
 	}
 
 	categories, err := s.categoryRepo.GetCategories(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get categories: %w", err)
+		return nil, err
 	}
 
 	return categories, nil
@@ -253,12 +254,12 @@ func (s *beerService) GetAllCategories(ctx context.Context) ([]entities.ProductC
 // GetParentCategory возвращает родительский узел дерева категорий.
 func (s *beerService) GetParentCategory(ctx context.Context, id uint) (*entities.ProductCategory, error) {
 	if err := ctx.Err(); err != nil {
-		return nil, fmt.Errorf("request cancelled: %w", err)
+		return nil, apperrors.Internal(fmt.Errorf("request cancelled: %w", err))
 	}
 
 	ctg, err := s.categoryRepo.GetCategoryByID(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get category: %w", err)
+		return nil, err
 	}
 
 	if ctg.ParentID == 0 {
@@ -267,7 +268,7 @@ func (s *beerService) GetParentCategory(ctx context.Context, id uint) (*entities
 
 	parent, err := s.categoryRepo.GetCategoryByID(ctx, uint(ctg.ParentID))
 	if err != nil {
-		return nil, fmt.Errorf("failed to get parent category: %w", err)
+		return nil, err
 	}
 
 	return parent, nil
@@ -276,12 +277,12 @@ func (s *beerService) GetParentCategory(ctx context.Context, id uint) (*entities
 // GetChildCategories возвращает список всех дочерних узлов дерева категорий.
 func (s *beerService) GetChildCategories(ctx context.Context, id uint) ([]entities.ProductCategory, error) {
 	if err := ctx.Err(); err != nil {
-		return nil, fmt.Errorf("request cancelled: %w", err)
+		return nil, apperrors.Internal(fmt.Errorf("request cancelled: %w", err))
 	}
 
 	categories, err := s.categoryRepo.GetCategories(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get categories: %w", err)
+		return nil, err
 	}
 	children := make([]entities.ProductCategory, 0)
 	for _, c := range categories {
@@ -295,15 +296,15 @@ func (s *beerService) GetChildCategories(ctx context.Context, id uint) ([]entiti
 // CreateBeer создает сущность пиво и возвращает ее.
 func (s *beerService) CreateBeer(ctx context.Context, beer *entities.Beer) (*entities.Beer, error) {
 	if err := ctx.Err(); err != nil {
-		return nil, fmt.Errorf("request cancelled: %w", err)
+		return nil, apperrors.Internal(fmt.Errorf("request cancelled: %w", err))
 	}
 
 	if beer == nil {
-		return nil, errors.New("beer is nil")
+		return nil, apperrors.Internal(errors.New("beer is nil"))
 	}
 
 	if beer.Name == "" {
-		return nil, errors.New("beer name is required")
+		return nil, apperrors.BadRequest("beer name is required", errors.New("beer name is required"))
 	}
 
 	var categoryID uint
@@ -312,7 +313,7 @@ func (s *beerService) CreateBeer(ctx context.Context, beer *entities.Beer) (*ent
 	} else if beer.Category.Name != "" {
 		ctgID, err := s.categoryRepo.GetCategoryID(ctx, nil, beer.Category.Name)
 		if err != nil {
-			return nil, fmt.Errorf("failed to resolve category: %w", err)
+			return nil, err
 		}
 		categoryID = ctgID
 	}
@@ -320,7 +321,7 @@ func (s *beerService) CreateBeer(ctx context.Context, beer *entities.Beer) (*ent
 	if categoryID != 0 {
 		numericParams, enumParams, err := s.paramRepo.GetParameters(ctx, categoryID, entities.MissingType)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get parameters for category %d: %w", categoryID, err)
+			return nil, err
 		}
 
 		getEnumValuesWrapped := func(classID uint) ([]entities.EnumValue, error) {
@@ -331,7 +332,7 @@ func (s *beerService) CreateBeer(ctx context.Context, beer *entities.Beer) (*ent
 
 			cls, err := s.enumRepo.GetEnumClassByID(ctx, classID)
 			if err != nil || cls == nil {
-				return vals, fmt.Errorf("failed to get enum class by id %d: %w", classID, err)
+				return vals, err
 			}
 
 			if (cls.FieldName == "city" || cls.FieldName == "country") && cls.Type == string(entities.EnumValueTypeInt) {
@@ -360,13 +361,13 @@ func (s *beerService) CreateBeer(ctx context.Context, beer *entities.Beer) (*ent
 			return s.enumRepo.GetEnumClassByID(ctx, classID)
 		})
 		if err != nil {
-			return nil, fmt.Errorf("beer validation failed: %w", err)
+			return nil, err
 		}
 	}
 
 	beer, err := s.beerRepo.InsertBeer(ctx, *beer)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create beer: %w", err)
+		return nil, err
 	}
 
 	return beer, nil
@@ -375,12 +376,12 @@ func (s *beerService) CreateBeer(ctx context.Context, beer *entities.Beer) (*ent
 // GetAllBeers возвращает список всех сущностей пиво.
 func (s *beerService) GetAllBeers(ctx context.Context, limit, offset uint64) ([]entities.Beer, error) {
 	if err := ctx.Err(); err != nil {
-		return nil, fmt.Errorf("request cancelled: %w", err)
+		return nil, apperrors.Internal(fmt.Errorf("request cancelled: %w", err))
 	}
 
 	beers, err := s.beerRepo.GetBeers(ctx, limit, offset)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get beers: %w", err)
+		return nil, err
 	}
 
 	return beers, nil
@@ -389,12 +390,12 @@ func (s *beerService) GetAllBeers(ctx context.Context, limit, offset uint64) ([]
 // FilterBeer возвращает список сущностей пиво, отфильтрованных по заданным параметрам.
 func (s *beerService) FilterBeer(ctx context.Context, filters []*entities.FilterParameter, limit, offset uint64, categoryID uint) ([]entities.Beer, error) {
 	if err := ctx.Err(); err != nil {
-		return nil, fmt.Errorf("request cancelled: %w", err)
+		return nil, apperrors.Internal(fmt.Errorf("request cancelled: %w", err))
 	}
 
 	beers, err := s.beerRepo.FilterBeer(ctx, filters, limit, offset, categoryID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get beers: %w", err)
+		return nil, err
 	}
 
 	return beers, nil
@@ -403,16 +404,16 @@ func (s *beerService) FilterBeer(ctx context.Context, filters []*entities.Filter
 // GetBeersByCategory возвращает список сущностей пиво опредленной категории.
 func (s *beerService) GetBeersByCategory(ctx context.Context, id uint, limit, offset uint64) ([]entities.Beer, error) {
 	if err := ctx.Err(); err != nil {
-		return nil, fmt.Errorf("request cancelled: %w", err)
+		return nil, apperrors.Internal(fmt.Errorf("request cancelled: %w", err))
 	}
 
 	if id == 0 {
-		return nil, errors.New("invalid category id")
+		return nil, apperrors.BadRequest("invalid category id", errors.New("invalid category id"))
 	}
 
 	beers, err := s.beerRepo.GetBeersByCategoryID(ctx, id, limit, offset)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get beers by category: %w", err)
+		return nil, err
 	}
 
 	return beers, nil
@@ -434,52 +435,52 @@ func (s *beerService) validateUpdates(ctx context.Context, updates map[string]an
 		case "category":
 			categoryUpdates, ok := v.(map[string]any)
 			if !ok {
-				return nil, errors.New("category datatype error")
+				return nil, apperrors.Internal(errors.New("category update datatype error"))
 			}
 
 			updateCtgID, ok := categoryUpdates["id"]
 			if ok {
 				updateCtgIDFLoat, ok := updateCtgID.(float64)
 				if !ok {
-					return nil, errors.New("category id datatype error")
+					return nil, apperrors.Internal(errors.New("category id datatype error"))
 				}
 
 				ctg, err := s.categoryRepo.GetCategoryByID(ctx, uint(updateCtgIDFLoat))
 				if err != nil {
-					return nil, fmt.Errorf("failed to get ctg by id: %w", err)
+					return nil, err
 				}
 				validatedUpdates["category_id"] = uint(ctg.ID)
 			} else {
 				ctgName, ok := categoryUpdates["name"]
 				if !ok {
-					return nil, errors.New("category name needs to update category")
+					return nil, apperrors.BadRequest("category name is required to update category", errors.New("category name is required to update category"))
 				}
 
 				ctgNameStr, ok := ctgName.(string)
 				if !ok {
-					return nil, errors.New("category name datatype error")
+					return nil, apperrors.Internal(errors.New("category name datatype error"))
 				}
 
 				ctgID, err := s.categoryRepo.GetCategoryID(ctx, nil, ctgNameStr)
 				if err != nil {
-					return nil, fmt.Errorf("failed to get Category ID: %w", err)
+					return nil, err
 				}
 				if ctgID == 0 {
 					parentID, ok := categoryUpdates["parent_id"]
 					if !ok {
-						return nil, errors.New("category name needs to update category")
+						return nil, apperrors.BadRequest("parent_id is required to create category", errors.New("parent_id is required to create category"))
 					}
 
 					parentIDFloat, ok := parentID.(int)
 					if !ok {
-						return nil, errors.New("parent_id datatype error")
+						return nil, apperrors.Internal(errors.New("parent_id datatype error"))
 					}
 					ctgID, err = s.categoryRepo.InsertCategory(ctx, nil, entities.ProductCategory{
 						Name:     ctgNameStr,
 						ParentID: parentIDFloat,
 					})
 					if err != nil {
-						return nil, fmt.Errorf("insertcategory: %w", err)
+						return nil, err
 					}
 				}
 				validatedUpdates["category_id"] = ctgID
@@ -497,27 +498,27 @@ func (s *beerService) validateUpdates(ctx context.Context, updates map[string]an
 // resolveCityUpdate валидирует входные данные на обновление города пива, возвращает id нового или уже существующего города.
 func (s *beerService) resolveCityUpdate(ctx context.Context, updates map[string]any) (uint, error) {
 	if err := ctx.Err(); err != nil {
-		return 0, fmt.Errorf("request canceled: %w", err)
+		return 0, apperrors.Internal(fmt.Errorf("request cancelled: %w", err))
 	}
 
 	country, ok := updates["country"]
 	if !ok {
-		return 0, errors.New("country needs to change city")
+		return 0, apperrors.BadRequest("country is required to update city", errors.New("country is required to update city"))
 	}
 
 	countryName, ok := country.(string)
 	if !ok {
-		return 0, errors.New("country Datatype error")
+		return 0, apperrors.Internal(errors.New("country Datatype error"))
 	}
 	countryID, err := s.beerRepo.GetCountryID(ctx, nil, countryName)
 	if err != nil {
-		return 0, fmt.Errorf("failed to get Country ID: %w", err)
+		return 0, err
 	}
 
 	city := updates["city"]
 	cityName, ok := city.(string)
 	if !ok {
-		return 0, errors.New("cityName Datatype error")
+		return 0, apperrors.Internal(errors.New("city Datatype error"))
 	}
 	cityID, err := s.beerRepo.GetCityID(ctx, nil, cityName, countryID)
 	if err != nil {
@@ -529,14 +530,22 @@ func (s *beerService) resolveCityUpdate(ctx context.Context, updates map[string]
 
 // UpdateBeer обновляет сущность пиво.
 func (s *beerService) UpdateBeer(ctx context.Context, id uint, updates map[string]any) (*entities.Beer, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, apperrors.Internal(fmt.Errorf("request cancelled: %w", err))
+	}
+
+	if len(updates) == 0 {
+		return nil, apperrors.BadRequest("no updates provided", errors.New("no updates provided"))
+	}
+
 	validatedUpdates, err := s.validateUpdates(ctx, updates)
 	if err != nil {
-		return nil, fmt.Errorf("failed to validate updates: %w", err)
+		return nil, err
 	}
 
 	beer, err := s.beerRepo.UpdateBeer(ctx, id, validatedUpdates)
 	if err != nil {
-		return nil, fmt.Errorf("failed to update beer: %w", err)
+		return nil, err
 	}
 
 	return beer, nil
@@ -545,16 +554,16 @@ func (s *beerService) UpdateBeer(ctx context.Context, id uint, updates map[strin
 // DeleteBeer Удаляет сущность пиво.
 func (s *beerService) DeleteBeer(ctx context.Context, id uint) error {
 	if err := ctx.Err(); err != nil {
-		return fmt.Errorf("request cancelled: %w", err)
+		return apperrors.Internal(fmt.Errorf("request cancelled: %w", err))
 	}
 
 	if id == 0 {
-		return errors.New("invalid beer id")
+		return apperrors.BadRequest("invalid beer id", errors.New("invalid beer id"))
 	}
 
 	err := s.beerRepo.DeleteBeer(ctx, id)
 	if err != nil {
-		return fmt.Errorf("failed to delete beer: %w", err)
+		return err
 	}
 
 	return nil

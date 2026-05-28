@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
 	"Brewery/internal/repository"
 	"context"
@@ -61,25 +62,25 @@ var allowedParametersToUpdate = map[string]struct{}{
 // CreateNumeric создает числовой параметр.
 func (s *parametersService) CreateNumeric(ctx context.Context, param *entities.NumericParameter) (*entities.NumericParameter, error) {
 	if err := ctx.Err(); err != nil {
-		return nil, fmt.Errorf("request cancelled: %w", err)
+		return nil, apperrors.Internal(fmt.Errorf("request cancelled: %w", err))
 	}
 
 	if param.FieldName == "" {
-		return nil, errors.New("field_name is required")
+		return nil, apperrors.BadRequest("field_name is required", errors.New("field_name is required"))
 	}
 	if param.EntityName == "" {
-		return nil, errors.New("entity_name is required")
+		return nil, apperrors.BadRequest("entity_name is required", errors.New("entity_name is required"))
 	}
 	if param.MinValue > param.MaxValue {
-		return nil, errors.New("min_val must be less than or equal to max_val")
+		return nil, apperrors.BadRequest("min_val cannot be greater than max_val", errors.New("min_val cannot be greater than max_val"))
 	}
 	if param.MinValue < 0 {
-		return nil, errors.New("min_val must be greater or equal to zero")
+		return nil, apperrors.BadRequest("min_val must be non-negative", errors.New("min_val must be non-negative"))
 	}
 
 	created, err := s.paramRepo.InsertNumericParameter(ctx, param)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create numeric parameter: %w", err)
+		return nil, err
 	}
 
 	return created, nil
@@ -88,18 +89,22 @@ func (s *parametersService) CreateNumeric(ctx context.Context, param *entities.N
 // UpdateNumeric обновляет числовой параметр. Единственные поля, которые можно обновлять - min_val, max_val и inheritable.
 func (s *parametersService) UpdateNumeric(ctx context.Context, id uint, updates map[string]any) (*entities.NumericParameter, error) {
 	if err := ctx.Err(); err != nil {
-		return nil, fmt.Errorf("request cancelled: %w", err)
+		return nil, apperrors.Internal(fmt.Errorf("request cancelled: %w", err))
+	}
+
+	if len(updates) == 0 {
+		return nil, apperrors.BadRequest("no updates provided", errors.New("no updates provided"))
 	}
 
 	for k := range updates {
 		if _, ok := allowedParametersToUpdate[k]; !ok {
-			return nil, fmt.Errorf("unknown parameter: %s", k)
+			return nil, apperrors.BadRequest(fmt.Sprintf("field %s cannot be updated", k), fmt.Errorf("field %s cannot be updated", k))
 		}
 	}
 
 	updated, err := s.paramRepo.UpdateNumericParameter(ctx, id, updates)
 	if err != nil {
-		return nil, fmt.Errorf("failed to update numeric parameter: %w", err)
+		return nil, err
 	}
 
 	return updated, nil
@@ -108,12 +113,12 @@ func (s *parametersService) UpdateNumeric(ctx context.Context, id uint, updates 
 // DeleteNumeric удаляет числовой параметр.
 func (s *parametersService) DeleteNumeric(ctx context.Context, id uint) (*entities.NumericParameter, error) {
 	if err := ctx.Err(); err != nil {
-		return nil, fmt.Errorf("request cancelled: %w", err)
+		return nil, apperrors.Internal(fmt.Errorf("request cancelled: %w", err))
 	}
 
 	deleted, err := s.paramRepo.DeleteNumericParameter(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("failed to delete numeric parameter: %w", err)
+		return nil, err
 	}
 
 	return deleted, nil
@@ -122,7 +127,7 @@ func (s *parametersService) DeleteNumeric(ctx context.Context, id uint) (*entiti
 // CreateEnum создает параметр типа перечисление.
 func (s *parametersService) CreateEnum(ctx context.Context, param *entities.EnumParameter) (*entities.EnumParameter, error) {
 	if err := ctx.Err(); err != nil {
-		return nil, fmt.Errorf("request cancelled: %w", err)
+		return nil, apperrors.Internal(fmt.Errorf("request cancelled: %w", err))
 	}
 
 	enumClass, err := s.enumRepo.GetEnumClassByID(ctx, param.EnumClassID)
@@ -132,7 +137,7 @@ func (s *parametersService) CreateEnum(ctx context.Context, param *entities.Enum
 
 	created, err := s.paramRepo.InsertEnumParameter(ctx, param)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create enum parameter: %w", err)
+		return nil, err
 	}
 
 	return created, nil
@@ -141,16 +146,20 @@ func (s *parametersService) CreateEnum(ctx context.Context, param *entities.Enum
 // UpdateEnum обновляет перечисление. Единственное поле, которое можно обновлять - inheritable.
 func (s *parametersService) UpdateEnum(ctx context.Context, id uint, updates map[string]any) (*entities.EnumParameter, error) {
 	if err := ctx.Err(); err != nil {
-		return nil, fmt.Errorf("request cancelled: %w", err)
+		return nil, apperrors.Internal(fmt.Errorf("request cancelled: %w", err))
+	}
+
+	if len(updates) == 0 {
+		return nil, apperrors.BadRequest("no updates provided", errors.New("no updates provided"))
 	}
 
 	if _, ok := updates["inheritable"]; len(updates) > 1 || !ok {
-		return nil, errors.New("inheritable is required")
+		return nil, apperrors.BadRequest("only inheritable field can be updated", errors.New("only inheritable field can be updated"))
 	}
 
 	updated, err := s.paramRepo.UpdateEnumParameter(ctx, id, updates)
 	if err != nil {
-		return nil, fmt.Errorf("failed to update enum parameter: %w", err)
+		return nil, err
 	}
 
 	return updated, nil
@@ -159,12 +168,12 @@ func (s *parametersService) UpdateEnum(ctx context.Context, id uint, updates map
 // DeleteEnum удаляет перечисление. Если параметр был применён к категориям, он будет удалён из них, но категории сохранятся.
 func (s *parametersService) DeleteEnum(ctx context.Context, id uint) (*entities.EnumParameter, error) {
 	if err := ctx.Err(); err != nil {
-		return nil, fmt.Errorf("request cancelled: %w", err)
+		return nil, apperrors.Internal(fmt.Errorf("request cancelled: %w", err))
 	}
 
 	deleted, err := s.paramRepo.DeleteEnumParameter(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("failed to delete enum parameter: %w", err)
+		return nil, err
 	}
 
 	return deleted, nil
@@ -173,12 +182,12 @@ func (s *parametersService) DeleteEnum(ctx context.Context, id uint) (*entities.
 // ListParameters возвращает все параметры, применимые к категории.
 func (s *parametersService) ListParameters(ctx context.Context, categoryID uint, parameterType int) ([]entities.NumericParameter, []entities.EnumParameter, error) {
 	if err := ctx.Err(); err != nil {
-		return nil, nil, fmt.Errorf("request cancelled: %w", err)
+		return nil, nil, apperrors.Internal(fmt.Errorf("request cancelled: %w", err))
 	}
 
 	numeric, enum, err := s.paramRepo.GetParameters(ctx, categoryID, parameterType)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get parameters: %w", err)
+		return nil, nil, err
 	}
 
 	return numeric, enum, nil
@@ -187,12 +196,12 @@ func (s *parametersService) ListParameters(ctx context.Context, categoryID uint,
 // ApplyToCategory применяет указанные параметры к категории. Возвращает количество добавленных параметров.
 func (s *parametersService) ApplyToCategory(ctx context.Context, categoryID uint, numericIDs, enumIDs []int) (int, error) {
 	if err := ctx.Err(); err != nil {
-		return 0, fmt.Errorf("request cancelled: %w", err)
+		return 0, apperrors.Internal(fmt.Errorf("request cancelled: %w", err))
 	}
 
 	added, err := s.paramRepo.ApplyParameters(ctx, categoryID, numericIDs, enumIDs)
 	if err != nil {
-		return 0, fmt.Errorf("failed to apply parameters: %w", err)
+		return 0, err
 	}
 
 	return added, nil

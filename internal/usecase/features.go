@@ -2,15 +2,15 @@
 package usecase
 
 import (
+	"Brewery/internal/apperrors"
 	"context"
-	"errors"
 	"fmt"
 )
 
 // GetFeatures возвращает список характеристик для пива по его ID.
 func (s *beerService) GetFeatures(ctx context.Context, beerID uint) ([]string, error) {
 	if err := ctx.Err(); err != nil {
-		return nil, fmt.Errorf("request cancelled: %w", err)
+		return nil, apperrors.Internal(fmt.Errorf("request cancelled: %w", err))
 	}
 
 	exists, err := s.beerRepo.BeerExists(ctx, beerID)
@@ -18,12 +18,12 @@ func (s *beerService) GetFeatures(ctx context.Context, beerID uint) ([]string, e
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.New("тут надо передать ошибку 404")
+		return nil, apperrors.NotFound("beer not found", fmt.Errorf("beer with id %d not found", beerID))
 	}
 
 	features, err := s.beerRepo.GetBeerFeature(ctx, beerID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get categories: %w", err)
+		return nil, err
 	}
 
 	return features, nil
@@ -32,7 +32,7 @@ func (s *beerService) GetFeatures(ctx context.Context, beerID uint) ([]string, e
 // CreateFeature добавляет характеристику к пиву по его ID.
 func (s *beerService) CreateFeature(ctx context.Context, beerID uint, feat string) (uint, error) {
 	if err := ctx.Err(); err != nil {
-		return 0, fmt.Errorf("request cancelled: %w", err)
+		return 0, apperrors.Internal(fmt.Errorf("request cancelled: %w", err))
 	}
 
 	exists, err := s.beerRepo.BeerExists(ctx, beerID)
@@ -40,17 +40,17 @@ func (s *beerService) CreateFeature(ctx context.Context, beerID uint, feat strin
 		return 0, err
 	}
 	if !exists {
-		return 0, errors.New("тут надо передать ошибку 404")
+		return 0, apperrors.NotFound("beer not found", fmt.Errorf("beer with id %d not found", beerID))
 	}
 
 	featID, err := s.beerRepo.GetFeatureID(ctx, nil, feat)
 	if err != nil {
-		return 0, fmt.Errorf("GetFeatureID: %w", err)
+		return 0, err
 	}
 
 	err = s.beerRepo.ConnectBeerAndFeature(ctx, nil, featID, beerID)
 	if err != nil {
-		return 0, fmt.Errorf("failed to get categories: %w", err)
+		return 0, err
 	}
 
 	return 0, nil
@@ -59,7 +59,7 @@ func (s *beerService) CreateFeature(ctx context.Context, beerID uint, feat strin
 // DeleteFeature удаляет характеристику у пива по его ID.
 func (s *beerService) DeleteFeature(ctx context.Context, beerID uint) error {
 	if err := ctx.Err(); err != nil {
-		return fmt.Errorf("request cancelled: %w", err)
+		return apperrors.Internal(fmt.Errorf("request cancelled: %w", err))
 	}
 
 	exists, err := s.beerRepo.BeerExists(ctx, beerID)
@@ -67,12 +67,12 @@ func (s *beerService) DeleteFeature(ctx context.Context, beerID uint) error {
 		return err
 	}
 	if !exists {
-		return errors.New("тут надо передать ошибку 404")
+		return apperrors.NotFound("beer not found", fmt.Errorf("beer with id %d not found", beerID))
 	}
 
 	err = s.beerRepo.DisconnectBeerAndFeature(ctx, nil, beerID)
 	if err != nil {
-		return fmt.Errorf("failed to disconnect beer: %w", err)
+		return err
 	}
 
 	return nil
