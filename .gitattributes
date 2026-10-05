@@ -1,0 +1,4 @@
+*.swagger.json linguist-generated=true
+*_easyjson.go linguist-generated=true
+*_mock.go linguist-generated=true
+*.csv linguist-generated=true
