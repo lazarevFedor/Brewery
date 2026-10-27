@@ -1,0 +1,2498 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Product Catalog API",
+    "version": "1.0.0",
+    "description": "API for managing classes, products, reviews, enums, class parameters and parameter's aggregates"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:80/api"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Авторизация для действий Админа"
+    },
+    {
+      "name": "classes",
+      "description": "Все операции, связанные с категориями товаров"
+    },
+    {
+      "name": "ClassParams",
+      "description": "Операции связанные с параметрами категорий"
+    },
+    {
+      "name": "Aggregates",
+      "description": "Операции связанные с агрегатами параметров категорий"
+    },
+    {
+      "name": "Products",
+      "description": "Операции, связанные с продукцией"
+    },
+    {
+      "name": "EnumsClass",
+      "description": "Операции, связанные с классами перечислений "
+    },
+    {
+      "name": "EnumsValue",
+      "description": "Операции связанные с перечислениями"
+    }
+  ],
+  "paths": {
+    "/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "login admin",
+        "operationId": "AuthAdmin",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Auth"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "token": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/403_unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/classes": {
+      "get": {
+        "tags": [
+          "classes"
+        ],
+        "summary": "Get all classes",
+        "operationId": "listclasses",
+        "responses": {
+          "200": {
+            "description": "classes List",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Class"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "classes"
+        ],
+        "summary": "Create class",
+        "operationId": "createclass",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClassCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "class created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Class"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/classes/{id}": {
+      "get": {
+        "tags": [
+          "classes"
+        ],
+        "summary": "Get class by ID",
+        "operationId": "getclass",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "class",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Class"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "classes"
+        ],
+        "summary": "Update class",
+        "operationId": "updateClass",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClassUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated class",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Class"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "classes"
+        ],
+        "summary": "Delete class",
+        "operationId": "deleteclass",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successfully deleted"
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/classes/parent/{id}": {
+      "get": {
+        "tags": [
+          "classes"
+        ],
+        "summary": "Get parent class",
+        "operationId": "getclassParent",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Parent class",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Class"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/classes/children/{id}": {
+      "get": {
+        "tags": [
+          "classes"
+        ],
+        "summary": "Get class's children",
+        "operationId": "listclassChildren",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Children classes list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Class"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/products": {
+      "get": {
+        "tags": [
+          "Products"
+        ],
+        "summary": "Get all products",
+        "operationId": "listProducts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Offset"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Products list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Product"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Products"
+        ],
+        "summary": "Create product",
+        "operationId": "createProduct",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Product created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Product"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/products/{id}": {
+      "patch": {
+        "tags": [
+          "Products"
+        ],
+        "summary": "Update product",
+        "operationId": "updateProduct",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Product"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Products"
+        ],
+        "summary": "Delete product",
+        "operationId": "deleteProduct",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successfully deleted"
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/classes/products/{class_id}": {
+      "get": {
+        "tags": [
+          "Products"
+        ],
+        "summary": "Get products by class",
+        "operationId": "listProductsByClass",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/classId"
+          },
+          {
+            "$ref": "#/components/parameters/Offset"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Products list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Product"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/products/search": {
+      "get": {
+        "tags": [
+          "Products"
+        ],
+        "summary": "Filter products by exact parameter values",
+        "operationId": "searchProducts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/productFilter"
+          },
+          {
+            "$ref": "#/components/parameters/Offset"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Products list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Product"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/classes/{id}/products/search": {
+      "get": {
+        "tags": [
+          "Products"
+        ],
+        "summary": "Search products in class by parameter ranges",
+        "operationId": "searchProductsByClass",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          },
+          {
+            "$ref": "#/components/parameters/classproductFilter"
+          },
+          {
+            "$ref": "#/components/parameters/Offset"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Products list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Product"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/enums": {
+      "post": {
+        "tags": [
+          "EnumsClass"
+        ],
+        "summary": "Create enum class",
+        "operationId": "createEnumClass",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnumClassCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Enum class created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnumClass"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "EnumsClass"
+        ],
+        "summary": "Get enum classes",
+        "operationId": "listEnumClasses",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/EntityName"
+          },
+          {
+            "$ref": "#/components/parameters/FieldName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Enum class list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EnumClass"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/enums/{id}": {
+      "patch": {
+        "tags": [
+          "EnumsClass"
+        ],
+        "summary": "Update enum class",
+        "operationId": "updateEnumClass",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnumClassUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated enum class",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnumClass"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "EnumsClass"
+        ],
+        "summary": "Delete enum class",
+        "operationId": "deleteEnumClass",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successfully deleted"
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/enums/value": {
+      "post": {
+        "tags": [
+          "EnumsValue"
+        ],
+        "summary": "Create enum's value",
+        "operationId": "createEnumValue",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnumValueCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Enum value created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnumValue"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "EnumsValue"
+        ],
+        "summary": "Get enum's values",
+        "operationId": "listEnumValues",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/EnumType"
+          },
+          {
+            "$ref": "#/components/parameters/EntityName"
+          },
+          {
+            "$ref": "#/components/parameters/FieldName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Enum values list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EnumValue"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/enums/value/{id}": {
+      "delete": {
+        "tags": [
+          "EnumsValue"
+        ],
+        "summary": "Delete enum's value",
+        "operationId": "deleteEnumValue",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successfully deleted"
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "EnumsValue"
+        ],
+        "summary": "Update enum's value",
+        "operationId": "updateEnumValue",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnumValueBase"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated enum value",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnumValue"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/classes/parameters/numeric": {
+      "post": {
+        "tags": [
+          "ClassParams"
+        ],
+        "summary": "Create numeric parameter",
+        "operationId": "createNumericParameter",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NumericParameterCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Numeric parameter created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NumericParameter"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/classes/parameters/enum": {
+      "post": {
+        "tags": [
+          "ClassParams"
+        ],
+        "summary": "Create enum parameter",
+        "operationId": "createEnumParameter",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnumParameterCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Enum parameter created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnumParameter"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/classes/parameters": {
+      "get": {
+        "tags": [
+          "ClassParams"
+        ],
+        "summary": "Get all parameters with optional filtering by class and type",
+        "operationId": "listclassParameters",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/classIdFilter"
+          },
+          {
+            "$ref": "#/components/parameters/ParamType"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "numeric",
+                "enum"
+              ]
+            },
+            "description": "Filter parameters by type. If omitted, returns both numeric and enum parameters."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Filtered list of parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "oneOf": [
+                      {
+                        "$ref": "#/components/schemas/NumericParameter"
+                      },
+                      {
+                        "$ref": "#/components/schemas/EnumParameter"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/classes/parameters/apply/{class_id}": {
+      "patch": {
+        "tags": [
+          "ClassParams"
+        ],
+        "summary": "Apply parameters to class",
+        "operationId": "applyParametersToclass",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/classId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClassParamsApply"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Parameters applied successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "params_added": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/classes/parameters/{id}": {
+      "patch": {
+        "tags": [
+          "ClassParams"
+        ],
+        "summary": "Update parameter",
+        "operationId": "updateclassParameter",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          },
+          {
+            "$ref": "#/components/parameters/ParamType"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/NumericParameterUpdate"
+                  },
+                  {
+                    "$ref": "#/components/schemas/EnumParameterUpdate"
+                  }
+                ]
+              },
+              "examples": {
+                "numeric": {
+                  "$ref": "#/components/examples/NumericParameterUpdate"
+                },
+                "enum": {
+                  "$ref": "#/components/examples/EnumParameterUpdate"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Parameter updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/NumericParameter"
+                    },
+                    {
+                      "$ref": "#/components/schemas/EnumParameter"
+                    }
+                  ]
+                },
+                "examples": {
+                  "numeric": {
+                    "$ref": "#/components/examples/NumericParameter"
+                  },
+                  "enum": {
+                    "$ref": "#/components/examples/EnumParameter"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "422": {
+            "$ref": "#/components/responses/422_validation_error"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ClassParams"
+        ],
+        "summary": "Delete parameter",
+        "operationId": "deleteclassParameter",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          },
+          {
+            "$ref": "#/components/parameters/ParamType"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Parameter deleted"
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/aggregates": {
+      "post": {
+        "tags": [
+          "Aggregates"
+        ],
+        "summary": "Create parameter aggregate",
+        "operationId": "createParameterAggregate",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParameterAggregateCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Parameter aggregate created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParameterAggregate"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Aggregates"
+        ],
+        "summary": "Get all parameter aggregates",
+        "operationId": "listParameterAggregates",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AggregateName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of aggregates",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ParameterAggregate"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/aggregates/apply/{class_id}": {
+      "patch": {
+        "tags": [
+          "Aggregates"
+        ],
+        "summary": "Apply parameter aggregate to class",
+        "operationId": "applyParameterAggregate",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/classId"
+          },
+          {
+            "$ref": "#/components/parameters/AggregateId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Aggregate applied successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "params_added": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/aggregates/{id}": {
+      "patch": {
+        "tags": [
+          "Aggregates"
+        ],
+        "summary": "Update parameter aggregate",
+        "operationId": "updateParameterAggregate",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParameterAggregateUpdate"
+              },
+              "examples": {
+                "update-name-description": {
+                  "summary": "Update name and description",
+                  "value": {
+                    "name": "Lager Profile v2",
+                    "description": "Updated standard parameters for Lager"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Parameter aggregate updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParameterAggregate"
+                },
+                "examples": {
+                  "updated": {
+                    "summary": "Updated aggregate",
+                    "value": {
+                      "id": 1,
+                      "name": "Lager Profile v2",
+                      "description": "Updated standard parameters for Lager",
+                      "numeric_param_ids": [
+                        10
+                      ],
+                      "enum_param_ids": [
+                        11
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Aggregates"
+        ],
+        "summary": "Delete parameter aggregate",
+        "operationId": "deleteParameterAggregate",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Parameter aggregate deleted"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Auth": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "example": {
+          "username": "admin",
+          "password": "admin"
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": [
+          "error",
+          "message"
+        ],
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "VALIDATION_ERROR"
+          },
+          "message": {
+            "type": "string",
+            "example": "Invalid request"
+          }
+        }
+      },
+      "ClassBase": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "Class": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ClassBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "parent_id"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "parent_id": {
+                "type": "integer",
+                "nullable": true
+              },
+              "numeric_param_ids": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "default": []
+              },
+              "enum_param_ids": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "default": []
+              }
+            }
+          }
+        ]
+      },
+      "ClassCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ClassBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "name",
+              "parent_id"
+            ],
+            "properties": {
+              "parent_id": {
+                "type": "integer",
+                "nullable": true
+              }
+            }
+          }
+        ]
+      },
+      "ClassUpdate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ClassBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "parent_id": {
+                "type": "integer",
+                "nullable": true
+              },
+              "numeric_param_ids": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "default": []
+              },
+              "enum_param_ids": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "default": []
+              }
+            }
+          }
+        ]
+      },
+      "ProductBase": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "Product": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ProductBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "class_id",
+              "base_id"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "class": {
+                "$ref": "#/components/schemas/ClassBase"
+              },
+              "parameters": {
+                "type": "object",
+                "additionalProperties": {
+                  "oneOf": [
+                    {"type":  "string"},
+                    {"type":  "number"}
+                  ]
+                }
+              },
+              "class_id": {
+                "type": "integer"
+              },
+              "amount": {
+                "type": "integer"
+              },
+              "units": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "ProductCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ProductBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "name",
+              "class"
+            ],
+            "properties": {
+              "class": {
+                "$ref": "#/components/schemas/ClassBase"
+              }
+            },
+            "example": {
+              "name": "Балтика 0",
+              "class": {
+                "name": "Светлое"
+              },
+              "amount": 100,
+              "units": "L"
+            }
+          }
+        ]
+      },
+      "ProductUpdate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ProductBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "name",
+              "class_id",
+              "base_id"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "class": {
+                "$ref": "#/components/schemas/ClassBase"
+              },
+              "parameters": {
+                "type": "object",
+                "additionalProperties": {
+                  "oneOf": [
+                    {"type":  "string"},
+                    {"type":  "number"}
+                  ]
+                }
+              },
+              "class_id": {
+                "type": "integer"
+              },
+              "amount": {
+                "type": "integer"
+              },
+              "units": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "EnumClassBase": {
+        "type": "object",
+        "required": [
+          "entity_name",
+          "field_name"
+        ],
+        "properties": {
+          "entity_name": {
+            "type": "string"
+          },
+          "field_name": {
+            "type": "string"
+          }
+        }
+      },
+      "EnumClass": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumClassBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "enum_type",
+              "entity_name",
+              "field_name",
+              "is_active"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "enum_type": {
+                "type": "string"
+              },
+              "unit": {
+                "type": "string"
+              },
+              "is_active": {
+                "type": "boolean"
+              }
+            }
+          }
+        ]
+      },
+      "EnumClassCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumClassBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "enum_type",
+              "entity_name",
+              "field_name",
+              "is_active"
+            ],
+            "properties": {
+              "enum_type": {
+                "type": "string"
+              },
+              "unit": {
+                "type": "string"
+              },
+              "is_active": {
+                "type": "boolean"
+              }
+            }
+          }
+        ]
+      },
+      "EnumClassUpdate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumClassCreate"
+          }
+        ]
+      },
+      "EnumValueBase": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "position": {
+            "type": "integer"
+          }
+        }
+      },
+      "EnumValue": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumValueBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "enum_type",
+              "class_id",
+              "value",
+              "position"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "enum_type": {
+                "type": "string"
+              },
+              "class_id": {
+                "type": "integer"
+              }
+            }
+          }
+        ]
+      },
+      "EnumValueCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumValueBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "class_id",
+              "enum_type",
+              "value",
+              "position"
+            ],
+            "properties": {
+              "enum_type": {
+                "type": "string"
+              },
+              "class_id": {
+                "type": "integer"
+              }
+            }
+          }
+        ]
+      },
+      "NumericParameterBase": {
+        "type": "object",
+        "properties": {
+          "field_name": {
+            "type": "string",
+            "example": "amount"
+          },
+          "entity_name": {
+            "type": "string",
+            "example": "products"
+          },
+          "min_val": {
+            "type": "integer",
+            "example": 150
+          },
+          "max_val": {
+            "type": "integer",
+            "example": 300
+          },
+          "inheritable": {
+            "type": "boolean",
+            "example": false
+          }
+        }
+      },
+      "NumericParameterCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/NumericParameterBase"
+          },
+          {
+            "required": [
+              "field_name",
+              "entity_name",
+              "min_val",
+              "max_val",
+              "inheritable"
+            ]
+          }
+        ]
+      },
+      "NumericParameter": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/NumericParameterBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "field_name",
+              "entity_name",
+              "min_val",
+              "max_val",
+              "inheritable"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer",
+                "example": 10
+              }
+            }
+          }
+        ]
+      },
+      "EnumParameterBase": {
+        "type": "object",
+        "properties": {
+          "enum_class_id": {
+            "type": "integer",
+            "example": 2
+          },
+          "inheritable": {
+            "type": "boolean",
+            "example": false
+          }
+        }
+      },
+      "EnumParameterCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumParameterBase"
+          },
+          {
+            "required": [
+              "enum_class_id",
+              "inheritable"
+            ]
+          }
+        ]
+      },
+      "EnumParameter": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumParameterBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "enum_class_id",
+              "inheritable"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer",
+                "example": 11
+              }
+            }
+          }
+        ]
+      },
+      "ClassParamsApply": {
+        "type": "object",
+        "properties": {
+          "numeric_param_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "List of numeric parameter ids to apply"
+          },
+          "enum_param_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "List of enum parameter ids to apply"
+          }
+        }
+      },
+      "NumericParameterUpdate": {
+        "type": "object",
+        "properties": {
+          "min_val": {
+            "type": "integer"
+          },
+          "max_val": {
+            "type": "integer"
+          },
+          "inheritable": {
+            "type": "boolean"
+          }
+        }
+      },
+      "EnumParameterUpdate": {
+        "type": "object",
+        "properties": {
+          "enum_class_id": {
+            "type": "integer",
+            "example": 2
+          },
+          "inheritable": {
+            "type": "boolean",
+            "example": false
+          }
+        }
+      },
+      "ParameterAggregateBase": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "numeric_param_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "default": []
+          },
+          "enum_param_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "default": []
+          }
+        }
+      },
+      "ParameterAggregate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ParameterAggregateBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "name"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              }
+            }
+          }
+        ]
+      },
+      "ParameterAggregateCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ParameterAggregateBase"
+          },
+          {
+            "required": [
+              "name"
+            ]
+          }
+        ]
+      },
+      "ParameterAggregateUpdate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ParameterAggregateBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "responses": {
+      "403_unauthorized": {
+        "description": "Unauthorized",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": "Unauthorized",
+              "message": "Unauthorized"
+            }
+          }
+        }
+      },
+      "500_internal_server_error": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": "INTERNAL_SERVER_ERROR",
+              "message": "Unexpected error occurred"
+            }
+          }
+        }
+      },
+      "400_bad_request": {
+        "description": "Invalid request data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": "VALIDATION_ERROR",
+              "message": "Invalid id"
+            }
+          }
+        }
+      },
+      "409_conflict": {
+        "description": "Conflict",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": "CONFLICT",
+              "message": "resource duplicate"
+            }
+          }
+        }
+      },
+      "404_not_found": {
+        "description": "Not Found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": "NOT_FOUND",
+              "message": "Resource with id=1 not found"
+            }
+          }
+        }
+      },
+      "422_validation_error": {
+        "description": "Validation error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": "VALIDATION_ERROR",
+              "message": "Invalid parameter payload"
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "Id": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "integer"
+        }
+      },
+      "Offset": {
+        "name": "offset",
+        "in": "query",
+        "schema": {
+          "type": "integer",
+          "default": 0,
+          "minimum": 0
+        }
+      },
+      "Limit": {
+        "name": "limit",
+        "in": "query",
+        "schema": {
+          "type": "integer",
+          "default": 10,
+          "minimum": 1,
+          "maximum": 100
+        }
+      },
+      "productId": {
+        "name": "product_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "integer"
+        }
+      },
+      "classId": {
+        "name": "class_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "integer"
+        }
+      },
+      "productFilter": {
+        "name": "filter",
+        "in": "query",
+        "required": false,
+        "description": "Repeated filter in the form field:op:value. Use eq for exact product filtering.",
+        "schema": {
+          "type": "string"
+        },
+        "examples": {
+          "exact_value": {
+            "summary": "Exact parameter value",
+            "value": "amount:eq:100"
+          }
+        }
+      },
+      "classproductFilter": {
+        "name": "filter",
+        "in": "query",
+        "required": false,
+        "description": "Repeated filter in the form field:op:value. Use gte/lte/in to filter class products by numeric ranges or allowed enum values.",
+        "schema": {
+          "type": "string"
+        },
+        "examples": {
+          "numeric_range": {
+            "summary": "Numeric range filter",
+            "value": "amount:gte:100"
+          },
+          "enum_values": {
+            "summary": "Enum allowed values filter",
+            "value": "city:in:Москва,Самара"
+          }
+        }
+      },
+      "EntityName": {
+        "name": "entity_name",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "FieldName": {
+        "name": "field_name",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "EnumType": {
+        "name": "enum_type",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "classIdFilter": {
+        "name": "class_id",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "integer"
+        },
+        "description": "Optional class filter"
+      },
+      "ParamType": {
+        "name": "type",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "numeric",
+            "enum"
+          ]
+        },
+        "examples": {
+          "numeric": {
+            "summary": "Numeric type",
+            "value": "numeric"
+          },
+          "enum": {
+            "summary": "Enum type",
+            "value": "enum"
+          }
+        }
+      },
+      "AggregateName": {
+        "name": "name",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Optional exact aggregate name filter"
+      },
+      "AggregateId": {
+        "name": "aggregate_id",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "integer",
+          "example": 1
+        }
+      }
+    },
+    "examples": {
+      "NumericParameterUpdate": {
+        "type": "object",
+        "properties": {
+          "min_val": {
+            "type": "integer"
+          },
+          "max_val": {
+            "type": "integer"
+          },
+          "inheritable": {
+            "type": "boolean"
+          }
+        }
+      },
+      "EnumParameterUpdate": {
+        "type": "object",
+        "properties": {
+          "enum_class_id": {
+            "type": "integer",
+            "example": 2
+          },
+          "inheritable": {
+            "type": "boolean",
+            "example": false
+          }
+        }
+      },
+      "NumericParameter": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/NumericParameterBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "field_name",
+              "entity_name",
+              "min_val",
+              "max_val",
+              "inheritable"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer",
+                "example": 10
+              }
+            }
+          }
+        ]
+      },
+      "EnumParameter": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumParameterBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "enum_class_id",
+              "inheritable"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer",
+                "example": 11
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
