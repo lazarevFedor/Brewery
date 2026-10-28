@@ -8,6 +8,3 @@ type EnumClass struct {
 	Unit      string `json:"unit,omitempty" info:"Единица измерений"`
 	IsActive  bool   `json:"is_active,omitempty" info:"Активен ли класс перечисления"`
 }
-
-//easyjson:json
-type EnumClasses []EnumClass
