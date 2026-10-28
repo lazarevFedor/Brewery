@@ -11,8 +11,3 @@ type Product struct {
 	Unit       string         `json:"unit,omitempty" info:"Единица измерений"`
 	Amount     uint           `json:"amount,omitempty" info:"Количество изделия"`
 }
-
-// Products представляет собой срез изделий.
-//
-//easyjson:json
-type Products []Product
