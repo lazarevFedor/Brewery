@@ -14,7 +14,6 @@ func RegisterRouters(e *gin.Engine, h handlers.Handlers) {
 	admin := api.Group("", middleware.AdminAuth())
 
 	registerBeerRouters(api, admin, h)
-	registerReviewRouters(api, admin, h)
 	registerCategoryRouters(api, admin, h)
 	registerEnumRouters(api, h)
 	registerAggregatesRouters(api, h)
@@ -47,20 +46,6 @@ func registerBeerRouters(api *gin.RouterGroup, admin *gin.RouterGroup, h handler
 			features.PATCH("/:beer_id", h.BeersHandler.UpdateBeer)
 			features.DELETE("/:beer_id", h.BeersHandler.DeleteFeature)
 		}
-	}
-}
-
-func registerReviewRouters(api *gin.RouterGroup, admin *gin.RouterGroup, h handlers.Handlers) {
-	reviews := api.Group("/reviews")
-	{
-		reviews.POST("/:beer_id", h.ReviewHandler.CreateReview)
-		reviews.GET("/:beer_id", h.ReviewHandler.GetBeersReviews)
-	}
-
-	adminReviews := admin.Group("/reviews")
-	{
-		adminReviews.DELETE("/:id", h.ReviewHandler.DeleteReview)
-		adminReviews.PATCH("/:id", h.ReviewHandler.UpdateReview)
 	}
 }
 

@@ -5,7 +5,6 @@ package entities
 type Beer struct {
 	ID          uint            `json:"id" info:"ID записи в бд"`
 	Name        string          `json:"name" info:"Название напитка"`
-	Rating      float32         `json:"rating" info:"Средний рейтинг"`
 	Description string          `json:"description,omitempty" info:"Описание продукта"`
 	ABV         float32         `json:"abv" info:"Крепость в %"`
 	IBU         uint8           `json:"ibu" info:"Индекс горечи"`

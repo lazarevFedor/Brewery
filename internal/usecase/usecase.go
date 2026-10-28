@@ -60,18 +60,6 @@ type BeerService interface {
 
 	// DeleteFeature удаляет характеристику у пива по его ID.
 	DeleteFeature(ctx context.Context, beerID uint) error
-
-	// GetBeerReviews получает список отзывов для пива.
-	GetBeerReviews(ctx context.Context, limit, offset uint64, beerid uint) ([]entities.Review, error)
-
-	// CreateReview создает новый отзыв для пива.
-	CreateReview(ctx context.Context, review *entities.Review) (uint, error)
-
-	// UpdateReview обновляет существующий отзыв для пива.
-	UpdateReview(ctx context.Context, id uint, updates map[string]any) error
-
-	// DeleteReview удаляет существующий отзыв для пива.
-	DeleteReview(ctx context.Context, id uint) error
 }
 
 // beerService - реализация интерфейса BeerService

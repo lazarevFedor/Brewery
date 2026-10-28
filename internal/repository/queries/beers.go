@@ -10,7 +10,6 @@ import (
 const (
 	// Константы с именами таблиц, используемых в запросах
 	beersTable        = "beers"
-	reviewsTable      = "reviews"
 	citiesTable       = "cities"
 	countriesTable    = "countries"
 	featuresTable     = "features"
@@ -36,8 +35,6 @@ func FullBeerSelect() sq.SelectBuilder {
 		"cntr.name AS country",
 		"pc.name AS category",
 		"COALESCE(array_agg(f.name) FILTER (WHERE f.name IS NOT NULL), '{}') AS feats",
-		"b.review_amount",
-		"b.review_rating_sum",
 	).From(beersTable+" b").
 		Join("cities ct ON ct.id = b.city_id").
 		Join("countries cntr ON cntr.id = ct.country_id").
@@ -64,25 +61,6 @@ func SelectBeerByCategoryID(categoryID uint) sq.SelectBuilder {
 		OrderBy("id DESC")
 }
 
-// UpdateBeerRating возвращает запрос на обовление сущности отзыва на пиво
-func UpdateBeerRating(beerID, rating uint, operation string) sq.UpdateBuilder {
-	var reviewAmount, reviewRatingSum int
-	switch operation {
-	case "insert":
-		reviewAmount, reviewRatingSum = 1, int(rating)
-	case "update":
-		reviewAmount, reviewRatingSum = 0, int(rating)
-	case "delete":
-		reviewAmount, reviewRatingSum = -1, -int(rating)
-	default:
-		return sq.UpdateBuilder{}
-	}
-
-	return psql.Update(beersTable).
-		Set("review_amount", sq.Expr("review_amount + ?", reviewAmount)).
-		Set("review_rating_sum", sq.Expr("review_rating_sum + ?", reviewRatingSum)).
-		Where(sq.Eq{"id": beerID})
-}
 
 func FilterBeers(filters []*entities.FilterParameter, categoryID uint) sq.SelectBuilder {
 	query := FullBeerSelect()
@@ -91,26 +69,23 @@ func FilterBeers(filters []*entities.FilterParameter, categoryID uint) sq.Select
 			field := filter.FieldName
 			val := filter.Value
 			var pred any
-			if field == "rating" {
-				oper := filter.Operation
-				pred = sq.Expr("COALESCE(b.review_rating_sum::float / NULLIF(b.review_amount, 0), 0) "+string(oper)+" ?", val)
-			} else {
-				oper := filter.Operation
-				switch oper {
-				case entities.OpEqual:
-					pred = sq.Eq{field: val}
-				case entities.OpGreater:
-					pred = sq.Gt{field: val}
-				case entities.OpGreaterEqual:
-					pred = sq.GtOrEq{field: val}
-				case entities.OpLess:
-					pred = sq.Lt{field: val}
-				case entities.OpLessEqual:
-					pred = sq.LtOrEq{field: val}
-				case entities.OpNotEqual:
-					pred = sq.NotEq{field: val}
-				}
+			
+			oper := filter.Operation
+			switch oper {
+			case entities.OpEqual:
+				pred = sq.Eq{field: val}
+			case entities.OpGreater:
+				pred = sq.Gt{field: val}
+			case entities.OpGreaterEqual:
+				pred = sq.GtOrEq{field: val}
+			case entities.OpLess:
+				pred = sq.Lt{field: val}
+			case entities.OpLessEqual:
+				pred = sq.LtOrEq{field: val}
+			case entities.OpNotEqual:
+				pred = sq.NotEq{field: val}
 			}
+			
 			query = query.Where(pred)
 		}
 	}
@@ -121,28 +96,6 @@ func FilterBeers(filters []*entities.FilterParameter, categoryID uint) sq.Select
 	return query
 }
 
-// InsertReview возвращает запрос для вставки нового отзыва в таблицу reviews и возвращает ID вставленного отзыва.
-func InsertReview(review entities.Review) sq.InsertBuilder {
-	data := map[string]any{
-		"body":    review.Body,
-		"rating":  review.Rating,
-		"beer_id": review.BeerID,
-	}
-
-	return psql.
-		Insert(reviewsTable).
-		SetMap(data).
-		Suffix("RETURNING id")
-}
-
-// DeleteReview возвращает запрос для удаления отзыва из таблицы reviews по его ID.
-func DeleteReview(id uint) sq.DeleteBuilder {
-	return psql.
-		Delete(reviewsTable).
-		Where(sq.Eq{"id": id}).
-		Suffix("RETURNING beer_id, rating")
-}
-
 // DeleteBeer возвращает запрос для удаления пива из таблицы beers по его ID.
 func DeleteBeer(id uint) sq.DeleteBuilder {
 	return psql.
@@ -150,30 +103,9 @@ func DeleteBeer(id uint) sq.DeleteBuilder {
 		Where(sq.Eq{"id": id})
 }
 
-// UpdateReview возвращает запрос для обновления информации об отзыве в таблице reviews по его ID.
-func UpdateReview(id uint, updates map[string]any) sq.UpdateBuilder {
-	return psql.
-		Update(reviewsTable).
-		SetMap(updates).
-		Where(sq.Eq{"id": id}).
-		Suffix("RETURNING beer_id, rating")
-}
-
-// SelectReviewByBeerID возвращает запрос для получения списка отзывов, связанных с определенным пивом, с сортировкой по убыванию ID.
-func SelectReviewByBeerID(beerID uint) sq.SelectBuilder {
-	return psql.Select(
-		"id",
-		"body",
-		"beer_id",
-		"rating").
-		From(reviewsTable).
-		Where(sq.Eq{"beer_id": beerID}).
-		OrderBy("id DESC")
-}
-
 // UpdateBeer возвращает запрос для обновления информации о пиве в таблице beers по его ID с использованием данных из переданной карты обновлений.
 func UpdateBeer(id uint, updates map[string]any) sq.UpdateBuilder {
-	returnColumns := "id, name, description, abv, ibu, amount, units, city_id, category_id, review_amount, review_rating_sum"
+	returnColumns := "id, name, description, abv, ibu, amount, units, city_id, category_id"
 	return psql.
 		Update(beersTable).
 		SetMap(updates).

@@ -43,10 +43,6 @@ func parseFile(filename string) ([]entities.Beer, error) {
 
 	for _, record := range records {
 		beer := entities.Beer{}
-		rating, err := strconv.ParseFloat(record[1], 32)
-		if err != nil {
-			return nil, fmt.Errorf("rating ParseFloat: %w", err)
-		}
 		abv, err := strconv.ParseFloat(record[3], 32)
 		if err != nil {
 			return nil, fmt.Errorf("abv ParseFloat: %w", err)
@@ -62,7 +58,6 @@ func parseFile(filename string) ([]entities.Beer, error) {
 		}
 
 		beer.Name = record[0]
-		beer.Rating = float32(rating)
 		beer.Description = record[2]
 		beer.ABV = float32(abv)
 		beer.IBU = uint8(ibu)
