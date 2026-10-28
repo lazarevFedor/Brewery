@@ -69,7 +69,7 @@ func insertNumericParam(t *testing.T, ctx context.Context, minVal, maxVal int, f
 	t.Helper()
 
 	repo := repository.NewParameterPostgres(testDB)
-	got, err := repo.InsertNumericParameter(ctx, &entities.NumericParameter{
+	got, err := repo.InsertNumericParameter(ctx, &entities.RangeParameter{
 		MinValue:    minVal,
 		MaxValue:    maxVal,
 		FieldName:   field,
@@ -103,7 +103,7 @@ func TestParameterRepository_InsertNumericParameter(t *testing.T) {
 	t.Run("Успешная вставка", func(t *testing.T) {
 		cleanDB(t, ctx, "numeric_parameters")
 
-		param := &entities.NumericParameter{
+		param := &entities.RangeParameter{
 			MinValue:    1,
 			MaxValue:    10,
 			FieldName:   "amount",
@@ -130,10 +130,10 @@ func TestParameterRepository_InsertNumericParameter(t *testing.T) {
 
 		cases := []struct {
 			name string
-			in   *entities.NumericParameter
+			in   *entities.RangeParameter
 		}{
-			{name: "first", in: &entities.NumericParameter{MinValue: 0, MaxValue: 5, FieldName: "a", EntityName: "e1", Inheritable: false}},
-			{name: "second", in: &entities.NumericParameter{MinValue: 10, MaxValue: 20, FieldName: "b", EntityName: "e2", Inheritable: true}},
+			{name: "first", in: &entities.RangeParameter{MinValue: 0, MaxValue: 5, FieldName: "a", EntityName: "e1", Inheritable: false}},
+			{name: "second", in: &entities.RangeParameter{MinValue: 10, MaxValue: 20, FieldName: "b", EntityName: "e2", Inheritable: true}},
 		}
 
 		ids := make([]uint, 0, len(cases))

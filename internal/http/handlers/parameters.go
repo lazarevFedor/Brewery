@@ -79,7 +79,7 @@ func (h *parametersHandlers) CreateNumericParameter(c *gin.Context) {
 		return
 	}
 
-	var req entities.NumericParameter
+	var req entities.RangeParameter
 	if err = easyjson.Unmarshal(body, &req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to unmarshal numeric parameter: %v", err))

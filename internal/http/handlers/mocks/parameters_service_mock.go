@@ -33,9 +33,9 @@ type ParametersServiceMock struct {
 	beforeCreateEnumCounter uint64
 	CreateEnumMock          mParametersServiceMockCreateEnum
 
-	funcCreateNumeric          func(ctx context.Context, param *entities.NumericParameter) (np1 *entities.NumericParameter, err error)
+	funcCreateNumeric          func(ctx context.Context, param *entities.RangeParameter) (np1 *entities.RangeParameter, err error)
 	funcCreateNumericOrigin    string
-	inspectFuncCreateNumeric   func(ctx context.Context, param *entities.NumericParameter)
+	inspectFuncCreateNumeric   func(ctx context.Context, param *entities.RangeParameter)
 	afterCreateNumericCounter  uint64
 	beforeCreateNumericCounter uint64
 	CreateNumericMock          mParametersServiceMockCreateNumeric
@@ -47,14 +47,14 @@ type ParametersServiceMock struct {
 	beforeDeleteEnumCounter uint64
 	DeleteEnumMock          mParametersServiceMockDeleteEnum
 
-	funcDeleteNumeric          func(ctx context.Context, id uint) (np1 *entities.NumericParameter, err error)
+	funcDeleteNumeric          func(ctx context.Context, id uint) (np1 *entities.RangeParameter, err error)
 	funcDeleteNumericOrigin    string
 	inspectFuncDeleteNumeric   func(ctx context.Context, id uint)
 	afterDeleteNumericCounter  uint64
 	beforeDeleteNumericCounter uint64
 	DeleteNumericMock          mParametersServiceMockDeleteNumeric
 
-	funcListParameters          func(ctx context.Context, categoryID uint, parameterType int) (na1 []entities.NumericParameter, ea1 []entities.EnumParameter, err error)
+	funcListParameters          func(ctx context.Context, categoryID uint, parameterType int) (na1 []entities.RangeParameter, ea1 []entities.EnumParameter, err error)
 	funcListParametersOrigin    string
 	inspectFuncListParameters   func(ctx context.Context, categoryID uint, parameterType int)
 	afterListParametersCounter  uint64
@@ -68,7 +68,7 @@ type ParametersServiceMock struct {
 	beforeUpdateEnumCounter uint64
 	UpdateEnumMock          mParametersServiceMockUpdateEnum
 
-	funcUpdateNumeric          func(ctx context.Context, id uint, updates map[string]any) (np1 *entities.NumericParameter, err error)
+	funcUpdateNumeric          func(ctx context.Context, id uint, updates map[string]any) (np1 *entities.RangeParameter, err error)
 	funcUpdateNumericOrigin    string
 	inspectFuncUpdateNumeric   func(ctx context.Context, id uint, updates map[string]any)
 	afterUpdateNumericCounter  uint64
@@ -888,18 +888,18 @@ type ParametersServiceMockCreateNumericExpectation struct {
 // ParametersServiceMockCreateNumericParams contains parameters of the ParametersService.CreateNumeric
 type ParametersServiceMockCreateNumericParams struct {
 	ctx   context.Context
-	param *entities.NumericParameter
+	param *entities.RangeParameter
 }
 
 // ParametersServiceMockCreateNumericParamPtrs contains pointers to parameters of the ParametersService.CreateNumeric
 type ParametersServiceMockCreateNumericParamPtrs struct {
 	ctx   *context.Context
-	param **entities.NumericParameter
+	param **entities.RangeParameter
 }
 
 // ParametersServiceMockCreateNumericResults contains results of the ParametersService.CreateNumeric
 type ParametersServiceMockCreateNumericResults struct {
-	np1 *entities.NumericParameter
+	np1 *entities.RangeParameter
 	err error
 }
 
@@ -921,7 +921,7 @@ func (mmCreateNumeric *mParametersServiceMockCreateNumeric) Optional() *mParamet
 }
 
 // Expect sets up expected params for ParametersService.CreateNumeric
-func (mmCreateNumeric *mParametersServiceMockCreateNumeric) Expect(ctx context.Context, param *entities.NumericParameter) *mParametersServiceMockCreateNumeric {
+func (mmCreateNumeric *mParametersServiceMockCreateNumeric) Expect(ctx context.Context, param *entities.RangeParameter) *mParametersServiceMockCreateNumeric {
 	if mmCreateNumeric.mock.funcCreateNumeric != nil {
 		mmCreateNumeric.mock.t.Fatalf("ParametersServiceMock.CreateNumeric mock is already set by Set")
 	}
@@ -969,7 +969,7 @@ func (mmCreateNumeric *mParametersServiceMockCreateNumeric) ExpectCtxParam1(ctx 
 }
 
 // ExpectParamParam2 sets up expected param param for ParametersService.CreateNumeric
-func (mmCreateNumeric *mParametersServiceMockCreateNumeric) ExpectParamParam2(param *entities.NumericParameter) *mParametersServiceMockCreateNumeric {
+func (mmCreateNumeric *mParametersServiceMockCreateNumeric) ExpectParamParam2(param *entities.RangeParameter) *mParametersServiceMockCreateNumeric {
 	if mmCreateNumeric.mock.funcCreateNumeric != nil {
 		mmCreateNumeric.mock.t.Fatalf("ParametersServiceMock.CreateNumeric mock is already set by Set")
 	}
@@ -992,7 +992,7 @@ func (mmCreateNumeric *mParametersServiceMockCreateNumeric) ExpectParamParam2(pa
 }
 
 // Inspect accepts an inspector function that has same arguments as the ParametersService.CreateNumeric
-func (mmCreateNumeric *mParametersServiceMockCreateNumeric) Inspect(f func(ctx context.Context, param *entities.NumericParameter)) *mParametersServiceMockCreateNumeric {
+func (mmCreateNumeric *mParametersServiceMockCreateNumeric) Inspect(f func(ctx context.Context, param *entities.RangeParameter)) *mParametersServiceMockCreateNumeric {
 	if mmCreateNumeric.mock.inspectFuncCreateNumeric != nil {
 		mmCreateNumeric.mock.t.Fatalf("Inspect function is already set for ParametersServiceMock.CreateNumeric")
 	}
@@ -1003,7 +1003,7 @@ func (mmCreateNumeric *mParametersServiceMockCreateNumeric) Inspect(f func(ctx c
 }
 
 // Return sets up results that will be returned by ParametersService.CreateNumeric
-func (mmCreateNumeric *mParametersServiceMockCreateNumeric) Return(np1 *entities.NumericParameter, err error) *ParametersServiceMock {
+func (mmCreateNumeric *mParametersServiceMockCreateNumeric) Return(np1 *entities.RangeParameter, err error) *ParametersServiceMock {
 	if mmCreateNumeric.mock.funcCreateNumeric != nil {
 		mmCreateNumeric.mock.t.Fatalf("ParametersServiceMock.CreateNumeric mock is already set by Set")
 	}
@@ -1017,7 +1017,7 @@ func (mmCreateNumeric *mParametersServiceMockCreateNumeric) Return(np1 *entities
 }
 
 // Set uses given function f to mock the ParametersService.CreateNumeric method
-func (mmCreateNumeric *mParametersServiceMockCreateNumeric) Set(f func(ctx context.Context, param *entities.NumericParameter) (np1 *entities.NumericParameter, err error)) *ParametersServiceMock {
+func (mmCreateNumeric *mParametersServiceMockCreateNumeric) Set(f func(ctx context.Context, param *entities.RangeParameter) (np1 *entities.RangeParameter, err error)) *ParametersServiceMock {
 	if mmCreateNumeric.defaultExpectation != nil {
 		mmCreateNumeric.mock.t.Fatalf("Default expectation is already set for the ParametersService.CreateNumeric method")
 	}
@@ -1033,7 +1033,7 @@ func (mmCreateNumeric *mParametersServiceMockCreateNumeric) Set(f func(ctx conte
 
 // When sets expectation for the ParametersService.CreateNumeric which will trigger the result defined by the following
 // Then helper
-func (mmCreateNumeric *mParametersServiceMockCreateNumeric) When(ctx context.Context, param *entities.NumericParameter) *ParametersServiceMockCreateNumericExpectation {
+func (mmCreateNumeric *mParametersServiceMockCreateNumeric) When(ctx context.Context, param *entities.RangeParameter) *ParametersServiceMockCreateNumericExpectation {
 	if mmCreateNumeric.mock.funcCreateNumeric != nil {
 		mmCreateNumeric.mock.t.Fatalf("ParametersServiceMock.CreateNumeric mock is already set by Set")
 	}
@@ -1048,7 +1048,7 @@ func (mmCreateNumeric *mParametersServiceMockCreateNumeric) When(ctx context.Con
 }
 
 // Then sets up ParametersService.CreateNumeric return parameters for the expectation previously defined by the When method
-func (e *ParametersServiceMockCreateNumericExpectation) Then(np1 *entities.NumericParameter, err error) *ParametersServiceMock {
+func (e *ParametersServiceMockCreateNumericExpectation) Then(np1 *entities.RangeParameter, err error) *ParametersServiceMock {
 	e.results = &ParametersServiceMockCreateNumericResults{np1, err}
 	return e.mock
 }
@@ -1075,7 +1075,7 @@ func (mmCreateNumeric *mParametersServiceMockCreateNumeric) invocationsDone() bo
 }
 
 // CreateNumeric implements mm_usecase.ParametersService
-func (mmCreateNumeric *ParametersServiceMock) CreateNumeric(ctx context.Context, param *entities.NumericParameter) (np1 *entities.NumericParameter, err error) {
+func (mmCreateNumeric *ParametersServiceMock) CreateNumeric(ctx context.Context, param *entities.RangeParameter) (np1 *entities.RangeParameter, err error) {
 	mm_atomic.AddUint64(&mmCreateNumeric.beforeCreateNumericCounter, 1)
 	defer mm_atomic.AddUint64(&mmCreateNumeric.afterCreateNumericCounter, 1)
 
@@ -1585,7 +1585,7 @@ type ParametersServiceMockDeleteNumericParamPtrs struct {
 
 // ParametersServiceMockDeleteNumericResults contains results of the ParametersService.DeleteNumeric
 type ParametersServiceMockDeleteNumericResults struct {
-	np1 *entities.NumericParameter
+	np1 *entities.RangeParameter
 	err error
 }
 
@@ -1689,7 +1689,7 @@ func (mmDeleteNumeric *mParametersServiceMockDeleteNumeric) Inspect(f func(ctx c
 }
 
 // Return sets up results that will be returned by ParametersService.DeleteNumeric
-func (mmDeleteNumeric *mParametersServiceMockDeleteNumeric) Return(np1 *entities.NumericParameter, err error) *ParametersServiceMock {
+func (mmDeleteNumeric *mParametersServiceMockDeleteNumeric) Return(np1 *entities.RangeParameter, err error) *ParametersServiceMock {
 	if mmDeleteNumeric.mock.funcDeleteNumeric != nil {
 		mmDeleteNumeric.mock.t.Fatalf("ParametersServiceMock.DeleteNumeric mock is already set by Set")
 	}
@@ -1703,7 +1703,7 @@ func (mmDeleteNumeric *mParametersServiceMockDeleteNumeric) Return(np1 *entities
 }
 
 // Set uses given function f to mock the ParametersService.DeleteNumeric method
-func (mmDeleteNumeric *mParametersServiceMockDeleteNumeric) Set(f func(ctx context.Context, id uint) (np1 *entities.NumericParameter, err error)) *ParametersServiceMock {
+func (mmDeleteNumeric *mParametersServiceMockDeleteNumeric) Set(f func(ctx context.Context, id uint) (np1 *entities.RangeParameter, err error)) *ParametersServiceMock {
 	if mmDeleteNumeric.defaultExpectation != nil {
 		mmDeleteNumeric.mock.t.Fatalf("Default expectation is already set for the ParametersService.DeleteNumeric method")
 	}
@@ -1734,7 +1734,7 @@ func (mmDeleteNumeric *mParametersServiceMockDeleteNumeric) When(ctx context.Con
 }
 
 // Then sets up ParametersService.DeleteNumeric return parameters for the expectation previously defined by the When method
-func (e *ParametersServiceMockDeleteNumericExpectation) Then(np1 *entities.NumericParameter, err error) *ParametersServiceMock {
+func (e *ParametersServiceMockDeleteNumericExpectation) Then(np1 *entities.RangeParameter, err error) *ParametersServiceMock {
 	e.results = &ParametersServiceMockDeleteNumericResults{np1, err}
 	return e.mock
 }
@@ -1761,7 +1761,7 @@ func (mmDeleteNumeric *mParametersServiceMockDeleteNumeric) invocationsDone() bo
 }
 
 // DeleteNumeric implements mm_usecase.ParametersService
-func (mmDeleteNumeric *ParametersServiceMock) DeleteNumeric(ctx context.Context, id uint) (np1 *entities.NumericParameter, err error) {
+func (mmDeleteNumeric *ParametersServiceMock) DeleteNumeric(ctx context.Context, id uint) (np1 *entities.RangeParameter, err error) {
 	mm_atomic.AddUint64(&mmDeleteNumeric.beforeDeleteNumericCounter, 1)
 	defer mm_atomic.AddUint64(&mmDeleteNumeric.afterDeleteNumericCounter, 1)
 
@@ -1930,7 +1930,7 @@ type ParametersServiceMockListParametersParamPtrs struct {
 
 // ParametersServiceMockListParametersResults contains results of the ParametersService.ListParameters
 type ParametersServiceMockListParametersResults struct {
-	na1 []entities.NumericParameter
+	na1 []entities.RangeParameter
 	ea1 []entities.EnumParameter
 	err error
 }
@@ -2059,7 +2059,7 @@ func (mmListParameters *mParametersServiceMockListParameters) Inspect(f func(ctx
 }
 
 // Return sets up results that will be returned by ParametersService.ListParameters
-func (mmListParameters *mParametersServiceMockListParameters) Return(na1 []entities.NumericParameter, ea1 []entities.EnumParameter, err error) *ParametersServiceMock {
+func (mmListParameters *mParametersServiceMockListParameters) Return(na1 []entities.RangeParameter, ea1 []entities.EnumParameter, err error) *ParametersServiceMock {
 	if mmListParameters.mock.funcListParameters != nil {
 		mmListParameters.mock.t.Fatalf("ParametersServiceMock.ListParameters mock is already set by Set")
 	}
@@ -2073,7 +2073,7 @@ func (mmListParameters *mParametersServiceMockListParameters) Return(na1 []entit
 }
 
 // Set uses given function f to mock the ParametersService.ListParameters method
-func (mmListParameters *mParametersServiceMockListParameters) Set(f func(ctx context.Context, categoryID uint, parameterType int) (na1 []entities.NumericParameter, ea1 []entities.EnumParameter, err error)) *ParametersServiceMock {
+func (mmListParameters *mParametersServiceMockListParameters) Set(f func(ctx context.Context, categoryID uint, parameterType int) (na1 []entities.RangeParameter, ea1 []entities.EnumParameter, err error)) *ParametersServiceMock {
 	if mmListParameters.defaultExpectation != nil {
 		mmListParameters.mock.t.Fatalf("Default expectation is already set for the ParametersService.ListParameters method")
 	}
@@ -2104,7 +2104,7 @@ func (mmListParameters *mParametersServiceMockListParameters) When(ctx context.C
 }
 
 // Then sets up ParametersService.ListParameters return parameters for the expectation previously defined by the When method
-func (e *ParametersServiceMockListParametersExpectation) Then(na1 []entities.NumericParameter, ea1 []entities.EnumParameter, err error) *ParametersServiceMock {
+func (e *ParametersServiceMockListParametersExpectation) Then(na1 []entities.RangeParameter, ea1 []entities.EnumParameter, err error) *ParametersServiceMock {
 	e.results = &ParametersServiceMockListParametersResults{na1, ea1, err}
 	return e.mock
 }
@@ -2131,7 +2131,7 @@ func (mmListParameters *mParametersServiceMockListParameters) invocationsDone() 
 }
 
 // ListParameters implements mm_usecase.ParametersService
-func (mmListParameters *ParametersServiceMock) ListParameters(ctx context.Context, categoryID uint, parameterType int) (na1 []entities.NumericParameter, ea1 []entities.EnumParameter, err error) {
+func (mmListParameters *ParametersServiceMock) ListParameters(ctx context.Context, categoryID uint, parameterType int) (na1 []entities.RangeParameter, ea1 []entities.EnumParameter, err error) {
 	mm_atomic.AddUint64(&mmListParameters.beforeListParametersCounter, 1)
 	defer mm_atomic.AddUint64(&mmListParameters.afterListParametersCounter, 1)
 
@@ -2679,7 +2679,7 @@ type ParametersServiceMockUpdateNumericParamPtrs struct {
 
 // ParametersServiceMockUpdateNumericResults contains results of the ParametersService.UpdateNumeric
 type ParametersServiceMockUpdateNumericResults struct {
-	np1 *entities.NumericParameter
+	np1 *entities.RangeParameter
 	err error
 }
 
@@ -2807,7 +2807,7 @@ func (mmUpdateNumeric *mParametersServiceMockUpdateNumeric) Inspect(f func(ctx c
 }
 
 // Return sets up results that will be returned by ParametersService.UpdateNumeric
-func (mmUpdateNumeric *mParametersServiceMockUpdateNumeric) Return(np1 *entities.NumericParameter, err error) *ParametersServiceMock {
+func (mmUpdateNumeric *mParametersServiceMockUpdateNumeric) Return(np1 *entities.RangeParameter, err error) *ParametersServiceMock {
 	if mmUpdateNumeric.mock.funcUpdateNumeric != nil {
 		mmUpdateNumeric.mock.t.Fatalf("ParametersServiceMock.UpdateNumeric mock is already set by Set")
 	}
@@ -2821,7 +2821,7 @@ func (mmUpdateNumeric *mParametersServiceMockUpdateNumeric) Return(np1 *entities
 }
 
 // Set uses given function f to mock the ParametersService.UpdateNumeric method
-func (mmUpdateNumeric *mParametersServiceMockUpdateNumeric) Set(f func(ctx context.Context, id uint, updates map[string]any) (np1 *entities.NumericParameter, err error)) *ParametersServiceMock {
+func (mmUpdateNumeric *mParametersServiceMockUpdateNumeric) Set(f func(ctx context.Context, id uint, updates map[string]any) (np1 *entities.RangeParameter, err error)) *ParametersServiceMock {
 	if mmUpdateNumeric.defaultExpectation != nil {
 		mmUpdateNumeric.mock.t.Fatalf("Default expectation is already set for the ParametersService.UpdateNumeric method")
 	}
@@ -2852,7 +2852,7 @@ func (mmUpdateNumeric *mParametersServiceMockUpdateNumeric) When(ctx context.Con
 }
 
 // Then sets up ParametersService.UpdateNumeric return parameters for the expectation previously defined by the When method
-func (e *ParametersServiceMockUpdateNumericExpectation) Then(np1 *entities.NumericParameter, err error) *ParametersServiceMock {
+func (e *ParametersServiceMockUpdateNumericExpectation) Then(np1 *entities.RangeParameter, err error) *ParametersServiceMock {
 	e.results = &ParametersServiceMockUpdateNumericResults{np1, err}
 	return e.mock
 }
@@ -2879,7 +2879,7 @@ func (mmUpdateNumeric *mParametersServiceMockUpdateNumeric) invocationsDone() bo
 }
 
 // UpdateNumeric implements mm_usecase.ParametersService
-func (mmUpdateNumeric *ParametersServiceMock) UpdateNumeric(ctx context.Context, id uint, updates map[string]any) (np1 *entities.NumericParameter, err error) {
+func (mmUpdateNumeric *ParametersServiceMock) UpdateNumeric(ctx context.Context, id uint, updates map[string]any) (np1 *entities.RangeParameter, err error) {
 	mm_atomic.AddUint64(&mmUpdateNumeric.beforeUpdateNumericCounter, 1)
 	defer mm_atomic.AddUint64(&mmUpdateNumeric.afterUpdateNumericCounter, 1)
 

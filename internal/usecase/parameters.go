@@ -12,13 +12,13 @@ import (
 type ParametersService interface {
 
 	// CreateNumeric создает числовой параметр.
-	CreateNumeric(ctx context.Context, param *entities.NumericParameter) (*entities.NumericParameter, error)
+	CreateNumeric(ctx context.Context, param *entities.RangeParameter) (*entities.RangeParameter, error)
 
 	// UpdateNumeric обновляет числовой параметр. Единственные поля, которые можно обновлять - min_val, max_val и inheritable.
-	UpdateNumeric(ctx context.Context, id uint, updates map[string]any) (*entities.NumericParameter, error)
+	UpdateNumeric(ctx context.Context, id uint, updates map[string]any) (*entities.RangeParameter, error)
 
 	// DeleteNumeric удаляет числовой параметр.
-	DeleteNumeric(ctx context.Context, id uint) (*entities.NumericParameter, error)
+	DeleteNumeric(ctx context.Context, id uint) (*entities.RangeParameter, error)
 
 	// CreateEnum создает параметр типа перечисление.
 	CreateEnum(ctx context.Context, param *entities.EnumParameter) (*entities.EnumParameter, error)
@@ -31,7 +31,7 @@ type ParametersService interface {
 
 	// ListParameters возвращает все параметры, применимые к категории.
 	// categoryID = 0 - без фильтра по категории, paramType = "" - все типы, "numeric" - только числовые, "enum" - только перечисления
-	ListParameters(ctx context.Context, categoryID uint, parameterType int) ([]entities.NumericParameter, []entities.EnumParameter, error)
+	ListParameters(ctx context.Context, categoryID uint, parameterType int) ([]entities.RangeParameter, []entities.EnumParameter, error)
 
 	// ApplyToCategory применяет указанные параметры к категории. Возвращает количество добавленных параметров.
 	ApplyToCategory(ctx context.Context, categoryID uint, numericIDs, enumIDs []int) (int, error)
@@ -59,7 +59,7 @@ var allowedParametersToUpdate = map[string]struct{}{
 }
 
 // CreateNumeric создает числовой параметр.
-func (s *parametersService) CreateNumeric(ctx context.Context, param *entities.NumericParameter) (*entities.NumericParameter, error) {
+func (s *parametersService) CreateNumeric(ctx context.Context, param *entities.RangeParameter) (*entities.RangeParameter, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -86,7 +86,7 @@ func (s *parametersService) CreateNumeric(ctx context.Context, param *entities.N
 }
 
 // UpdateNumeric обновляет числовой параметр. Единственные поля, которые можно обновлять - min_val, max_val и inheritable.
-func (s *parametersService) UpdateNumeric(ctx context.Context, id uint, updates map[string]any) (*entities.NumericParameter, error) {
+func (s *parametersService) UpdateNumeric(ctx context.Context, id uint, updates map[string]any) (*entities.RangeParameter, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -106,7 +106,7 @@ func (s *parametersService) UpdateNumeric(ctx context.Context, id uint, updates 
 }
 
 // DeleteNumeric удаляет числовой параметр.
-func (s *parametersService) DeleteNumeric(ctx context.Context, id uint) (*entities.NumericParameter, error) {
+func (s *parametersService) DeleteNumeric(ctx context.Context, id uint) (*entities.RangeParameter, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -171,7 +171,7 @@ func (s *parametersService) DeleteEnum(ctx context.Context, id uint) (*entities.
 }
 
 // ListParameters возвращает все параметры, применимые к категории.
-func (s *parametersService) ListParameters(ctx context.Context, categoryID uint, parameterType int) ([]entities.NumericParameter, []entities.EnumParameter, error) {
+func (s *parametersService) ListParameters(ctx context.Context, categoryID uint, parameterType int) ([]entities.RangeParameter, []entities.EnumParameter, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, nil, fmt.Errorf("request cancelled: %w", err)
 	}

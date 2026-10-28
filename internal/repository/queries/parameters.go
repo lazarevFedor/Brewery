@@ -18,7 +18,7 @@ const (
 
 // InsertNumericParameter возвращает запрос для вставки
 // нового числового параметра в базу данных.
-func InsertNumericParameter(param *entities.NumericParameter) sq.InsertBuilder {
+func InsertNumericParameter(param *entities.RangeParameter) sq.InsertBuilder {
 	data := map[string]any{
 		"min_val":     param.MinValue,
 		"max_val":     param.MaxValue,
