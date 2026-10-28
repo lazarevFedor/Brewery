@@ -18,7 +18,7 @@ const (
 type EnumType string
 
 //easyjson:skip
-type EnumValueRow struct {
+type ParameterValueRow struct {
 	ID          int
 	EnumClassID int
 	ValueRaw    string
@@ -37,7 +37,7 @@ type ParameterValue struct {
 //easyjson:json
 type EnumValues []ParameterValue
 
-func (e *ParameterValue) ToRow() (*EnumValueRow, error) {
+func (e *ParameterValue) ToRow() (*ParameterValueRow, error) {
 	if e == nil {
 		return nil, errors.New("enum value is nil")
 	}
@@ -47,7 +47,7 @@ func (e *ParameterValue) ToRow() (*EnumValueRow, error) {
 		return nil, fmt.Errorf("convert enum value to raw: %w", err)
 	}
 
-	return &EnumValueRow{
+	return &ParameterValueRow{
 		ID:          e.ID,
 		EnumClassID: e.EnumClassID,
 		ValueRaw:    valueStr,
@@ -56,7 +56,7 @@ func (e *ParameterValue) ToRow() (*EnumValueRow, error) {
 	}, nil
 }
 
-func (e *EnumValueRow) FromRow() (*ParameterValue, error) {
+func (e *ParameterValueRow) FromRow() (*ParameterValue, error) {
 	if e == nil {
 		return nil, errors.New("enum value row is nil")
 	}

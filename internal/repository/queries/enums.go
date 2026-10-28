@@ -72,7 +72,7 @@ func SelectEnumClassByID(id uint) sq.SelectBuilder {
 }
 
 // InsertEnumValue возвращает запрос на вставку значения перечисления.
-func InsertEnumValue(enumValue entities.EnumValueRow) sq.InsertBuilder {
+func InsertEnumValue(enumValue entities.ParameterValueRow) sq.InsertBuilder {
 	data := map[string]any{
 		"enum_class_id": enumValue.EnumClassID,
 		"value_raw":     enumValue.ValueRaw,

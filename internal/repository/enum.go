@@ -360,7 +360,7 @@ func (e *EnumPostgres) GetEnumClassByID(ctx context.Context, id uint) (*entities
 
 // scanEnumValue сканирует строку результата запроса и преобразует ее в сущность ParameterValue.
 func scanEnumValue(row pgx.Row) (*entities.ParameterValue, error) {
-	var valRow entities.EnumValueRow
+	var valRow entities.ParameterValueRow
 
 	err := row.Scan(&valRow.ID, &valRow.EnumClassID, &valRow.ValueRaw, &valRow.ValueType, &valRow.Position)
 	if err != nil {
