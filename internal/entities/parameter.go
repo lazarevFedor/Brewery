@@ -7,8 +7,8 @@ type RangeParameter struct {
 	MinValue    int    `json:"min_val,omitempty" info:"Минимальное значение параметра"`
 	MaxValue    int    `json:"max_val,omitempty" info:"Максимальное значение параметра"`
 	FieldName   string `json:"field_name,omitempty" info:"Имя поля сущности"`
-	EntityName  string `json:"entity_name,omitempty" info:"Имя сущности, к которой относится параметр"`
 	Inheritable bool   `json:"inheritable,omitempty" info:"Флаг, указывающий, может ли параметр наследоваться от родительской категории"`
+	Unit        string `json:"unit,omitempty" info:"Единица измерений"`
 }
 
 // RangeParameters представляет собой срез численных параметров.
