@@ -234,7 +234,7 @@ func (h *enumHandlers) CreateValue(c *gin.Context) {
 
 	log.Debug(c.Request.Context(), "Bode read Create")
 
-	var req entities.EnumValue
+	var req entities.ParameterValue
 	if err = easyjson.Unmarshal(body, &req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to unmarshal value: %v", err))

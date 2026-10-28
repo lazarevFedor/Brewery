@@ -26,9 +26,9 @@ type EnumServiceMock struct {
 	beforeCreateEnumCounter uint64
 	CreateEnumMock          mEnumServiceMockCreateEnum
 
-	funcCreateEnumValue          func(ctx context.Context, enum entities.EnumValue) (u1 uint, err error)
+	funcCreateEnumValue          func(ctx context.Context, enum entities.ParameterValue) (u1 uint, err error)
 	funcCreateEnumValueOrigin    string
-	inspectFuncCreateEnumValue   func(ctx context.Context, enum entities.EnumValue)
+	inspectFuncCreateEnumValue   func(ctx context.Context, enum entities.ParameterValue)
 	afterCreateEnumValueCounter  uint64
 	beforeCreateEnumValueCounter uint64
 	CreateEnumValueMock          mEnumServiceMockCreateEnumValue
@@ -54,7 +54,7 @@ type EnumServiceMock struct {
 	beforeGetEnumCounter uint64
 	GetEnumMock          mEnumServiceMockGetEnum
 
-	funcGetEnumValue          func(ctx context.Context, entity string, field string, valueType entities.EnumType) (ea1 []entities.EnumValue, err error)
+	funcGetEnumValue          func(ctx context.Context, entity string, field string, valueType entities.EnumType) (ea1 []entities.ParameterValue, err error)
 	funcGetEnumValueOrigin    string
 	inspectFuncGetEnumValue   func(ctx context.Context, entity string, field string, valueType entities.EnumType)
 	afterGetEnumValueCounter  uint64
@@ -483,13 +483,13 @@ type EnumServiceMockCreateEnumValueExpectation struct {
 // EnumServiceMockCreateEnumValueParams contains parameters of the EnumService.CreateEnumValue
 type EnumServiceMockCreateEnumValueParams struct {
 	ctx  context.Context
-	enum entities.EnumValue
+	enum entities.ParameterValue
 }
 
 // EnumServiceMockCreateEnumValueParamPtrs contains pointers to parameters of the EnumService.CreateEnumValue
 type EnumServiceMockCreateEnumValueParamPtrs struct {
 	ctx  *context.Context
-	enum *entities.EnumValue
+	enum *entities.ParameterValue
 }
 
 // EnumServiceMockCreateEnumValueResults contains results of the EnumService.CreateEnumValue
@@ -516,7 +516,7 @@ func (mmCreateEnumValue *mEnumServiceMockCreateEnumValue) Optional() *mEnumServi
 }
 
 // Expect sets up expected params for EnumService.CreateEnumValue
-func (mmCreateEnumValue *mEnumServiceMockCreateEnumValue) Expect(ctx context.Context, enum entities.EnumValue) *mEnumServiceMockCreateEnumValue {
+func (mmCreateEnumValue *mEnumServiceMockCreateEnumValue) Expect(ctx context.Context, enum entities.ParameterValue) *mEnumServiceMockCreateEnumValue {
 	if mmCreateEnumValue.mock.funcCreateEnumValue != nil {
 		mmCreateEnumValue.mock.t.Fatalf("EnumServiceMock.CreateEnumValue mock is already set by Set")
 	}
@@ -564,7 +564,7 @@ func (mmCreateEnumValue *mEnumServiceMockCreateEnumValue) ExpectCtxParam1(ctx co
 }
 
 // ExpectEnumParam2 sets up expected param enum for EnumService.CreateEnumValue
-func (mmCreateEnumValue *mEnumServiceMockCreateEnumValue) ExpectEnumParam2(enum entities.EnumValue) *mEnumServiceMockCreateEnumValue {
+func (mmCreateEnumValue *mEnumServiceMockCreateEnumValue) ExpectEnumParam2(enum entities.ParameterValue) *mEnumServiceMockCreateEnumValue {
 	if mmCreateEnumValue.mock.funcCreateEnumValue != nil {
 		mmCreateEnumValue.mock.t.Fatalf("EnumServiceMock.CreateEnumValue mock is already set by Set")
 	}
@@ -587,7 +587,7 @@ func (mmCreateEnumValue *mEnumServiceMockCreateEnumValue) ExpectEnumParam2(enum 
 }
 
 // Inspect accepts an inspector function that has same arguments as the EnumService.CreateEnumValue
-func (mmCreateEnumValue *mEnumServiceMockCreateEnumValue) Inspect(f func(ctx context.Context, enum entities.EnumValue)) *mEnumServiceMockCreateEnumValue {
+func (mmCreateEnumValue *mEnumServiceMockCreateEnumValue) Inspect(f func(ctx context.Context, enum entities.ParameterValue)) *mEnumServiceMockCreateEnumValue {
 	if mmCreateEnumValue.mock.inspectFuncCreateEnumValue != nil {
 		mmCreateEnumValue.mock.t.Fatalf("Inspect function is already set for EnumServiceMock.CreateEnumValue")
 	}
@@ -612,7 +612,7 @@ func (mmCreateEnumValue *mEnumServiceMockCreateEnumValue) Return(u1 uint, err er
 }
 
 // Set uses given function f to mock the EnumService.CreateEnumValue method
-func (mmCreateEnumValue *mEnumServiceMockCreateEnumValue) Set(f func(ctx context.Context, enum entities.EnumValue) (u1 uint, err error)) *EnumServiceMock {
+func (mmCreateEnumValue *mEnumServiceMockCreateEnumValue) Set(f func(ctx context.Context, enum entities.ParameterValue) (u1 uint, err error)) *EnumServiceMock {
 	if mmCreateEnumValue.defaultExpectation != nil {
 		mmCreateEnumValue.mock.t.Fatalf("Default expectation is already set for the EnumService.CreateEnumValue method")
 	}
@@ -628,7 +628,7 @@ func (mmCreateEnumValue *mEnumServiceMockCreateEnumValue) Set(f func(ctx context
 
 // When sets expectation for the EnumService.CreateEnumValue which will trigger the result defined by the following
 // Then helper
-func (mmCreateEnumValue *mEnumServiceMockCreateEnumValue) When(ctx context.Context, enum entities.EnumValue) *EnumServiceMockCreateEnumValueExpectation {
+func (mmCreateEnumValue *mEnumServiceMockCreateEnumValue) When(ctx context.Context, enum entities.ParameterValue) *EnumServiceMockCreateEnumValueExpectation {
 	if mmCreateEnumValue.mock.funcCreateEnumValue != nil {
 		mmCreateEnumValue.mock.t.Fatalf("EnumServiceMock.CreateEnumValue mock is already set by Set")
 	}
@@ -670,7 +670,7 @@ func (mmCreateEnumValue *mEnumServiceMockCreateEnumValue) invocationsDone() bool
 }
 
 // CreateEnumValue implements mm_usecase.EnumService
-func (mmCreateEnumValue *EnumServiceMock) CreateEnumValue(ctx context.Context, enum entities.EnumValue) (u1 uint, err error) {
+func (mmCreateEnumValue *EnumServiceMock) CreateEnumValue(ctx context.Context, enum entities.ParameterValue) (u1 uint, err error) {
 	mm_atomic.AddUint64(&mmCreateEnumValue.beforeCreateEnumValueCounter, 1)
 	defer mm_atomic.AddUint64(&mmCreateEnumValue.afterCreateEnumValueCounter, 1)
 
@@ -1899,7 +1899,7 @@ type EnumServiceMockGetEnumValueParamPtrs struct {
 
 // EnumServiceMockGetEnumValueResults contains results of the EnumService.GetEnumValue
 type EnumServiceMockGetEnumValueResults struct {
-	ea1 []entities.EnumValue
+	ea1 []entities.ParameterValue
 	err error
 }
 
@@ -2051,7 +2051,7 @@ func (mmGetEnumValue *mEnumServiceMockGetEnumValue) Inspect(f func(ctx context.C
 }
 
 // Return sets up results that will be returned by EnumService.GetEnumValue
-func (mmGetEnumValue *mEnumServiceMockGetEnumValue) Return(ea1 []entities.EnumValue, err error) *EnumServiceMock {
+func (mmGetEnumValue *mEnumServiceMockGetEnumValue) Return(ea1 []entities.ParameterValue, err error) *EnumServiceMock {
 	if mmGetEnumValue.mock.funcGetEnumValue != nil {
 		mmGetEnumValue.mock.t.Fatalf("EnumServiceMock.GetEnumValue mock is already set by Set")
 	}
@@ -2065,7 +2065,7 @@ func (mmGetEnumValue *mEnumServiceMockGetEnumValue) Return(ea1 []entities.EnumVa
 }
 
 // Set uses given function f to mock the EnumService.GetEnumValue method
-func (mmGetEnumValue *mEnumServiceMockGetEnumValue) Set(f func(ctx context.Context, entity string, field string, valueType entities.EnumType) (ea1 []entities.EnumValue, err error)) *EnumServiceMock {
+func (mmGetEnumValue *mEnumServiceMockGetEnumValue) Set(f func(ctx context.Context, entity string, field string, valueType entities.EnumType) (ea1 []entities.ParameterValue, err error)) *EnumServiceMock {
 	if mmGetEnumValue.defaultExpectation != nil {
 		mmGetEnumValue.mock.t.Fatalf("Default expectation is already set for the EnumService.GetEnumValue method")
 	}
@@ -2096,7 +2096,7 @@ func (mmGetEnumValue *mEnumServiceMockGetEnumValue) When(ctx context.Context, en
 }
 
 // Then sets up EnumService.GetEnumValue return parameters for the expectation previously defined by the When method
-func (e *EnumServiceMockGetEnumValueExpectation) Then(ea1 []entities.EnumValue, err error) *EnumServiceMock {
+func (e *EnumServiceMockGetEnumValueExpectation) Then(ea1 []entities.ParameterValue, err error) *EnumServiceMock {
 	e.results = &EnumServiceMockGetEnumValueResults{ea1, err}
 	return e.mock
 }
@@ -2123,7 +2123,7 @@ func (mmGetEnumValue *mEnumServiceMockGetEnumValue) invocationsDone() bool {
 }
 
 // GetEnumValue implements mm_usecase.EnumService
-func (mmGetEnumValue *EnumServiceMock) GetEnumValue(ctx context.Context, entity string, field string, valueType entities.EnumType) (ea1 []entities.EnumValue, err error) {
+func (mmGetEnumValue *EnumServiceMock) GetEnumValue(ctx context.Context, entity string, field string, valueType entities.EnumType) (ea1 []entities.ParameterValue, err error) {
 	mm_atomic.AddUint64(&mmGetEnumValue.beforeGetEnumValueCounter, 1)
 	defer mm_atomic.AddUint64(&mmGetEnumValue.afterGetEnumValueCounter, 1)
 

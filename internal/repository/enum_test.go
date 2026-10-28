@@ -46,7 +46,7 @@ var (
 	}
 
 	// testEnumValues содержит набор тестовых значений перечислений для различных сценариев тестирования.
-	testEnumValues = []entities.EnumValue{
+	testEnumValues = []entities.ParameterValue{
 		{
 			Value:     10,
 			ValueType: "int",
@@ -470,12 +470,12 @@ func TestEnumRepository_GetEnumValues(t *testing.T) {
 		require.NoError(t, err)
 		require.NotZero(t, floatClassID)
 
-		firstVal := entities.EnumValue{EnumClassID: int(intClassID), Value: 10, ValueType: entities.EnumValueTypeInt, Position: 1}
+		firstVal := entities.ParameterValue{EnumClassID: int(intClassID), Value: 10, ValueType: entities.EnumValueTypeInt, Position: 1}
 		firstValID, err := enumRepo.InsertEnumValue(ctx, firstVal)
 		require.NoError(t, err)
 		require.NotZero(t, firstValID)
 
-		secondVal := entities.EnumValue{EnumClassID: int(floatClassID), Value: 4.5, ValueType: entities.EnumValueTypeFloat, Position: 2}
+		secondVal := entities.ParameterValue{EnumClassID: int(floatClassID), Value: 4.5, ValueType: entities.EnumValueTypeFloat, Position: 2}
 		secondValID, err := enumRepo.InsertEnumValue(ctx, secondVal)
 		require.NoError(t, err)
 		require.NotZero(t, secondValID)
@@ -524,7 +524,7 @@ func TestEnumRepository_UpdateEnumValue(t *testing.T) {
 		require.NoError(t, err)
 		require.NotZero(t, enumID)
 
-		testVal := entities.EnumValue{EnumClassID: int(enumID), Value: 10, ValueType: entities.EnumValueTypeInt, Position: 1}
+		testVal := entities.ParameterValue{EnumClassID: int(enumID), Value: 10, ValueType: entities.EnumValueTypeInt, Position: 1}
 		valueID, err := enumRepo.InsertEnumValue(ctx, testVal)
 		require.NoError(t, err)
 		require.NotZero(t, valueID)
@@ -554,12 +554,12 @@ func TestEnumRepository_UpdateEnumValue(t *testing.T) {
 		require.NoError(t, err)
 		require.NotZero(t, enumID)
 
-		testVal := entities.EnumValue{EnumClassID: int(enumID), Value: 30, ValueType: entities.EnumValueTypeInt, Position: 1}
+		testVal := entities.ParameterValue{EnumClassID: int(enumID), Value: 30, ValueType: entities.EnumValueTypeInt, Position: 1}
 		valueID, err := enumRepo.InsertEnumValue(ctx, testVal)
 		require.NoError(t, err)
 		require.NotZero(t, valueID)
 
-		testVal = entities.EnumValue{EnumClassID: int(enumID), Value: 40, ValueType: entities.EnumValueTypeInt, Position: 2}
+		testVal = entities.ParameterValue{EnumClassID: int(enumID), Value: 40, ValueType: entities.EnumValueTypeInt, Position: 2}
 		valueID, err = enumRepo.InsertEnumValue(ctx, testVal)
 		require.NoError(t, err)
 		require.NotZero(t, valueID)
@@ -593,7 +593,7 @@ func TestEnumRepository_UpdateEnumValue(t *testing.T) {
 		require.NoError(t, err)
 		require.NotZero(t, enumID)
 
-		testVal := entities.EnumValue{EnumClassID: int(enumID), Value: 10, ValueType: entities.EnumValueTypeInt, Position: 1}
+		testVal := entities.ParameterValue{EnumClassID: int(enumID), Value: 10, ValueType: entities.EnumValueTypeInt, Position: 1}
 		valueID, err := enumRepo.InsertEnumValue(ctx, testVal)
 		require.NoError(t, err)
 		require.NotZero(t, valueID)
@@ -623,7 +623,7 @@ func TestEnumRepository_DeleteEnumValueByID(t *testing.T) {
 		require.NoError(t, err)
 		require.NotZero(t, enumID)
 
-		testVal := entities.EnumValue{EnumClassID: int(enumID), Value: 10, ValueType: entities.EnumValueTypeInt, Position: 1}
+		testVal := entities.ParameterValue{EnumClassID: int(enumID), Value: 10, ValueType: entities.EnumValueTypeInt, Position: 1}
 		valueID, err := enumRepo.InsertEnumValue(ctx, testVal)
 		require.NoError(t, err)
 		require.NotZero(t, valueID)

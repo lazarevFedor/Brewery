@@ -24,10 +24,10 @@ type EnumService interface {
 	DeleteEnum(ctx context.Context, id uint) error
 
 	// CreateEnumValue создает новое значение перечисления и возвращает его ID.
-	CreateEnumValue(ctx context.Context, enum entities.EnumValue) (uint, error)
+	CreateEnumValue(ctx context.Context, enum entities.ParameterValue) (uint, error)
 
 	// GetEnumValue получает список значений перечисления для заданного поля и типа.
-	GetEnumValue(ctx context.Context, entity, field string, valueType entities.EnumType) ([]entities.EnumValue, error)
+	GetEnumValue(ctx context.Context, entity, field string, valueType entities.EnumType) ([]entities.ParameterValue, error)
 
 	// UpdateEnumValue обновляет существующее значение перечисления по его ID.
 	UpdateEnumValue(ctx context.Context, id uint, updates map[string]any) error
@@ -106,7 +106,7 @@ func (s *enumService) DeleteEnum(ctx context.Context, id uint) error {
 }
 
 // CreateEnumValue создает новое значение перечисления и возвращает его ID.
-func (s *enumService) CreateEnumValue(ctx context.Context, enum entities.EnumValue) (uint, error) {
+func (s *enumService) CreateEnumValue(ctx context.Context, enum entities.ParameterValue) (uint, error) {
 	if err := ctx.Err(); err != nil {
 		return 0, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -120,7 +120,7 @@ func (s *enumService) CreateEnumValue(ctx context.Context, enum entities.EnumVal
 }
 
 // GetEnumValue получает список значений перечисления для заданного поля и типа.
-func (s *enumService) GetEnumValue(ctx context.Context, entityName, fieldName string, valueType entities.EnumType) ([]entities.EnumValue, error) {
+func (s *enumService) GetEnumValue(ctx context.Context, entityName, fieldName string, valueType entities.EnumType) ([]entities.ParameterValue, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
