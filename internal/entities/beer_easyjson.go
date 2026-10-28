@@ -113,12 +113,6 @@ func easyjson57ba88e2DecodeBreweryInternalEntities1(in *jlexer.Lexer, out *Beer)
 			} else {
 				out.Name = string(in.String())
 			}
-		case "rating":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				out.Rating = float32(in.Float32())
-			}
 		case "description":
 			if in.IsNull() {
 				in.Skip()
@@ -217,11 +211,6 @@ func easyjson57ba88e2EncodeBreweryInternalEntities1(out *jwriter.Writer, in Beer
 		const prefix string = ",\"name\":"
 		out.RawString(prefix)
 		out.String(string(in.Name))
-	}
-	{
-		const prefix string = ",\"rating\":"
-		out.RawString(prefix)
-		out.Float32(float32(in.Rating))
 	}
 	if in.Description != "" {
 		const prefix string = ",\"description\":"

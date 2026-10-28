@@ -24,7 +24,7 @@ func TestGetBeersByCategory_NewRoute_WorksWithIDAndPagination(t *testing.T) {
 	serviceMock.GetBeersByCategoryMock.
 		Expect(minimock.AnyContext, uint(42), uint64(1), uint64(1)).
 		Return([]entities.Beer{
-			{Name: "two", Rating: 4.2},
+			{Name: "two"},
 		}, nil)
 
 	resp := testEnv.DoRequest(ctx, "", http.MethodGet, "/api/categories/beers/42?offset=1&limit=1", nil)
@@ -109,7 +109,7 @@ func TestGetAllBeers_ReturnsOK(t *testing.T) {
 
 	serviceMock.GetAllBeersMock.
 		Expect(minimock.AnyContext, uint64(10), uint64(0)).
-		Return([]entities.Beer{{Name: "ipa", Rating: 4.5}}, nil)
+		Return([]entities.Beer{{Name: "ipa"}}, nil)
 
 	resp := testEnv.DoRequest(ctx, "", http.MethodGet, "/api/beers?offset=0&limit=10", nil)
 
@@ -119,26 +119,6 @@ func TestGetAllBeers_ReturnsOK(t *testing.T) {
 	require.NoError(t, json.Unmarshal(resp.Body.Bytes(), &got))
 	require.Len(t, got, 1)
 	assert.Equal(t, "ipa", got[0].Name)
-}
-
-// TestCreateBeerReview_UsesPathParam проверяет, что при создании отзыва на пиво используется правильный путь и передается правильный ID пива в сервис.
-func TestCreateBeerReview_UsesPathParam(t *testing.T) {
-	ctx := t.Context()
-	testEnv := newTestEnv(t)
-	serviceMock := testEnv.BeerMock
-
-	serviceMock.CreateReviewMock.Set(func(ctx context.Context, review *entities.Review) (uint, error) {
-		require.Equal(t, uint(17), review.BeerID)
-		require.Equal(t, "great", review.Body)
-		require.InDelta(t, 4, review.Rating, 1e-6)
-
-		return 1, nil
-	})
-
-	body := strings.NewReader(`{"body":"great","rating":4}`)
-	resp := testEnv.DoRequest(ctx, "", http.MethodPost, "/api/reviews/17", body)
-
-	require.Equal(t, http.StatusOK, resp.Code)
 }
 
 // type args struct {
@@ -169,9 +149,9 @@ func TestCreateBeerReview_UsesPathParam(t *testing.T) {
 // 				m.GetBeersByCategoryMock.
 // 				Expect(minimock.AnyContext, 42, 1, 1).
 // 				Return([]entities.Beer{
-// 					{Name: "one", Rating: 4.1},
-// 					{Name: "two", Rating: 4.2},
-// 					{Name: "three", Rating: 4.3},
+// 					{Name: "one"},
+// 					{Name: "two"},
+// 					{Name: "three"},
 // 				}, nil),
 // 			},
 // 			wantStatus

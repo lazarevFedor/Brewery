@@ -25,7 +25,6 @@ CREATE TABLE IF NOT EXISTS cities(
 CREATE TABLE IF NOT EXISTS beers (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
-    rating NUMERIC(2, 1) DEFAULT 0.0,
     description TEXT,
     abv float4 NOT NULL,
     ibu SMALLINT NOT NULL,
@@ -53,18 +52,9 @@ CREATE TABLE IF NOT EXISTS beer_features (
 );
 
 
-CREATE TABLE IF NOT EXISTS reviews(
-    id SERIAL PRIMARY KEY,
-    body TEXT,
-    rating NUMERIC(2, 1) NOT NULL,
-    beer_id INT,
-    CONSTRAINT fk_review_beer FOREIGN KEY (beer_id) REFERENCES beers (id) ON DELETE CASCADE
-);
-
 
 -- +goose Down
 DROP TABLE IF EXISTS beer_features;
-DROP TABLE IF EXISTS reviews;
 DROP TABLE IF EXISTS beers;
 DROP TABLE IF EXISTS cities;
 DROP TABLE IF EXISTS features;

@@ -85,7 +85,7 @@ func (s *enumService) UpdateEnum(ctx context.Context, id uint, updates map[strin
 	err := s.repo.UpdateEnumClass(ctx, id, updates)
 
 	if err != nil {
-		return fmt.Errorf("failed to create review: %w", err)
+		return fmt.Errorf("failed to create enum: %w", err)
 	}
 
 	return nil
@@ -99,7 +99,7 @@ func (s *enumService) DeleteEnum(ctx context.Context, id uint) error {
 
 	err := s.repo.DeleteEnumClassByID(ctx, id)
 	if err != nil {
-		return fmt.Errorf("failed to delete review: %w", err)
+		return fmt.Errorf("failed to delete enum: %w", err)
 	}
 
 	return nil

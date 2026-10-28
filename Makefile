@@ -22,7 +22,6 @@ cleandb:
 genjson:
 	easyjson -all internal/entities/beer.go
 	easyjson -all internal/entities/category.go
-	easyjson -all internal/entities/review.go
 	easyjson -all internal/entities/enum_class.go
 	easyjson -all internal/entities/enum_value.go
 	easyjson -all internal/entities/aggregate.go

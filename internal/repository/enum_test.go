@@ -41,7 +41,6 @@ var (
 		{
 			Type:       "float",
 			EntityName: "beers",
-			FieldName:  "rating",
 			IsActive:   true,
 		},
 	}

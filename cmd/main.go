@@ -89,7 +89,6 @@ func main() {
 	h := handlers.Handlers{
 		CategoryHandler:   handlers.NewCategoriesHandlers(beerService),
 		BeersHandler:      handlers.NewBeersHandlers(beerService),
-		ReviewHandler:     handlers.NewReviewsHandlers(beerService),
 		EnumHandler:       handlers.NewEnumHandlers(enumService),
 		ParametersHandler: handlers.NewParametersHandlers(parameterService),
 		AggregatesHandler: handlers.NewAggregateHandlers(aggregateService),
