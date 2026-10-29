@@ -15,45 +15,45 @@ import (
 	"go.uber.org/zap"
 )
 
-type CategoryRepository interface {
-	// GetCategories получает все категории из базы данных.
-	GetCategories(ctx context.Context) ([]entities.ProductCategory, error)
+type ClassRepository interface {
+	// GetClasses получает все классы из базы данных.
+	GetClasses(ctx context.Context) ([]entities.Class, error)
 
-	// InsertCategory вставляет новую категорию в базу данных.
-	InsertCategory(ctx context.Context, tx pgx.Tx, category entities.ProductCategory) (uint, error)
+	// InsertClass вставляет новую категорию в базу данных.
+	InsertClass(ctx context.Context, tx pgx.Tx, class entities.Class) (uint, error)
 
-	// GetCategoryByID получает категорию по её ID.
-	GetCategoryByID(ctx context.Context, id uint) (*entities.ProductCategory, error)
+	// GetClassByID получает класс по его ID.
+	GetClassByID(ctx context.Context, id uint) (*entities.Class, error)
 
-	// UpdateCategory обновляет поля категории по её ID.
-	UpdateCategory(ctx context.Context, id uint, updates map[string]any) error
+	// UpdateClass обновляет поля класса по его ID.
+	UpdateClass(ctx context.Context, id uint, updates map[string]any) error
 
-	// DeleteCategoryByID удаляет категорию по её ID.
-	DeleteCategoryByID(ctx context.Context, id uint) error
+	// DeleteClassByID удаляет класс по его ID.
+	DeleteClassByID(ctx context.Context, id uint) error
 
-	// GetCategoryID получает ID категории по её имени.
-	GetCategoryID(ctx context.Context, tx pgx.Tx, ctgName string) (uint, error)
+	// GetClassID получает ID класса по его имени.
+	GetClassID(ctx context.Context, tx pgx.Tx, ctgName string) (uint, error)
 }
 
-// CategoryPostgres реализует интерфейс CategoryRepository для работы с категориями в базе данных PostgreSQL.
+// ClassPostgres реализует интерфейс ClassRepository для работы с классами в базе данных PostgreSQL.
 // Если пул равен nil, методы будут возвращать ошибку при попытке доступа к базе данных.
-type CategoryPostgres struct {
+type ClassPostgres struct {
 	Pool *pgxpool.Pool
 }
 
-// NewCategoryRepository создает новый экземпляр CategoryRepository с переданным пулом соединений.
-func NewCategoryRepository(pool *pgxpool.Pool) CategoryRepository {
-	return &CategoryPostgres{Pool: pool}
+// NewClassRepository создает новый экземпляр ClassRepository с переданным пулом соединений.
+func NewClassRepository(pool *pgxpool.Pool) ClassRepository {
+	return &ClassPostgres{Pool: pool}
 }
 
-// NewCategoryPostgres создает новый экземпляр CategoryPostgres с переданным пулом соединений.
+// NewClassPostgres создает новый экземпляр ClassPostgres с переданным пулом соединений.
 // Если пул равен nil, методы будут возвращать ошибку при попытке доступа к базе данных.
-func NewCategoryPostgres(pool *pgxpool.Pool) *CategoryPostgres {
-	return &CategoryPostgres{Pool: pool}
+func NewClassPostgres(pool *pgxpool.Pool) *ClassPostgres {
+	return &ClassPostgres{Pool: pool}
 }
 
-// GetCategories получает все категории из базы данных. Если категорий нет, возвращает пустой срез и nil.
-func (r *CategoryPostgres) GetCategories(ctx context.Context) ([]entities.ProductCategory, error) {
+// GetClasses получает все классы из базы данных. Если классов нет, возвращает пустой срез и nil.
+func (r *ClassPostgres) GetClasses(ctx context.Context) ([]entities.Class, error) {
 	if r.Pool == nil {
 		return nil, errors.New("pool is nil")
 	}
@@ -69,10 +69,10 @@ func (r *CategoryPostgres) GetCategories(ctx context.Context) ([]entities.Produc
 		return nil, fmt.Errorf("%s: %w", "Query", err)
 	}
 
-	categories := make([]entities.ProductCategory, 0)
+	categories := make([]entities.Class, 0)
 
 	for rows.Next() {
-		ctg := entities.ProductCategory{}
+		ctg := entities.Class{}
 
 		err = rows.Scan(&ctg.ID, &ctg.Name, &ctg.ParentID)
 		if err != nil {
@@ -84,15 +84,15 @@ func (r *CategoryPostgres) GetCategories(ctx context.Context) ([]entities.Produc
 	return categories, nil
 }
 
-// InsertCategory вставляет новую категорию в базу данных. Если категория с таким именем уже существует,
+// InsertClass вставляет новую категорию в базу данных. Если категория с таким именем уже существует,
 // возвращает ошибку. Если ParentID не равен 0, проверяет, что родительская категория существует.
 // Возвращает ID новой категории.
-func (r *CategoryPostgres) InsertCategory(ctx context.Context, tx pgx.Tx, category entities.ProductCategory) (uint, error) {
+func (r *ClassPostgres) InsertClass(ctx context.Context, tx pgx.Tx, class entities.Class) (uint, error) {
 	if r.Pool == nil {
 		return 0, apperrors.Internal(errors.New("pool is nil"))
 	}
 
-	psql := queries.CategoryInsert(category)
+	psql := queries.CategoryInsert(class)
 	query, args, err := psql.ToSql()
 	if err != nil {
 		return 0, apperrors.Internal(fmt.Errorf("%s: %w", "ToSql", err))
@@ -113,8 +113,8 @@ func (r *CategoryPostgres) InsertCategory(ctx context.Context, tx pgx.Tx, catego
 	return categoryID, nil
 }
 
-// GetCategoryByID получает категорию по её ID. Если категория не найдена, возвращает nil и ошибку.
-func (r *CategoryPostgres) GetCategoryByID(ctx context.Context, id uint) (*entities.ProductCategory, error) {
+// GetClassByID получает класс по его ID. Если класс не найден, возвращает nil и ошибку.
+func (r *ClassPostgres) GetClassByID(ctx context.Context, id uint) (*entities.Class, error) {
 	if r.Pool == nil {
 		return nil, errors.New("pool is nil")
 	}
@@ -125,7 +125,7 @@ func (r *CategoryPostgres) GetCategoryByID(ctx context.Context, id uint) (*entit
 		return nil, fmt.Errorf("%s: %w", "ToSql", err)
 	}
 
-	var ctg entities.ProductCategory
+	var ctg entities.Class
 	err = r.Pool.QueryRow(ctx, query, args...).Scan(&ctg.ID, &ctg.Name, &ctg.ParentID)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "QueryRow", err)
@@ -134,8 +134,8 @@ func (r *CategoryPostgres) GetCategoryByID(ctx context.Context, id uint) (*entit
 	return &ctg, nil
 }
 
-// UpdateCategory обновляет поля категории по её ID. Если категория не найдена, возвращает ошибку. Если updates пустой, ничего не обновляет.
-func (r *CategoryPostgres) UpdateCategory(ctx context.Context, id uint, updates map[string]any) error {
+// UpdateClass обновляет поля класса по его ID. Если класс не найден, возвращает ошибку. Если updates пустой, ничего не обновляет.
+func (r *ClassPostgres) UpdateClass(ctx context.Context, id uint, updates map[string]any) error {
 	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("begin: %w", err)
@@ -171,8 +171,8 @@ func (r *CategoryPostgres) UpdateCategory(ctx context.Context, id uint, updates 
 	return nil
 }
 
-// DeleteCategoryByID удаляет категорию по её ID. Если категория имеет дочерние категории, они будут перемещены к родителю удаляемой категории. Нельзя удалить корневую категорию.
-func (r *CategoryPostgres) DeleteCategoryByID(ctx context.Context, id uint) error {
+// DeleteClassByID удаляет класс по его ID. Если класс имеет дочерние классы, они будут перемещены к родителю удаляемого класса. Нельзя удалить корневой класс.
+func (r *ClassPostgres) DeleteClassByID(ctx context.Context, id uint) error {
 	tx, err := r.Pool.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("begin: %w", err)
@@ -188,12 +188,12 @@ func (r *CategoryPostgres) DeleteCategoryByID(ctx context.Context, id uint) erro
 		}
 	}(tx, ctx)
 
-	category, err := r.GetCategoryByID(ctx, id)
+	class, err := r.GetClassByID(ctx, id)
 	if err != nil {
-		return fmt.Errorf("get category by id: %w", err)
+		return fmt.Errorf("get class by id: %w", err)
 	}
 
-	if category.ParentID == 0 {
+	if class.ParentID == 0 {
 		return errors.New("cannot delete root category")
 	}
 
@@ -215,12 +215,12 @@ func (r *CategoryPostgres) DeleteCategoryByID(ctx context.Context, id uint) erro
 			return fmt.Errorf("children scanning: %w", err)
 		}
 		if childID != 0 {
-			err = r.UpdateCategory(ctx, uint(childID),
+			err = r.UpdateClass(ctx, uint(childID),
 				map[string]any{
-					"parent_id": category.ParentID,
+					"parent_id": class.ParentID,
 				})
 			if err != nil {
-				return fmt.Errorf("failed to update category: %w", err)
+				return fmt.Errorf("failed to update class: %w", err)
 			}
 		}
 	}
@@ -247,8 +247,8 @@ func (r *CategoryPostgres) DeleteCategoryByID(ctx context.Context, id uint) erro
 	return nil
 }
 
-// GetCategoryID получает ID категории по её имени. Если категория не найдена, возвращает 0 и ошибку.
-func (r *CategoryPostgres) GetCategoryID(ctx context.Context, tx pgx.Tx, ctgName string) (uint, error) {
+// GetClassID получает ID класса по его имени. Если класс не найден, возвращает 0 и ошибку.
+func (r *ClassPostgres) GetClassID(ctx context.Context, tx pgx.Tx, ctgName string) (uint, error) {
 	if r.Pool == nil {
 		return 0, apperrors.Internal(errors.New("pool is nil"))
 	}
