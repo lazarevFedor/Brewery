@@ -11,14 +11,14 @@ import (
 // ParametersService - сервис для управления параметрами.
 type ParametersService interface {
 
-	// CreateNumeric создает числовой параметр.
-	CreateNumeric(ctx context.Context, param *entities.RangeParameter) (*entities.RangeParameter, error)
+	// CreateRange создает числовой параметр.
+	CreateRange(ctx context.Context, param *entities.RangeParameter) (*entities.RangeParameter, error)
 
-	// UpdateNumeric обновляет числовой параметр. Единственные поля, которые можно обновлять - min_val, max_val и inheritable.
-	UpdateNumeric(ctx context.Context, id uint, updates map[string]any) (*entities.RangeParameter, error)
+	// UpdateRange обновляет числовой параметр. Единственные поля, которые можно обновлять - min_val, max_val и inheritable.
+	UpdateRange(ctx context.Context, id uint, updates map[string]any) (*entities.RangeParameter, error)
 
-	// DeleteNumeric удаляет числовой параметр.
-	DeleteNumeric(ctx context.Context, id uint) (*entities.RangeParameter, error)
+	// DeleteRange удаляет числовой параметр.
+	DeleteRange(ctx context.Context, id uint) (*entities.RangeParameter, error)
 
 	// CreateEnum создает параметр типа перечисление.
 	CreateEnum(ctx context.Context, param *entities.EnumParameter) (*entities.EnumParameter, error)
@@ -58,17 +58,14 @@ var allowedParametersToUpdate = map[string]struct{}{
 	"inheritable": {},
 }
 
-// CreateNumeric создает числовой параметр.
-func (s *parametersService) CreateNumeric(ctx context.Context, param *entities.RangeParameter) (*entities.RangeParameter, error) {
+// CreateRange создает числовой параметр.
+func (s *parametersService) CreateRange(ctx context.Context, param *entities.RangeParameter) (*entities.RangeParameter, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
 	if param.FieldName == "" {
 		return nil, errors.New("field_name is required")
-	}
-	if param.EntityName == "" {
-		return nil, errors.New("entity_name is required")
 	}
 	if param.MinValue > param.MaxValue {
 		return nil, errors.New("min_val must be less than or equal to max_val")
@@ -85,8 +82,8 @@ func (s *parametersService) CreateNumeric(ctx context.Context, param *entities.R
 	return created, nil
 }
 
-// UpdateNumeric обновляет числовой параметр. Единственные поля, которые можно обновлять - min_val, max_val и inheritable.
-func (s *parametersService) UpdateNumeric(ctx context.Context, id uint, updates map[string]any) (*entities.RangeParameter, error) {
+// UpdateRange обновляет числовой параметр. Единственные поля, которые можно обновлять - min_val, max_val и inheritable.
+func (s *parametersService) UpdateRange(ctx context.Context, id uint, updates map[string]any) (*entities.RangeParameter, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -105,8 +102,8 @@ func (s *parametersService) UpdateNumeric(ctx context.Context, id uint, updates 
 	return updated, nil
 }
 
-// DeleteNumeric удаляет числовой параметр.
-func (s *parametersService) DeleteNumeric(ctx context.Context, id uint) (*entities.RangeParameter, error) {
+// DeleteRange удаляет числовой параметр.
+func (s *parametersService) DeleteRange(ctx context.Context, id uint) (*entities.RangeParameter, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}

@@ -1075,7 +1075,7 @@ func (mmCreateNumeric *mParametersServiceMockCreateNumeric) invocationsDone() bo
 }
 
 // CreateNumeric implements mm_usecase.ParametersService
-func (mmCreateNumeric *ParametersServiceMock) CreateNumeric(ctx context.Context, param *entities.RangeParameter) (np1 *entities.RangeParameter, err error) {
+func (mmCreateNumeric *ParametersServiceMock) CreateRange(ctx context.Context, param *entities.RangeParameter) (np1 *entities.RangeParameter, err error) {
 	mm_atomic.AddUint64(&mmCreateNumeric.beforeCreateNumericCounter, 1)
 	defer mm_atomic.AddUint64(&mmCreateNumeric.afterCreateNumericCounter, 1)
 
@@ -2879,7 +2879,7 @@ func (mmUpdateNumeric *mParametersServiceMockUpdateNumeric) invocationsDone() bo
 }
 
 // UpdateNumeric implements mm_usecase.ParametersService
-func (mmUpdateNumeric *ParametersServiceMock) UpdateNumeric(ctx context.Context, id uint, updates map[string]any) (np1 *entities.RangeParameter, err error) {
+func (mmUpdateNumeric *ParametersServiceMock) UpdateRange(ctx context.Context, id uint, updates map[string]any) (np1 *entities.RangeParameter, err error) {
 	mm_atomic.AddUint64(&mmUpdateNumeric.beforeUpdateNumericCounter, 1)
 	defer mm_atomic.AddUint64(&mmUpdateNumeric.afterUpdateNumericCounter, 1)
 

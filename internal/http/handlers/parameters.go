@@ -86,7 +86,7 @@ func (h *parametersHandlers) CreateNumericParameter(c *gin.Context) {
 		return
 	}
 
-	created, err := h.uc.CreateNumeric(c.Request.Context(), &req)
+	created, err := h.uc.CreateRange(c.Request.Context(), &req)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to create numeric parameter: %v", err))
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -135,7 +135,7 @@ func (h *parametersHandlers) UpdateNumericParameter(c *gin.Context) {
 		return
 	}
 
-	updated, err := h.uc.UpdateNumeric(c.Request.Context(), id, updates)
+	updated, err := h.uc.UpdateRange(c.Request.Context(), id, updates)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to update numeric parameter: %v", err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -314,7 +314,7 @@ func (h *parametersHandlers) UpdateParameter(c *gin.Context) {
 
 	switch typ {
 	case numericQuery:
-		updated, err := h.uc.UpdateNumeric(c.Request.Context(), id, updates)
+		updated, err := h.uc.UpdateRange(c.Request.Context(), id, updates)
 		if err != nil {
 			log.Error(c.Request.Context(), fmt.Sprintf("Failed to update numeric parameter: %v", err))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
