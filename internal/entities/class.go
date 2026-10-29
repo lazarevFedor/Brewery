@@ -9,8 +9,3 @@ type Class struct {
 	NumParamIDs  []int  `json:"num_param_ids,omitempty" info:"ID числовых параметров категории"`
 	EnumParamIDs []int  `json:"enum_param_ids,omitempty" info:"ID перечислимых параметров категории"`
 }
-
-// Classes представляет собой срез классов изделий.
-//
-//easyjson:json
-type Classes []Class

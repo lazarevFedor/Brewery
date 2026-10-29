@@ -9,8 +9,3 @@ type Aggregate struct {
 	NumericParameters []int  `json:"numeric_param_ids,omitempty" info:"Список численный параметров"`
 	EnumParameters    []int  `json:"enum_param_ids,omitempty" info:"Список параметров-перечислений"`
 }
-
-// Aggregates представляет собой срез агрегатов.
-//
-//easyjson:json
-type Aggregates []Aggregate
