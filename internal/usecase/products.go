@@ -18,3 +18,4 @@ type productRepository interface {
 type productService struct{}
 
 func (s *productService) CreateProduct(ctx context.Context, req entities.Product) (entities.Product, error)
+

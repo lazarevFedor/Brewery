@@ -18,7 +18,7 @@ type productService interface {
 	UpdateProduct(ctx context.Context, id uint, updates map[string]any) (entities.Product, error)
 	DeleteProduct(ctx context.Context, id int) error
 	GetProductsByClass(ctx context.Context, classID int, limit, offset uint64) ([]entities.Product, error)
-	GetFilteredProducts(ctx context.Context, filters []entities.FilterParameter, classID *uint, limit, offset uint64) ([]entities.Product, error)
+	
 }
 
 type ProductHandler struct{
