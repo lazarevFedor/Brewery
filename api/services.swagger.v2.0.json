@@ -32,6 +32,14 @@
       "description": "Операции, связанные с продукцией"
     },
     {
+      "name": "Materials",
+      "description": "Операции, связанные с составом изделия (материалами)"
+    },
+    {
+      "name": "History",
+      "description": "Операции, связанные с историей изменений изделий"
+    },
+    {
       "name": "EnumsClass",
       "description": "Операции, связанные с классами перечислений "
     },
@@ -425,6 +433,39 @@
       }
     },
     "/products/{id}": {
+      "get": {
+        "tags": [
+          "Products"
+        ],
+        "summary": "Get product by ID",
+        "operationId": "getProduct",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Product"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
       "patch": {
         "tags": [
           "Products"
@@ -621,6 +662,358 @@
                   "items": {
                     "$ref": "#/components/schemas/Product"
                   }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/products/{id}/derived": {
+      "get": {
+        "tags": [
+          "Products"
+        ],
+        "summary": "Get products based on product (base_id = id)",
+        "operationId": "listDerivedProducts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          },
+          {
+            "$ref": "#/components/parameters/Offset"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Derived products list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Product"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/products/{id}/materials": {
+      "get": {
+        "tags": [
+          "Materials"
+        ],
+        "summary": "Get product's materials (composition)",
+        "operationId": "listProductMaterials",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Materials list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Material"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Materials"
+        ],
+        "summary": "Add material to product",
+        "operationId": "addProductMaterial",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaterialCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Material added",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Material"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/422_validation_error"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/products/{id}/materials/{material_id}": {
+      "patch": {
+        "tags": [
+          "Materials"
+        ],
+        "summary": "Update material amount in product",
+        "operationId": "updateProductMaterial",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          },
+          {
+            "$ref": "#/components/parameters/materialId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaterialUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated material",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Material"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Materials"
+        ],
+        "summary": "Remove material from product",
+        "operationId": "deleteProductMaterial",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          },
+          {
+            "$ref": "#/components/parameters/materialId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successfully deleted"
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/materials/{material_id}/products": {
+      "get": {
+        "tags": [
+          "Materials"
+        ],
+        "summary": "Get products that use material (where-used)",
+        "operationId": "listProductsByMaterial",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/materialId"
+          },
+          {
+            "$ref": "#/components/parameters/Offset"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Products list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Product"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/products/{id}/history": {
+      "get": {
+        "tags": [
+          "History"
+        ],
+        "summary": "Get product's change history",
+        "operationId": "listProductHistory",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          },
+          {
+            "$ref": "#/components/parameters/DateFrom"
+          },
+          {
+            "$ref": "#/components/parameters/DateTo"
+          },
+          {
+            "$ref": "#/components/parameters/Offset"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "History records list, newest first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HistoryRecord"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/history/{id}": {
+      "get": {
+        "tags": [
+          "History"
+        ],
+        "summary": "Get history record by ID",
+        "operationId": "getHistoryRecord",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "History record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HistoryRecord"
                 }
               }
             }
@@ -1728,6 +2121,11 @@
               "class_id": {
                 "type": "integer"
               },
+              "base_id": {
+                "type": "integer",
+                "nullable": true,
+                "description": "ID базового изделия, на основе которого создано текущее"
+              },
               "amount": {
                 "type": "integer"
               },
@@ -1752,6 +2150,34 @@
             "properties": {
               "class": {
                 "$ref": "#/components/schemas/ClassBase"
+              },
+              "base_id": {
+                "type": "integer",
+                "nullable": true,
+                "description": "ID базового изделия, на основе которого создано текущее"
+              },
+              "parameters": {
+                "type": "object",
+                "additionalProperties": {
+                  "oneOf": [
+                    {"type":  "string"},
+                    {"type":  "number"}
+                  ]
+                }
+              },
+              "amount": {
+                "type": "integer"
+              },
+              "units": {
+                "type": "string"
+              },
+              "materials": {
+                "type": "array",
+                "description": "Состав изделия при создании",
+                "items": {
+                  "$ref": "#/components/schemas/MaterialCreate"
+                },
+                "default": []
               }
             },
             "example": {
@@ -1759,8 +2185,15 @@
               "class": {
                 "name": "Светлое"
               },
+              "base_id": null,
               "amount": 100,
-              "units": "L"
+              "units": "L",
+              "materials": [
+                {
+                  "material_id": 5,
+                  "material_amount": 12.5
+                }
+              ]
             }
           }
         ]
@@ -1796,6 +2229,11 @@
               "class_id": {
                 "type": "integer"
               },
+              "base_id": {
+                "type": "integer",
+                "nullable": true,
+                "description": "ID базового изделия, на основе которого создано текущее"
+              },
               "amount": {
                 "type": "integer"
               },
@@ -1805,6 +2243,114 @@
             }
           }
         ]
+      },
+      "MaterialBase": {
+        "type": "object",
+        "properties": {
+          "material_amount": {
+            "type": "number",
+            "format": "double",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "example": 12.5,
+            "description": "Количество материала на одно изделие"
+          }
+        }
+      },
+      "Material": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/MaterialBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "material_id",
+              "product_id",
+              "material_amount"
+            ],
+            "properties": {
+              "material_id": {
+                "type": "integer",
+                "example": 5,
+                "description": "ID изделия, используемого как материал"
+              },
+              "product_id": {
+                "type": "integer",
+                "example": 1,
+                "description": "ID изделия, в состав которого входит материал"
+              },
+              "material": {
+                "$ref": "#/components/schemas/ProductBase"
+              },
+              "units": {
+                "type": "string",
+                "example": "kg"
+              }
+            }
+          }
+        ]
+      },
+      "MaterialCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/MaterialBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "material_id",
+              "material_amount"
+            ],
+            "properties": {
+              "material_id": {
+                "type": "integer",
+                "example": 5
+              }
+            }
+          }
+        ]
+      },
+      "MaterialUpdate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/MaterialBase"
+          },
+          {
+            "required": [
+              "material_amount"
+            ]
+          }
+        ]
+      },
+      "HistoryRecord": {
+        "type": "object",
+        "required": [
+          "id",
+          "product_id",
+          "changes",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "product_id": {
+            "type": "integer",
+            "example": 1
+          },
+          "changes": {
+            "type": "string",
+            "description": "Описание изменений (JSON-строка с изменёнными полями)",
+            "example": "{\"amount\":{\"old\":100,\"new\":150}}"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-10-28T12:00:00Z"
+          }
+        }
       },
       "EnumClassBase": {
         "type": "object",
@@ -2303,6 +2849,35 @@
         "schema": {
           "type": "integer"
         }
+      },
+      "materialId": {
+        "name": "material_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "integer"
+        },
+        "description": "ID изделия, используемого как материал"
+      },
+      "DateFrom": {
+        "name": "from",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "description": "Начало периода (включительно)"
+      },
+      "DateTo": {
+        "name": "to",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "description": "Конец периода (включительно)"
       },
       "classId": {
         "name": "class_id",
