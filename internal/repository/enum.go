@@ -26,7 +26,7 @@ type EnumRepository interface {
 	DeleteEnumClassByID(ctx context.Context, id uint) error
 
 	// GetEnumClasses получает список сущностей EnumClass по заданным имени таблицы и поля.
-	GetEnumClasses(ctx context.Context, entity, field string) ([]entities.EnumClass, error)
+	GetEnumClasses(ctx context.Context, field string) ([]entities.EnumClass, error)
 
 	// InsertEnumValue сохраняет новую сущность ParameterValue в хранилище.
 	InsertEnumValue(ctx context.Context, enumValue entities.ParameterValue) (uint, error)
@@ -37,8 +37,8 @@ type EnumRepository interface {
 	// DeleteEnumValueByID удаляет сущность ParameterValue из хранилища.
 	DeleteEnumValueByID(ctx context.Context, id uint) error
 
-	// GetEnumValues получает список сущностей ParameterValue по заданным имени таблицы, поля и типу значения.
-	GetEnumValues(ctx context.Context, entity, field string, valueType entities.EnumType) ([]entities.ParameterValue, error)
+	// GetEnumValues получает список сущностей ParameterValue по заданным имени поля и типу значения.
+	GetEnumValues(ctx context.Context, field string, valueType entities.EnumType) ([]entities.ParameterValue, error)
 
 	// GetEnumValuesByClassID получает список сущностей ParameterValue по заданному ID класса перечисления.
 	GetEnumValuesByClassID(ctx context.Context, classID uint) ([]entities.ParameterValue, error)

@@ -17,23 +17,14 @@ import (
 
 // ParameterRepository определяет интерфейс для работы с параметрами, включая числовые и перечисляемые параметры.
 type ParameterRepository interface {
-	// InsertNumericParameter добавляет новый числовой параметр в базу данных и возвращает его.
-	InsertNumericParameter(ctx context.Context, param *entities.RangeParameter) (*entities.RangeParameter, error)
+	// InsertRangeParameter добавляет новый числовой параметр в базу данных и возвращает его.
+	InsertRangeParameter(ctx context.Context, param *entities.RangeParameter) (*entities.RangeParameter, error)
 
-	// UpdateNumericParameter обновляет существующий числовой параметр в базе данных и возвращает его.
-	UpdateNumericParameter(ctx context.Context, id uint, updates map[string]any) (*entities.RangeParameter, error)
+	// UpdateRangeParameter обновляет существующий числовой параметр в базе данных и возвращает его.
+	UpdateRangeParameter(ctx context.Context, id uint, updates map[string]any) (*entities.RangeParameter, error)
 
-	// DeleteNumericParameter удаляет числовой параметр из базы данных и возвращает его.
-	DeleteNumericParameter(ctx context.Context, id uint) (*entities.RangeParameter, error)
-
-	// InsertEnumParameter добавляет новый перечисляемый параметр в базу данных и возвращает его.
-	InsertEnumParameter(ctx context.Context, param *entities.EnumParameter) (*entities.EnumParameter, error)
-
-	// UpdateEnumParameter обновляет существующий перечисляемый параметр в базе данных и возвращает его.
-	UpdateEnumParameter(ctx context.Context, id uint, updates map[string]any) (*entities.EnumParameter, error)
-
-	// DeleteEnumParameter удаляет перечисляемый параметр из базы данных и возвращает его.
-	DeleteEnumParameter(ctx context.Context, id uint) (*entities.EnumParameter, error)
+	// DeleteRangeParameter удаляет числовой параметр из базы данных и возвращает его.
+	DeleteRangeParameter(ctx context.Context, id uint) (*entities.RangeParameter, error)
 
 	// GetParameters извлекает все числовые и перечисляемые параметры из базы данных и возвращает их.
 	GetParameters(ctx context.Context, categoryID uint, parameterType int) ([]entities.RangeParameter, []entities.EnumParameter, error)
@@ -113,75 +104,6 @@ func (p *ParameterPostgres) DeleteNumericParameter(ctx context.Context, id uint)
 	}
 
 	deleteQuery := queries.DeleteNumericParameter(id)
-	sql, args, err := deleteQuery.ToSql()
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = p.Pool.Exec(ctx, sql, args...)
-	if err != nil {
-		return nil, err
-	}
-
-	return param, nil
-}
-
-// InsertEnumParameter добавляет новый перечисляемый параметр в базу данных и возвращает его.
-func (p *ParameterPostgres) InsertEnumParameter(ctx context.Context, param *entities.EnumParameter) (*entities.EnumParameter, error) {
-	query := queries.InsertEnumParameter(param)
-	sql, args, err := query.ToSql()
-	if err != nil {
-		return nil, err
-	}
-
-	var id uint
-	err = p.Pool.QueryRow(ctx, sql, args...).Scan(&id)
-	if err != nil {
-		return nil, err
-	}
-
-	param.ID = id
-	return param, nil
-}
-
-// UpdateEnumParameter обновляет существующий перечисляемый параметр в базе данных и возвращает его.
-func (p *ParameterPostgres) UpdateEnumParameter(ctx context.Context, id uint, updates map[string]any) (*entities.EnumParameter, error) {
-	if len(updates) == 0 {
-		return nil, errors.New("no updates provided")
-	}
-
-	oldParam, err := p.fetchEnumParameterByID(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	query := queries.UpdateEnumParameter(id, updates)
-	sql, args, err := query.ToSql()
-	if err != nil {
-		return nil, err
-	}
-
-	var param *entities.EnumParameter
-	param, err = scanEnumParameter(p.Pool.QueryRow(ctx, sql, args...))
-	if err != nil {
-		return nil, err
-	}
-
-	if err = p.toggleInheritance(ctx, true, id, oldParam.Inheritable, param.Inheritable); err != nil {
-		return nil, err
-	}
-
-	return param, nil
-}
-
-// DeleteEnumParameter удаляет перечисляемый параметр из базы данных и возвращает его.
-func (p *ParameterPostgres) DeleteEnumParameter(ctx context.Context, id uint) (*entities.EnumParameter, error) {
-	param, err := p.fetchEnumParameterByID(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	deleteQuery := queries.DeleteEnumParameter(id)
 	sql, args, err := deleteQuery.ToSql()
 	if err != nil {
 		return nil, err
