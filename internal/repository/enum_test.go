@@ -13,40 +13,35 @@ var (
 	// testEnumClasses содержит набор тестовых классов перечислений для различных сценариев тестирования.
 	testEnumClasses = []entities.EnumClass{
 		{
-			Type:       "int",
-			EntityName: "beers",
-			FieldName:  "amount",
-			Unit:       "ml",
-			IsActive:   true,
+			Type:      "int",
+			FieldName: "amount",
+			Unit:      "ml",
+			IsActive:  true,
 		},
 		{
-			Type:       "int",
-			EntityName: "beers",
-			FieldName:  "amount",
-			Unit:       "L",
-			IsActive:   false,
+			Type:      "int",
+			FieldName: "amount",
+			Unit:      "L",
+			IsActive:  false,
 		},
 		{
-			Type:       "string",
-			EntityName: "country",
-			FieldName:  "name",
-			IsActive:   true,
+			Type:      "string",
+			FieldName: "name",
+			IsActive:  true,
 		},
 		{
-			Type:       "string",
-			EntityName: "country",
-			FieldName:  "name",
-			IsActive:   true,
+			Type:      "string",
+			FieldName: "name",
+			IsActive:  true,
 		},
 		{
-			Type:       "float",
-			EntityName: "beers",
-			IsActive:   true,
+			Type:     "float",
+			IsActive: true,
 		},
 	}
 
 	// testEnumValues содержит набор тестовых значений перечислений для различных сценариев тестирования.
-	testEnumValues = []entities.ParameterValue{
+	testEnumValues = []entities.EnumValue{
 		{
 			Value:     10,
 			ValueType: "int",
@@ -84,11 +79,10 @@ func TestEnumRepository_InsertEnumClass(t *testing.T) {
 		require.NoError(t, err)
 		require.NotZero(t, enumID)
 
-		enumClasses, err := enumRepo.GetEnumClasses(ctx, testEnumClasses[0].EntityName, testEnumClasses[0].FieldName)
+		enumClasses, err := enumRepo.GetEnumClasses(ctx, testEnumClasses[0].FieldName)
 		require.NoError(t, err)
 		require.Len(t, enumClasses, 1)
 		require.Equal(t, testEnumClasses[0].Type, enumClasses[0].Type)
-		require.Equal(t, testEnumClasses[0].EntityName, enumClasses[0].EntityName)
 		require.Equal(t, testEnumClasses[0].FieldName, enumClasses[0].FieldName)
 		require.Equal(t, testEnumClasses[0].IsActive, enumClasses[0].IsActive)
 
@@ -106,7 +100,7 @@ func TestEnumRepository_InsertEnumClass(t *testing.T) {
 		require.NoError(t, err)
 		require.NotZero(t, enumID)
 
-		enumClasses, err := enumRepo.GetEnumClasses(ctx, testEnumClasses[0].EntityName, testEnumClasses[0].FieldName)
+		enumClasses, err := enumRepo.GetEnumClasses(ctx, testEnumClasses[0].FieldName)
 		require.NoError(t, err)
 		require.Len(t, enumClasses, 2)
 
@@ -124,7 +118,7 @@ func TestEnumRepository_InsertEnumClass(t *testing.T) {
 		require.Error(t, err)
 		require.Zero(t, enumID)
 
-		enumClasses, err := enumRepo.GetEnumClasses(ctx, testEnumClasses[2].EntityName, testEnumClasses[2].FieldName)
+		enumClasses, err := enumRepo.GetEnumClasses(ctx, testEnumClasses[2].FieldName)
 		require.NoError(t, err)
 		require.Len(t, enumClasses, 1)
 
@@ -221,14 +215,14 @@ func TestEnumRepository_DeleteEnumClassByID(t *testing.T) {
 		require.NoError(t, err)
 		require.NotZero(t, enumID)
 
-		enumClasses, err := enumRepo.GetEnumClasses(ctx, testEnumClasses[0].EntityName, testEnumClasses[0].FieldName)
+		enumClasses, err := enumRepo.GetEnumClasses(ctx, testEnumClasses[0].FieldName)
 		require.NoError(t, err)
 		require.Len(t, enumClasses, 1)
 
 		err = enumRepo.DeleteEnumClassByID(ctx, enumID)
 		require.NoError(t, err)
 
-		enumClasses, err = enumRepo.GetEnumClasses(ctx, testEnumClasses[0].EntityName, testEnumClasses[0].FieldName)
+		enumClasses, err = enumRepo.GetEnumClasses(ctx, testEnumClasses[0].FieldName)
 		require.NoError(t, err)
 		require.Empty(t, enumClasses)
 
@@ -238,7 +232,7 @@ func TestEnumRepository_DeleteEnumClassByID(t *testing.T) {
 	})
 
 	t.Run("Удаление несуществующего класса перечисления", func(t *testing.T) {
-		enumClasses, err := enumRepo.GetEnumClasses(ctx, testEnumClasses[0].EntityName, testEnumClasses[0].FieldName)
+		enumClasses, err := enumRepo.GetEnumClasses(ctx, testEnumClasses[0].FieldName)
 		require.NoError(t, err)
 		require.Empty(t, enumClasses)
 
@@ -257,14 +251,14 @@ func TestEnumRepository_DeleteEnumClassByID(t *testing.T) {
 		require.NoError(t, err)
 		require.NotZero(t, enumID)
 
-		enumClasses, err := enumRepo.GetEnumClasses(ctx, testEnumClasses[0].EntityName, testEnumClasses[0].FieldName)
+		enumClasses, err := enumRepo.GetEnumClasses(ctx, testEnumClasses[0].FieldName)
 		require.NoError(t, err)
 		require.Len(t, enumClasses, 1)
 
 		err = uninitializedRepo.DeleteEnumClassByID(ctx, enumID)
 		require.Error(t, err)
 
-		enumClasses, err = enumRepo.GetEnumClasses(ctx, testEnumClasses[0].EntityName, testEnumClasses[0].FieldName)
+		enumClasses, err = enumRepo.GetEnumClasses(ctx, testEnumClasses[0].FieldName)
 		require.NoError(t, err)
 		require.Len(t, enumClasses, 1)
 
@@ -287,7 +281,7 @@ func TestEnumRepository_GetEnumClasses(t *testing.T) {
 		require.NoError(t, err)
 		require.NotZero(t, enumID)
 
-		enumClasses, err := enumRepo.GetEnumClasses(ctx, testEnumClasses[0].EntityName, testEnumClasses[0].FieldName)
+		enumClasses, err := enumRepo.GetEnumClasses(ctx, testEnumClasses[0].FieldName)
 		require.NoError(t, err)
 		require.Len(t, enumClasses, 2)
 
@@ -307,7 +301,7 @@ func TestEnumRepository_GetEnumClasses(t *testing.T) {
 		require.NoError(t, err)
 		require.NotZero(t, enumID)
 
-		enumClasses, err := uninitializedRepo.GetEnumClasses(ctx, testEnumClasses[0].EntityName, testEnumClasses[0].FieldName)
+		enumClasses, err := uninitializedRepo.GetEnumClasses(ctx, testEnumClasses[0].FieldName)
 		require.Error(t, err)
 		require.Empty(t, enumClasses)
 
@@ -335,7 +329,7 @@ func TestEnumRepository_InsertEnumValue(t *testing.T) {
 		require.NoError(t, err)
 		require.NotZero(t, valueID)
 
-		enumValues, err := enumRepo.GetEnumValues(ctx, testEnumClasses[0].EntityName, testEnumClasses[0].FieldName, testVal.ValueType)
+		enumValues, err := enumRepo.GetEnumValues(ctx, testEnumClasses[0].FieldName, testVal.ValueType)
 		require.NoError(t, err)
 		require.Len(t, enumValues, 1)
 		require.Equal(t, testVal.ValueType, enumValues[0].ValueType)
@@ -349,7 +343,7 @@ func TestEnumRepository_InsertEnumValue(t *testing.T) {
 		require.NoError(t, err)
 		require.NotZero(t, valueID)
 
-		enumValues, err = enumRepo.GetEnumValues(ctx, testEnumClasses[0].EntityName, testEnumClasses[0].FieldName, testVal.ValueType)
+		enumValues, err = enumRepo.GetEnumValues(ctx, testEnumClasses[0].FieldName, testVal.ValueType)
 		require.NoError(t, err)
 		require.Len(t, enumValues, 2)
 		require.Equal(t, testVal.ValueType, enumValues[1].ValueType)
@@ -363,7 +357,7 @@ func TestEnumRepository_InsertEnumValue(t *testing.T) {
 		require.NoError(t, err)
 		require.NotZero(t, valueID)
 
-		enumValues, err = enumRepo.GetEnumValues(ctx, testEnumClasses[0].EntityName, testEnumClasses[0].FieldName, testVal.ValueType)
+		enumValues, err = enumRepo.GetEnumValues(ctx, testEnumClasses[0].FieldName, testVal.ValueType)
 		require.NoError(t, err)
 		require.Len(t, enumValues, 3)
 		require.Equal(t, testVal.ValueType, enumValues[2].ValueType)
@@ -389,7 +383,7 @@ func TestEnumRepository_InsertEnumValue(t *testing.T) {
 		require.Error(t, err)
 		require.Zero(t, valueID)
 
-		enumValues, err := enumRepo.GetEnumValues(ctx, testEnumClasses[0].EntityName, testEnumClasses[0].FieldName, testVal.ValueType)
+		enumValues, err := enumRepo.GetEnumValues(ctx, testEnumClasses[0].FieldName, testVal.ValueType)
 		require.NoError(t, err)
 		require.Empty(t, enumValues)
 
@@ -406,7 +400,7 @@ func TestEnumRepository_InsertEnumValue(t *testing.T) {
 		require.Error(t, err)
 		require.Zero(t, valueID)
 
-		enumValues, err := enumRepo.GetEnumValues(ctx, testEnumClasses[0].EntityName, testEnumClasses[0].FieldName, testVal.ValueType)
+		enumValues, err := enumRepo.GetEnumValues(ctx, testEnumClasses[0].FieldName, testVal.ValueType)
 		require.NoError(t, err)
 		require.Empty(t, enumValues)
 
@@ -428,7 +422,7 @@ func TestEnumRepository_InsertEnumValue(t *testing.T) {
 		require.NoError(t, err)
 		require.NotZero(t, valueID)
 
-		enumValues, err := enumRepo.GetEnumValues(ctx, testEnumClasses[4].EntityName, testEnumClasses[4].FieldName, testVal.ValueType)
+		enumValues, err := enumRepo.GetEnumValues(ctx, testEnumClasses[4].FieldName, testVal.ValueType)
 		require.NoError(t, err)
 		require.Len(t, enumValues, 1)
 		require.Equal(t, testVal.ValueType, enumValues[0].ValueType)
@@ -448,18 +442,16 @@ func TestEnumRepository_GetEnumValues(t *testing.T) {
 
 	t.Run("Успешное получение значений перечисления", func(t *testing.T) {
 		intClass := entities.EnumClass{
-			Type:       "int",
-			EntityName: "enum_get_beers",
-			FieldName:  "amount",
-			Unit:       "ml",
-			IsActive:   true,
+			Type:      "int",
+			FieldName: "amount",
+			Unit:      "ml",
+			IsActive:  true,
 		}
 		floatClass := entities.EnumClass{
-			Type:       "float",
-			EntityName: "enum_get_beers",
-			FieldName:  "amount",
-			Unit:       "L",
-			IsActive:   false,
+			Type:      "float",
+			FieldName: "amount",
+			Unit:      "L",
+			IsActive:  false,
 		}
 
 		intClassID, err := enumRepo.InsertEnumClass(ctx, intClass)
@@ -470,31 +462,31 @@ func TestEnumRepository_GetEnumValues(t *testing.T) {
 		require.NoError(t, err)
 		require.NotZero(t, floatClassID)
 
-		firstVal := entities.ParameterValue{EnumClassID: int(intClassID), Value: 10, ValueType: entities.EnumValueTypeInt, Position: 1}
+		firstVal := entities.EnumValue{EnumClassID: int(intClassID), Value: 10, ValueType: entities.EnumValueTypeInt, Position: 1}
 		firstValID, err := enumRepo.InsertEnumValue(ctx, firstVal)
 		require.NoError(t, err)
 		require.NotZero(t, firstValID)
 
-		secondVal := entities.ParameterValue{EnumClassID: int(floatClassID), Value: 4.5, ValueType: entities.EnumValueTypeFloat, Position: 2}
+		secondVal := entities.EnumValue{EnumClassID: int(floatClassID), Value: 4.5, ValueType: entities.EnumValueTypeFloat, Position: 2}
 		secondValID, err := enumRepo.InsertEnumValue(ctx, secondVal)
 		require.NoError(t, err)
 		require.NotZero(t, secondValID)
 
-		intValues, err := enumRepo.GetEnumValues(ctx, intClass.EntityName, intClass.FieldName, entities.EnumType(intClass.Type))
+		intValues, err := enumRepo.GetEnumValues(ctx, intClass.FieldName, entities.EnumType(intClass.Type))
 		require.NoError(t, err)
 		require.Len(t, intValues, 1)
 		require.Equal(t, firstValID, uint(intValues[0].ID))
 		require.Equal(t, firstVal.ValueType, intValues[0].ValueType)
 		require.Equal(t, firstVal.Value, intValues[0].Value)
 
-		floatValues, err := enumRepo.GetEnumValues(ctx, floatClass.EntityName, floatClass.FieldName, entities.EnumType(floatClass.Type))
+		floatValues, err := enumRepo.GetEnumValues(ctx, floatClass.FieldName, entities.EnumType(floatClass.Type))
 		require.NoError(t, err)
 		require.Len(t, floatValues, 1)
 		require.Equal(t, secondValID, uint(floatValues[0].ID))
 		require.Equal(t, secondVal.ValueType, floatValues[0].ValueType)
 		require.Equal(t, secondVal.Value, floatValues[0].Value)
 
-		emptyValues, err := enumRepo.GetEnumValues(ctx, intClass.EntityName, intClass.FieldName, entities.EnumValueTypeString)
+		emptyValues, err := enumRepo.GetEnumValues(ctx, intClass.FieldName, entities.EnumValueTypeString)
 		require.NoError(t, err)
 		require.Empty(t, emptyValues)
 
@@ -507,7 +499,7 @@ func TestEnumRepository_GetEnumValues(t *testing.T) {
 	t.Run("Получение значений перечисления с использованием неинициализированного пула коннектов", func(t *testing.T) {
 		uninitializedRepo := &repository.EnumPostgres{}
 
-		values, err := uninitializedRepo.GetEnumValues(ctx, "beers", "amount", entities.EnumValueTypeInt)
+		values, err := uninitializedRepo.GetEnumValues(ctx, "amount", entities.EnumValueTypeInt)
 		require.Error(t, err)
 		require.Empty(t, values)
 	})
@@ -518,13 +510,13 @@ func TestEnumRepository_UpdateEnumValue(t *testing.T) {
 	ctx := t.Context()
 
 	t.Run("Успешное обновление значения перечисления", func(t *testing.T) {
-		enumClass := entities.EnumClass{Type: string(entities.EnumValueTypeInt), EntityName: "enum_update_beers_value", FieldName: "amount", Unit: "ml", IsActive: true}
+		enumClass := entities.EnumClass{Type: string(entities.EnumValueTypeInt), FieldName: "amount", Unit: "ml", IsActive: true}
 
 		enumID, err := enumRepo.InsertEnumClass(ctx, enumClass)
 		require.NoError(t, err)
 		require.NotZero(t, enumID)
 
-		testVal := entities.ParameterValue{EnumClassID: int(enumID), Value: 10, ValueType: entities.EnumValueTypeInt, Position: 1}
+		testVal := entities.EnumValue{EnumClassID: int(enumID), Value: 10, ValueType: entities.EnumValueTypeInt, Position: 1}
 		valueID, err := enumRepo.InsertEnumValue(ctx, testVal)
 		require.NoError(t, err)
 		require.NotZero(t, valueID)
@@ -535,7 +527,7 @@ func TestEnumRepository_UpdateEnumValue(t *testing.T) {
 		err = enumRepo.UpdateEnumValue(ctx, valueID, updates)
 		require.NoError(t, err)
 
-		values, err := enumRepo.GetEnumValues(ctx, enumClass.EntityName, enumClass.FieldName, entities.EnumValueTypeInt)
+		values, err := enumRepo.GetEnumValues(ctx, enumClass.FieldName, entities.EnumValueTypeInt)
 		require.NoError(t, err)
 		require.Len(t, values, 1)
 		require.Equal(t, valueID, uint(values[0].ID))
@@ -548,18 +540,18 @@ func TestEnumRepository_UpdateEnumValue(t *testing.T) {
 	})
 
 	t.Run("Успешное обновление только позиции значения перечисления", func(t *testing.T) {
-		enumClass := entities.EnumClass{Type: string(entities.EnumValueTypeInt), EntityName: "enum_update_beers_position", FieldName: "amount", Unit: "L", IsActive: true}
+		enumClass := entities.EnumClass{Type: string(entities.EnumValueTypeInt), FieldName: "amount", Unit: "L", IsActive: true}
 
 		enumID, err := enumRepo.InsertEnumClass(ctx, enumClass)
 		require.NoError(t, err)
 		require.NotZero(t, enumID)
 
-		testVal := entities.ParameterValue{EnumClassID: int(enumID), Value: 30, ValueType: entities.EnumValueTypeInt, Position: 1}
+		testVal := entities.EnumValue{EnumClassID: int(enumID), Value: 30, ValueType: entities.EnumValueTypeInt, Position: 1}
 		valueID, err := enumRepo.InsertEnumValue(ctx, testVal)
 		require.NoError(t, err)
 		require.NotZero(t, valueID)
 
-		testVal = entities.ParameterValue{EnumClassID: int(enumID), Value: 40, ValueType: entities.EnumValueTypeInt, Position: 2}
+		testVal = entities.EnumValue{EnumClassID: int(enumID), Value: 40, ValueType: entities.EnumValueTypeInt, Position: 2}
 		valueID, err = enumRepo.InsertEnumValue(ctx, testVal)
 		require.NoError(t, err)
 		require.NotZero(t, valueID)
@@ -571,7 +563,7 @@ func TestEnumRepository_UpdateEnumValue(t *testing.T) {
 		err = enumRepo.UpdateEnumValue(ctx, valueID, updates)
 		require.NoError(t, err)
 
-		values, err := enumRepo.GetEnumValues(ctx, enumClass.EntityName, enumClass.FieldName, entities.EnumValueTypeInt)
+		values, err := enumRepo.GetEnumValues(ctx, enumClass.FieldName, entities.EnumValueTypeInt)
 		require.NoError(t, err)
 		require.Len(t, values, 2)
 		require.Equal(t, valueID, uint(values[0].ID))
@@ -587,13 +579,13 @@ func TestEnumRepository_UpdateEnumValue(t *testing.T) {
 	t.Run("Обновление значения перечисления с использованием неинициализированного пула коннектов", func(t *testing.T) {
 		uninitializedRepo := &repository.EnumPostgres{}
 
-		enumClass := entities.EnumClass{Type: string(entities.EnumValueTypeInt), EntityName: "enum_update_uninit", FieldName: "amount", Unit: "kg", IsActive: true}
+		enumClass := entities.EnumClass{Type: string(entities.EnumValueTypeInt), FieldName: "amount", Unit: "kg", IsActive: true}
 
 		enumID, err := enumRepo.InsertEnumClass(ctx, enumClass)
 		require.NoError(t, err)
 		require.NotZero(t, enumID)
 
-		testVal := entities.ParameterValue{EnumClassID: int(enumID), Value: 10, ValueType: entities.EnumValueTypeInt, Position: 1}
+		testVal := entities.EnumValue{EnumClassID: int(enumID), Value: 10, ValueType: entities.EnumValueTypeInt, Position: 1}
 		valueID, err := enumRepo.InsertEnumValue(ctx, testVal)
 		require.NoError(t, err)
 		require.NotZero(t, valueID)
@@ -617,25 +609,25 @@ func TestEnumRepository_DeleteEnumValueByID(t *testing.T) {
 	ctx := t.Context()
 
 	t.Run("Успешное удаление значения перечисления", func(t *testing.T) {
-		enumClass := entities.EnumClass{Type: string(entities.EnumValueTypeInt), EntityName: "enum_delete_beers", FieldName: "amount", Unit: "ml", IsActive: true}
+		enumClass := entities.EnumClass{Type: string(entities.EnumValueTypeInt), FieldName: "amount", Unit: "ml", IsActive: true}
 
 		enumID, err := enumRepo.InsertEnumClass(ctx, enumClass)
 		require.NoError(t, err)
 		require.NotZero(t, enumID)
 
-		testVal := entities.ParameterValue{EnumClassID: int(enumID), Value: 10, ValueType: entities.EnumValueTypeInt, Position: 1}
+		testVal := entities.EnumValue{EnumClassID: int(enumID), Value: 10, ValueType: entities.EnumValueTypeInt, Position: 1}
 		valueID, err := enumRepo.InsertEnumValue(ctx, testVal)
 		require.NoError(t, err)
 		require.NotZero(t, valueID)
 
-		values, err := enumRepo.GetEnumValues(ctx, enumClass.EntityName, enumClass.FieldName, entities.EnumValueTypeInt)
+		values, err := enumRepo.GetEnumValues(ctx, enumClass.FieldName, entities.EnumValueTypeInt)
 		require.NoError(t, err)
 		require.Len(t, values, 1)
 
 		err = enumRepo.DeleteEnumValueByID(ctx, valueID)
 		require.NoError(t, err)
 
-		values, err = enumRepo.GetEnumValues(ctx, enumClass.EntityName, enumClass.FieldName, entities.EnumValueTypeInt)
+		values, err = enumRepo.GetEnumValues(ctx, enumClass.FieldName, entities.EnumValueTypeInt)
 		require.NoError(t, err)
 		require.Empty(t, values)
 

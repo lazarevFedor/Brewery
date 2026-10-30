@@ -425,7 +425,7 @@ func (h *parametersHandlers) ListCategoryParameters(c *gin.Context) {
 	var paramType int
 	switch paramTypeStr {
 	case "numeric":
-		paramType = entities.NumericParameterType
+		paramType = entities.RangeParameterType
 	case "enum":
 		paramType = entities.EnumParameterType
 	case "":

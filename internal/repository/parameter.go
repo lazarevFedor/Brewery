@@ -48,8 +48,8 @@ func NewParameterPostgres(pool *pgxpool.Pool) *ParameterPostgres {
 	return &ParameterPostgres{Pool: pool}
 }
 
-// InsertNumericParameter добавляет новый числовой параметр в базу данных и возвращает его.
-func (p *ParameterPostgres) InsertNumericParameter(ctx context.Context, param *entities.RangeParameter) (*entities.RangeParameter, error) {
+// InsertRangeParameter добавляет новый числовой параметр в базу данных и возвращает его.
+func (p *ParameterPostgres) InsertRangeParameter(ctx context.Context, param *entities.RangeParameter) (*entities.RangeParameter, error) {
 	query := queries.InsertNumericParameter(param)
 	sql, args, err := query.ToSql()
 	if err != nil {
@@ -66,8 +66,8 @@ func (p *ParameterPostgres) InsertNumericParameter(ctx context.Context, param *e
 	return param, nil
 }
 
-// UpdateNumericParameter обновляет существующий числовой параметр в базе данных и возвращает его.
-func (p *ParameterPostgres) UpdateNumericParameter(ctx context.Context, id uint, updates map[string]any) (*entities.RangeParameter, error) {
+// UpdateRangeParameter обновляет существующий числовой параметр в базе данных и возвращает его.
+func (p *ParameterPostgres) UpdateRangeParameter(ctx context.Context, id uint, updates map[string]any) (*entities.RangeParameter, error) {
 	if len(updates) == 0 {
 		return nil, errors.New("no updates provided")
 	}
@@ -96,8 +96,8 @@ func (p *ParameterPostgres) UpdateNumericParameter(ctx context.Context, id uint,
 	return param, nil
 }
 
-// DeleteNumericParameter удаляет числовой параметр из базы данных и возвращает его.
-func (p *ParameterPostgres) DeleteNumericParameter(ctx context.Context, id uint) (*entities.RangeParameter, error) {
+// DeleteRangeParameter удаляет числовой параметр из базы данных и возвращает его.
+func (p *ParameterPostgres) DeleteRangeParameter(ctx context.Context, id uint) (*entities.RangeParameter, error) {
 	param, err := p.fetchNumericParameterByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -148,7 +148,7 @@ func (p *ParameterPostgres) GetParameters(
 		switch parameterType {
 		case entities.MissingType:
 			err = p.Pool.QueryRow(ctx, sql, args...).Scan(&numericIDs, &enumIDs)
-		case entities.NumericParameterType:
+		case entities.RangeParameterType:
 			err = p.Pool.QueryRow(ctx, sql, args...).Scan(&numericIDs)
 		case entities.EnumParameterType:
 			err = p.Pool.QueryRow(ctx, sql, args...).Scan(&enumIDs)
@@ -162,7 +162,7 @@ func (p *ParameterPostgres) GetParameters(
 	var enumParams []entities.EnumParameter
 
 	if ((parameterType == entities.MissingType ||
-		parameterType == entities.NumericParameterType) && categoryID == 0) || len(numericIDs) > 0 {
+		parameterType == entities.RangeParameterType) && categoryID == 0) || len(numericIDs) > 0 {
 		log.Debug(ctx, "enum")
 		query = queries.SelectNumericParameters(numericIDs)
 		sql, args, err := query.ToSql()
@@ -266,8 +266,7 @@ func (p *ParameterPostgres) ApplyParameters(ctx context.Context, categoryID uint
 func scanNumericParameter(row pgx.Row) (*entities.RangeParameter, error) {
 	var param entities.RangeParameter
 	err := row.Scan(&param.ID, &param.MinValue,
-		&param.MaxValue, &param.FieldName,
-		&param.EntityName, &param.Inheritable)
+		&param.MaxValue, &param.FieldName, &param.Inheritable)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Scan", err)
 	}

@@ -90,7 +90,7 @@ func DeleteEnumParameter(id uint) sq.DeleteBuilder {
 func SelectParameterIDsByCategory(categoryID uint, parameterType int) sq.SelectBuilder {
 	var query sq.SelectBuilder
 	switch parameterType {
-	case entities.NumericParameterType:
+	case entities.RangeParameterType:
 		query = psql.Select("numeric_parameter_ids")
 
 	case entities.EnumParameterType:

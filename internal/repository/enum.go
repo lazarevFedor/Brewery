@@ -28,20 +28,20 @@ type EnumRepository interface {
 	// GetEnumClasses получает список сущностей EnumClass по заданным имени таблицы и поля.
 	GetEnumClasses(ctx context.Context, field string) ([]entities.EnumClass, error)
 
-	// InsertEnumValue сохраняет новую сущность ParameterValue в хранилище.
-	InsertEnumValue(ctx context.Context, enumValue entities.ParameterValue) (uint, error)
+	// InsertEnumValue сохраняет новую сущность EnumValue в хранилище.
+	InsertEnumValue(ctx context.Context, enumValue entities.EnumValue) (uint, error)
 
-	// UpdateEnumValue обновляет сущность ParameterValue в хранилище.
+	// UpdateEnumValue обновляет сущность EnumValue в хранилище.
 	UpdateEnumValue(ctx context.Context, id uint, updates map[string]any) error
 
-	// DeleteEnumValueByID удаляет сущность ParameterValue из хранилища.
+	// DeleteEnumValueByID удаляет сущность EnumValue из хранилища.
 	DeleteEnumValueByID(ctx context.Context, id uint) error
 
-	// GetEnumValues получает список сущностей ParameterValue по заданным имени поля и типу значения.
-	GetEnumValues(ctx context.Context, field string, valueType entities.EnumType) ([]entities.ParameterValue, error)
+	// GetEnumValues получает список сущностей EnumValue по заданным имени поля и типу значения.
+	GetEnumValues(ctx context.Context, field string, valueType entities.EnumType) ([]entities.EnumValue, error)
 
-	// GetEnumValuesByClassID получает список сущностей ParameterValue по заданному ID класса перечисления.
-	GetEnumValuesByClassID(ctx context.Context, classID uint) ([]entities.ParameterValue, error)
+	// GetEnumValuesByClassID получает список сущностей EnumValue по заданному ID класса перечисления.
+	GetEnumValuesByClassID(ctx context.Context, classID uint) ([]entities.EnumValue, error)
 
 	// GetEnumClassByID получает сущность EnumClass по заданному ID класса перечисления.
 	GetEnumClassByID(ctx context.Context, id uint) (*entities.EnumClass, error)
@@ -128,12 +128,12 @@ func (e *EnumPostgres) DeleteEnumClassByID(ctx context.Context, id uint) error {
 }
 
 // GetEnumClasses получает список сущностей EnumClass по заданным имени таблицы и поля.
-func (e *EnumPostgres) GetEnumClasses(ctx context.Context, entity, field string) ([]entities.EnumClass, error) {
+func (e *EnumPostgres) GetEnumClasses(ctx context.Context, field string) ([]entities.EnumClass, error) {
 	if e.Pool == nil {
 		return nil, errors.New("pool is nil")
 	}
 
-	psql := queries.SelectEnumClasses(entity, field)
+	psql := queries.SelectEnumClasses(field)
 
 	query, args, err := psql.ToSql()
 	if err != nil {
@@ -168,7 +168,7 @@ func scanEnumClass(row pgx.Row) (*entities.EnumClass, error) {
 	var class entities.EnumClass
 	var unit pgtype.Text
 
-	err := row.Scan(&class.ID, &class.Type, &class.EntityName, &class.FieldName, &unit, &class.IsActive)
+	err := row.Scan(&class.ID, &class.Type, &class.FieldName, &unit, &class.IsActive)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Scan", err)
 	}
@@ -182,8 +182,8 @@ func scanEnumClass(row pgx.Row) (*entities.EnumClass, error) {
 	return &class, nil
 }
 
-// InsertEnumValue сохраняет новую сущность ParameterValue в хранилище.
-func (e *EnumPostgres) InsertEnumValue(ctx context.Context, enumValue entities.ParameterValue) (uint, error) {
+// InsertEnumValue сохраняет новую сущность EnumValue в хранилище.
+func (e *EnumPostgres) InsertEnumValue(ctx context.Context, enumValue entities.EnumValue) (uint, error) {
 	if e.Pool == nil {
 		return 0, errors.New("pool is nil")
 	}
@@ -214,7 +214,7 @@ func (e *EnumPostgres) InsertEnumValue(ctx context.Context, enumValue entities.P
 	return valID, nil
 }
 
-// UpdateEnumValue обновляет сущность ParameterValue в хранилище.
+// UpdateEnumValue обновляет сущность EnumValue в хранилище.
 func (e *EnumPostgres) UpdateEnumValue(ctx context.Context, id uint, updates map[string]any) error {
 	if e.Pool == nil {
 		return errors.New("pool is nil")
@@ -244,7 +244,7 @@ func (e *EnumPostgres) UpdateEnumValue(ctx context.Context, id uint, updates map
 	return nil
 }
 
-// DeleteEnumValueByID удаляет сущность ParameterValue из хранилища.
+// DeleteEnumValueByID удаляет сущность EnumValue из хранилища.
 func (e *EnumPostgres) DeleteEnumValueByID(ctx context.Context, id uint) error {
 	if e.Pool == nil {
 		return errors.New("pool is nil")
@@ -265,12 +265,12 @@ func (e *EnumPostgres) DeleteEnumValueByID(ctx context.Context, id uint) error {
 }
 
 // GetEnumValues получает список сущностей EnumClass по заданным имени таблицы, поля и типу значения.
-func (e *EnumPostgres) GetEnumValues(ctx context.Context, entity, field string, valueType entities.EnumType) ([]entities.ParameterValue, error) {
+func (e *EnumPostgres) GetEnumValues(ctx context.Context, field string, valueType entities.EnumType) ([]entities.EnumValue, error) {
 	if e.Pool == nil {
 		return nil, errors.New("pool is nil")
 	}
 
-	psql := queries.SelectEnumValues(entity, field, valueType)
+	psql := queries.SelectEnumValues(field, valueType)
 
 	query, args, err := psql.ToSql()
 	if err != nil {
@@ -283,7 +283,7 @@ func (e *EnumPostgres) GetEnumValues(ctx context.Context, entity, field string, 
 	}
 	defer rows.Close()
 
-	enumValues := make([]entities.ParameterValue, 0)
+	enumValues := make([]entities.EnumValue, 0)
 
 	for rows.Next() {
 		val, err := scanEnumValue(rows)
@@ -300,8 +300,8 @@ func (e *EnumPostgres) GetEnumValues(ctx context.Context, entity, field string, 
 	return enumValues, nil
 }
 
-// GetEnumValuesByClassID получает список сущностей ParameterValue по заданному ID класса перечисления.
-func (e *EnumPostgres) GetEnumValuesByClassID(ctx context.Context, classID uint) ([]entities.ParameterValue, error) {
+// GetEnumValuesByClassID получает список сущностей EnumValue по заданному ID класса перечисления.
+func (e *EnumPostgres) GetEnumValuesByClassID(ctx context.Context, classID uint) ([]entities.EnumValue, error) {
 	if e.Pool == nil {
 		return nil, errors.New("pool is nil")
 	}
@@ -319,7 +319,7 @@ func (e *EnumPostgres) GetEnumValuesByClassID(ctx context.Context, classID uint)
 	}
 	defer rows.Close()
 
-	enumValues := make([]entities.ParameterValue, 0)
+	enumValues := make([]entities.EnumValue, 0)
 
 	for rows.Next() {
 		val, err := scanEnumValue(rows)
@@ -358,8 +358,8 @@ func (e *EnumPostgres) GetEnumClassByID(ctx context.Context, id uint) (*entities
 	return class, nil
 }
 
-// scanEnumValue сканирует строку результата запроса и преобразует ее в сущность ParameterValue.
-func scanEnumValue(row pgx.Row) (*entities.ParameterValue, error) {
+// scanEnumValue сканирует строку результата запроса и преобразует ее в сущность EnumValue.
+func scanEnumValue(row pgx.Row) (*entities.EnumValue, error) {
 	var valRow entities.ParameterValueRow
 
 	err := row.Scan(&valRow.ID, &valRow.EnumClassID, &valRow.ValueRaw, &valRow.ValueType, &valRow.Position)
