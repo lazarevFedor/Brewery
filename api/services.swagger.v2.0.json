@@ -2298,7 +2298,8 @@
               "id",
               "enum_type",
               "field_name",
-              "is_active"
+              "is_active",
+              "inheritable"
             ],
             "properties": {
               "id": {
@@ -2311,6 +2312,9 @@
                 "type": "string"
               },
               "is_active": {
+                "type": "boolean"
+              },
+              "inheritable": {
                 "type": "boolean"
               }
             }
@@ -2327,7 +2331,8 @@
             "required": [
               "enum_type",
               "field_name",
-              "is_active"
+              "is_active",
+              "inheritable"
             ],
             "properties": {
               "enum_type": {
@@ -2337,6 +2342,9 @@
                 "type": "string"
               },
               "is_active": {
+                "type": "boolean"
+              },
+              "inheritable": {
                 "type": "boolean"
               }
             }
@@ -2431,6 +2439,10 @@
           "inheritable": {
             "type": "boolean",
             "example": false
+          },
+          "unit": {
+            "type": "string",
+            "example": "L"
           }
         }
       },
@@ -2502,6 +2514,9 @@
           },
           "inheritable": {
             "type": "boolean"
+          },
+          "unit": {
+            "type": "string"
           }
         }
       },
