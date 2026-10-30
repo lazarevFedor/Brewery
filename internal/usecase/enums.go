@@ -15,7 +15,7 @@ type EnumService interface {
 	CreateEnum(ctx context.Context, enum entities.EnumClass) (uint, error)
 
 	// GetEnum получает список перечислений для заданного поля и типа.
-	GetEnum(ctx context.Context, entityName, fieldName string) ([]entities.EnumClass, error)
+	GetEnum(ctx context.Context, fieldName string) ([]entities.EnumClass, error)
 
 	// UpdateEnum обновляет существующее перечисление по его ID.
 	UpdateEnum(ctx context.Context, id uint, updates map[string]any) error
@@ -27,7 +27,7 @@ type EnumService interface {
 	CreateEnumValue(ctx context.Context, enum entities.EnumValue) (uint, error)
 
 	// GetEnumValue получает список значений перечисления для заданного поля и типа.
-	GetEnumValue(ctx context.Context, entity, field string, valueType entities.EnumType) ([]entities.EnumValue, error)
+	GetEnumValue(ctx context.Context, field string, valueType entities.EnumType) ([]entities.EnumValue, error)
 
 	// UpdateEnumValue обновляет существующее значение перечисления по его ID.
 	UpdateEnumValue(ctx context.Context, id uint, updates map[string]any) error
@@ -63,12 +63,12 @@ func (s *enumService) CreateEnum(ctx context.Context, enum entities.EnumClass) (
 }
 
 // GetEnum получает список перечислений для заданного поля и типа.
-func (s *enumService) GetEnum(ctx context.Context, entityName, fieldName string) ([]entities.EnumClass, error) {
+func (s *enumService) GetEnum(ctx context.Context, fieldName string) ([]entities.EnumClass, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	enums, err := s.repo.GetEnumClasses(ctx, entityName, fieldName)
+	enums, err := s.repo.GetEnumClasses(ctx, fieldName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get enums: %w", err)
 	}
@@ -120,12 +120,12 @@ func (s *enumService) CreateEnumValue(ctx context.Context, enum entities.EnumVal
 }
 
 // GetEnumValue получает список значений перечисления для заданного поля и типа.
-func (s *enumService) GetEnumValue(ctx context.Context, entityName, fieldName string, valueType entities.EnumType) ([]entities.EnumValue, error) {
+func (s *enumService) GetEnumValue(ctx context.Context, fieldName string, valueType entities.EnumType) ([]entities.EnumValue, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	enums, err := s.repo.GetEnumValues(ctx, entityName, fieldName, valueType)
+	enums, err := s.repo.GetEnumValues(ctx, fieldName, valueType)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get enum values: %w", err)
 	}

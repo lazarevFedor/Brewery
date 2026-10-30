@@ -23,7 +23,6 @@ func InsertNumericParameter(param *entities.RangeParameter) sq.InsertBuilder {
 		"min_val":     param.MinValue,
 		"max_val":     param.MaxValue,
 		"field_name":  param.FieldName,
-		"entity_name": param.EntityName,
 		"inheritable": param.Inheritable,
 	}
 

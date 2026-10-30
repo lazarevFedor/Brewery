@@ -87,7 +87,7 @@ func (h *enumHandlers) CreateEnum(c *gin.Context) {
 		c.Request.Context(),
 		// fmt.Sprintf("action=create resource=category status=success name=%q level=%d",
 		// 	req.Name, req.Level))
-		fmt.Sprintf("action=create resource=category status=success name=%q", req.EntityName),
+		fmt.Sprintf("action=create resource=category status=success name=%q", req.FieldName),
 	)
 	c.Status(http.StatusCreated)
 }
