@@ -780,14 +780,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/MaterialCreate"
+                "$ref": "#/components/schemas/MaterialChangeCreate"
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Material added",
+            "description": "Material added, history record created",
             "content": {
               "application/json": {
                 "schema": {
@@ -804,6 +804,77 @@
           },
           "409": {
             "$ref": "#/components/responses/409_conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/422_validation_error"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/products/{id}/materials/norms": {
+      "get": {
+        "tags": [
+          "Materials"
+        ],
+        "summary": "Calculate total material consumption norms of given class for product",
+        "description": "Рекурсивно разворачивает спецификацию изделия (материал может сам иметь состав), перемножает количества по уровням и суммирует нормы расхода по каждому материалу заданного класса. Результат рассчитан на количество единиц изделия.",
+        "operationId": "calculateMaterialNorms",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          },
+          {
+            "name": "class_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Класс материалов, по которому считаются нормы"
+          },
+          {
+            "name": "include_subclasses",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true
+            },
+            "description": "Учитывать материалы из дочерних классов"
+          },
+          {
+            "name": "quantity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "double",
+              "default": 1,
+              "minimum": 0,
+              "exclusiveMinimum": true
+            },
+            "description": "Количество изделий, на которое считается расход"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Total material norms",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaterialNorms"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
           },
           "422": {
             "$ref": "#/components/responses/422_validation_error"
@@ -839,14 +910,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/MaterialUpdate"
+                "$ref": "#/components/schemas/MaterialChangeUpdate"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Updated material",
+            "description": "Updated material, history record created",
             "content": {
               "application/json": {
                 "schema": {
@@ -883,11 +954,14 @@
           },
           {
             "$ref": "#/components/parameters/materialId"
+          },
+          {
+            "$ref": "#/components/parameters/ChangeReason"
           }
         ],
         "responses": {
           "204": {
-            "description": "Successfully deleted"
+            "description": "Successfully deleted, history record created"
           },
           "400": {
             "$ref": "#/components/responses/400_bad_request"
@@ -2323,12 +2397,124 @@
           }
         ]
       },
+      "ChangeInfo": {
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "example": "Замена поставщика солода",
+            "description": "Причина изменения спецификации, записывается в историю"
+          },
+          "document": {
+            "type": "string",
+            "example": "Извещение об изменении №12",
+            "description": "Основание изменения (номер извещения, приказа и т.п.)"
+          }
+        }
+      },
+      "MaterialChangeCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/MaterialCreate"
+          },
+          {
+            "$ref": "#/components/schemas/ChangeInfo"
+          }
+        ],
+        "example": {
+          "material_id": 5,
+          "material_amount": 12.5,
+          "reason": "Добавлен хмель в рецептуру",
+          "document": "Извещение об изменении №12"
+        }
+      },
+      "MaterialChangeUpdate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/MaterialUpdate"
+          },
+          {
+            "$ref": "#/components/schemas/ChangeInfo"
+          }
+        ],
+        "example": {
+          "material_amount": 15,
+          "reason": "Корректировка нормы по итогам варки",
+          "document": "Извещение об изменении №13"
+        }
+      },
+      "MaterialNormItem": {
+        "type": "object",
+        "required": [
+          "material_id",
+          "class_id",
+          "total_amount"
+        ],
+        "properties": {
+          "material_id": {
+            "type": "integer",
+            "example": 5
+          },
+          "material": {
+            "$ref": "#/components/schemas/ProductBase"
+          },
+          "class_id": {
+            "type": "integer",
+            "example": 3
+          },
+          "total_amount": {
+            "type": "number",
+            "format": "double",
+            "example": 37.5,
+            "description": "Суммарная норма расхода материала с учётом всех уровней спецификации"
+          },
+          "units": {
+            "type": "string",
+            "example": "kg"
+          }
+        }
+      },
+      "MaterialNorms": {
+        "type": "object",
+        "required": [
+          "product_id",
+          "class_id",
+          "quantity",
+          "items"
+        ],
+        "properties": {
+          "product_id": {
+            "type": "integer",
+            "example": 1
+          },
+          "class_id": {
+            "type": "integer",
+            "example": 3
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double",
+            "example": 1
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MaterialNormItem"
+            }
+          }
+        }
+      },
       "HistoryRecord": {
         "type": "object",
         "required": [
           "id",
           "product_id",
-          "changes",
+          "change_type",
+          "reason",
           "created_at"
         ],
         "properties": {
@@ -2340,10 +2526,48 @@
             "type": "integer",
             "example": 1
           },
+          "change_type": {
+            "type": "string",
+            "enum": [
+              "material_added",
+              "material_updated",
+              "material_removed"
+            ],
+            "example": "material_updated"
+          },
+          "material_id": {
+            "type": "integer",
+            "example": 5
+          },
+          "old_amount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": 12.5
+          },
+          "new_amount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": 15
+          },
+          "reason": {
+            "type": "string",
+            "example": "Корректировка нормы по итогам варки"
+          },
+          "document": {
+            "type": "string",
+            "example": "Извещение об изменении №13"
+          },
+          "author": {
+            "type": "string",
+            "example": "admin",
+            "description": "Пользователь из токена, выполнивший изменение"
+          },
           "changes": {
             "type": "string",
             "description": "Описание изменений (JSON-строка с изменёнными полями)",
-            "example": "{\"amount\":{\"old\":100,\"new\":150}}"
+            "example": "{\"material_amount\":{\"old\":12.5,\"new\":15}}"
           },
           "created_at": {
             "type": "string",
@@ -2858,6 +3082,16 @@
           "type": "integer"
         },
         "description": "ID изделия, используемого как материал"
+      },
+      "ChangeReason": {
+        "name": "reason",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": "Причина изменения спецификации, записывается в историю"
       },
       "DateFrom": {
         "name": "from",
