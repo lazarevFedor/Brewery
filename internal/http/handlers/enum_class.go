@@ -115,7 +115,7 @@ func (h *enumHandlers) GetEnum(c *gin.Context) {
 		return
 	}
 
-	enums, err := h.uc.GetEnum(c.Request.Context(), entityName, fieldName)
+	enums, err := h.uc.GetEnum(c.Request.Context(), fieldName)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get enum classes: %v", err))
 		c.Status(http.StatusInternalServerError)
@@ -277,11 +277,10 @@ func (h *enumHandlers) GetValue(c *gin.Context) {
 		return
 	}
 
-	entityName := c.Query("entity_name")
 	fieldName := c.Query("field_name")
 	valueType := c.Query("enum_type")
 
-	values, err := h.uc.GetEnumValue(c.Request.Context(), entityName, fieldName, entities.EnumType(valueType))
+	values, err := h.uc.GetEnumValue(c.Request.Context(), fieldName, entities.EnumType(valueType))
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get enum values: %v", err))
 		c.Status(http.StatusInternalServerError)
