@@ -27,7 +27,7 @@ var (
 	beerRepo *repository.BeerPostgres
 
 	// ctgRepo - глобальная переменная для хранения экземпляра CategoryPostgres, который будет использоваться в тестах для взаимодействия с таблицей категорий.
-	ctgRepo *repository.CategoryPostgres
+	ctgRepo *repository.ClassPostgres
 
 	// enumRepo - глобальная переменная для хранения экземпляра EnumPostgres, который будет использоваться в тестах для взаимодействия с таблицей перечислений.
 	enumRepo *repository.EnumPostgres
@@ -74,7 +74,7 @@ func TestMain(m *testing.M) {
 	}
 
 	beerRepo = repository.NewBeerPostgres(testDB)
-	ctgRepo = repository.NewCategoryPostgres(testDB)
+	ctgRepo = repository.NewClassPostgres(testDB)
 	enumRepo = repository.NewEnumPostgres(testDB)
 
 	if err = seedTestData(ctx); err != nil {
@@ -119,13 +119,13 @@ func seedTestData(ctx context.Context) error {
 		return errors.New("seed city: zero id")
 	}
 	var categoryID uint
-	categoryID, err = ctgRepo.GetCategoryID(ctx, nil, "test_category")
+	categoryID, err = ctgRepo.GetClassID(ctx, nil, "test_category")
 	if err != nil {
 		return fmt.Errorf("seed category get id: %w", err)
 	}
 
 	if categoryID == 0 {
-		_, err = ctgRepo.InsertCategory(ctx, nil, entities.ProductCategory{Name: "test_category"})
+		_, err = ctgRepo.InsertClass(ctx, nil, entities.Class{Name: "test_category"})
 		if err != nil {
 			return fmt.Errorf("seed category insert: %w", err)
 		}
