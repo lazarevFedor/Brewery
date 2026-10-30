@@ -5,6 +5,7 @@ import (
 	"Brewery/internal/entities"
 	"Brewery/internal/usecase"
 	"Brewery/pkg/logger"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -18,6 +19,34 @@ const (
 	enumQuery    = "enum"
 	numericQuery = "numeric"
 )
+
+// ParametersService - сервис для управления параметрами.
+type ParametersService interface {
+
+	// CreateRange создает числовой параметр.
+	CreateRange(ctx context.Context, param *entities.RangeParameter) (*entities.RangeParameter, error)
+
+	// UpdateRange обновляет числовой параметр. Единственные поля, которые можно обновлять - min_val, max_val и inheritable.
+	UpdateRange(ctx context.Context, id uint, updates map[string]any) (*entities.RangeParameter, error)
+
+	// DeleteRange удаляет числовой параметр.
+	DeleteRange(ctx context.Context, id uint) (*entities.RangeParameter, error)
+
+	// ListParameters возвращает все параметры, применимые к категории.
+	// categoryID = 0 - без фильтра по категории, paramType = "" - все типы, "numeric" - только числовые, "enum" - только перечисления
+	ListParameters(ctx context.Context, categoryID uint, parameterType int) ([]entities.RangeParameter, []entities.EnumParameter, error)
+
+	// ApplyToCategory применяет указанные параметры к категории. Возвращает количество добавленных параметров.
+	ApplyToCategory(ctx context.Context, categoryID uint, numericIDs, enumIDs []int) (int, error)
+}
+
+// NewParametersService создает новый экземпляр ParametersService.
+func NewParametersService(paramRepo usecase.ParameterRepository, enumRepo usecase.EnumRepository) ParametersService {
+	return &usecase.ParametersService{
+		ParamRepo: paramRepo,
+		EnumRepo:  enumRepo,
+	}
+}
 
 // ParametersHandlers - интерфейс для обработки HTTP-запросов, связанных с параметрами категорий.
 type ParametersHandlers interface {

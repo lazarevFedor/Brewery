@@ -13,48 +13,9 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// EnumRepository определяет контракт для взаимодействия с классами и значениями перечислений
-type EnumRepository interface {
-
-	// InsertEnumClass сохраняет новую сущность EnumClass в хранилище.
-	InsertEnumClass(ctx context.Context, enumClass entities.EnumClass) (uint, error)
-
-	// UpdateEnumClass обновляет сущность EnumClass в хранилище.
-	UpdateEnumClass(ctx context.Context, id uint, updates map[string]any) error
-
-	// DeleteEnumClassByID удаляет сущность EnumClass из хранилища.
-	DeleteEnumClassByID(ctx context.Context, id uint) error
-
-	// GetEnumClasses получает список сущностей EnumClass по заданным имени таблицы и поля.
-	GetEnumClasses(ctx context.Context, field string) ([]entities.EnumClass, error)
-
-	// InsertEnumValue сохраняет новую сущность EnumValue в хранилище.
-	InsertEnumValue(ctx context.Context, enumValue entities.EnumValue) (uint, error)
-
-	// UpdateEnumValue обновляет сущность EnumValue в хранилище.
-	UpdateEnumValue(ctx context.Context, id uint, updates map[string]any) error
-
-	// DeleteEnumValueByID удаляет сущность EnumValue из хранилища.
-	DeleteEnumValueByID(ctx context.Context, id uint) error
-
-	// GetEnumValues получает список сущностей EnumValue по заданным имени поля и типу значения.
-	GetEnumValues(ctx context.Context, field string, valueType entities.EnumType) ([]entities.EnumValue, error)
-
-	// GetEnumValuesByClassID получает список сущностей EnumValue по заданному ID класса перечисления.
-	GetEnumValuesByClassID(ctx context.Context, classID uint) ([]entities.EnumValue, error)
-
-	// GetEnumClassByID получает сущность EnumClass по заданному ID класса перечисления.
-	GetEnumClassByID(ctx context.Context, id uint) (*entities.EnumClass, error)
-}
-
 // EnumPostgres хранит в себе пул подключений к БД
 type EnumPostgres struct {
 	Pool *pgxpool.Pool
-}
-
-// NewEnumRepository создает новый экземпляр EnumRepository с переданным пулом соединений.
-func NewEnumRepository(pool *pgxpool.Pool) EnumRepository {
-	return &EnumPostgres{Pool: pool}
 }
 
 // NewEnumPostgres создает новый репозиторий БД

@@ -15,32 +15,9 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// ParameterRepository определяет интерфейс для работы с параметрами, включая числовые и перечисляемые параметры.
-type ParameterRepository interface {
-	// InsertRangeParameter добавляет новый числовой параметр в базу данных и возвращает его.
-	InsertRangeParameter(ctx context.Context, param *entities.RangeParameter) (*entities.RangeParameter, error)
-
-	// UpdateRangeParameter обновляет существующий числовой параметр в базе данных и возвращает его.
-	UpdateRangeParameter(ctx context.Context, id uint, updates map[string]any) (*entities.RangeParameter, error)
-
-	// DeleteRangeParameter удаляет числовой параметр из базы данных и возвращает его.
-	DeleteRangeParameter(ctx context.Context, id uint) (*entities.RangeParameter, error)
-
-	// GetParameters извлекает все числовые и перечисляемые параметры из базы данных и возвращает их.
-	GetParameters(ctx context.Context, categoryID uint, parameterType int) ([]entities.RangeParameter, []entities.EnumParameter, error)
-
-	// ApplyParameters применяет числовые и перечисляемые параметры к категории и возвращает результат применения.
-	ApplyParameters(ctx context.Context, categoryID uint, numericParameters, enumParameters []int) (int, error)
-}
-
 // ParameterPostgres реализует интерфейс ParameterRepository для работы с параметрами в базе данных PostgreSQL, используя пул соединений pgxpool.
 type ParameterPostgres struct {
 	Pool *pgxpool.Pool
-}
-
-// NewParameterRepository создает новый экземпляр ParameterRepository с предоставленным пулом соединений к базе данных.
-func NewParameterRepository(pool *pgxpool.Pool) ParameterRepository {
-	return &ParameterPostgres{Pool: pool}
 }
 
 // NewParameterPostgres создает новый экземпляр ParameterPostgres с предоставленным пулом соединений к базе данных.
