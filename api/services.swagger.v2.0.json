@@ -16,20 +16,20 @@
       "description": "Авторизация для действий Админа"
     },
     {
-      "name": "classes",
-      "description": "Все операции, связанные с категориями товаров"
+      "name": "Classes",
+      "description": "Все операции, связанные с классами изделий"
     },
     {
       "name": "ClassParams",
-      "description": "Операции связанные с параметрами категорий"
+      "description": "Операции связанные с параметрами классов"
     },
     {
       "name": "Aggregates",
-      "description": "Операции связанные с агрегатами параметров категорий"
+      "description": "Операции связанные с агрегатами параметров классов"
     },
     {
       "name": "Products",
-      "description": "Операции, связанные с продукцией"
+      "description": "Операции, связанные с изделиями"
     },
     {
       "name": "Materials",
@@ -100,7 +100,7 @@
           "classes"
         ],
         "summary": "Get all classes",
-        "operationId": "listclasses",
+        "operationId": "ListClasses",
         "responses": {
           "200": {
             "description": "classes List",
@@ -125,7 +125,7 @@
           "classes"
         ],
         "summary": "Create class",
-        "operationId": "createclass",
+        "operationId": "CreateClass",
         "security": [
           {
             "bearerAuth": []
@@ -170,7 +170,7 @@
           "classes"
         ],
         "summary": "Get class by ID",
-        "operationId": "getclass",
+        "operationId": "GetClass",
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
@@ -251,7 +251,7 @@
           "classes"
         ],
         "summary": "Delete class",
-        "operationId": "deleteclass",
+        "operationId": "DeleteClass",
         "security": [
           {
             "bearerAuth": []
@@ -284,7 +284,7 @@
           "classes"
         ],
         "summary": "Get parent class",
-        "operationId": "getclassParent",
+        "operationId": "GetClassParent",
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
@@ -319,7 +319,7 @@
           "classes"
         ],
         "summary": "Get class's children",
-        "operationId": "listclassChildren",
+        "operationId": "ListClassChildren",
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
@@ -643,7 +643,7 @@
             "$ref": "#/components/parameters/Id"
           },
           {
-            "$ref": "#/components/parameters/classproductFilter"
+            "$ref": "#/components/parameters/ClassProductFilter"
           },
           {
             "$ref": "#/components/parameters/Offset"
@@ -1373,13 +1373,13 @@
         }
       }
     },
-    "/classes/parameters/numeric": {
+    "/classes/parameters/range": {
       "post": {
         "tags": [
           "ClassParams"
         ],
-        "summary": "Create numeric parameter",
-        "operationId": "createNumericParameter",
+        "summary": "Create range parameter",
+        "operationId": "createRangeParameter",
         "security": [
           {
             "bearerAuth": []
@@ -1390,18 +1390,18 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NumericParameterCreate"
+                "$ref": "#/components/schemas/RangeParameterCreate"
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Numeric parameter created",
+            "description": "Range parameter created",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/NumericParameter"
+                  "$ref": "#/components/schemas/RangeParameter"
                 }
               }
             }
@@ -1476,7 +1476,7 @@
           "ClassParams"
         ],
         "summary": "Get all parameters with optional filtering by class and type",
-        "operationId": "listclassParameters",
+        "operationId": "ListClassParameters",
         "parameters": [
           {
             "$ref": "#/components/parameters/classIdFilter"
@@ -1491,11 +1491,11 @@
             "schema": {
               "type": "string",
               "enum": [
-                "numeric",
+                "range",
                 "enum"
               ]
             },
-            "description": "Filter parameters by type. If omitted, returns both numeric and enum parameters."
+            "description": "Filter parameters by type. If omitted, returns both range and enum parameters."
           }
         ],
         "responses": {
@@ -1508,7 +1508,7 @@
                   "items": {
                     "oneOf": [
                       {
-                        "$ref": "#/components/schemas/NumericParameter"
+                        "$ref": "#/components/schemas/RangeParameter"
                       },
                       {
                         "$ref": "#/components/schemas/EnumParameter"
@@ -1537,7 +1537,7 @@
           "ClassParams"
         ],
         "summary": "Apply parameters to class",
-        "operationId": "applyParametersToclass",
+        "operationId": "ApplyParametersToClass",
         "security": [
           {
             "bearerAuth": []
@@ -1595,7 +1595,7 @@
           "ClassParams"
         ],
         "summary": "Update parameter",
-        "operationId": "updateclassParameter",
+        "operationId": "UpdateClassParameter",
         "security": [
           {
             "bearerAuth": []
@@ -1616,7 +1616,7 @@
               "schema": {
                 "oneOf": [
                   {
-                    "$ref": "#/components/schemas/NumericParameterUpdate"
+                    "$ref": "#/components/schemas/RangeParameterUpdate"
                   },
                   {
                     "$ref": "#/components/schemas/EnumParameterUpdate"
@@ -1624,8 +1624,8 @@
                 ]
               },
               "examples": {
-                "numeric": {
-                  "$ref": "#/components/examples/NumericParameterUpdate"
+                "range": {
+                  "$ref": "#/components/examples/RangeParameterUpdate"
                 },
                 "enum": {
                   "$ref": "#/components/examples/EnumParameterUpdate"
@@ -1642,7 +1642,7 @@
                 "schema": {
                   "oneOf": [
                     {
-                      "$ref": "#/components/schemas/NumericParameter"
+                      "$ref": "#/components/schemas/RangeParameter"
                     },
                     {
                       "$ref": "#/components/schemas/EnumParameter"
@@ -1650,8 +1650,8 @@
                   ]
                 },
                 "examples": {
-                  "numeric": {
-                    "$ref": "#/components/examples/NumericParameter"
+                  "range": {
+                    "$ref": "#/components/examples/RangeParameter"
                   },
                   "enum": {
                     "$ref": "#/components/examples/EnumParameter"
@@ -1679,7 +1679,7 @@
           "ClassParams"
         ],
         "summary": "Delete parameter",
-        "operationId": "deleteclassParameter",
+        "operationId": "DeleteClassParameter",
         "security": [
           {
             "bearerAuth": []
@@ -1888,7 +1888,7 @@
                       "id": 1,
                       "name": "Lager Profile v2",
                       "description": "Updated standard parameters for Lager",
-                      "numeric_param_ids": [
+                      "range_param_ids": [
                         10
                       ],
                       "enum_param_ids": [
@@ -2013,7 +2013,7 @@
                 "type": "integer",
                 "nullable": true
               },
-              "numeric_param_ids": {
+              "range_param_ids": {
                 "type": "array",
                 "items": {
                   "type": "integer"
@@ -2063,7 +2063,7 @@
                 "type": "integer",
                 "nullable": true
               },
-              "numeric_param_ids": {
+              "range_param_ids": {
                 "type": "array",
                 "items": {
                   "type": "integer"
@@ -2495,7 +2495,7 @@
           }
         ]
       },
-      "NumericParameterBase": {
+      "RangeParameterBase": {
         "type": "object",
         "properties": {
           "field_name": {
@@ -2520,10 +2520,10 @@
           }
         }
       },
-      "NumericParameterCreate": {
+      "RangeParameterCreate": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/NumericParameterBase"
+            "$ref": "#/components/schemas/RangeParameterBase"
           },
           {
             "required": [
@@ -2536,10 +2536,10 @@
           }
         ]
       },
-      "NumericParameter": {
+      "RangeParameter": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/NumericParameterBase"
+            "$ref": "#/components/schemas/RangeParameterBase"
           },
           {
             "type": "object",
@@ -2610,12 +2610,12 @@
       "ClassParamsApply": {
         "type": "object",
         "properties": {
-          "numeric_param_ids": {
+          "range_param_ids": {
             "type": "array",
             "items": {
               "type": "integer"
             },
-            "description": "List of numeric parameter ids to apply"
+            "description": "List of range parameter ids to apply"
           },
           "enum_param_ids": {
             "type": "array",
@@ -2626,7 +2626,7 @@
           }
         }
       },
-      "NumericParameterUpdate": {
+      "RangeParameterUpdate": {
         "type": "object",
         "properties": {
           "min_val": {
@@ -2662,7 +2662,7 @@
           "description": {
             "type": "string"
           },
-          "numeric_param_ids": {
+          "range_param_ids": {
             "type": "array",
             "items": {
               "type": "integer"
@@ -2902,17 +2902,17 @@
           }
         }
       },
-      "classproductFilter": {
+      "ClassProductFilter": {
         "name": "filter",
         "in": "query",
         "required": false,
-        "description": "Repeated filter in the form field:op:value. Use gte/lte/in to filter class products by numeric ranges or allowed enum values.",
+        "description": "Repeated filter in the form field:op:value. Use gte/lte/in to filter class products by range ranges or allowed enum values.",
         "schema": {
           "type": "string"
         },
         "examples": {
-          "numeric_range": {
-            "summary": "Numeric range filter",
+          "range_range": {
+            "summary": "Range range filter",
             "value": "amount:gte:100"
           },
           "enum_values": {
@@ -2961,14 +2961,14 @@
         "schema": {
           "type": "string",
           "enum": [
-            "numeric",
+            "range",
             "enum"
           ]
         },
         "examples": {
-          "numeric": {
-            "summary": "Numeric type",
-            "value": "numeric"
+          "range": {
+            "summary": "Range type",
+            "value": "range"
           },
           "enum": {
             "summary": "Enum type",
@@ -2996,77 +2996,35 @@
       }
     },
     "examples": {
-      "NumericParameterUpdate": {
-        "type": "object",
-        "properties": {
-          "min_val": {
-            "type": "integer"
-          },
-          "max_val": {
-            "type": "integer"
-          },
-          "inheritable": {
-            "type": "boolean"
-          }
+      "RangeParameterUpdate": {
+        "value": {
+          "min_val": 150,
+          "max_val": 300,
+          "inheritable": false
         }
       },
       "EnumParameterUpdate": {
-        "type": "object",
-        "properties": {
-          "enum_class_id": {
-            "type": "integer",
-            "example": 2
-          },
-          "inheritable": {
-            "type": "boolean",
-            "example": false
-          }
+        "value": {
+          "enum_class_id": 2,
+          "inheritable": false
         }
       },
-      "NumericParameter": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/NumericParameterBase"
-          },
-          {
-            "type": "object",
-            "required": [
-              "id",
-              "field_name",
-              "entity_name",
-              "min_val",
-              "max_val",
-              "inheritable"
-            ],
-            "properties": {
-              "id": {
-                "type": "integer",
-                "example": 10
-              }
-            }
-          }
-        ]
+      "RangeParameter": {
+        "value": {
+          "id": 10,
+          "field_name": "amount",
+          "entity_name": "products",
+          "min_val": 150,
+          "max_val": 300,
+          "inheritable": false
+        }
       },
       "EnumParameter": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/EnumParameterBase"
-          },
-          {
-            "type": "object",
-            "required": [
-              "id",
-              "enum_class_id",
-              "inheritable"
-            ],
-            "properties": {
-              "id": {
-                "type": "integer",
-                "example": 11
-              }
-            }
-          }
-        ]
+        "value": {
+          "id": 11,
+          "enum_class_id": 2,
+          "inheritable": false
+        }
       }
     }
   }
