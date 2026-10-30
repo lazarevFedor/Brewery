@@ -97,13 +97,13 @@
     "/classes": {
       "get": {
         "tags": [
-          "classes"
+          "Classes"
         ],
         "summary": "Get all classes",
         "operationId": "ListClasses",
         "responses": {
           "200": {
-            "description": "classes List",
+            "description": "Classes list",
             "content": {
               "application/json": {
                 "schema": {
@@ -122,7 +122,7 @@
       },
       "post": {
         "tags": [
-          "classes"
+          "Classes"
         ],
         "summary": "Create class",
         "operationId": "CreateClass",
@@ -167,7 +167,7 @@
     "/classes/{id}": {
       "get": {
         "tags": [
-          "classes"
+          "Classes"
         ],
         "summary": "Get class by ID",
         "operationId": "GetClass",
@@ -200,7 +200,7 @@
       },
       "patch": {
         "tags": [
-          "classes"
+          "Classes"
         ],
         "summary": "Update class",
         "operationId": "updateClass",
@@ -248,7 +248,7 @@
       },
       "delete": {
         "tags": [
-          "classes"
+          "Classes"
         ],
         "summary": "Delete class",
         "operationId": "DeleteClass",
@@ -281,7 +281,7 @@
     "/classes/parent/{id}": {
       "get": {
         "tags": [
-          "classes"
+          "Classes"
         ],
         "summary": "Get parent class",
         "operationId": "GetClassParent",
@@ -316,7 +316,7 @@
     "/classes/children/{id}": {
       "get": {
         "tags": [
-          "classes"
+          "Classes"
         ],
         "summary": "Get class's children",
         "operationId": "ListClassChildren",
@@ -1087,9 +1087,6 @@
         ],
         "parameters": [
           {
-            "$ref": "#/components/parameters/EntityName"
-          },
-          {
             "$ref": "#/components/parameters/FieldName"
           }
         ],
@@ -1260,9 +1257,6 @@
             "$ref": "#/components/parameters/EnumType"
           },
           {
-            "$ref": "#/components/parameters/EntityName"
-          },
-          {
             "$ref": "#/components/parameters/FieldName"
           }
         ],
@@ -1421,55 +1415,6 @@
         }
       }
     },
-    "/classes/parameters/enum": {
-      "post": {
-        "tags": [
-          "ClassParams"
-        ],
-        "summary": "Create enum parameter",
-        "operationId": "createEnumParameter",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EnumParameterCreate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Enum parameter created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EnumParameter"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/400_bad_request"
-          },
-          "404": {
-            "$ref": "#/components/responses/404_not_found"
-          },
-          "409": {
-            "$ref": "#/components/responses/409_conflict"
-          },
-          "500": {
-            "$ref": "#/components/responses/500_internal_server_error"
-          }
-        }
-      }
-    },
     "/classes/parameters": {
       "get": {
         "tags": [
@@ -1509,9 +1454,6 @@
                     "oneOf": [
                       {
                         "$ref": "#/components/schemas/RangeParameter"
-                      },
-                      {
-                        "$ref": "#/components/schemas/EnumParameter"
                       }
                     ]
                   }
@@ -1604,9 +1546,6 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
-          },
-          {
-            "$ref": "#/components/parameters/ParamType"
           }
         ],
         "requestBody": {
@@ -1617,18 +1556,12 @@
                 "oneOf": [
                   {
                     "$ref": "#/components/schemas/RangeParameterUpdate"
-                  },
-                  {
-                    "$ref": "#/components/schemas/EnumParameterUpdate"
                   }
                 ]
               },
               "examples": {
                 "range": {
                   "$ref": "#/components/examples/RangeParameterUpdate"
-                },
-                "enum": {
-                  "$ref": "#/components/examples/EnumParameterUpdate"
                 }
               }
             }
@@ -1643,18 +1576,12 @@
                   "oneOf": [
                     {
                       "$ref": "#/components/schemas/RangeParameter"
-                    },
-                    {
-                      "$ref": "#/components/schemas/EnumParameter"
                     }
                   ]
                 },
                 "examples": {
                   "range": {
                     "$ref": "#/components/examples/RangeParameter"
-                  },
-                  "enum": {
-                    "$ref": "#/components/examples/EnumParameter"
                   }
                 }
               }
@@ -1688,9 +1615,6 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
-          },
-          {
-            "$ref": "#/components/parameters/ParamType"
           }
         ],
         "responses": {
@@ -2355,13 +2279,9 @@
       "EnumClassBase": {
         "type": "object",
         "required": [
-          "entity_name",
           "field_name"
         ],
         "properties": {
-          "entity_name": {
-            "type": "string"
-          },
           "field_name": {
             "type": "string"
           }
@@ -2377,7 +2297,6 @@
             "required": [
               "id",
               "enum_type",
-              "entity_name",
               "field_name",
               "is_active"
             ],
@@ -2407,7 +2326,6 @@
             "type": "object",
             "required": [
               "enum_type",
-              "entity_name",
               "field_name",
               "is_active"
             ],
@@ -2502,10 +2420,6 @@
             "type": "string",
             "example": "amount"
           },
-          "entity_name": {
-            "type": "string",
-            "example": "products"
-          },
           "min_val": {
             "type": "integer",
             "example": 150
@@ -2528,7 +2442,6 @@
           {
             "required": [
               "field_name",
-              "entity_name",
               "min_val",
               "max_val",
               "inheritable"
@@ -2546,7 +2459,6 @@
             "required": [
               "id",
               "field_name",
-              "entity_name",
               "min_val",
               "max_val",
               "inheritable"
@@ -2555,53 +2467,6 @@
               "id": {
                 "type": "integer",
                 "example": 10
-              }
-            }
-          }
-        ]
-      },
-      "EnumParameterBase": {
-        "type": "object",
-        "properties": {
-          "enum_class_id": {
-            "type": "integer",
-            "example": 2
-          },
-          "inheritable": {
-            "type": "boolean",
-            "example": false
-          }
-        }
-      },
-      "EnumParameterCreate": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/EnumParameterBase"
-          },
-          {
-            "required": [
-              "enum_class_id",
-              "inheritable"
-            ]
-          }
-        ]
-      },
-      "EnumParameter": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/EnumParameterBase"
-          },
-          {
-            "type": "object",
-            "required": [
-              "id",
-              "enum_class_id",
-              "inheritable"
-            ],
-            "properties": {
-              "id": {
-                "type": "integer",
-                "example": 11
               }
             }
           }
@@ -2637,19 +2502,6 @@
           },
           "inheritable": {
             "type": "boolean"
-          }
-        }
-      },
-      "EnumParameterUpdate": {
-        "type": "object",
-        "properties": {
-          "enum_class_id": {
-            "type": "integer",
-            "example": 2
-          },
-          "inheritable": {
-            "type": "boolean",
-            "example": false
           }
         }
       },
@@ -2921,14 +2773,6 @@
           }
         }
       },
-      "EntityName": {
-        "name": "entity_name",
-        "in": "query",
-        "required": true,
-        "schema": {
-          "type": "string"
-        }
-      },
       "FieldName": {
         "name": "field_name",
         "in": "query",
@@ -3013,7 +2857,6 @@
         "value": {
           "id": 10,
           "field_name": "amount",
-          "entity_name": "products",
           "min_val": 150,
           "max_val": 300,
           "inheritable": false
