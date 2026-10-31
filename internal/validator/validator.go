@@ -14,7 +14,7 @@ import (
 // ValidateBeerWithParams валидирует пиво на соответствие заданным параметрам у категории.
 //
 //nolint:funlen
-func ValidateBeerWithParams(beer entities.Beer, numericParams []entities.RangeParameter, enumParams []entities.EnumParameter, getEnumValues func(classID uint) ([]entities.ParameterValue, error), getEnumClass func(classID uint) (*entities.EnumClass, error)) error {
+func ValidateBeerWithParams(beer entities.Beer, numericParams []entities.RangeParameter, enumParams []entities.EnumParameter, getEnumValues func(classID uint) ([]entities.EnumValue, error), getEnumClass func(classID uint) (*entities.EnumClass, error)) error {
 	val := reflect.ValueOf(beer)
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()

@@ -50,15 +50,15 @@ func countQueryRows(t *testing.T, ctx context.Context, queryBuilder interface{ T
 func insertCategoryTree(t *testing.T, ctx context.Context) (uint, uint, uint) {
 	t.Helper()
 
-	repo := repository.NewCategoryPostgres(testDB)
+	repo := repository.NewClassPostgres(testDB)
 
-	rootID, err := repo.InsertCategory(ctx, nil, entities.ProductCategory{Name: "param_root"})
+	rootID, err := repo.InsertClass(ctx, nil, entities.Class{Name: "param_root"})
 	require.NoError(t, err)
 
-	childID, err := repo.InsertCategory(ctx, nil, entities.ProductCategory{Name: "param_child", ParentID: int(rootID)})
+	childID, err := repo.InsertClass(ctx, nil, entities.Class{Name: "param_child", ParentID: int(rootID)})
 	require.NoError(t, err)
 
-	grandChildID, err := repo.InsertCategory(ctx, nil, entities.ProductCategory{Name: "param_grand_child", ParentID: int(childID)})
+	grandChildID, err := repo.InsertClass(ctx, nil, entities.Class{Name: "param_grand_child", ParentID: int(childID)})
 	require.NoError(t, err)
 
 	return rootID, childID, grandChildID
@@ -69,25 +69,10 @@ func insertNumericParam(t *testing.T, ctx context.Context, minVal, maxVal int, f
 	t.Helper()
 
 	repo := repository.NewParameterPostgres(testDB)
-	got, err := repo.InsertNumericParameter(ctx, &entities.RangeParameter{
+	got, err := repo.InsertRangeParameter(ctx, &entities.RangeParameter{
 		MinValue:    minVal,
 		MaxValue:    maxVal,
 		FieldName:   field,
-		EntityName:  "beer",
-		Inheritable: inheritable,
-	})
-	require.NoError(t, err)
-	require.NotNil(t, got)
-	return got.ID
-}
-
-// insertEnumParam - вспомогательная функция для вставки перечислимого параметра в базу данных и возврата его ID для использования в тестах.
-func insertEnumParam(t *testing.T, ctx context.Context, enumClassID uint, inheritable bool) uint {
-	t.Helper()
-
-	repo := repository.NewParameterPostgres(testDB)
-	got, err := repo.InsertEnumParameter(ctx, &entities.EnumParameter{
-		EnumClassID: enumClassID,
 		Inheritable: inheritable,
 	})
 	require.NoError(t, err)
@@ -107,18 +92,16 @@ func TestParameterRepository_InsertNumericParameter(t *testing.T) {
 			MinValue:    1,
 			MaxValue:    10,
 			FieldName:   "amount",
-			EntityName:  "beer",
 			Inheritable: true,
 		}
 
-		got, err := repo.InsertNumericParameter(ctx, param)
+		got, err := repo.InsertRangeParameter(ctx, param)
 		require.NoError(t, err)
 		require.NotNil(t, got)
 		assert.NotZero(t, got.ID)
 		assert.Equal(t, param.MinValue, got.MinValue)
 		assert.Equal(t, param.MaxValue, got.MaxValue)
 		assert.Equal(t, param.FieldName, got.FieldName)
-		assert.Equal(t, param.EntityName, got.EntityName)
 		assert.Equal(t, param.Inheritable, got.Inheritable)
 
 		count := countQueryRows(t, ctx, queries.SelectNumericParameters([]uint{got.ID}))
@@ -132,14 +115,14 @@ func TestParameterRepository_InsertNumericParameter(t *testing.T) {
 			name string
 			in   *entities.RangeParameter
 		}{
-			{name: "first", in: &entities.RangeParameter{MinValue: 0, MaxValue: 5, FieldName: "a", EntityName: "e1", Inheritable: false}},
-			{name: "second", in: &entities.RangeParameter{MinValue: 10, MaxValue: 20, FieldName: "b", EntityName: "e2", Inheritable: true}},
+			{name: "first", in: &entities.RangeParameter{MinValue: 0, MaxValue: 5, FieldName: "a", Inheritable: false}},
+			{name: "second", in: &entities.RangeParameter{MinValue: 10, MaxValue: 20, FieldName: "b", Inheritable: true}},
 		}
 
 		ids := make([]uint, 0, len(cases))
 		for _, tc := range cases {
 			t.Run(tc.name, func(t *testing.T) {
-				got, err := repo.InsertNumericParameter(ctx, tc.in)
+				got, err := repo.InsertRangeParameter(ctx, tc.in)
 				require.NoError(t, err)
 				ids = append(ids, got.ID)
 			})
@@ -160,7 +143,7 @@ func TestParameterRepository_UpdateNumericParameter(t *testing.T) {
 
 		paramID := insertNumericParam(t, ctx, 1, 2, "f", false)
 
-		updated, err := repo.UpdateNumericParameter(ctx, paramID, map[string]any{"min_val": 5, "inheritable": true})
+		updated, err := repo.UpdateRangeParameter(ctx, paramID, map[string]any{"min_val": 5, "inheritable": true})
 		require.NoError(t, err)
 		require.NotNil(t, updated)
 		assert.Equal(t, paramID, updated.ID)
@@ -171,13 +154,13 @@ func TestParameterRepository_UpdateNumericParameter(t *testing.T) {
 	t.Run("Пустое обновление возвращает ошибку", func(t *testing.T) {
 		cleanDB(t, ctx, "numeric_parameters")
 		paramID := insertNumericParam(t, ctx, 1, 2, "f", false)
-		_, err := repo.UpdateNumericParameter(ctx, paramID, map[string]any{})
+		_, err := repo.UpdateRangeParameter(ctx, paramID, map[string]any{})
 		require.Error(t, err)
 	})
 
 	t.Run("Несуществующий ID возвращает ошибку", func(t *testing.T) {
 		cleanDB(t, ctx, "numeric_parameters")
-		_, err := repo.UpdateNumericParameter(ctx, 99999, map[string]any{"min_val": 3})
+		_, err := repo.UpdateRangeParameter(ctx, 99999, map[string]any{"min_val": 3})
 		require.Error(t, err)
 	})
 }
@@ -196,23 +179,24 @@ func TestParameterRepository_ApplyParametersAndInheritance(t *testing.T) {
 
 		nInheritable := insertNumericParam(t, ctx, 1, 10, "inherited_numeric", true)
 		nLocal := insertNumericParam(t, ctx, 11, 20, "local_numeric", false)
-		eInheritable := insertEnumParam(t, ctx, 100, true)
-		eLocal := insertEnumParam(t, ctx, 200, false)
+		//eInheritable := insertEnumParam(t, ctx, 100, true)
+		//eLocal := insertEnumParam(t, ctx, 200, false)
 
-		rowsAffected, err := repo.ApplyParameters(ctx, rootID, []int{int(nInheritable), int(nLocal), int(nInheritable)}, []int{int(eInheritable), int(eLocal), int(eInheritable)})
+		// ЗДЕСЬ НУЖНО ВЕРНУТЬ ENUM ПАРАМЕТРЫ В ПОСЛЕДНИЙ ИНТОВЫЙ МАССИВ КАК ТОЛЬКО ЛОГИКА ПАРАМЕТРОВ ПЕРЕЕДЕТ В БЫВШИЙ ENUMCLASS
+		rowsAffected, err := repo.ApplyParameters(ctx, rootID, []int{int(nInheritable), int(nLocal), int(nInheritable)}, []int{})
 		require.NoError(t, err)
 		assert.GreaterOrEqual(t, rowsAffected, 1)
 
-		rootNumeric, rootEnum := fetchCategoryParams(t, ctx, rootID)
-		childNumeric, childEnum := fetchCategoryParams(t, ctx, childID)
-		grandNumeric, grandEnum := fetchCategoryParams(t, ctx, grandChildID)
+		rootNumeric, _ := fetchCategoryParams(t, ctx, rootID)
+		childNumeric, _ := fetchCategoryParams(t, ctx, childID)
+		grandNumeric, _ := fetchCategoryParams(t, ctx, grandChildID)
 
 		assert.ElementsMatch(t, []int{int(nInheritable), int(nLocal)}, rootNumeric)
-		assert.ElementsMatch(t, []int{int(eInheritable), int(eLocal)}, rootEnum)
+		//assert.ElementsMatch(t, []int{int(eInheritable), int(eLocal)}, rootEnum)
 		assert.ElementsMatch(t, []int{int(nInheritable)}, childNumeric)
-		assert.ElementsMatch(t, []int{int(eInheritable)}, childEnum)
+		//assert.ElementsMatch(t, []int{int(eInheritable)}, childEnum)
 		assert.ElementsMatch(t, []int{int(nInheritable)}, grandNumeric)
-		assert.ElementsMatch(t, []int{int(eInheritable)}, grandEnum)
+		//assert.ElementsMatch(t, []int{int(eInheritable)}, grandEnum)
 	})
 
 	t.Run("Пустой ввод при применении не изменяет массивы категорий", func(t *testing.T) {
@@ -251,7 +235,7 @@ func TestParameterRepository_DeleteNumericParameter(t *testing.T) {
 		_, err := repo.ApplyParameters(ctx, rootID, []int{int(paramID)}, nil)
 		require.NoError(t, err)
 
-		deleted, err := repo.DeleteNumericParameter(ctx, paramID)
+		deleted, err := repo.DeleteRangeParameter(ctx, paramID)
 		require.NoError(t, err)
 		require.NotNil(t, deleted)
 		assert.Equal(t, paramID, deleted.ID)
@@ -267,47 +251,47 @@ func TestParameterRepository_DeleteNumericParameter(t *testing.T) {
 
 	t.Run("Удаление несуществующего числового параметра возвращает ошибку", func(t *testing.T) {
 		cleanDB(t, ctx, "numeric_parameters")
-		_, err := repo.DeleteNumericParameter(ctx, 99999)
+		_, err := repo.DeleteRangeParameter(ctx, 99999)
 		require.Error(t, err)
 	})
 }
 
 // TestParameterRepository_DeleteEnumParameter тестирует удаление перечислимого параметра
-func TestParameterRepository_DeleteEnumParameter(t *testing.T) {
-	ctx := t.Context()
-	repo := repository.NewParameterPostgres(testDB)
-
-	t.Run("Триггер очистки удаляет перечислимый параметр из всех категорий", func(t *testing.T) {
-		cleanDB(t, ctx, "product_categories")
-		cleanDB(t, ctx, "numeric_parameters")
-		cleanDB(t, ctx, "enum_parameters")
-
-		rootID, childID, grandChildID := insertCategoryTree(t, ctx)
-		paramID := insertEnumParam(t, ctx, 100, true)
-
-		_, err := repo.ApplyParameters(ctx, rootID, nil, []int{int(paramID)})
-		require.NoError(t, err)
-
-		deleted, err := repo.DeleteEnumParameter(ctx, paramID)
-		require.NoError(t, err)
-		require.NotNil(t, deleted)
-		assert.Equal(t, paramID, deleted.ID)
-
-		for _, categoryID := range []uint{rootID, childID, grandChildID} {
-			_, enumIDs := fetchCategoryParams(t, ctx, categoryID)
-			assert.NotContains(t, enumIDs, int(paramID))
-		}
-
-		count := countQueryRows(t, ctx, queries.SelectEnumParameters([]uint{paramID}))
-		assert.Zero(t, count)
-	})
-
-	t.Run("Удаление несуществующего перечислимого параметра возвращает ошибку", func(t *testing.T) {
-		cleanDB(t, ctx, "enum_parameters")
-		_, err := repo.DeleteEnumParameter(ctx, 99999)
-		require.Error(t, err)
-	})
-}
+//func TestParameterRepository_DeleteEnumParameter(t *testing.T) {
+//	ctx := t.Context()
+//	repo := repository.NewParameterPostgres(testDB)
+//
+//	t.Run("Триггер очистки удаляет перечислимый параметр из всех категорий", func(t *testing.T) {
+//		cleanDB(t, ctx, "product_categories")
+//		cleanDB(t, ctx, "numeric_parameters")
+//		cleanDB(t, ctx, "enum_parameters")
+//
+//		rootID, childID, grandChildID := insertCategoryTree(t, ctx)
+//		paramID := insertEnumParam(t, ctx, 100, true)
+//
+//		_, err := repo.ApplyParameters(ctx, rootID, nil, []int{int(paramID)})
+//		require.NoError(t, err)
+//
+//		deleted, err := repo.DeleteEnumParameter(ctx, paramID)
+//		require.NoError(t, err)
+//		require.NotNil(t, deleted)
+//		assert.Equal(t, paramID, deleted.ID)
+//
+//		for _, categoryID := range []uint{rootID, childID, grandChildID} {
+//			_, enumIDs := fetchCategoryParams(t, ctx, categoryID)
+//			assert.NotContains(t, enumIDs, int(paramID))
+//		}
+//
+//		count := countQueryRows(t, ctx, queries.SelectEnumParameters([]uint{paramID}))
+//		assert.Zero(t, count)
+//	})
+//
+//	t.Run("Удаление несуществующего перечислимого параметра возвращает ошибку", func(t *testing.T) {
+//		cleanDB(t, ctx, "enum_parameters")
+//		_, err := repo.DeleteEnumParameter(ctx, 99999)
+//		require.Error(t, err)
+//	})
+//}
 
 // TestParameterRepository_UpdateInheritableAndInherit тестирует обновление флага наследования для числового и перечислимого параметра
 func TestParameterRepository_UpdateInheritableAndInherit(t *testing.T) {
@@ -334,7 +318,7 @@ func TestParameterRepository_UpdateInheritableAndInherit(t *testing.T) {
 		assert.NotContains(t, childNumeric, int(nLocal))
 		assert.NotContains(t, grandNumeric, int(nLocal))
 
-		updated, err := repo.UpdateNumericParameter(ctx, nLocal, map[string]any{"inheritable": true})
+		updated, err := repo.UpdateRangeParameter(ctx, nLocal, map[string]any{"inheritable": true})
 		require.NoError(t, err)
 		require.NotNil(t, updated)
 		assert.True(t, updated.Inheritable)
@@ -348,39 +332,39 @@ func TestParameterRepository_UpdateInheritableAndInherit(t *testing.T) {
 		assert.Contains(t, grandNumeric, int(nLocal))
 	})
 
-	t.Run("Установка inheritable в true распространяет перечислимый параметр на потомков", func(t *testing.T) {
-		cleanDB(t, ctx, "product_categories")
-		cleanDB(t, ctx, "numeric_parameters")
-		cleanDB(t, ctx, "enum_parameters")
-
-		rootID, childID, grandChildID := insertCategoryTree(t, ctx)
-
-		eLocal := insertEnumParam(t, ctx, 200, false)
-
-		_, err := repo.ApplyParameters(ctx, rootID, nil, []int{int(eLocal)})
-		require.NoError(t, err)
-
-		_, rootEnum := fetchCategoryParams(t, ctx, rootID)
-		_, childEnum := fetchCategoryParams(t, ctx, childID)
-		_, grandEnum := fetchCategoryParams(t, ctx, grandChildID)
-
-		assert.Contains(t, rootEnum, int(eLocal))
-		assert.NotContains(t, childEnum, int(eLocal))
-		assert.NotContains(t, grandEnum, int(eLocal))
-
-		updated, err := repo.UpdateEnumParameter(ctx, eLocal, map[string]any{"inheritable": true})
-		require.NoError(t, err)
-		require.NotNil(t, updated)
-		assert.True(t, updated.Inheritable)
-
-		_, rootEnum = fetchCategoryParams(t, ctx, rootID)
-		_, childEnum = fetchCategoryParams(t, ctx, childID)
-		_, grandEnum = fetchCategoryParams(t, ctx, grandChildID)
-
-		assert.Contains(t, rootEnum, int(eLocal))
-		assert.Contains(t, childEnum, int(eLocal))
-		assert.Contains(t, grandEnum, int(eLocal))
-	})
+	//t.Run("Установка inheritable в true распространяет перечислимый параметр на потомков", func(t *testing.T) {
+	//	cleanDB(t, ctx, "product_categories")
+	//	cleanDB(t, ctx, "numeric_parameters")
+	//	cleanDB(t, ctx, "enum_parameters")
+	//
+	//	rootID, childID, grandChildID := insertCategoryTree(t, ctx)
+	//
+	//	eLocal := insertEnumParam(t, ctx, 200, false)
+	//
+	//	_, err := repo.ApplyParameters(ctx, rootID, nil, []int{int(eLocal)})
+	//	require.NoError(t, err)
+	//
+	//	_, rootEnum := fetchCategoryParams(t, ctx, rootID)
+	//	_, childEnum := fetchCategoryParams(t, ctx, childID)
+	//	_, grandEnum := fetchCategoryParams(t, ctx, grandChildID)
+	//
+	//	assert.Contains(t, rootEnum, int(eLocal))
+	//	assert.NotContains(t, childEnum, int(eLocal))
+	//	assert.NotContains(t, grandEnum, int(eLocal))
+	//
+	//	updated, err := repo.UpdateEnumParameter(ctx, eLocal, map[string]any{"inheritable": true})
+	//	require.NoError(t, err)
+	//	require.NotNil(t, updated)
+	//	assert.True(t, updated.Inheritable)
+	//
+	//	_, rootEnum = fetchCategoryParams(t, ctx, rootID)
+	//	_, childEnum = fetchCategoryParams(t, ctx, childID)
+	//	_, grandEnum = fetchCategoryParams(t, ctx, grandChildID)
+	//
+	//	assert.Contains(t, rootEnum, int(eLocal))
+	//	assert.Contains(t, childEnum, int(eLocal))
+	//	assert.Contains(t, grandEnum, int(eLocal))
+	//})
 }
 
 // TestParameterRepository_UpdateNumericParameterInheritableFalsToTrue тестирует изменение флага наследования для числового параметра с false на true
@@ -408,7 +392,7 @@ func TestParameterRepository_UpdateNumericParameterInheritableFalsToTrue(t *test
 		assert.NotContains(t, childNumeric, int(nLocal))
 		assert.NotContains(t, grandNumeric, int(nLocal))
 
-		updated, err := repo.UpdateNumericParameter(ctx, nLocal, map[string]any{"inheritable": true})
+		updated, err := repo.UpdateRangeParameter(ctx, nLocal, map[string]any{"inheritable": true})
 		require.NoError(t, err)
 		require.NotNil(t, updated)
 		assert.True(t, updated.Inheritable)
@@ -423,8 +407,8 @@ func TestParameterRepository_UpdateNumericParameterInheritableFalsToTrue(t *test
 	})
 }
 
-// TestParameterRepository_UpdateNumericParameterInheritableTrueToFalse тестирует изменение флага наследования для числового параметра с true на false
-func TestParameterRepository_UpdateNumericParameterInheritableTrueToFalse(t *testing.T) {
+// TestParameterRepository_UpdateRangeParameterInheritableTrueToFalse тестирует изменение флага наследования для диапазонного параметра с true на false
+func TestParameterRepository_UpdateRangeParameterInheritableTrueToFalse(t *testing.T) {
 	ctx := t.Context()
 	repo := repository.NewParameterPostgres(testDB)
 
@@ -448,7 +432,7 @@ func TestParameterRepository_UpdateNumericParameterInheritableTrueToFalse(t *tes
 		assert.Contains(t, childNumeric, int(nInheritable))
 		assert.Contains(t, grandNumeric, int(nInheritable))
 
-		updated, err := repo.UpdateNumericParameter(ctx, nInheritable, map[string]any{"inheritable": false})
+		updated, err := repo.UpdateRangeParameter(ctx, nInheritable, map[string]any{"inheritable": false})
 		require.NoError(t, err)
 		require.NotNil(t, updated)
 		assert.False(t, updated.Inheritable)
@@ -464,44 +448,44 @@ func TestParameterRepository_UpdateNumericParameterInheritableTrueToFalse(t *tes
 }
 
 // TestParameterRepository_UpdateEnumParameterInheritableTrueToFalse тестирует изменение флага наследования для перечислимого параметра с true на false
-func TestParameterRepository_UpdateEnumParameterInheritableTrueToFalse(t *testing.T) {
-	ctx := t.Context()
-	repo := repository.NewParameterPostgres(testDB)
-
-	t.Run("Переключение inheritable с true на false удаляет перечислимый параметр у потомков", func(t *testing.T) {
-		cleanDB(t, ctx, "product_categories")
-		cleanDB(t, ctx, "numeric_parameters")
-		cleanDB(t, ctx, "enum_parameters")
-
-		rootID, childID, grandChildID := insertCategoryTree(t, ctx)
-
-		eInheritable := insertEnumParam(t, ctx, 300, true)
-
-		_, err := repo.ApplyParameters(ctx, rootID, nil, []int{int(eInheritable)})
-		require.NoError(t, err)
-
-		_, rootEnum := fetchCategoryParams(t, ctx, rootID)
-		_, childEnum := fetchCategoryParams(t, ctx, childID)
-		_, grandEnum := fetchCategoryParams(t, ctx, grandChildID)
-
-		assert.Contains(t, rootEnum, int(eInheritable))
-		assert.Contains(t, childEnum, int(eInheritable))
-		assert.Contains(t, grandEnum, int(eInheritable))
-
-		updated, err := repo.UpdateEnumParameter(ctx, eInheritable, map[string]any{"inheritable": false})
-		require.NoError(t, err)
-		require.NotNil(t, updated)
-		assert.False(t, updated.Inheritable)
-
-		_, rootEnum = fetchCategoryParams(t, ctx, rootID)
-		_, childEnum = fetchCategoryParams(t, ctx, childID)
-		_, grandEnum = fetchCategoryParams(t, ctx, grandChildID)
-
-		assert.Contains(t, rootEnum, int(eInheritable))
-		assert.NotContains(t, childEnum, int(eInheritable))
-		assert.NotContains(t, grandEnum, int(eInheritable))
-	})
-}
+//func TestParameterRepository_UpdateEnumParameterInheritableTrueToFalse(t *testing.T) {
+//	ctx := t.Context()
+//	repo := repository.NewParameterPostgres(testDB)
+//
+//	t.Run("Переключение inheritable с true на false удаляет перечислимый параметр у потомков", func(t *testing.T) {
+//		cleanDB(t, ctx, "product_categories")
+//		cleanDB(t, ctx, "numeric_parameters")
+//		cleanDB(t, ctx, "enum_parameters")
+//
+//		rootID, childID, grandChildID := insertCategoryTree(t, ctx)
+//
+//		eInheritable := insertEnumParam(t, ctx, 300, true)
+//
+//		_, err := repo.ApplyParameters(ctx, rootID, nil, []int{int(eInheritable)})
+//		require.NoError(t, err)
+//
+//		_, rootEnum := fetchCategoryParams(t, ctx, rootID)
+//		_, childEnum := fetchCategoryParams(t, ctx, childID)
+//		_, grandEnum := fetchCategoryParams(t, ctx, grandChildID)
+//
+//		assert.Contains(t, rootEnum, int(eInheritable))
+//		assert.Contains(t, childEnum, int(eInheritable))
+//		assert.Contains(t, grandEnum, int(eInheritable))
+//
+//		updated, err := repo.UpdateEnumParameter(ctx, eInheritable, map[string]any{"inheritable": false})
+//		require.NoError(t, err)
+//		require.NotNil(t, updated)
+//		assert.False(t, updated.Inheritable)
+//
+//		_, rootEnum = fetchCategoryParams(t, ctx, rootID)
+//		_, childEnum = fetchCategoryParams(t, ctx, childID)
+//		_, grandEnum = fetchCategoryParams(t, ctx, grandChildID)
+//
+//		assert.Contains(t, rootEnum, int(eInheritable))
+//		assert.NotContains(t, childEnum, int(eInheritable))
+//		assert.NotContains(t, grandEnum, int(eInheritable))
+//	})
+//}
 
 // TestParameterRepository_EdgeCases тестирует крайние случаи для репозитория параметров, включая получение параметров для категории без параметров.
 func TestParameterRepository_EdgeCases(t *testing.T) {
@@ -547,7 +531,7 @@ func TestParameterRepository_EdgeCases(t *testing.T) {
 
 		pid := insertNumericParam(t, ctx, 1, 2, "orphan", false)
 
-		updated, err := repo.UpdateNumericParameter(ctx, pid, map[string]any{"inheritable": true})
+		updated, err := repo.UpdateRangeParameter(ctx, pid, map[string]any{"inheritable": true})
 		require.NoError(t, err)
 		require.NotNil(t, updated)
 		assert.True(t, updated.Inheritable)

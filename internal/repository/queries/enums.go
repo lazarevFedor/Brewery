@@ -14,10 +14,9 @@ const (
 // InsertEnumClass возвращает запрос на вставку класса перечисления.
 func InsertEnumClass(enumClass entities.EnumClass) sq.InsertBuilder {
 	data := map[string]any{
-		"enum_type":   enumClass.Type,
-		"entity_name": enumClass.EntityName,
-		"field_name":  enumClass.FieldName,
-		"is_active":   enumClass.IsActive,
+		"enum_type":  enumClass.Type,
+		"field_name": enumClass.FieldName,
+		"is_active":  enumClass.IsActive,
 	}
 
 	if enumClass.Unit != "" {
@@ -46,16 +45,15 @@ func DeleteEnumClass(id uint) sq.DeleteBuilder {
 }
 
 // SelectEnumClasses возвращает запрос на получения классов перечислений по имени таблицы и поля.
-func SelectEnumClasses(entity, field string) sq.SelectBuilder {
+func SelectEnumClasses(field string) sq.SelectBuilder {
 	return psql.Select(
 		"id",
 		"enum_type",
-		"entity_name",
 		"field_name",
 		"unit",
 		"is_active",
 	).From(enumClassesTable).
-		Where(sq.Eq{"entity_name": entity, "field_name": field})
+		Where(sq.Eq{"field_name": field})
 }
 
 // SelectEnumClassByID возвращает запрос на получения классов перечислений по имени таблицы и поля.
@@ -86,7 +84,7 @@ func InsertEnumValue(enumValue entities.ParameterValueRow) sq.InsertBuilder {
 }
 
 // SelectEnumValues возвращает запрос на получение значений перечисления по имени таблицы, поля и типа значения.
-func SelectEnumValues(entity, field string, valueType entities.EnumType) sq.SelectBuilder {
+func SelectEnumValues(field string, valueType entities.EnumType) sq.SelectBuilder {
 	return psql.
 		Select(
 			"val.id",
@@ -97,7 +95,7 @@ func SelectEnumValues(entity, field string, valueType entities.EnumType) sq.Sele
 		).
 		From(enumValuesTable + " val").
 		Join("enum_classes cls ON val.enum_class_id = cls.id").
-		Where(sq.Eq{"cls.entity_name": entity, "cls.field_name": field, "cls.enum_type": valueType}).
+		Where(sq.Eq{"cls.field_name": field, "cls.enum_type": valueType}).
 		OrderBy("val.position ASC")
 }
 
