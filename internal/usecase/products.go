@@ -5,7 +5,7 @@ import (
 	"context"
 )
 
-type productRepository interface {
+type ProductRepository interface {
 	InsertProduct(ctx context.Context, product entities.Product) (entities.Product, error)
 	GetProducts(ctx context.Context, limit, offset uint64) ([]entities.Product, error)
 	GetProductByID(ctx context.Context, productID uint) (entities.Product, error)
@@ -15,7 +15,4 @@ type productRepository interface {
 	GetFilteredProducts(ctx context.Context, filters []entities.FilterParameter, classID *uint, limit, offset uint64) ([]entities.Product, error)
 }
 
-type productService struct{}
-
-func (s *productService) CreateProduct(ctx context.Context, req entities.Product) (entities.Product, error)
-
+type ProductService struct{}

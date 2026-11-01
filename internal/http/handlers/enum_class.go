@@ -5,6 +5,7 @@ import (
 	"Brewery/internal/entities"
 	"Brewery/internal/usecase"
 	"Brewery/pkg/logger"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,6 +14,41 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/mailru/easyjson"
 )
+
+// EnumService определяет интерфейс для работы с перечислениями и их значениями.
+type EnumService interface {
+
+	// CreateEnum создает новое перечисление и возвращает его ID.
+	CreateEnum(ctx context.Context, enum entities.EnumClass) (uint, error)
+
+	// GetEnum получает список перечислений для заданного поля и типа.
+	GetEnum(ctx context.Context, fieldName string) ([]entities.EnumClass, error)
+
+	// UpdateEnum обновляет существующее перечисление по его ID.
+	UpdateEnum(ctx context.Context, id uint, updates map[string]any) error
+
+	// DeleteEnum удаляет перечисление по его ID.
+	DeleteEnum(ctx context.Context, id uint) error
+
+	// CreateEnumValue создает новое значение перечисления и возвращает его ID.
+	CreateEnumValue(ctx context.Context, enum entities.EnumValue) (uint, error)
+
+	// GetEnumValue получает список значений перечисления для заданного поля и типа.
+	GetEnumValue(ctx context.Context, field string, valueType entities.EnumType) ([]entities.EnumValue, error)
+
+	// UpdateEnumValue обновляет существующее значение перечисления по его ID.
+	UpdateEnumValue(ctx context.Context, id uint, updates map[string]any) error
+
+	// DeleteEnumValue удаляет значение перечисления по его ID.
+	DeleteEnumValue(ctx context.Context, id uint) error
+}
+
+// NewEnumService создает новый EnumService с заданным репозиторием.
+func NewEnumService(enumRepo usecase.EnumRepository) EnumService {
+	return &usecase.EnumService{
+		Repo: enumRepo,
+	}
+}
 
 // EnumHandlers определяет интерфейс для обработки HTTP-запросов, связанных с управлением классами перечислений и их значениями.
 type EnumHandlers interface {
@@ -44,11 +80,11 @@ type EnumHandlers interface {
 
 // enumHandlers реализует интерфейс EnumHandlers.
 type enumHandlers struct {
-	uc usecase.EnumService
+	uc EnumService
 }
 
 // NewEnumHandlers создает новый экземпляр EnumHandlers.
-func NewEnumHandlers(usecase usecase.EnumService) EnumHandlers {
+func NewEnumHandlers(usecase EnumService) EnumHandlers {
 	return &enumHandlers{
 		uc: usecase,
 	}
@@ -87,7 +123,7 @@ func (h *enumHandlers) CreateEnum(c *gin.Context) {
 		c.Request.Context(),
 		// fmt.Sprintf("action=create resource=category status=success name=%q level=%d",
 		// 	req.Name, req.Level))
-		fmt.Sprintf("action=create resource=category status=success name=%q", req.EntityName),
+		fmt.Sprintf("action=create resource=category status=success name=%q", req.FieldName),
 	)
 	c.Status(http.StatusCreated)
 }
@@ -115,7 +151,7 @@ func (h *enumHandlers) GetEnum(c *gin.Context) {
 		return
 	}
 
-	enums, err := h.uc.GetEnum(c.Request.Context(), entityName, fieldName)
+	enums, err := h.uc.GetEnum(c.Request.Context(), fieldName)
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get enum classes: %v", err))
 		c.Status(http.StatusInternalServerError)
@@ -234,7 +270,7 @@ func (h *enumHandlers) CreateValue(c *gin.Context) {
 
 	log.Debug(c.Request.Context(), "Bode read Create")
 
-	var req entities.ParameterValue
+	var req entities.EnumValue
 	if err = easyjson.Unmarshal(body, &req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to unmarshal value: %v", err))
@@ -277,11 +313,10 @@ func (h *enumHandlers) GetValue(c *gin.Context) {
 		return
 	}
 
-	entityName := c.Query("entity_name")
 	fieldName := c.Query("field_name")
 	valueType := c.Query("enum_type")
 
-	values, err := h.uc.GetEnumValue(c.Request.Context(), entityName, fieldName, entities.EnumType(valueType))
+	values, err := h.uc.GetEnumValue(c.Request.Context(), fieldName, entities.EnumType(valueType))
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get enum values: %v", err))
 		c.Status(http.StatusInternalServerError)

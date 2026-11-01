@@ -47,6 +47,6 @@ type FilterParameter struct {
 
 const (
 	MissingType = iota
-	NumericParameterType
+	RangeParameterType
 	EnumParameterType
 )

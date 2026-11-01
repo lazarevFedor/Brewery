@@ -5,6 +5,7 @@ import (
 	"Brewery/internal/entities"
 	"Brewery/internal/usecase"
 	"Brewery/pkg/logger"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -13,6 +14,32 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/mailru/easyjson"
 )
+
+// AggregateService определяет интерфейс для работы с агрегатами.
+type AggregateService interface {
+
+	// CreateAggregate создает новый агрегат.
+	CreateAggregate(ctx context.Context, aggregate *entities.Aggregate) (*entities.Aggregate, error)
+
+	// GetAggregates получает список агрегатов, фильтруя по имени.
+	GetAggregates(ctx context.Context, name string) ([]entities.Aggregate, error)
+
+	// UpdateAggregate обновляет существующий агрегат по его ID.
+	UpdateAggregate(ctx context.Context, id uint, updates map[string]any) (*entities.Aggregate, error)
+
+	// DeleteAggregate удаляет агрегат по его ID.
+	DeleteAggregate(ctx context.Context, id uint) (*entities.Aggregate, error)
+
+	// ApplyAggregateToCategory применяет агрегат к категории, возвращая количество добавленных связей.
+	ApplyAggregateToCategory(ctx context.Context, categoryID, aggregateID uint) (int, error)
+}
+
+// NewAggregateService создает новый экземпляр AggregateService.
+func NewAggregateService(aggregateRepo usecase.AggregateRepository) AggregateService {
+	return &usecase.AggregateService{
+		AggregateRepo: aggregateRepo,
+	}
+}
 
 // AggregateHandlers - интерфейс для обработки HTTP-запросов, связанных с агрегатами.
 type AggregateHandlers interface {

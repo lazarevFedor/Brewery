@@ -23,7 +23,6 @@ func InsertNumericParameter(param *entities.RangeParameter) sq.InsertBuilder {
 		"min_val":     param.MinValue,
 		"max_val":     param.MaxValue,
 		"field_name":  param.FieldName,
-		"entity_name": param.EntityName,
 		"inheritable": param.Inheritable,
 	}
 
@@ -90,7 +89,7 @@ func DeleteEnumParameter(id uint) sq.DeleteBuilder {
 func SelectParameterIDsByCategory(categoryID uint, parameterType int) sq.SelectBuilder {
 	var query sq.SelectBuilder
 	switch parameterType {
-	case entities.NumericParameterType:
+	case entities.RangeParameterType:
 		query = psql.Select("numeric_parameter_ids")
 
 	case entities.EnumParameterType:

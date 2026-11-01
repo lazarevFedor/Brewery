@@ -311,7 +311,7 @@ func (s *beerService) CreateBeer(ctx context.Context, beer *entities.Beer) (*ent
 			return nil, fmt.Errorf("failed to get parameters for category %d: %w", categoryID, err)
 		}
 
-		getEnumValuesWrapped := func(classID uint) ([]entities.ParameterValue, error) {
+		getEnumValuesWrapped := func(classID uint) ([]entities.EnumValue, error) {
 			vals, err := s.enumRepo.GetEnumValuesByClassID(ctx, classID)
 			if err != nil {
 				return nil, err
@@ -323,7 +323,7 @@ func (s *beerService) CreateBeer(ctx context.Context, beer *entities.Beer) (*ent
 			}
 
 			if (cls.FieldName == "city" || cls.FieldName == "country") && cls.Type == string(entities.EnumValueTypeInt) {
-				conv := make([]entities.ParameterValue, 0, len(vals))
+				conv := make([]entities.EnumValue, 0, len(vals))
 				for _, v := range vals {
 					id, ok := v.Value.(int)
 					if !ok {
