@@ -780,14 +780,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/MaterialChangeCreate"
+                "$ref": "#/components/schemas/MaterialCreate"
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Material added, history record created",
+            "description": "Material added",
             "content": {
               "application/json": {
                 "schema": {
@@ -910,14 +910,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/MaterialChangeUpdate"
+                "$ref": "#/components/schemas/MaterialUpdate"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Updated material, history record created",
+            "description": "Updated material",
             "content": {
               "application/json": {
                 "schema": {
@@ -954,14 +954,11 @@
           },
           {
             "$ref": "#/components/parameters/materialId"
-          },
-          {
-            "$ref": "#/components/parameters/ChangeReason"
           }
         ],
         "responses": {
           "204": {
-            "description": "Successfully deleted, history record created"
+            "description": "Successfully deleted"
           },
           "400": {
             "$ref": "#/components/responses/400_bad_request"
@@ -1020,6 +1017,55 @@
       }
     },
     "/products/{id}/history": {
+      "post": {
+        "tags": [
+          "History"
+        ],
+        "summary": "Register change in product specification",
+        "description": "Регистрирует факт изменения спецификации изделия (REGISTER_CHANGE(pIdProd, pChangeDesc)).",
+        "operationId": "registerProductChange",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HistoryRecordCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Change registered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HistoryRecord"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
       "get": {
         "tags": [
           "History"
@@ -2321,56 +2367,6 @@
           }
         ]
       },
-      "ChangeInfo": {
-        "type": "object",
-        "required": [
-          "reason"
-        ],
-        "properties": {
-          "reason": {
-            "type": "string",
-            "minLength": 1,
-            "example": "Замена поставщика солода",
-            "description": "Причина изменения спецификации, записывается в историю"
-          },
-          "document": {
-            "type": "string",
-            "example": "Извещение об изменении №12",
-            "description": "Основание изменения (номер извещения, приказа и т.п.)"
-          }
-        }
-      },
-      "MaterialChangeCreate": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/MaterialCreate"
-          },
-          {
-            "$ref": "#/components/schemas/ChangeInfo"
-          }
-        ],
-        "example": {
-          "material_id": 5,
-          "material_amount": 12.5,
-          "reason": "Добавлен хмель в рецептуру",
-          "document": "Извещение об изменении №12"
-        }
-      },
-      "MaterialChangeUpdate": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/MaterialUpdate"
-          },
-          {
-            "$ref": "#/components/schemas/ChangeInfo"
-          }
-        ],
-        "example": {
-          "material_amount": 15,
-          "reason": "Корректировка нормы по итогам варки",
-          "document": "Извещение об изменении №13"
-        }
-      },
       "MaterialNormItem": {
         "type": "object",
         "required": [
@@ -2432,13 +2428,26 @@
           }
         }
       },
+      "HistoryRecordCreate": {
+        "type": "object",
+        "required": [
+          "changes"
+        ],
+        "properties": {
+          "changes": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Текстовое описание изменения спецификации",
+            "example": "Норма хмеля увеличена с 12.5 до 15 кг"
+          }
+        }
+      },
       "HistoryRecord": {
         "type": "object",
         "required": [
           "id",
           "product_id",
-          "change_type",
-          "reason",
+          "changes",
           "created_at"
         ],
         "properties": {
@@ -2450,48 +2459,10 @@
             "type": "integer",
             "example": 1
           },
-          "change_type": {
-            "type": "string",
-            "enum": [
-              "material_added",
-              "material_updated",
-              "material_removed"
-            ],
-            "example": "material_updated"
-          },
-          "material_id": {
-            "type": "integer",
-            "example": 5
-          },
-          "old_amount": {
-            "type": "number",
-            "format": "double",
-            "nullable": true,
-            "example": 12.5
-          },
-          "new_amount": {
-            "type": "number",
-            "format": "double",
-            "nullable": true,
-            "example": 15
-          },
-          "reason": {
-            "type": "string",
-            "example": "Корректировка нормы по итогам варки"
-          },
-          "document": {
-            "type": "string",
-            "example": "Извещение об изменении №13"
-          },
-          "author": {
-            "type": "string",
-            "example": "admin",
-            "description": "Пользователь из токена, выполнивший изменение"
-          },
           "changes": {
             "type": "string",
-            "description": "Описание изменений (JSON-строка с изменёнными полями)",
-            "example": "{\"material_amount\":{\"old\":12.5,\"new\":15}}"
+            "description": "Текстовое описание изменения спецификации",
+            "example": "Норма хмеля увеличена с 12.5 до 15 кг"
           },
           "created_at": {
             "type": "string",
@@ -2949,16 +2920,6 @@
           "type": "integer"
         },
         "description": "ID изделия, используемого как материал"
-      },
-      "ChangeReason": {
-        "name": "reason",
-        "in": "query",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "minLength": 1
-        },
-        "description": "Причина изменения спецификации, записывается в историю"
       },
       "DateFrom": {
         "name": "from",
