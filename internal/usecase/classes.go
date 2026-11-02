@@ -131,7 +131,7 @@ func (c *ClassService) UpdateClass(ctx context.Context, id uint, updates map[str
 			if parentIDFloat == 0 {
 				updates["parent_id"] = nil
 			} else {
-				err := c.ensureCategoryParentIsNotDescendant(ctx, id, uint(parentIDFloat))
+				err := c.ensureClassParentIsNotDescendant(ctx, id, uint(parentIDFloat))
 				if err != nil {
 					return fmt.Errorf("failed to update parent class: %w", err)
 				}
@@ -204,29 +204,29 @@ func (c *ClassService) GetChildClasses(ctx context.Context, id uint) ([]entities
 	return children, nil
 }
 
-func (c *ClassService) ensureCategoryParentIsNotDescendant(ctx context.Context, categoryID, parentID uint) error {
+func (c *ClassService) ensureClassParentIsNotDescendant(ctx context.Context, classID, parentID uint) error {
 	visited := make(map[uint]struct{})
 	currentID := parentID
 
 	for currentID != 0 {
 		if _, seen := visited[currentID]; seen {
-			return errors.New("category hierarchy contains a cycle")
+			return errors.New("class hierarchy contains a cycle")
 		}
 		visited[currentID] = struct{}{}
 
-		category, err := c.repo.GetClassByID(ctx, currentID)
+		class, err := c.repo.GetClassByID(ctx, currentID)
 		if err != nil {
-			return fmt.Errorf("failed to get parent category: %w", err)
+			return fmt.Errorf("failed to get parent class: %w", err)
 		}
-		if category == nil {
-			return errors.New("parent category not found")
-		}
-
-		if category.ID == int(categoryID) {
-			return errors.New("category parent creates a cycle")
+		if class == nil {
+			return errors.New("parent class not found")
 		}
 
-		currentID = uint(category.ParentID)
+		if class.ID == int(classID) {
+			return errors.New("class parent creates a cycle")
+		}
+
+		currentID = uint(class.ParentID)
 	}
 
 	return nil

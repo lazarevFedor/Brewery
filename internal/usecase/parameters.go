@@ -22,10 +22,10 @@ type ParameterRepository interface {
 	DeleteRangeParameter(ctx context.Context, id uint) (*entities.RangeParameter, error)
 
 	// GetParameters извлекает все числовые и перечисляемые параметры из базы данных и возвращает их.
-	GetParameters(ctx context.Context, categoryID uint, parameterType int) ([]entities.RangeParameter, []entities.EnumParameter, error)
+	GetParameters(ctx context.Context, classID uint, parameterType int) ([]entities.RangeParameter, []entities.EnumParameter, error)
 
 	// ApplyParameters применяет числовые и перечисляемые параметры к категории и возвращает результат применения.
-	ApplyParameters(ctx context.Context, categoryID uint, numericParameters, enumParameters []int) (int, error)
+	ApplyParameters(ctx context.Context, classID uint, rangeParameters, enumParameters []int) (int, error)
 }
 
 // NewParameterRepository создает новый экземпляр ParameterRepository с предоставленным пулом соединений к базе данных.
@@ -44,6 +44,7 @@ var allowedParametersToUpdate = map[string]struct{}{
 	"min_val":     {},
 	"max_val":     {},
 	"inheritable": {},
+	"unit":        {},
 }
 
 // CreateRange создает числовой параметр.
@@ -64,7 +65,7 @@ func (s *ParametersService) CreateRange(ctx context.Context, param *entities.Ran
 
 	created, err := s.ParamRepo.InsertRangeParameter(ctx, param)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create numeric parameter: %w", err)
+		return nil, fmt.Errorf("failed to create range parameter: %w", err)
 	}
 
 	return created, nil
@@ -84,7 +85,7 @@ func (s *ParametersService) UpdateRange(ctx context.Context, id uint, updates ma
 
 	updated, err := s.ParamRepo.UpdateRangeParameter(ctx, id, updates)
 	if err != nil {
-		return nil, fmt.Errorf("failed to update numeric parameter: %w", err)
+		return nil, fmt.Errorf("failed to update range parameter: %w", err)
 	}
 
 	return updated, nil
@@ -98,19 +99,19 @@ func (s *ParametersService) DeleteRange(ctx context.Context, id uint) (*entities
 
 	deleted, err := s.ParamRepo.DeleteRangeParameter(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("failed to delete numeric parameter: %w", err)
+		return nil, fmt.Errorf("failed to delete range parameter: %w", err)
 	}
 
 	return deleted, nil
 }
 
-// ListParameters возвращает все параметры, применимые к категории.
-func (s *ParametersService) ListParameters(ctx context.Context, categoryID uint, parameterType int) ([]entities.RangeParameter, []entities.EnumParameter, error) {
+// ListParameters возвращает все параметры, применимые к классу.
+func (s *ParametersService) ListParameters(ctx context.Context, classID uint, parameterType int) ([]entities.RangeParameter, []entities.EnumParameter, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	numeric, enum, err := s.ParamRepo.GetParameters(ctx, categoryID, parameterType)
+	numeric, enum, err := s.ParamRepo.GetParameters(ctx, classID, parameterType)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get parameters: %w", err)
 	}
@@ -118,13 +119,13 @@ func (s *ParametersService) ListParameters(ctx context.Context, categoryID uint,
 	return numeric, enum, nil
 }
 
-// ApplyToCategory применяет указанные параметры к категории. Возвращает количество добавленных параметров.
-func (s *ParametersService) ApplyToCategory(ctx context.Context, categoryID uint, numericIDs, enumIDs []int) (int, error) {
+// ApplyToClass применяет указанные параметры к классу. Возвращает количество добавленных параметров.
+func (s *ParametersService) ApplyToClass(ctx context.Context, classID uint, rangeIDs, enumIDs []int) (int, error) {
 	if err := ctx.Err(); err != nil {
 		return 0, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	added, err := s.ParamRepo.ApplyParameters(ctx, categoryID, numericIDs, enumIDs)
+	added, err := s.ParamRepo.ApplyParameters(ctx, classID, rangeIDs, enumIDs)
 	if err != nil {
 		return 0, fmt.Errorf("failed to apply parameters: %w", err)
 	}
