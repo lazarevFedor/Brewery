@@ -12,7 +12,6 @@ const (
 	EnumValueTypeString  EnumType = "string"
 	EnumValueTypeInt     EnumType = "int"
 	EnumValueTypeFloat   EnumType = "float"
-	EnumValueTypePicture EnumType = "picture"
 )
 
 type EnumType string
