@@ -19,8 +19,8 @@ type AggregateRepository interface {
 	// GetAggregates извлекает все агрегаты, соответствующие заданному имени, если оно задано, из базы данных.
 	GetAggregates(ctx context.Context, name string) ([]entities.Aggregate, error)
 
-	// ApplyAggregate применяет агрегат к категории и возвращает результат применения.
-	ApplyAggregate(ctx context.Context, categoryID uint, id uint) (int, error)
+	// ApplyAggregate применяет агрегат к классу и возвращает результат применения.
+	ApplyAggregate(ctx context.Context, classID uint, id uint) (int, error)
 
 	// UpdateAggregate обновляет существующий агрегат с заданным ID и возвращает обновленный агрегат.
 	UpdateAggregate(ctx context.Context, id uint, updates map[string]any) (*entities.Aggregate, error)
@@ -103,15 +103,15 @@ func (s *AggregateService) DeleteAggregate(ctx context.Context, id uint) (*entit
 	return deleted, nil
 }
 
-// ApplyAggregateToCategory применяет агрегат к категории, возвращая количество добавленных связей.
-func (s *AggregateService) ApplyAggregateToCategory(ctx context.Context, categoryID, aggregateID uint) (int, error) {
+// ApplyAggregateToClass применяет агрегат к классу, возвращая количество добавленных связей.
+func (s *AggregateService) ApplyAggregateToClass(ctx context.Context, classID, aggregateID uint) (int, error) {
 	if err := ctx.Err(); err != nil {
 		return 0, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	added, err := s.AggregateRepo.ApplyAggregate(ctx, categoryID, aggregateID)
+	added, err := s.AggregateRepo.ApplyAggregate(ctx, classID, aggregateID)
 	if err != nil {
-		return 0, fmt.Errorf("failed to apply aggregate to category: %w", err)
+		return 0, fmt.Errorf("failed to apply aggregate to class: %w", err)
 	}
 
 	return added, nil

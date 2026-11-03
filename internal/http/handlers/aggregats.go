@@ -30,8 +30,8 @@ type AggregateService interface {
 	// DeleteAggregate удаляет агрегат по его ID.
 	DeleteAggregate(ctx context.Context, id uint) (*entities.Aggregate, error)
 
-	// ApplyAggregateToCategory применяет агрегат к категории, возвращая количество добавленных связей.
-	ApplyAggregateToCategory(ctx context.Context, categoryID, aggregateID uint) (int, error)
+	// ApplyAggregateToClass применяет агрегат к классу, возвращая количество добавленных связей.
+	ApplyAggregateToClass(ctx context.Context, classID, aggregateID uint) (int, error)
 }
 
 // NewAggregateService создает новый экземпляр AggregateService.
@@ -56,8 +56,8 @@ type AggregateHandlers interface {
 	// DeleteAggregate - обработчик для удаления агрегата по его ID.
 	DeleteAggregate(c *gin.Context)
 
-	// ApplyAggregateToCategory - обработчик для применения агрегата к категории по их ID.
-	ApplyAggregateToCategory(c *gin.Context)
+	// ApplyAggregateToClass - обработчик для применения агрегата к классу по их ID.
+	ApplyAggregateToClass(c *gin.Context)
 }
 
 // aggregateHandlers - реализация интерфейса AggregateHandlers, использующая сервис агрегатов для бизнес-логики.
@@ -220,19 +220,19 @@ func (h *aggregateHandlers) DeleteAggregate(c *gin.Context) {
 	log.Info(c.Request.Context(), fmt.Sprintf("action=delete resource=aggregate status=success id=%d", id))
 }
 
-// ApplyAggregateToCategory - обработчик для применения агрегата к категории по их ID.
-func (h *aggregateHandlers) ApplyAggregateToCategory(c *gin.Context) {
+// ApplyAggregateToClass - обработчик для применения агрегата к классу по их ID.
+func (h *aggregateHandlers) ApplyAggregateToClass(c *gin.Context) {
 	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get logger from context"})
 		return
 	}
 
-	categoryIDStr := c.Param("category_id")
-	categoryID, err := strconv.ParseUint(categoryIDStr, 10, 32)
+	classIDStr := c.Param("class_id")
+	classID, err := strconv.ParseUint(classIDStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid category_id"})
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category_id: %v", err))
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid class_id"})
+		log.Error(c.Request.Context(), fmt.Sprintf("Invalid class_id: %v", err))
 		return
 	}
 
@@ -244,7 +244,7 @@ func (h *aggregateHandlers) ApplyAggregateToCategory(c *gin.Context) {
 		return
 	}
 
-	added, err := h.uc.ApplyAggregateToCategory(c.Request.Context(), uint(categoryID), uint(aggregateID))
+	added, err := h.uc.ApplyAggregateToClass(c.Request.Context(), uint(classID), uint(aggregateID))
 	if err != nil {
 		log.Error(c.Request.Context(), fmt.Sprintf("Failed to apply aggregate: %v", err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -254,5 +254,5 @@ func (h *aggregateHandlers) ApplyAggregateToCategory(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"params_added": added,
 	})
-	log.Info(c.Request.Context(), fmt.Sprintf("action=apply resource=aggregate_to_category status=success category_id=%d aggregate_id=%d added=%d", categoryID, aggregateID, added))
+	log.Info(c.Request.Context(), fmt.Sprintf("action=apply resource=aggregate_to_class status=success class_id=%d aggregate_id=%d added=%d", classID, aggregateID, added))
 }

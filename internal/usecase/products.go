@@ -15,4 +15,6 @@ type ProductRepository interface {
 	GetFilteredProducts(ctx context.Context, filters []entities.FilterParameter, classID *uint, limit, offset uint64) ([]entities.Product, error)
 }
 
-type ProductService struct{}
+type ProductService struct {
+	repo ProductRepository
+}
