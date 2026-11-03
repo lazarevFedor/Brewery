@@ -2,11 +2,9 @@ package usecase
 
 import (
 	"Brewery/internal/entities"
-	"Brewery/internal/repository"
 	"context"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type ClassRepository interface {
@@ -27,9 +25,4 @@ type ClassRepository interface {
 
 	// GetClassID получает ID класса по его имени.
 	GetClassID(ctx context.Context, tx pgx.Tx, ctgName string) (uint, error)
-}
-
-// NewClassRepository создает новый экземпляр ClassRepository с переданным пулом соединений.
-func NewClassRepository(pool *pgxpool.Pool) ClassRepository {
-	return &repository.ClassPostgres{Pool: pool}
 }
