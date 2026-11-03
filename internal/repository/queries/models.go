@@ -5,7 +5,7 @@
 package queries
 
 import (
-	"database/sql"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Aggregate struct {
@@ -17,15 +17,15 @@ type Aggregate struct {
 
 type ChangeHistory struct {
 	ID        int64
-	ProductID sql.NullInt64
+	ProductID pgtype.Int8
 	Changes   string
-	CreatedAt sql.NullTime
+	CreatedAt pgtype.Timestamptz
 }
 
 type Class struct {
 	ID                  int64
 	Name                string
-	ParentID            sql.NullInt64
+	ParentID            pgtype.Int8
 	NumericParameterIds []int64
 	EnumParameterIds    []int64
 }
@@ -34,7 +34,7 @@ type EnumParameter struct {
 	ID          int64
 	EnumType    string
 	FieldName   string
-	Unit        sql.NullString
+	Unit        pgtype.Text
 	IsActive    bool
 	Inheritable bool
 }
@@ -42,36 +42,36 @@ type EnumParameter struct {
 type Material struct {
 	MaterialID     int64
 	ProductID      int64
-	MaterialAmount string
+	MaterialAmount pgtype.Numeric
 }
 
 type ParameterValue struct {
 	ID              int64
-	EnumParameterID sql.NullInt64
+	EnumParameterID pgtype.Int8
 	ValueRaw        string
-	Position        sql.NullInt32
+	Position        pgtype.Int4
 }
 
 type Product struct {
 	ID      int64
 	Name    string
-	Amount  sql.NullString
-	Units   sql.NullString
+	Amount  pgtype.Numeric
+	Units   pgtype.Text
 	ClassID int64
-	BaseID  sql.NullInt64
+	BaseID  pgtype.Int8
 }
 
 type ProductsParameter struct {
 	ID             int64
-	ProductID      sql.NullInt64
-	EnumValueID    sql.NullInt64
-	RangeParameter sql.NullInt64
+	ProductID      pgtype.Int8
+	EnumValueID    pgtype.Int8
+	RangeParameter pgtype.Int8
 }
 
 type RangeParameter struct {
 	ID          int64
-	MinVal      sql.NullString
-	MaxVal      sql.NullString
+	MinVal      pgtype.Numeric
+	MaxVal      pgtype.Numeric
 	Unit        string
 	FieldName   string
 	Inheritable bool

@@ -7,9 +7,8 @@ package queries
 
 import (
 	"context"
-	"database/sql"
 
-	"github.com/lib/pq"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const deleteClass = `-- name: DeleteClass :exec
@@ -18,7 +17,7 @@ WHERE id = $1
 `
 
 func (q *Queries) DeleteClass(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deleteClass, id)
+	_, err := q.db.Exec(ctx, deleteClass, id)
 	return err
 }
 
@@ -34,29 +33,40 @@ WHERE id = $1
 `
 
 func (q *Queries) GetClassByID(ctx context.Context, id int64) (Class, error) {
-	row := q.db.QueryRowContext(ctx, getClassByID, id)
+	row := q.db.QueryRow(ctx, getClassByID, id)
 	var i Class
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.ParentID,
-		pq.Array(&i.NumericParameterIds),
-		pq.Array(&i.EnumParameterIds),
+		&i.NumericParameterIds,
+		&i.EnumParameterIds,
 	)
 	return i, err
 }
 
-const getClassIdByName = `-- name: GetClassIdByName :one
-SELECT id
+const getClassByName = `-- name: GetClassByName :one
+SELECT
+    id,
+    name,
+    parent_id,
+    numeric_parameter_ids,
+    enum_parameter_ids
 FROM classes
 WHERE name = $1
 `
 
-func (q *Queries) GetClassIdByName(ctx context.Context, name string) (int64, error) {
-	row := q.db.QueryRowContext(ctx, getClassIdByName, name)
-	var id int64
-	err := row.Scan(&id)
-	return id, err
+func (q *Queries) GetClassByName(ctx context.Context, name string) (Class, error) {
+	row := q.db.QueryRow(ctx, getClassByName, name)
+	var i Class
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.ParentID,
+		&i.NumericParameterIds,
+		&i.EnumParameterIds,
+	)
+	return i, err
 }
 
 const getClasses = `-- name: GetClasses :many
@@ -70,7 +80,7 @@ FROM classes
 `
 
 func (q *Queries) GetClasses(ctx context.Context) ([]Class, error) {
-	rows, err := q.db.QueryContext(ctx, getClasses)
+	rows, err := q.db.Query(ctx, getClasses)
 	if err != nil {
 		return nil, err
 	}
@@ -82,15 +92,12 @@ func (q *Queries) GetClasses(ctx context.Context) ([]Class, error) {
 			&i.ID,
 			&i.Name,
 			&i.ParentID,
-			pq.Array(&i.NumericParameterIds),
-			pq.Array(&i.EnumParameterIds),
+			&i.NumericParameterIds,
+			&i.EnumParameterIds,
 		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -113,17 +120,17 @@ INSERT INTO classes(
 
 type InsertClassParams struct {
 	Name     string
-	ParentID sql.NullInt64
+	ParentID pgtype.Int8
 }
 
 type InsertClassRow struct {
 	ID       int64
 	Name     string
-	ParentID sql.NullInt64
+	ParentID pgtype.Int8
 }
 
 func (q *Queries) InsertClass(ctx context.Context, arg InsertClassParams) (InsertClassRow, error) {
-	row := q.db.QueryRowContext(ctx, insertClass, arg.Name, arg.ParentID)
+	row := q.db.QueryRow(ctx, insertClass, arg.Name, arg.ParentID)
 	var i InsertClassRow
 	err := row.Scan(&i.ID, &i.Name, &i.ParentID)
 	return i, err
@@ -147,14 +154,14 @@ type RenameClassParams struct {
 }
 
 func (q *Queries) RenameClass(ctx context.Context, arg RenameClassParams) (Class, error) {
-	row := q.db.QueryRowContext(ctx, renameClass, arg.Name, arg.ID)
+	row := q.db.QueryRow(ctx, renameClass, arg.Name, arg.ID)
 	var i Class
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.ParentID,
-		pq.Array(&i.NumericParameterIds),
-		pq.Array(&i.EnumParameterIds),
+		&i.NumericParameterIds,
+		&i.EnumParameterIds,
 	)
 	return i, err
 }
@@ -172,19 +179,19 @@ RETURNING
 `
 
 type UpdateParentClassParams struct {
-	ParentID sql.NullInt64
+	ParentID pgtype.Int8
 	ID       int64
 }
 
 func (q *Queries) UpdateParentClass(ctx context.Context, arg UpdateParentClassParams) (Class, error) {
-	row := q.db.QueryRowContext(ctx, updateParentClass, arg.ParentID, arg.ID)
+	row := q.db.QueryRow(ctx, updateParentClass, arg.ParentID, arg.ID)
 	var i Class
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.ParentID,
-		pq.Array(&i.NumericParameterIds),
-		pq.Array(&i.EnumParameterIds),
+		&i.NumericParameterIds,
+		&i.EnumParameterIds,
 	)
 	return i, err
 }

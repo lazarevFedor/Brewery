@@ -7,9 +7,8 @@ package queries
 
 import (
 	"context"
-	"database/sql"
 
-	"github.com/lib/pq"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const deleteProduct = `-- name: DeleteProduct :exec
@@ -18,7 +17,7 @@ WHERE id = $1
 `
 
 func (q *Queries) DeleteProduct(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deleteProduct, id)
+	_, err := q.db.Exec(ctx, deleteProduct, id)
 	return err
 }
 
@@ -35,7 +34,7 @@ WHERE class_id = $1
 `
 
 func (q *Queries) GetProductByClassID(ctx context.Context, classID int64) ([]Product, error) {
-	rows, err := q.db.QueryContext(ctx, getProductByClassID, classID)
+	rows, err := q.db.Query(ctx, getProductByClassID, classID)
 	if err != nil {
 		return nil, err
 	}
@@ -54,9 +53,6 @@ func (q *Queries) GetProductByClassID(ctx context.Context, classID int64) ([]Pro
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -84,18 +80,18 @@ WHERE p.id = $1
 type GetProductByIDRow struct {
 	ID                  int64
 	Name                string
-	Amount              sql.NullString
-	Units               sql.NullString
-	BaseID              sql.NullInt64
+	Amount              pgtype.Numeric
+	Units               pgtype.Text
+	BaseID              pgtype.Int8
 	ID_2                int64
 	Name_2              string
-	ParentID            sql.NullInt64
+	ParentID            pgtype.Int8
 	NumericParameterIds []int64
 	EnumParameterIds    []int64
 }
 
 func (q *Queries) GetProductByID(ctx context.Context, id int64) (GetProductByIDRow, error) {
-	row := q.db.QueryRowContext(ctx, getProductByID, id)
+	row := q.db.QueryRow(ctx, getProductByID, id)
 	var i GetProductByIDRow
 	err := row.Scan(
 		&i.ID,
@@ -106,8 +102,8 @@ func (q *Queries) GetProductByID(ctx context.Context, id int64) (GetProductByIDR
 		&i.ID_2,
 		&i.Name_2,
 		&i.ParentID,
-		pq.Array(&i.NumericParameterIds),
-		pq.Array(&i.EnumParameterIds),
+		&i.NumericParameterIds,
+		&i.EnumParameterIds,
 	)
 	return i, err
 }
@@ -124,7 +120,7 @@ FROM products
 `
 
 func (q *Queries) GetProducts(ctx context.Context) ([]Product, error) {
-	rows, err := q.db.QueryContext(ctx, getProducts)
+	rows, err := q.db.Query(ctx, getProducts)
 	if err != nil {
 		return nil, err
 	}
@@ -143,9 +139,6 @@ func (q *Queries) GetProducts(ctx context.Context) ([]Product, error) {
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -174,21 +167,21 @@ INSERT INTO products(
 
 type InsertProductParams struct {
 	Name   string
-	Amount sql.NullString
-	Units  sql.NullString
-	BaseID sql.NullInt64
+	Amount pgtype.Numeric
+	Units  pgtype.Text
+	BaseID pgtype.Int8
 }
 
 type InsertProductRow struct {
 	ID     int64
 	Name   string
-	Amount sql.NullString
-	Units  sql.NullString
-	BaseID sql.NullInt64
+	Amount pgtype.Numeric
+	Units  pgtype.Text
+	BaseID pgtype.Int8
 }
 
 func (q *Queries) InsertProduct(ctx context.Context, arg InsertProductParams) (InsertProductRow, error) {
-	row := q.db.QueryRowContext(ctx, insertProduct,
+	row := q.db.QueryRow(ctx, insertProduct,
 		arg.Name,
 		arg.Amount,
 		arg.Units,
@@ -224,23 +217,23 @@ RETURNING
 
 type UpdateProductParams struct {
 	Name    string
-	Amount  sql.NullString
-	Units   sql.NullString
+	Amount  pgtype.Numeric
+	Units   pgtype.Text
 	ClassID int64
-	BaseID  sql.NullInt64
+	BaseID  pgtype.Int8
 	ID      int64
 }
 
 type UpdateProductRow struct {
 	ID     int64
 	Name   string
-	Amount sql.NullString
-	Units  sql.NullString
-	BaseID sql.NullInt64
+	Amount pgtype.Numeric
+	Units  pgtype.Text
+	BaseID pgtype.Int8
 }
 
 func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (UpdateProductRow, error) {
-	row := q.db.QueryRowContext(ctx, updateProduct,
+	row := q.db.QueryRow(ctx, updateProduct,
 		arg.Name,
 		arg.Amount,
 		arg.Units,

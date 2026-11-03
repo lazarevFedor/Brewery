@@ -7,3 +7,10 @@ sql:
       go:
         package: "queries"
         out: "internal/repository/queries"
+        sql_package: "pgx/v5"
+        overrides:
+          - db_type: bigint
+            nullable: true
+            go_type:
+              type: pointer
+              pointer: true

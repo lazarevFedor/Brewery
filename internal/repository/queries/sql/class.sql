@@ -56,7 +56,12 @@ RETURNING
 DELETE FROM classes
 WHERE id = $1;
 
--- name: GetClassIdByName :one
-SELECT id
+-- name: GetClassByName :one
+SELECT
+    id,
+    name,
+    parent_id,
+    numeric_parameter_ids,
+    enum_parameter_ids
 FROM classes
 WHERE name = $1;

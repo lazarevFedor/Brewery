@@ -3,8 +3,6 @@ package usecase
 import (
 	"Brewery/internal/entities"
 	"context"
-
-	"github.com/jackc/pgx/v5"
 )
 
 type ClassRepository interface {
@@ -12,17 +10,20 @@ type ClassRepository interface {
 	GetClasses(ctx context.Context) ([]entities.Class, error)
 
 	// InsertClass вставляет новую категорию в базу данных.
-	InsertClass(ctx context.Context, tx pgx.Tx, class entities.Class) (uint, error)
+	InsertClass(ctx context.Context, class entities.Class) (*entities.Class, error)
 
 	// GetClassByID получает класс по его ID.
-	GetClassByID(ctx context.Context, id uint) (*entities.Class, error)
+	GetClassByID(ctx context.Context, id int64) (*entities.Class, error)
 
-	// UpdateClass обновляет поля класса по его ID.
-	UpdateClass(ctx context.Context, id uint, updates map[string]any) error
+	// UpdateClassName обновляет имя класса по его ID.
+	UpdateClassName(ctx context.Context, id int64, name string) (*entities.Class, error)
+
+	// UpdateClassParent обновляет родительский класс ID.
+	UpdateClassParent(ctx context.Context, id int64, parentID int64) (*entities.Class, error)
 
 	// DeleteClassByID удаляет класс по его ID.
-	DeleteClassByID(ctx context.Context, id uint) error
+	DeleteClass(ctx context.Context, id int64) error
 
-	// GetClassID получает ID класса по его имени.
-	GetClassID(ctx context.Context, tx pgx.Tx, ctgName string) (uint, error)
+	// GetClassByName получает класс по его имени.
+	GetClassByName(ctx context.Context, name string) (*entities.Class, error)
 }
