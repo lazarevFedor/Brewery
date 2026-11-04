@@ -1,0 +1,16 @@
+version: "2"
+sql:
+  - schema: "migrator/sql" # Отсюда sqlc узнает типы колонок
+    queries: "internal/repository/queries/sql"   # Отсюда берет запросы
+    engine: "postgresql"
+    gen:
+      go:
+        package: "queries"
+        out: "internal/repository/queries"
+        sql_package: "pgx/v5"
+        overrides:
+          - db_type: bigint
+            nullable: true
+            go_type:
+              type: pointer
+              pointer: true
