@@ -15,11 +15,8 @@ type ClassRepository interface {
 	// GetClassByID получает класс по его ID.
 	GetClassByID(ctx context.Context, id int64) (*entities.Class, error)
 
-	// UpdateClassName обновляет имя класса по его ID.
-	UpdateClassName(ctx context.Context, id int64, name string) (*entities.Class, error)
-
-	// UpdateClassParent обновляет родительский класс ID.
-	UpdateClassParent(ctx context.Context, id int64, parentID int64) (*entities.Class, error)
+	// UpdateClass обновляет поля класса по его ID.
+	UpdateClass(ctx context.Context, classUpdates entities.Class) (*entities.Class, error)
 
 	// DeleteClassByID удаляет класс по его ID.
 	DeleteClass(ctx context.Context, id int64) error

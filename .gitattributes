@@ -2,3 +2,4 @@
 *_easyjson.go linguist-generated=true
 *_mock.go linguist-generated=true
 *.csv linguist-generated=true
+*.sql.go linguist-generated=true

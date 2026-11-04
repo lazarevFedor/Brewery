@@ -81,11 +81,11 @@ type GetProductByIDRow struct {
 	ID                  int64
 	Name                string
 	Amount              pgtype.Numeric
-	Units               pgtype.Text
-	BaseID              pgtype.Int8
+	Units               *string
+	BaseID              *int64
 	ID_2                int64
 	Name_2              string
-	ParentID            pgtype.Int8
+	ParentID            *int64
 	NumericParameterIds []int64
 	EnumParameterIds    []int64
 }
@@ -168,16 +168,16 @@ INSERT INTO products(
 type InsertProductParams struct {
 	Name   string
 	Amount pgtype.Numeric
-	Units  pgtype.Text
-	BaseID pgtype.Int8
+	Units  *string
+	BaseID *int64
 }
 
 type InsertProductRow struct {
 	ID     int64
 	Name   string
 	Amount pgtype.Numeric
-	Units  pgtype.Text
-	BaseID pgtype.Int8
+	Units  *string
+	BaseID *int64
 }
 
 func (q *Queries) InsertProduct(ctx context.Context, arg InsertProductParams) (InsertProductRow, error) {
@@ -218,9 +218,9 @@ RETURNING
 type UpdateProductParams struct {
 	Name    string
 	Amount  pgtype.Numeric
-	Units   pgtype.Text
+	Units   *string
 	ClassID int64
-	BaseID  pgtype.Int8
+	BaseID  *int64
 	ID      int64
 }
 
@@ -228,8 +228,8 @@ type UpdateProductRow struct {
 	ID     int64
 	Name   string
 	Amount pgtype.Numeric
-	Units  pgtype.Text
-	BaseID pgtype.Int8
+	Units  *string
+	BaseID *int64
 }
 
 func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (UpdateProductRow, error) {

@@ -6,23 +6,27 @@ import (
 )
 
 func ToDomainClass(dbClass queries.Class) entities.Class{
-	var parentID *int64
-	if dbClass.ParentID.Valid {
-		parentID = &dbClass.ParentID.Int64
-	}
 	return entities.Class{
 		ID: dbClass.ID,
-		Name: dbClass.Name,
-		ParentID: parentID,
+		Name: &dbClass.Name,
+		ParentID: dbClass.ParentID,
 		NumParamIDs: dbClass.NumericParameterIds,
 		EnumParamIDs: dbClass.EnumParameterIds,
+	}
+}
+
+func BaseToDomainClass(dbClass queries.InsertClassRow) entities.Class{
+	return entities.Class{
+		ID: dbClass.ID,
+		Name: &dbClass.Name,
+		ParentID: dbClass.ParentID,
 	}
 }
 
 func ToDomainClasses(dbClasses []queries.Class) []entities.Class{
 	classes := make([]entities.Class, len(dbClasses))
 	for i, cl := range dbClasses{
-		classes[i] = *ToDomainClass(cl)
+		classes[i] = ToDomainClass(cl)
 	}
 	return classes
 }
