@@ -7,8 +7,6 @@ package queries
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const deleteProduct = `-- name: DeleteProduct :exec
@@ -80,7 +78,7 @@ WHERE p.id = $1
 type GetProductByIDRow struct {
 	ID                  int64
 	Name                string
-	Amount              pgtype.Numeric
+	Amount              *float32
 	Units               *string
 	BaseID              *int64
 	ID_2                int64
@@ -117,10 +115,17 @@ SELECT
     class_id, 
     base_id
 FROM products
+LIMIT $1
+OFFSET $2
 `
 
-func (q *Queries) GetProducts(ctx context.Context) ([]Product, error) {
-	rows, err := q.db.Query(ctx, getProducts)
+type GetProductsParams struct {
+	Limit  int32
+	Offset int32
+}
+
+func (q *Queries) GetProducts(ctx context.Context, arg GetProductsParams) ([]Product, error) {
+	rows, err := q.db.Query(ctx, getProducts, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -161,23 +166,25 @@ INSERT INTO products(
     id,
     name,
     amount,
+    class_id,
     units,
     base_id
 `
 
 type InsertProductParams struct {
 	Name   string
-	Amount pgtype.Numeric
+	Amount *float32
 	Units  *string
 	BaseID *int64
 }
 
 type InsertProductRow struct {
-	ID     int64
-	Name   string
-	Amount pgtype.Numeric
-	Units  *string
-	BaseID *int64
+	ID      int64
+	Name    string
+	Amount  *float32
+	ClassID int64
+	Units   *string
+	BaseID  *int64
 }
 
 func (q *Queries) InsertProduct(ctx context.Context, arg InsertProductParams) (InsertProductRow, error) {
@@ -192,6 +199,7 @@ func (q *Queries) InsertProduct(ctx context.Context, arg InsertProductParams) (I
 		&i.ID,
 		&i.Name,
 		&i.Amount,
+		&i.ClassID,
 		&i.Units,
 		&i.BaseID,
 	)
@@ -217,7 +225,7 @@ RETURNING
 
 type UpdateProductParams struct {
 	Name    string
-	Amount  pgtype.Numeric
+	Amount  *float32
 	Units   *string
 	ClassID int64
 	BaseID  *int64
@@ -227,7 +235,7 @@ type UpdateProductParams struct {
 type UpdateProductRow struct {
 	ID     int64
 	Name   string
-	Amount pgtype.Numeric
+	Amount *float32
 	Units  *string
 	BaseID *int64
 }

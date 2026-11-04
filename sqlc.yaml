@@ -19,3 +19,16 @@ sql:
             go_type:
               type: string
               pointer: true
+
+          # Для опциональных колонок (NULL)
+          - db_type: pg_catalog.numeric
+            nullable: true
+            go_type:
+              type: float32
+              pointer: true
+
+          - db_type: pg_catalog.numeric
+            nullable: false
+            go_type:
+              type: float32
+              pointer: false

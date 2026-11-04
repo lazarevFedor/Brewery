@@ -39,8 +39,8 @@ func (repo *Repository) InsertClass(ctx context.Context, class entities.Class) (
 		return nil, errors.New("db pool is empty")
 	}
 	insertParams := queries.InsertClassParams{
-		Name:     *class.Name,
-		ParentID: class.ParentID,
+		Name:     class.Name,
+		ParentID: &class.ParentID,
 	}
 	dbClass, err := repo.query.InsertClass(ctx, insertParams)
 	if err != nil {
@@ -66,13 +66,19 @@ func (repo *Repository) UpdateClass(ctx context.Context, classUpdates entities.C
 	if repo.Pool == nil {
 		return nil, errors.New("db pool is empty")
 	}
+
 	updateParams := queries.UpdateClassParams{
-		Name:                classUpdates.Name,
-		ParentID:            classUpdates.ParentID,
 		ID:                  classUpdates.ID,
 		NumericParameterIds: classUpdates.NumParamIDs,
 		EnumParameterIds:    classUpdates.EnumParamIDs,
 	}
+	if classUpdates.Name == "" {
+		updateParams.Name = nil
+	}
+	if classUpdates.ParentID == 0 {
+		updateParams.ParentID = nil
+	}
+
 	dbClass, err := repo.query.UpdateClass(ctx, updateParams)
 	if err != nil {
 		return nil, fmt.Errorf("UpdateClass: %w", err)

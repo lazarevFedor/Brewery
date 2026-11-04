@@ -13,6 +13,7 @@ INSERT INTO products(
     id,
     name,
     amount,
+    class_id,
     units,
     base_id;
 
@@ -42,7 +43,9 @@ SELECT
     units,
     class_id, 
     base_id
-FROM products;
+FROM products
+LIMIT $1
+OFFSET $2;
  
 -- name: UpdateProduct :one
 UPDATE products

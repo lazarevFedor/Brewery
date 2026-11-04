@@ -42,7 +42,7 @@ type EnumParameter struct {
 type Material struct {
 	MaterialID     int64
 	ProductID      int64
-	MaterialAmount pgtype.Numeric
+	MaterialAmount float32
 }
 
 type ParameterValue struct {
@@ -55,7 +55,7 @@ type ParameterValue struct {
 type Product struct {
 	ID      int64
 	Name    string
-	Amount  pgtype.Numeric
+	Amount  *float32
 	Units   *string
 	ClassID int64
 	BaseID  *int64
@@ -70,8 +70,8 @@ type ProductsParameter struct {
 
 type RangeParameter struct {
 	ID          int64
-	MinVal      pgtype.Numeric
-	MaxVal      pgtype.Numeric
+	MinVal      *float32
+	MaxVal      *float32
 	Unit        string
 	FieldName   string
 	Inheritable bool
