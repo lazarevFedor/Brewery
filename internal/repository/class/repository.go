@@ -2,7 +2,7 @@ package class
 
 import (
 	"Brewery/internal/entities"
-	"Brewery/internal/repository/mapper"
+	mpr "Brewery/internal/repository/mapper"
 	"Brewery/internal/repository/queries"
 	"context"
 	"errors"
@@ -10,6 +10,8 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+var mapper = mpr.ClassMapperImpl{}
 
 type Repository struct {
 	Pool  *pgxpool.Pool
@@ -31,7 +33,7 @@ func (repo *Repository) GetClasses(ctx context.Context) ([]entities.Class, error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get classes: %w", err)
 	}
-	return mapper.ToDomainClasses(classes), nil
+	return mapper.FromDBClasses(classes), nil
 }
 
 func (repo *Repository) InsertClass(ctx context.Context, class entities.Class) (*entities.Class, error) {
@@ -46,7 +48,7 @@ func (repo *Repository) InsertClass(ctx context.Context, class entities.Class) (
 	if err != nil {
 		return nil, fmt.Errorf("InsertClass: %w", err)
 	}
-	class = mapper.BaseToDomainClass(dbClass)
+	class = mapper.FromInsert(dbClass)
 	return &class, nil
 }
 func (repo *Repository) GetClassByID(ctx context.Context, id int64) (*entities.Class, error) {
@@ -57,7 +59,7 @@ func (repo *Repository) GetClassByID(ctx context.Context, id int64) (*entities.C
 	if err != nil {
 		return nil, fmt.Errorf("GetClassByID: %w", err)
 	}
-	class := mapper.ToDomainClass(dbClass)
+	class := mapper.FromDBClass(dbClass)
 
 	return &class, nil
 }
@@ -83,7 +85,7 @@ func (repo *Repository) UpdateClass(ctx context.Context, classUpdates entities.C
 	if err != nil {
 		return nil, fmt.Errorf("UpdateClass: %w", err)
 	}
-	class := mapper.ToDomainClass(dbClass)
+	class := mapper.FromDBClass(dbClass)
 	return &class, nil
 }
 
@@ -107,6 +109,6 @@ func (repo *Repository) GetClassByName(ctx context.Context, name string) (*entit
 	if err != nil {
 		return nil, fmt.Errorf("GetClassByName: %w", err)
 	}
-	class := mapper.ToDomainClass(dbClass)
+	class := mapper.FromDBClass(dbClass)
 	return &class, nil
 }

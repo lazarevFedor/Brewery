@@ -58,7 +58,18 @@ func (repo *Repository) GetProducts(ctx context.Context, limit, offset uint64) (
 }
 
 
-func (repo *Repository) GetProductByID(ctx context.Context, productID uint) (entities.Product, error)
+func (repo *Repository) GetProductByID(ctx context.Context, id int64) (*entities.Product, error){
+	if repo.Pool == nil {
+		return nil, errors.New("db pool is empty")
+	}
+	productRow, err := repo.query.GetProductByID(ctx, id)
+	if err != nil{
+		return nil, fmt.Errorf("InsertProduct: %w", err)
+	}
+	products := mapper.ToDomainProducts(productRow)
+	return products, nil
+}
+
 func (repo *Repository) UpdateProduct(ctx context.Context, updates map[string]any) (entities.Product, error)
 func (repo *Repository) DeleteProduct(ctx context.Context, productID uint) error
 func (repo *Repository) GetProductsByClass(
