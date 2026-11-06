@@ -3,6 +3,7 @@ package usecase
 import (
 	"Brewery/internal/entities"
 	"context"
+	"fmt"
 )
 
 type ClassRepository interface {
@@ -21,7 +22,7 @@ type ClassRepository interface {
 	// UpdateClassParent обновляет родительский класс ID.
 	UpdateClassParent(ctx context.Context, id int64, parentID int64) (*entities.Class, error)
 
-	// DeleteClassByID удаляет класс по его ID.
+	// DeleteClass удаляет класс.
 	DeleteClass(ctx context.Context, id int64) error
 
 	// GetClassByName получает класс по его имени.
