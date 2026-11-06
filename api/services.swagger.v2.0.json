@@ -1022,7 +1022,6 @@
           "History"
         ],
         "summary": "Register change in product specification",
-        "description": "Регистрирует факт изменения спецификации изделия (REGISTER_CHANGE(pIdProd, pChangeDesc)).",
         "operationId": "registerProductChange",
         "security": [
           {
@@ -1651,6 +1650,64 @@
         }
       }
     },
+    "/classes/parameters/exclude/{class_id}": {
+      "patch": {
+        "tags": [
+          "ClassParams"
+        ],
+        "summary": "Exclude parameters from class",
+        "operationId": "ExcludeParametersFromClass",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/classId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClassParamsExclude"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Parameters excluded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "params_excluded": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
     "/classes/parameters/{id}": {
       "patch": {
         "tags": [
@@ -2200,28 +2257,11 @@
                 "nullable": true,
                 "description": "ID базового изделия, на основе которого создано текущее"
               },
-              "parameters": {
-                "type": "object",
-                "additionalProperties": {
-                  "oneOf": [
-                    {"type":  "string"},
-                    {"type":  "number"}
-                  ]
-                }
-              },
               "amount": {
                 "type": "integer"
               },
               "units": {
                 "type": "string"
-              },
-              "materials": {
-                "type": "array",
-                "description": "Состав изделия при создании",
-                "items": {
-                  "$ref": "#/components/schemas/MaterialCreate"
-                },
-                "default": []
               }
             },
             "example": {
@@ -2231,13 +2271,7 @@
               },
               "base_id": null,
               "amount": 100,
-              "units": "L",
-              "materials": [
-                {
-                  "material_id": 5,
-                  "material_amount": 12.5
-                }
-              ]
+              "units": "L"
             }
           }
         ]
@@ -2249,27 +2283,7 @@
           },
           {
             "type": "object",
-            "required": [
-              "name",
-              "class_id",
-              "base_id"
-            ],
             "properties": {
-              "id": {
-                "type": "integer"
-              },
-              "class": {
-                "$ref": "#/components/schemas/ClassBase"
-              },
-              "parameters": {
-                "type": "object",
-                "additionalProperties": {
-                  "oneOf": [
-                    {"type":  "string"},
-                    {"type":  "number"}
-                  ]
-                }
-              },
               "class_id": {
                 "type": "integer"
               },
@@ -2695,6 +2709,25 @@
               "type": "integer"
             },
             "description": "List of enum parameter ids to apply"
+          }
+        }
+      },
+      "ClassParamsExclude": {
+        "type": "object",
+        "properties": {
+          "range_param_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "List of range parameter ids to exclude"
+          },
+          "enum_param_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "List of enum parameter ids to exclude"
           }
         }
       },
