@@ -12,7 +12,7 @@ const (
 	tableCategories     = "product_categories"
 	categoryIDCol       = "id"
 	categoryNameCol     = "name"
-	categoryParentIDCol = "parent_id"
+	categoryParentIDCol = "parent_iad"
 )
 
 // FullCategorySelect возвращает базовый запрос для получения всех полей категории, включая обработку NULL для parent_id

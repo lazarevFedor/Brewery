@@ -2,6 +2,7 @@
 -- ==========================================
 --                TABLES
 -- ==========================================
+
 CREATE TABLE IF NOT EXISTS classes(
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,

@@ -76,7 +76,7 @@ func (e *ParameterValueRow) FromRow() (*EnumValue, error) {
 
 func enumValueToRaw(valueType EnumType, value any) (string, error) {
 	switch valueType {
-	case EnumValueTypeString, EnumValueTypePicture:
+	case EnumValueTypeString:
 		str, ok := value.(string)
 		if !ok {
 			return "", fmt.Errorf("invalid enum value type %s: expected string, got %T", valueType, value)
@@ -170,7 +170,7 @@ func enumValueToRaw(valueType EnumType, value any) (string, error) {
 
 func enumValueFromRaw(valueType EnumType, valueRaw string) (any, error) {
 	switch valueType {
-	case EnumValueTypeString, EnumValueTypePicture:
+	case EnumValueTypeString:
 		return valueRaw, nil
 	case EnumValueTypeInt:
 		value, err := strconv.Atoi(valueRaw)

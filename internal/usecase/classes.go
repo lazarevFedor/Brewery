@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"Brewery/internal/entities"
-	"Brewery/internal/repository"
 	"context"
 	"errors"
 	"fmt"
@@ -16,24 +15,19 @@ type ClassRepository interface {
 	GetClasses(ctx context.Context) ([]entities.Class, error)
 
 	// InsertClass вставляет новую категорию в базу данных.
-	InsertClass(ctx context.Context, tx pgx.Tx, class entities.Class) (uint, error)
+	InsertClass(ctx context.Context, class entities.Class) (*entities.Class, error)
 
 	// GetClassByID получает класс по его ID.
-	GetClassByID(ctx context.Context, id uint) (*entities.Class, error)
+	GetClassByID(ctx context.Context, id int64) (*entities.Class, error)
 
 	// UpdateClass обновляет поля класса по его ID.
-	UpdateClass(ctx context.Context, id uint, updates map[string]any) error
+	UpdateClass(ctx context.Context, classUpdates entities.Class) (*entities.Class, error)
 
 	// DeleteClassByID удаляет класс по его ID.
-	DeleteClassByID(ctx context.Context, id uint) error
+	DeleteClass(ctx context.Context, id int64) error
 
-	// GetClassID получает ID класса по его имени.
-	GetClassID(ctx context.Context, tx pgx.Tx, ctgName string) (uint, error)
-}
-
-// NewClassRepository создает новый экземпляр ClassRepository с переданным пулом соединений.
-func NewClassRepository(pool *pgxpool.Pool) ClassRepository {
-	return &repository.ClassPostgres{Pool: pool}
+	// GetClassByName получает класс по его имени.
+	GetClassByName(ctx context.Context, name string) (*entities.Class, error)
 }
 
 type ClassService struct {
