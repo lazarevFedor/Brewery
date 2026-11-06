@@ -24,14 +24,6 @@ require (
 require github.com/golang-jwt/jwt/v5 v5.3.1
 
 require (
-	github.com/dave/jennifer v1.6.0 // indirect
-	github.com/jmattheis/goverter v1.11.1 // indirect
-	github.com/shopspring/decimal v1.6.0 // indirect
-	golang.org/x/mod v0.41.0 // indirect
-	golang.org/x/tools v0.51.0 // indirect
-)
-
-require (
 	dario.cat/mergo v1.0.2 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c // indirect
 	github.com/BurntSushi/toml v1.6.0 // indirect

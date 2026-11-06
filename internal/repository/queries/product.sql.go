@@ -65,27 +65,27 @@ SELECT
     p.amount,
     p.units,
     p.base_id,
-    c.id,   
-    c.name,
-    c.parent_id,
-    c.numeric_parameter_ids,
-    c.enum_parameter_ids
+    c.id AS class_id,   
+    c.name AS class_name,
+    c.parent_id AS class_parent_id,
+    c.numeric_parameter_ids AS class_num_params,
+    c.enum_parameter_ids AS class_enum_params
 FROM products p
 JOIN classes c ON p.class_id = c.id
 WHERE p.id = $1
 `
 
 type GetProductByIDRow struct {
-	ID                  int64
-	Name                string
-	Amount              *float32
-	Units               *string
-	BaseID              *int64
-	ID_2                int64
-	Name_2              string
-	ParentID            *int64
-	NumericParameterIds []int64
-	EnumParameterIds    []int64
+	ID              int64
+	Name            string
+	Amount          *float32
+	Units           *string
+	BaseID          *int64
+	ClassID         int64
+	ClassName       string
+	ClassParentID   *int64
+	ClassNumParams  []int64
+	ClassEnumParams []int64
 }
 
 func (q *Queries) GetProductByID(ctx context.Context, id int64) (GetProductByIDRow, error) {
@@ -97,11 +97,11 @@ func (q *Queries) GetProductByID(ctx context.Context, id int64) (GetProductByIDR
 		&i.Amount,
 		&i.Units,
 		&i.BaseID,
-		&i.ID_2,
-		&i.Name_2,
-		&i.ParentID,
-		&i.NumericParameterIds,
-		&i.EnumParameterIds,
+		&i.ClassID,
+		&i.ClassName,
+		&i.ClassParentID,
+		&i.ClassNumParams,
+		&i.ClassEnumParams,
 	)
 	return i, err
 }
@@ -224,10 +224,10 @@ RETURNING
 `
 
 type UpdateProductParams struct {
-	Name    string
+	Name    *string
 	Amount  *float32
 	Units   *string
-	ClassID int64
+	ClassID *int64
 	BaseID  *int64
 	ID      int64
 }

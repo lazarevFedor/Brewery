@@ -2,7 +2,7 @@ package product
 
 import (
 	"Brewery/internal/entities"
-	"Brewery/internal/repository/mapper"
+	mpr "Brewery/internal/repository/mapper"
 	"Brewery/internal/repository/queries"
 	"context"
 	"errors"
@@ -11,10 +11,13 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+var mapper = mpr.ProductMapperImpl{}
+
 type Repository struct {
 	Pool  *pgxpool.Pool
 	query *queries.Queries
 }
+
 
 func NewRepository(pool *pgxpool.Pool) *Repository {
 	return &Repository{
@@ -37,7 +40,7 @@ func (repo *Repository) InsertProduct(ctx context.Context, product entities.Prod
 	if err != nil{
 		return nil, fmt.Errorf("InsertProduct: %w", err)
 	}
-	product = mapper.Row2DomainProduct(productRow)
+	product = mapper.FromInsert(productRow)
 	return &product, nil
 }
 
@@ -49,11 +52,11 @@ func (repo *Repository) GetProducts(ctx context.Context, limit, offset uint64) (
 		Limit: int32(limit),
 		Offset: int32(offset),
 	}
-	productRow, err := repo.query.GetProducts(ctx, params)
+	dbProducts, err := repo.query.GetProducts(ctx, params)
 	if err != nil{
 		return nil, fmt.Errorf("InsertProduct: %w", err)
 	}
-	products := mapper.ToDomainProducts(productRow)
+	products := mapper.FromDBProducts(dbProducts)
 	return products, nil
 }
 
@@ -62,21 +65,80 @@ func (repo *Repository) GetProductByID(ctx context.Context, id int64) (*entities
 	if repo.Pool == nil {
 		return nil, errors.New("db pool is empty")
 	}
-	productRow, err := repo.query.GetProductByID(ctx, id)
+	dbProduct, err := repo.query.GetProductByID(ctx, id)
 	if err != nil{
 		return nil, fmt.Errorf("InsertProduct: %w", err)
 	}
-	products := mapper.ToDomainProducts(productRow)
+	products := mapper.FromDBFullProduct(dbProduct)
+	return &products, nil
+}
+
+func (repo *Repository) UpdateProduct(ctx context.Context, id int64, updates map[string]any) (*entities.Product, error){
+	if repo.Pool == nil {
+		return nil, errors.New("db pool is empty")
+	}
+
+	params := queries.UpdateProductParams{ID: id}
+	if val, ok := updates["name"]; ok{
+		if name, ok := val.(string); ok {
+			params.Name = &name
+		}
+	}
+	if val, ok := updates["amount"]; ok{
+		if amount, ok := val.(float32); ok {
+			params.Amount = &amount
+		}
+	}
+	if val, ok := updates["units"]; ok{
+		if units, ok := val.(float32); ok {
+			params.Amount = &units
+		}
+	}
+	if val, ok := updates["class_id"]; ok{
+		if classID, ok := val.(int64); ok {
+			params.ClassID = &classID
+		}
+	}
+	if val, ok := updates["base_id"]; ok{
+		if baseID, ok := val.(int64); ok {
+			params.BaseID = &baseID
+		}
+	}
+
+	dbProduct, err := repo.query.UpdateProduct(ctx, params)
+	if err != nil{
+		return nil, fmt.Errorf("InsertProduct: %w", err)
+	}
+	products := mapper.FromUpdate(dbProduct)
+	return &products, nil
+}
+
+func (repo *Repository) DeleteProduct(ctx context.Context, id int64) error{
+	if repo.Pool == nil {
+		return errors.New("db pool is empty")
+	}
+	err := repo.query.DeleteProduct(ctx, id)
+	if err != nil{
+		return fmt.Errorf("InsertProduct: %w", err)
+	}
+	return nil
+}
+
+func (repo *Repository) GetProductsByClass(
+	ctx context.Context, classID int64, limit, offset int32,
+) ([]entities.Product, error){
+	if repo.Pool == nil {
+		return nil, errors.New("db pool is empty")
+	}
+	dbProduct, err := repo.query.GetProductByClassID(ctx, classID)
+	if err != nil{
+		return nil, fmt.Errorf("InsertProduct: %w", err)
+	}
+	products := mapper.FromDBProducts(dbProduct)
 	return products, nil
 }
 
-func (repo *Repository) UpdateProduct(ctx context.Context, updates map[string]any) (entities.Product, error)
-func (repo *Repository) DeleteProduct(ctx context.Context, productID uint) error
-func (repo *Repository) GetProductsByClass(
-	ctx context.Context, classID uint, limit, offset uint64,
-) (entities.Product, error)
-
 func (repo *Repository) GetFilteredProducts(
 	ctx context.Context, filters []entities.FilterParameter,
-	classID *uint, limit, offset uint64,
+	classID *uint, limit, offset int32,
 ) ([]entities.Product, error)

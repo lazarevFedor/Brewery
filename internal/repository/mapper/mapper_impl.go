@@ -53,33 +53,62 @@ func (c *ClassMapperImpl) FromInsert(source queries.InsertClassRow) entities.Cla
 
 type ProductMapperImpl struct{}
 
-func (c *ProductMapperImpl) FromDBProduct(source queries.Class) entities.Class {
-	var entitiesClass entities.Class
-	entitiesClass.ID = source.ID
-	entitiesClass.Name = source.Name
-	if source.ParentID != nil {
-		entitiesClass.ParentID = *source.ParentID
+func (c *ProductMapperImpl) FromDBFullProduct(source queries.GetProductByIDRow) entities.Product {
+	var entitiesProduct entities.Product
+	entitiesProduct.ID = source.ID
+	entitiesProduct.Name = source.Name
+	entitiesProduct.ProdClass = BuildClass(source)
+	if source.BaseID != nil {
+		entitiesProduct.BaseID = *source.BaseID
 	}
-	if source.NumericParameterIds != nil {
-		entitiesClass.NumParamIDs = make([]int64, len(source.NumericParameterIds))
-		for i := 0; i < len(source.NumericParameterIds); i++ {
-			entitiesClass.NumParamIDs[i] = source.NumericParameterIds[i]
-		}
+	if source.Amount != nil {
+		entitiesProduct.Amount = *source.Amount
 	}
-	if source.EnumParameterIds != nil {
-		entitiesClass.EnumParamIDs = make([]int64, len(source.EnumParameterIds))
-		for j := 0; j < len(source.EnumParameterIds); j++ {
-			entitiesClass.EnumParamIDs[j] = source.EnumParameterIds[j]
-		}
-	}
-	return entitiesClass
+	return entitiesProduct
 }
-func (c *ProductMapperImpl) FromInsert(source queries.InsertClassRow) entities.Class {
-	var entitiesClass entities.Class
-	entitiesClass.ID = source.ID
-	entitiesClass.Name = source.Name
-	if source.ParentID != nil {
-		entitiesClass.ParentID = *source.ParentID
+func (c *ProductMapperImpl) FromDBProduct(source queries.Product) entities.Product {
+	var entitiesProduct entities.Product
+	entitiesProduct.ID = source.ID
+	entitiesProduct.Name = source.Name
+	if source.BaseID != nil {
+		entitiesProduct.BaseID = *source.BaseID
 	}
-	return entitiesClass
+	if source.Amount != nil {
+		entitiesProduct.Amount = *source.Amount
+	}
+	return entitiesProduct
+}
+func (c *ProductMapperImpl) FromDBProducts(source []queries.Product) []entities.Product {
+	var entitiesProductList []entities.Product
+	if source != nil {
+		entitiesProductList = make([]entities.Product, len(source))
+		for i := 0; i < len(source); i++ {
+			entitiesProductList[i] = c.FromDBProduct(source[i])
+		}
+	}
+	return entitiesProductList
+}
+func (c *ProductMapperImpl) FromInsert(source queries.InsertProductRow) entities.Product {
+	var entitiesProduct entities.Product
+	entitiesProduct.ID = source.ID
+	entitiesProduct.Name = source.Name
+	if source.BaseID != nil {
+		entitiesProduct.BaseID = *source.BaseID
+	}
+	if source.Amount != nil {
+		entitiesProduct.Amount = *source.Amount
+	}
+	return entitiesProduct
+}
+func (c *ProductMapperImpl) FromUpdate(source queries.UpdateProductRow) entities.Product {
+	var entitiesProduct entities.Product
+	entitiesProduct.ID = source.ID
+	entitiesProduct.Name = source.Name
+	if source.BaseID != nil {
+		entitiesProduct.BaseID = *source.BaseID
+	}
+	if source.Amount != nil {
+		entitiesProduct.Amount = *source.Amount
+	}
+	return entitiesProduct
 }
