@@ -36,8 +36,8 @@ type ParametersService interface {
 	// categoryID = 0 - без фильтра по категории, paramType = "" - все типы, "numeric" - только числовые, "enum" - только перечисления
 	ListParameters(ctx context.Context, categoryID uint, parameterType int) ([]entities.RangeParameter, []entities.EnumParameter, error)
 
-	// ApplyToCategory применяет указанные параметры к категории. Возвращает количество добавленных параметров.
-	ApplyToCategory(ctx context.Context, categoryID uint, numericIDs, enumIDs []int) (int, error)
+	// ApplyToClass применяет указанные параметры к категории. Возвращает количество добавленных параметров.
+	ApplyToClass(ctx context.Context, categoryID uint, numericIDs, enumIDs []int) (int, error)
 }
 
 // NewParametersService создает новый экземпляр ParametersService.
