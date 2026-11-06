@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 )
 
 type ProductRepository interface {
@@ -18,7 +19,9 @@ type ProductRepository interface {
 }
 
 type ProductService struct {
-	repo ProductRepository
+	repo      ProductRepository
+	enumRepo  EnumRepository
+	paramRepo ParameterRepository
 }
 
 func (ps *ProductService) CreateProduct(ctx context.Context, product entities.Product) (*entities.Product, error) {
@@ -30,7 +33,10 @@ func (ps *ProductService) CreateProduct(ctx context.Context, product entities.Pr
 		return nil, errors.New("product name is required")
 	}
 
-	//TODO: Add params' validation
+	err := ps.ValidateProductWithParameters(ctx, product)
+	if err != nil {
+		return nil, fmt.Errorf("failed to validate product: %w", err)
+	}
 
 	createdProduct, err := ps.repo.InsertProduct(ctx, product)
 	if err != nil {
@@ -54,11 +60,10 @@ func (ps *ProductService) GetProducts(ctx context.Context, limit, offset uint64)
 }
 
 func (ps *ProductService) UpdateProduct(ctx context.Context, id uint, updates map[string]any) (*entities.Product, error) {
-	// TODO: Validate updates
-	// validatedUpdates, err := s.validateUpdates(ctx, updates)
-	/* if err != nil {
+	err := ps.ValidateUpdates(updates)
+	if err != nil {
 		return nil, fmt.Errorf("failed to validate updates: %w", err)
-	} */
+	}
 
 	product, err := ps.repo.UpdateProduct(ctx, id, updates)
 	if err != nil {
@@ -126,4 +131,81 @@ func (ps *ProductService) GetProductByID(ctx context.Context, id uint) (*entitie
 	}
 
 	return product, nil
+}
+
+func (ps *ProductService) ValidateUpdates(updates map[string]any) error {
+	for key := range updates {
+		switch key {
+		case "name":
+			name, _ := updates[key]
+			if nameStr, ok := name.(string); !ok || nameStr == "" {
+				return errors.New("invalid product name")
+			}
+		case "class_id":
+			classID, _ := updates[key]
+			if classIDUint, ok := classID.(int64); !ok || classIDUint == 0 {
+				return errors.New("invalid class id")
+			}
+		case "base_id":
+			baseID, _ := updates[key]
+			if baseIDUint, ok := baseID.(int); !ok || baseIDUint == 0 {
+				return errors.New("invalid base id")
+			}
+		case "amount":
+			amount, _ := updates[key]
+			if amountUint, ok := amount.(uint); !ok || amountUint == 0 {
+				return errors.New("invalid amount")
+			}
+		case "units":
+			units, _ := updates[key]
+			if unitsStr, ok := units.(string); !ok || unitsStr == "" {
+				return errors.New("invalid units")
+			}
+		default:
+			return fmt.Errorf("invalid update field: %s", key)
+		}
+	}
+
+	return nil
+}
+
+func (ps *ProductService) ValidateProductWithParameters(ctx context.Context, product entities.Product) error {
+	// TODO: Implement validation logic
+
+	for id := range product.Category.EnumParamIDs {
+		enumValues, err := ps.enumRepo.GetEnumValuesByClassID(ctx, uint(id))
+		if err != nil {
+			return fmt.Errorf("failed to get enum values for class ID %d: %w", id, err)
+		}
+		enumClass, err := ps.enumRepo.GetEnumClassByID(ctx, uint(id))
+		if err != nil {
+			return fmt.Errorf("failed to get enum class for ID %d: %w", id, err)
+		}
+
+		parameterValue, exists := product.Parameters[enumClass.FieldName]
+		if !exists {
+			return fmt.Errorf("parameter %q is required", enumClass.FieldName)
+		}
+
+		if !containsEnumValue(enumValues, parameterValue) {
+			return fmt.Errorf(
+				"invalid value %v for parameter %q",
+				parameterValue,
+				enumClass.FieldName,
+			)
+		}
+
+	}
+
+	return nil
+}
+
+func containsEnumValue(enumValues []entities.EnumValue, parameterValue any) bool {
+	for _, enumValue := range enumValues {
+		if reflect.DeepEqual(enumValue.Value, parameterValue) {
+			return true
+		}
+	}
+
+	return false
 }
