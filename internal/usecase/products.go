@@ -170,9 +170,7 @@ func (ps *ProductService) ValidateUpdates(updates map[string]any) error {
 }
 
 func (ps *ProductService) ValidateProductWithParameters(ctx context.Context, product entities.Product) error {
-	// TODO: Implement validation logic
-
-	for id := range product.Category.EnumParamIDs {
+	for id := range product.ProdClass.EnumParamIDs {
 		enumValues, err := ps.enumRepo.GetEnumValuesByClassID(ctx, uint(id))
 		if err != nil {
 			return fmt.Errorf("failed to get enum values for class ID %d: %w", id, err)
@@ -195,6 +193,32 @@ func (ps *ProductService) ValidateProductWithParameters(ctx context.Context, pro
 			)
 		}
 
+	}
+
+	rangeParameters, _, err := ps.paramRepo.GetParameters(ctx, product.ProdClass.ID, entities.RangeParameterType)
+	if err != nil {
+		return fmt.Errorf("failed to get range parameters for class ID %d: %w", product.ProdClass.ID, err)
+	}
+	for _, rangeParam := range rangeParameters {
+		parameterValue, exists := product.Parameters[rangeParam.FieldName]
+		if !exists {
+			return fmt.Errorf("parameter %q is required", rangeParam.FieldName)
+		}
+
+		parameterValueInt, ok := parameterValue.(int)
+		if !ok {
+			return fmt.Errorf("parameter %q must be a number", rangeParam.FieldName)
+		}
+
+		if parameterValueInt < rangeParam.MinValue || parameterValueInt > rangeParam.MaxValue {
+			return fmt.Errorf(
+				"parameter %q value %v is out of range [%v, %v]",
+				rangeParam.FieldName,
+				parameterValueInt,
+				rangeParam.MinValue,
+				rangeParam.MaxValue,
+			)
+		}
 	}
 
 	return nil
