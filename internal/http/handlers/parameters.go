@@ -38,6 +38,9 @@ type ParametersService interface {
 
 	// ApplyToClass применяет указанные параметры к категории. Возвращает количество добавленных параметров.
 	ApplyToClass(ctx context.Context, categoryID uint, numericIDs, enumIDs []int) (int, error)
+
+	// ExcludeFromClass исключает указанные параметры из категории. Возвращает количество исключенных параметров.
+	ExcludeFromClass(ctx context.Context, classID uint, rangeParameters, enumParameters []int) (int, error)
 }
 
 // NewParametersService создает новый экземпляр ParametersService.

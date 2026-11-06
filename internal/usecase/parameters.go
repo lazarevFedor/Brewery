@@ -26,6 +26,9 @@ type ParameterRepository interface {
 
 	// ApplyParameters применяет числовые и перечисляемые параметры к категории и возвращает результат применения.
 	ApplyParameters(ctx context.Context, classID uint, rangeParameters, enumParameters []int) (int, error)
+
+	// ExcludeParameters исключает указанные числовые и перечисляемые параметры из категории и возвращает количество исключенных параметров.
+	ExcludeParameters(ctx context.Context, classID uint, rangeParameters, enumParameters []int) (int, error)
 }
 
 // NewParameterRepository создает новый экземпляр ParameterRepository с предоставленным пулом соединений к базе данных.
@@ -131,4 +134,9 @@ func (s *ParametersService) ApplyToClass(ctx context.Context, classID uint, rang
 	}
 
 	return added, nil
+}
+
+func (s *ParametersService) ExcludeFromClass(ctx context.Context, classID uint, rangeIDs, enumIDs []int) (int, error) {
+	//TODO: сделаю завтра
+	return 0, nil
 }
