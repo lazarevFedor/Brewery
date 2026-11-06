@@ -1022,7 +1022,6 @@
           "History"
         ],
         "summary": "Register change in product specification",
-        "description": "Регистрирует факт изменения спецификации изделия (REGISTER_CHANGE(pIdProd, pChangeDesc)).",
         "operationId": "registerProductChange",
         "security": [
           {
@@ -2200,28 +2199,11 @@
                 "nullable": true,
                 "description": "ID базового изделия, на основе которого создано текущее"
               },
-              "parameters": {
-                "type": "object",
-                "additionalProperties": {
-                  "oneOf": [
-                    {"type":  "string"},
-                    {"type":  "number"}
-                  ]
-                }
-              },
               "amount": {
                 "type": "integer"
               },
               "units": {
                 "type": "string"
-              },
-              "materials": {
-                "type": "array",
-                "description": "Состав изделия при создании",
-                "items": {
-                  "$ref": "#/components/schemas/MaterialCreate"
-                },
-                "default": []
               }
             },
             "example": {
@@ -2231,13 +2213,7 @@
               },
               "base_id": null,
               "amount": 100,
-              "units": "L",
-              "materials": [
-                {
-                  "material_id": 5,
-                  "material_amount": 12.5
-                }
-              ]
+              "units": "L"
             }
           }
         ]
@@ -2249,27 +2225,7 @@
           },
           {
             "type": "object",
-            "required": [
-              "name",
-              "class_id",
-              "base_id"
-            ],
             "properties": {
-              "id": {
-                "type": "integer"
-              },
-              "class": {
-                "$ref": "#/components/schemas/ClassBase"
-              },
-              "parameters": {
-                "type": "object",
-                "additionalProperties": {
-                  "oneOf": [
-                    {"type":  "string"},
-                    {"type":  "number"}
-                  ]
-                }
-              },
               "class_id": {
                 "type": "integer"
               },
