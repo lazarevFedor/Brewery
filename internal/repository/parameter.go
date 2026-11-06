@@ -99,7 +99,7 @@ func (p *ParameterPostgres) DeleteRangeParameter(ctx context.Context, id uint) (
 //nolint:funlen
 func (p *ParameterPostgres) GetParameters(
 	ctx context.Context,
-	categoryID uint,
+	classID int64,
 	parameterType int,
 ) (
 	[]entities.RangeParameter,
@@ -115,8 +115,8 @@ func (p *ParameterPostgres) GetParameters(
 		return nil, nil, nil
 	}
 
-	if categoryID != 0 {
-		query := queries.SelectParameterIDsByCategory(categoryID, parameterType)
+	if classID != 0 {
+		query := queries.SelectParameterIDsByCategory(uint(classID), parameterType)
 		sql, args, err := query.ToSql()
 		if err != nil {
 			return nil, nil, err
@@ -139,7 +139,7 @@ func (p *ParameterPostgres) GetParameters(
 	var enumParams []entities.EnumParameter
 
 	if ((parameterType == entities.MissingType ||
-		parameterType == entities.RangeParameterType) && categoryID == 0) || len(numericIDs) > 0 {
+		parameterType == entities.RangeParameterType) && classID == 0) || len(numericIDs) > 0 {
 		log.Debug(ctx, "enum")
 		query = queries.SelectNumericParameters(numericIDs)
 		sql, args, err := query.ToSql()
@@ -163,7 +163,7 @@ func (p *ParameterPostgres) GetParameters(
 		}
 	}
 	if ((parameterType == entities.MissingType ||
-		parameterType == entities.EnumParameterType) && categoryID == 0) || len(numericIDs) > 0 {
+		parameterType == entities.EnumParameterType) && classID == 0) || len(numericIDs) > 0 {
 		query = queries.SelectEnumParameters(enumIDs)
 		sql, args, err := query.ToSql()
 		if err != nil {

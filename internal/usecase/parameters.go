@@ -22,7 +22,7 @@ type ParameterRepository interface {
 	DeleteRangeParameter(ctx context.Context, id uint) (*entities.RangeParameter, error)
 
 	// GetParameters извлекает все числовые и перечисляемые параметры из базы данных и возвращает их.
-	GetParameters(ctx context.Context, classID uint, parameterType int) ([]entities.RangeParameter, []entities.EnumParameter, error)
+	GetParameters(ctx context.Context, classID int64, parameterType int) ([]entities.RangeParameter, []entities.EnumParameter, error)
 
 	// ApplyParameters применяет числовые и перечисляемые параметры к категории и возвращает результат применения.
 	ApplyParameters(ctx context.Context, classID uint, rangeParameters, enumParameters []int) (int, error)
@@ -111,7 +111,7 @@ func (s *ParametersService) ListParameters(ctx context.Context, classID uint, pa
 		return nil, nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	numeric, enum, err := s.ParamRepo.GetParameters(ctx, classID, parameterType)
+	numeric, enum, err := s.ParamRepo.GetParameters(ctx, int64(classID), parameterType)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get parameters: %w", err)
 	}

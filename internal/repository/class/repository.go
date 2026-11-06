@@ -71,7 +71,7 @@ func (repo *Repository) UpdateClass(ctx context.Context, classUpdates entities.C
 
 	updateParams := queries.UpdateClassParams{
 		ID:                  classUpdates.ID,
-		NumericParameterIds: classUpdates.NumParamIDs,
+		NumericParameterIds: classUpdates.RangeParamIDs,
 		EnumParameterIds:    classUpdates.EnumParamIDs,
 	}
 	if classUpdates.Name == "" {
