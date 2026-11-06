@@ -2,15 +2,16 @@ package class
 
 import (
 	"Brewery/internal/entities"
-	"Brewery/internal/repository/mapper"
+	mpr "Brewery/internal/repository/mapper"
 	"Brewery/internal/repository/queries"
 	"context"
 	"errors"
 	"fmt"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+var mapper = mpr.ClassMapperImpl{}
 
 type Repository struct {
 	Pool  *pgxpool.Pool
@@ -32,7 +33,7 @@ func (repo *Repository) GetClasses(ctx context.Context) ([]entities.Class, error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get classes: %w", err)
 	}
-	return mapper.ToDomainClasses(classes), nil
+	return mapper.FromDBClasses(classes), nil
 }
 
 func (repo *Repository) InsertClass(ctx context.Context, class entities.Class) (*entities.Class, error) {
@@ -41,22 +42,14 @@ func (repo *Repository) InsertClass(ctx context.Context, class entities.Class) (
 	}
 	insertParams := queries.InsertClassParams{
 		Name:     class.Name,
-		ParentID: pgtype.Int8{Int64: *class.ParentID, Valid: true},
+		ParentID: &class.ParentID,
 	}
 	dbClass, err := repo.query.InsertClass(ctx, insertParams)
 	if err != nil {
 		return nil, fmt.Errorf("InsertClass: %w", err)
 	}
-	var parentID *int64
-	if dbClass.ParentID.Valid {
-		parentID = &dbClass.ParentID.Int64
-	}
-
-	return &entities.Class{
-		ID:       dbClass.ID,
-		Name:     dbClass.Name,
-		ParentID: parentID,
-	}, nil
+	class = mapper.FromInsert(dbClass)
+	return &class, nil
 }
 func (repo *Repository) GetClassByID(ctx context.Context, id int64) (*entities.Class, error) {
 	if repo.Pool == nil {
@@ -66,40 +59,33 @@ func (repo *Repository) GetClassByID(ctx context.Context, id int64) (*entities.C
 	if err != nil {
 		return nil, fmt.Errorf("GetClassByID: %w", err)
 	}
-	class := mapper.ToDomainClass(dbClass)
+	class := mapper.FromDBClass(dbClass)
 
 	return &class, nil
 }
 
-func (repo *Repository) UpdateClassParent(ctx context.Context, id int64, parentID int64) (*entities.Class, error) {
+func (repo *Repository) UpdateClass(ctx context.Context, classUpdates entities.Class) (*entities.Class, error) {
 	if repo.Pool == nil {
 		return nil, errors.New("db pool is empty")
 	}
-	updateParams := queries.UpdateParentClassParams{
-		ParentID: pgtype.Int8{Int64: id, Valid: true},
-		ID:       id,
-	}
-	dbClass, err := repo.query.UpdateParentClass(ctx, updateParams)
-	if err != nil {
-		return nil, fmt.Errorf("RenameClass: %w", err)
-	}
-	class := mapper.ToDomainClass(dbClass)
-	return &class, nil
-}
 
-func (repo *Repository) UpdateClassName(ctx context.Context, id int64, name string) (*entities.Class, error) {
-	if repo.Pool == nil {
-		return nil, errors.New("db pool is empty")
+	updateParams := queries.UpdateClassParams{
+		ID:                  classUpdates.ID,
+		NumericParameterIds: classUpdates.NumParamIDs,
+		EnumParameterIds:    classUpdates.EnumParamIDs,
 	}
-	updateParams := queries.RenameClassParams{
-		Name: name,
-		ID:   id,
+	if classUpdates.Name == "" {
+		updateParams.Name = nil
 	}
-	dbClass, err := repo.query.RenameClass(ctx, updateParams)
+	if classUpdates.ParentID == 0 {
+		updateParams.ParentID = nil
+	}
+
+	dbClass, err := repo.query.UpdateClass(ctx, updateParams)
 	if err != nil {
-		return nil, fmt.Errorf("RenameClass: %w", err)
+		return nil, fmt.Errorf("UpdateClass: %w", err)
 	}
-	class := mapper.ToDomainClass(dbClass)
+	class := mapper.FromDBClass(dbClass)
 	return &class, nil
 }
 
@@ -123,6 +109,6 @@ func (repo *Repository) GetClassByName(ctx context.Context, name string) (*entit
 	if err != nil {
 		return nil, fmt.Errorf("GetClassByName: %w", err)
 	}
-	class := mapper.ToDomainClass(dbClass)
+	class := mapper.FromDBClass(dbClass)
 	return &class, nil
 }

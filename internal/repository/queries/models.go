@@ -17,7 +17,7 @@ type Aggregate struct {
 
 type ChangeHistory struct {
 	ID        int64
-	ProductID pgtype.Int8
+	ProductID *int64
 	Changes   string
 	CreatedAt pgtype.Timestamptz
 }
@@ -25,7 +25,7 @@ type ChangeHistory struct {
 type Class struct {
 	ID                  int64
 	Name                string
-	ParentID            pgtype.Int8
+	ParentID            *int64
 	NumericParameterIds []int64
 	EnumParameterIds    []int64
 }
@@ -34,7 +34,7 @@ type EnumParameter struct {
 	ID          int64
 	EnumType    string
 	FieldName   string
-	Unit        pgtype.Text
+	Unit        *string
 	IsActive    bool
 	Inheritable bool
 }
@@ -42,12 +42,12 @@ type EnumParameter struct {
 type Material struct {
 	MaterialID     int64
 	ProductID      int64
-	MaterialAmount pgtype.Numeric
+	MaterialAmount float32
 }
 
 type ParameterValue struct {
 	ID              int64
-	EnumParameterID pgtype.Int8
+	EnumParameterID *int64
 	ValueRaw        string
 	Position        pgtype.Int4
 }
@@ -55,23 +55,23 @@ type ParameterValue struct {
 type Product struct {
 	ID      int64
 	Name    string
-	Amount  pgtype.Numeric
-	Units   pgtype.Text
+	Amount  *float32
+	Units   *string
 	ClassID int64
-	BaseID  pgtype.Int8
+	BaseID  *int64
 }
 
 type ProductsParameter struct {
 	ID             int64
-	ProductID      pgtype.Int8
-	EnumValueID    pgtype.Int8
-	RangeParameter pgtype.Int8
+	ProductID      *int64
+	EnumValueID    *int64
+	RangeParameter *int64
 }
 
 type RangeParameter struct {
 	ID          int64
-	MinVal      pgtype.Numeric
-	MaxVal      pgtype.Numeric
+	MinVal      *float32
+	MaxVal      *float32
 	Unit        string
 	FieldName   string
 	Inheritable bool

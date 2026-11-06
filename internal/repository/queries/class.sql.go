@@ -7,8 +7,6 @@ package queries
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const deleteClass = `-- name: DeleteClass :exec
@@ -120,13 +118,13 @@ INSERT INTO classes(
 
 type InsertClassParams struct {
 	Name     string
-	ParentID pgtype.Int8
+	ParentID *int64
 }
 
 type InsertClassRow struct {
 	ID       int64
 	Name     string
-	ParentID pgtype.Int8
+	ParentID *int64
 }
 
 func (q *Queries) InsertClass(ctx context.Context, arg InsertClassParams) (InsertClassRow, error) {
@@ -136,10 +134,14 @@ func (q *Queries) InsertClass(ctx context.Context, arg InsertClassParams) (Inser
 	return i, err
 }
 
-const renameClass = `-- name: RenameClass :one
+const updateClass = `-- name: UpdateClass :one
 UPDATE classes
-SET name = $1
-WHERE id = $2
+SET 
+    name = COALESCE($1, name),
+    parent_id = COALESCE($2, parent_id),
+    numeric_parameter_ids = COALESCE($3, numeric_parameter_ids),
+    enum_parameter_ids = COALESCE($4, enum_parameter_ids)
+WHERE id = $5
 RETURNING 
     id, 
     name, 
@@ -148,43 +150,22 @@ RETURNING
     enum_parameter_ids
 `
 
-type RenameClassParams struct {
-	Name string
-	ID   int64
+type UpdateClassParams struct {
+	Name                *string
+	ParentID            *int64
+	NumericParameterIds []int64
+	EnumParameterIds    []int64
+	ID                  int64
 }
 
-func (q *Queries) RenameClass(ctx context.Context, arg RenameClassParams) (Class, error) {
-	row := q.db.QueryRow(ctx, renameClass, arg.Name, arg.ID)
-	var i Class
-	err := row.Scan(
-		&i.ID,
-		&i.Name,
-		&i.ParentID,
-		&i.NumericParameterIds,
-		&i.EnumParameterIds,
+func (q *Queries) UpdateClass(ctx context.Context, arg UpdateClassParams) (Class, error) {
+	row := q.db.QueryRow(ctx, updateClass,
+		arg.Name,
+		arg.ParentID,
+		arg.NumericParameterIds,
+		arg.EnumParameterIds,
+		arg.ID,
 	)
-	return i, err
-}
-
-const updateParentClass = `-- name: UpdateParentClass :one
-UPDATE classes
-SET parent_id = $1
-WHERE id = $2
-RETURNING 
-    id, 
-    name, 
-    parent_id,
-    numeric_parameter_ids,
-    enum_parameter_ids
-`
-
-type UpdateParentClassParams struct {
-	ParentID pgtype.Int8
-	ID       int64
-}
-
-func (q *Queries) UpdateParentClass(ctx context.Context, arg UpdateParentClassParams) (Class, error) {
-	row := q.db.QueryRow(ctx, updateParentClass, arg.ParentID, arg.ID)
 	var i Class
 	err := row.Scan(
 		&i.ID,

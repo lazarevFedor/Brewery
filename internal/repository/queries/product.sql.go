@@ -7,8 +7,6 @@ package queries
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const deleteProduct = `-- name: DeleteProduct :exec
@@ -67,27 +65,27 @@ SELECT
     p.amount,
     p.units,
     p.base_id,
-    c.id,   
-    c.name,
-    c.parent_id,
-    c.numeric_parameter_ids,
-    c.enum_parameter_ids
+    c.id AS class_id,   
+    c.name AS class_name,
+    c.parent_id AS class_parent_id,
+    c.numeric_parameter_ids AS class_num_params,
+    c.enum_parameter_ids AS class_enum_params
 FROM products p
 JOIN classes c ON p.class_id = c.id
 WHERE p.id = $1
 `
 
 type GetProductByIDRow struct {
-	ID                  int64
-	Name                string
-	Amount              pgtype.Numeric
-	Units               pgtype.Text
-	BaseID              pgtype.Int8
-	ID_2                int64
-	Name_2              string
-	ParentID            pgtype.Int8
-	NumericParameterIds []int64
-	EnumParameterIds    []int64
+	ID              int64
+	Name            string
+	Amount          *float32
+	Units           *string
+	BaseID          *int64
+	ClassID         int64
+	ClassName       string
+	ClassParentID   *int64
+	ClassNumParams  []int64
+	ClassEnumParams []int64
 }
 
 func (q *Queries) GetProductByID(ctx context.Context, id int64) (GetProductByIDRow, error) {
@@ -99,11 +97,11 @@ func (q *Queries) GetProductByID(ctx context.Context, id int64) (GetProductByIDR
 		&i.Amount,
 		&i.Units,
 		&i.BaseID,
-		&i.ID_2,
-		&i.Name_2,
-		&i.ParentID,
-		&i.NumericParameterIds,
-		&i.EnumParameterIds,
+		&i.ClassID,
+		&i.ClassName,
+		&i.ClassParentID,
+		&i.ClassNumParams,
+		&i.ClassEnumParams,
 	)
 	return i, err
 }
@@ -117,10 +115,17 @@ SELECT
     class_id, 
     base_id
 FROM products
+LIMIT $1
+OFFSET $2
 `
 
-func (q *Queries) GetProducts(ctx context.Context) ([]Product, error) {
-	rows, err := q.db.Query(ctx, getProducts)
+type GetProductsParams struct {
+	Limit  int32
+	Offset int32
+}
+
+func (q *Queries) GetProducts(ctx context.Context, arg GetProductsParams) ([]Product, error) {
+	rows, err := q.db.Query(ctx, getProducts, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -161,23 +166,25 @@ INSERT INTO products(
     id,
     name,
     amount,
+    class_id,
     units,
     base_id
 `
 
 type InsertProductParams struct {
 	Name   string
-	Amount pgtype.Numeric
-	Units  pgtype.Text
-	BaseID pgtype.Int8
+	Amount *float32
+	Units  *string
+	BaseID *int64
 }
 
 type InsertProductRow struct {
-	ID     int64
-	Name   string
-	Amount pgtype.Numeric
-	Units  pgtype.Text
-	BaseID pgtype.Int8
+	ID      int64
+	Name    string
+	Amount  *float32
+	ClassID int64
+	Units   *string
+	BaseID  *int64
 }
 
 func (q *Queries) InsertProduct(ctx context.Context, arg InsertProductParams) (InsertProductRow, error) {
@@ -192,6 +199,7 @@ func (q *Queries) InsertProduct(ctx context.Context, arg InsertProductParams) (I
 		&i.ID,
 		&i.Name,
 		&i.Amount,
+		&i.ClassID,
 		&i.Units,
 		&i.BaseID,
 	)
@@ -216,20 +224,20 @@ RETURNING
 `
 
 type UpdateProductParams struct {
-	Name    string
-	Amount  pgtype.Numeric
-	Units   pgtype.Text
-	ClassID int64
-	BaseID  pgtype.Int8
+	Name    *string
+	Amount  *float32
+	Units   *string
+	ClassID *int64
+	BaseID  *int64
 	ID      int64
 }
 
 type UpdateProductRow struct {
 	ID     int64
 	Name   string
-	Amount pgtype.Numeric
-	Units  pgtype.Text
-	BaseID pgtype.Int8
+	Amount *float32
+	Units  *string
+	BaseID *int64
 }
 
 func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (UpdateProductRow, error) {
