@@ -18,9 +18,9 @@ func (c *ClassMapperImpl) FromDBClass(source queries.Class) entities.Class {
 		entitiesClass.ParentID = *source.ParentID
 	}
 	if source.NumericParameterIds != nil {
-		entitiesClass.NumParamIDs = make([]int64, len(source.NumericParameterIds))
+		entitiesClass.RangeParamIDs = make([]int64, len(source.NumericParameterIds))
 		for i := 0; i < len(source.NumericParameterIds); i++ {
-			entitiesClass.NumParamIDs[i] = source.NumericParameterIds[i]
+			entitiesClass.RangeParamIDs[i] = source.NumericParameterIds[i]
 		}
 	}
 	if source.EnumParameterIds != nil {
