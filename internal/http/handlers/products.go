@@ -6,6 +6,7 @@ import (
 	"Brewery/internal/entities"
 	"Brewery/internal/usecase"
 	"Brewery/pkg/logger"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -44,15 +45,25 @@ type BeersHandlers interface {
 	DeleteFeature(c *gin.Context)
 }
 
+type ProductService interface {
+	CreateProduct(ctx context.Context, product entities.Product) (*entities.Product, error)
+	GetProducts(ctx context.Context, limit, offset uint64) ([]entities.Product, error)
+	UpdateProduct(ctx context.Context, id int64, updates map[string]any) (*entities.Product, error)
+	DeleteProduct(ctx context.Context, id int64) error
+	GetProductsByClass(ctx context.Context, classID int64, limit, offset int32) ([]entities.Product, error)
+	GetFilteredProducts(ctx context.Context, filters []entities.FilterParameter, classID *uint, limit, offset int32) ([]entities.Product, error)
+	GetProductByID(ctx context.Context, id int64) (*entities.Product, error)
+}
+
 // beersHandlers реализует интерфейс BeersHandlers и использует сервис BeerService для обработки бизнес-логики.
 type beersHandlers struct {
-	uc usecase.BeerService
+	uc ProductService
 }
 
 // NewBeersHandlers создает новый экзмепляр beersHandler с предоставленным сервисом BeerService.
-func NewBeersHandlers(useCase usecase.BeerService) BeersHandlers {
+func NewBeersHandlers(useCase usecase.ProductService) BeersHandlers {
 	return &beersHandlers{
-		uc: useCase,
+		uc: &useCase,
 	}
 }
 

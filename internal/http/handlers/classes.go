@@ -5,11 +5,13 @@ import (
 	"Brewery/internal/entities"
 	"Brewery/internal/usecase"
 	"Brewery/pkg/logger"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 
 	"Brewery/internal/apperrors"
+
 	"github.com/gin-gonic/gin"
 	"github.com/mailru/easyjson"
 )
@@ -44,13 +46,23 @@ type CategoriesHandlers interface {
 
 // categoriesHandlers конкретная реализация интерфейса CategoriesHandlers, которая использует сервис BeerService для обработки бизнес-логики.
 type categoriesHandlers struct {
-	uc usecase.BeerService
+	uc ClassService
+}
+
+type ClassService interface {
+	GetAllClasses(ctx context.Context) ([]entities.Class, error)
+	CreateClass(ctx context.Context, class *entities.Class) (*entities.Class, error)
+	GetClassByID(ctx context.Context, id int64) (*entities.Class, error)
+	UpdateClass(ctx context.Context, id int64, updates map[string]any) (*entities.Class, error)
+	DeleteClassByID(ctx context.Context, id int64) error
+	GetParentClass(ctx context.Context, id int64) (*entities.Class, error)
+	GetChildClasses(ctx context.Context, id int64) ([]entities.Class, error)
 }
 
 // NewCategoriesHandlers создает новый экземпляр categoriesHandler с предоставленным сервисом BeerService.
-func NewCategoriesHandlers(useCase usecase.BeerService) CategoriesHandlers {
+func NewCategoriesHandlers(useCase usecase.ClassService) CategoriesHandlers {
 	return &categoriesHandlers{
-		uc: useCase,
+		uc: &useCase,
 	}
 }
 

@@ -11,11 +11,11 @@ import (
 type ProductRepository interface {
 	InsertProduct(ctx context.Context, product entities.Product) (*entities.Product, error)
 	GetProducts(ctx context.Context, limit, offset uint64) ([]entities.Product, error)
-	GetProductByID(ctx context.Context, productID uint) (*entities.Product, error)
-	UpdateProduct(ctx context.Context, productID uint, updates map[string]any) (*entities.Product, error)
-	DeleteProduct(ctx context.Context, productID uint) error
-	GetProductsByClass(ctx context.Context, classID uint, limit, offset uint64) ([]entities.Product, error)
-	GetFilteredProducts(ctx context.Context, filters []entities.FilterParameter, classID *uint, limit, offset uint64) ([]entities.Product, error)
+	GetProductByID(ctx context.Context, id int64) (*entities.Product, error)
+	UpdateProduct(ctx context.Context, id int64, updates map[string]any) (*entities.Product, error)
+	DeleteProduct(ctx context.Context, id int64) error
+	GetProductsByClass(ctx context.Context, classID int64, limit, offset int32) ([]entities.Product, error)
+	GetFilteredProducts(ctx context.Context, filters []entities.FilterParameter, classID *uint, limit int32, offset int32) ([]entities.Product, error)
 }
 
 type ProductService struct {
@@ -59,7 +59,7 @@ func (ps *ProductService) GetProducts(ctx context.Context, limit, offset uint64)
 	return products, nil
 }
 
-func (ps *ProductService) UpdateProduct(ctx context.Context, id uint, updates map[string]any) (*entities.Product, error) {
+func (ps *ProductService) UpdateProduct(ctx context.Context, id int64, updates map[string]any) (*entities.Product, error) {
 	err := ps.ValidateUpdates(updates)
 	if err != nil {
 		return nil, fmt.Errorf("failed to validate updates: %w", err)
@@ -73,7 +73,7 @@ func (ps *ProductService) UpdateProduct(ctx context.Context, id uint, updates ma
 	return product, nil
 }
 
-func (ps *ProductService) DeleteProduct(ctx context.Context, id uint) error {
+func (ps *ProductService) DeleteProduct(ctx context.Context, id int64) error {
 	if err := ctx.Err(); err != nil {
 		return fmt.Errorf("request cancelled: %w", err)
 	}
@@ -90,7 +90,7 @@ func (ps *ProductService) DeleteProduct(ctx context.Context, id uint) error {
 	return nil
 }
 
-func (ps *ProductService) GetProductsByClass(ctx context.Context, classID uint, limit, offset uint64) ([]entities.Product, error) {
+func (ps *ProductService) GetProductsByClass(ctx context.Context, classID int64, limit, offset int32) ([]entities.Product, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -107,7 +107,7 @@ func (ps *ProductService) GetProductsByClass(ctx context.Context, classID uint, 
 	return products, nil
 }
 
-func (ps *ProductService) GetFilteredProducts(ctx context.Context, filters []entities.FilterParameter, classID *uint, limit, offset uint64) ([]entities.Product, error) {
+func (ps *ProductService) GetFilteredProducts(ctx context.Context, filters []entities.FilterParameter, classID *uint, limit, offset int32) ([]entities.Product, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -120,7 +120,7 @@ func (ps *ProductService) GetFilteredProducts(ctx context.Context, filters []ent
 	return products, nil
 }
 
-func (ps *ProductService) GetProductByID(ctx context.Context, id uint) (*entities.Product, error) {
+func (ps *ProductService) GetProductByID(ctx context.Context, id int64) (*entities.Product, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
