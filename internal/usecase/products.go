@@ -2,10 +2,13 @@ package usecase
 
 import (
 	"Brewery/internal/entities"
+	"Brewery/internal/repository/product"
 	"context"
 	"errors"
 	"fmt"
 	"reflect"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type ProductRepository interface {
@@ -16,6 +19,11 @@ type ProductRepository interface {
 	DeleteProduct(ctx context.Context, id int64) error
 	GetProductsByClass(ctx context.Context, classID int64, limit, offset int32) ([]entities.Product, error)
 	GetFilteredProducts(ctx context.Context, filters []entities.FilterParameter, classID *uint, limit int32, offset int32) ([]entities.Product, error)
+}
+
+// NewProductRepository создает новый экземпляр ProductRepository с использованием предоставленного пула соединений к базе данных.
+func NewProductRepository(pool *pgxpool.Pool) ProductRepository {
+	return &product.Repository{Pool: pool}
 }
 
 type ProductService struct {
