@@ -50,10 +50,11 @@ func (ps *ProductService) CreateProduct(ctx context.Context, p entities.Product)
 	}
 
 	createdProduct, err := ps.repo.InsertProduct(ctx, p)
-	if err != nil {
+	if createdProduct == nil || err != nil {
 		return nil, fmt.Errorf("failed to create product: %w", err)
 	}
-	if p.BaseID != 0 {
+
+	if createdProduct.BaseID != 0 {
 		err = ps.materialRepo.CopyProductMaterials(ctx, createdProduct.BaseID, createdProduct.ID)
 		if err != nil {
 			return createdProduct, fmt.Errorf("failed to inherit materials from base product: %w", err)
@@ -163,6 +164,10 @@ func (ps *ProductService) GetProductByID(ctx context.Context, id int64) (*entiti
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
+	if id == 0 {
+		return nil, errors.New("invalid product id")
+	}
+
 	p, err := ps.repo.GetProductByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get product: %w", err)
@@ -201,7 +206,7 @@ func (ps *ProductService) ValidateUpdates(ctx context.Context, updates map[strin
 			}
 		case "amount":
 			amount, _ := updates[key]
-			if amountUint, ok := amount.(float32); !ok || amountUint == 0 {
+			if amountUint, ok := amount.(float32); !ok || amountUint < 0 {
 				return errors.New("invalid amount")
 			}
 		case "units":
@@ -223,8 +228,13 @@ func (ps *ProductService) ValidateProductWithParameters(ctx context.Context, pro
 		if err != nil {
 			return fmt.Errorf("failed to get enum values for class ID %d: %w", id, err)
 		}
+
+		if enumValues == nil {
+			break
+		}
+
 		enumClass, err := ps.enumRepo.GetEnumClassByID(ctx, uint(id))
-		if err != nil {
+		if enumClass == nil || err != nil {
 			return fmt.Errorf("failed to get enum class for ID %d: %w", id, err)
 		}
 
@@ -247,6 +257,11 @@ func (ps *ProductService) ValidateProductWithParameters(ctx context.Context, pro
 	if err != nil {
 		return fmt.Errorf("failed to get range parameters for class ID %d: %w", product.ProdClass.ID, err)
 	}
+
+	if rangeParameters == nil {
+		return nil
+	}
+
 	for _, rangeParam := range rangeParameters {
 		parameterValue, exists := product.Parameters[rangeParam.FieldName]
 		if !exists {

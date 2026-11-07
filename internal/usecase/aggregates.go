@@ -81,6 +81,10 @@ func (s *AggregateService) UpdateAggregate(ctx context.Context, id uint, updates
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
+	if id == 0 {
+		return nil, errors.New("invalid aggregate ID")
+	}
+
 	if len(updates) == 0 {
 		return nil, errors.New("no updates provided")
 	}
@@ -99,6 +103,10 @@ func (s *AggregateService) DeleteAggregate(ctx context.Context, id uint) (*entit
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
+	if id == 0 {
+		return nil, errors.New("invalid aggregate ID")
+	}
+
 	deleted, err := s.AggregateRepo.DeleteAggregate(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete aggregate: %w", err)
@@ -111,6 +119,10 @@ func (s *AggregateService) DeleteAggregate(ctx context.Context, id uint) (*entit
 func (s *AggregateService) ApplyAggregateToClass(ctx context.Context, classID, aggregateID uint) (int, error) {
 	if err := ctx.Err(); err != nil {
 		return 0, fmt.Errorf("request cancelled: %w", err)
+	}
+
+	if classID == 0 || aggregateID == 0 {
+		return 0, errors.New("invalid class ID or aggregate ID")
 	}
 
 	added, err := s.AggregateRepo.ApplyAggregate(ctx, classID, aggregateID)

@@ -36,6 +36,10 @@ func (hs *HistoryService) CreateChangeRecord(ctx context.Context, record *entiti
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
+	if record == nil {
+		return nil, errors.New("record cannot be nil")
+	}
+
 	record.CreatedAt = time.Now()
 
 	record, err := hs.repo.InsertChangeRecord(ctx, *record)
