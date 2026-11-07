@@ -47,7 +47,7 @@ type BeersHandlers interface {
 
 type ProductService interface {
 	CreateProduct(ctx context.Context, product entities.Product) (*entities.Product, error)
-	GetProducts(ctx context.Context, limit, offset uint64) ([]entities.Product, error)
+	GetProducts(ctx context.Context, limit, offset int32) ([]entities.Product, error)
 	UpdateProduct(ctx context.Context, id int64, updates map[string]any) (*entities.Product, error)
 	DeleteProduct(ctx context.Context, id int64) error
 	GetProductsByClass(ctx context.Context, classID int64, limit, offset int32) ([]entities.Product, error)

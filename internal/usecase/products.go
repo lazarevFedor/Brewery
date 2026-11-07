@@ -10,7 +10,7 @@ import (
 
 type ProductRepository interface {
 	InsertProduct(ctx context.Context, product entities.Product) (*entities.Product, error)
-	GetProducts(ctx context.Context, limit, offset uint64) ([]entities.Product, error)
+	GetProducts(ctx context.Context, limit, offset int32) ([]entities.Product, error)
 	GetProductByID(ctx context.Context, id int64) (*entities.Product, error)
 	UpdateProduct(ctx context.Context, id int64, updates map[string]any) (*entities.Product, error)
 	DeleteProduct(ctx context.Context, id int64) error
@@ -46,7 +46,7 @@ func (ps *ProductService) CreateProduct(ctx context.Context, product entities.Pr
 	return createdProduct, nil
 }
 
-func (ps *ProductService) GetProducts(ctx context.Context, limit, offset uint64) ([]entities.Product, error) {
+func (ps *ProductService) GetProducts(ctx context.Context, limit, offset int32) ([]entities.Product, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
