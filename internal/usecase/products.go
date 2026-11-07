@@ -16,6 +16,7 @@ type ProductRepository interface {
 	DeleteProduct(ctx context.Context, id int64) error
 	GetProductsByClass(ctx context.Context, classID int64, limit, offset int32) ([]entities.Product, error)
 	GetFilteredProducts(ctx context.Context, filters []entities.FilterParameter, classID *uint, limit int32, offset int32) ([]entities.Product, error)
+	InheritMaterials(ctx context.Context, baseID, productID int64) error
 }
 
 type ProductService struct {
