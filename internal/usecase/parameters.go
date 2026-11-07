@@ -137,6 +137,14 @@ func (s *ParametersService) ApplyToClass(ctx context.Context, classID uint, rang
 }
 
 func (s *ParametersService) ExcludeFromClass(ctx context.Context, classID uint, rangeIDs, enumIDs []int) (int, error) {
-	//TODO: сделаю завтра
-	return 0, nil
+	if err := ctx.Err(); err != nil {
+		return 0, fmt.Errorf("request cancelled: %w", err)
+	}
+
+	excluded, err := s.ParamRepo.ExcludeParameters(ctx, classID, rangeIDs, enumIDs)
+	if err != nil {
+		return 0, fmt.Errorf("failed to exclude parameters: %w", err)
+	}
+
+	return excluded, nil
 }
