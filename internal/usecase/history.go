@@ -31,19 +31,23 @@ type HistoryService struct {
 	repo HistoryRecordRepository
 }
 
-func (hs *HistoryService) CreateChangeRecord(ctx context.Context, record entities.HistoryRecord) (*entities.HistoryRecord, error) {
+func (hs *HistoryService) CreateChangeRecord(ctx context.Context, record *entities.HistoryRecord) (*entities.HistoryRecord, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
+	if record == nil {
+		return nil, errors.New("record cannot be nil")
+	}
+
 	record.CreatedAt = time.Now()
 
-	_, err := hs.repo.InsertChangeRecord(ctx, record)
+	record, err := hs.repo.InsertChangeRecord(ctx, *record)
 	if err != nil {
 		return nil, err
 	}
 
-	return &record, nil
+	return record, nil
 }
 
 func (hs *HistoryService) GetHistoryByProduct(
@@ -55,7 +59,7 @@ func (hs *HistoryService) GetHistoryByProduct(
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	if start.After(end) {
+	if !start.IsZero() && !end.IsZero() && start.After(end) {
 		return nil, errors.New("start date cannot be after end date")
 	}
 
