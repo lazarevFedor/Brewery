@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS materials (
 
 CREATE TABLE IF NOT EXISTS change_history (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    product_id BIGINT REFERENCES products(id) ON DELETE CASCADE,
+    product_id BIGINT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
     changes TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
@@ -50,9 +50,12 @@ WHERE parent_id IS NULL;
 --                INDEXES
 -- ==========================================
 
+-- Индексы для поиска по material_id и product_id
+CREATE INDEX idx_materials_material_id ON materials(material_id);
+CREATE INDEX idx_materials_product_id ON materials(product_id);
+
 -- Индекс для поиска по parent_id
 CREATE INDEX idx_classes_parent_id ON classes (parent_id);
-
 
 -- Индекс для поиска товаров по категориям
 CREATE INDEX idx_products_class_id ON products(class_id);
