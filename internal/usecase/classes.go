@@ -151,8 +151,12 @@ func (c *ClassService) GetParentClass(ctx context.Context, id int64) (*entities.
 	}
 
 	class, err := c.repo.GetClassByID(ctx, id)
-	if class == nil || err != nil {
+	if err != nil {
 		return nil, fmt.Errorf("failed to get class: %w", err)
+	}
+
+	if class == nil {
+		return nil, errors.New("class not found")
 	}
 
 	if class.ParentID == 0 {
@@ -216,8 +220,12 @@ func (c *ClassService) ensureClassParentIsNotDescendant(ctx context.Context, cla
 func (c *ClassService) ValidateClassUpdates(ctx context.Context, id int64, updates map[string]any) (*entities.Class, error) {
 	var ok bool
 	class, err := c.repo.GetClassByID(ctx, id)
-	if class == nil || err != nil {
+	if err != nil {
 		return nil, fmt.Errorf("failed to get class: %w", err)
+	}
+
+	if class == nil {
+		return nil, errors.New("class not found")
 	}
 
 	for key, value := range updates {

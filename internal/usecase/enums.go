@@ -133,6 +133,18 @@ func (s *EnumService) CreateEnumValue(ctx context.Context, enum entities.EnumVal
 		return 0, fmt.Errorf("request cancelled: %w", err)
 	}
 
+	if enum.EnumClassID == 0 {
+		return 0, fmt.Errorf("enum class ID cannot be zero")
+	}
+
+	if enum.Value == nil {
+		return 0, fmt.Errorf("enum value cannot be nil")
+	}
+
+	if enum.ValueType == "" {
+		return 0, fmt.Errorf("enum value type cannot be empty")
+	}
+
 	id, err := s.Repo.InsertEnumValue(ctx, enum)
 	if err != nil {
 		return 0, fmt.Errorf("failed to create enum value: %w", err)
@@ -145,6 +157,14 @@ func (s *EnumService) CreateEnumValue(ctx context.Context, enum entities.EnumVal
 func (s *EnumService) GetEnumValue(ctx context.Context, fieldName string, valueType entities.EnumType) ([]entities.EnumValue, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
+	}
+
+	if fieldName == "" {
+		return nil, fmt.Errorf("field name cannot be empty")
+	}
+
+	if valueType == "" {
+		return nil, fmt.Errorf("value type cannot be empty")
 	}
 
 	enums, err := s.Repo.GetEnumValues(ctx, fieldName, valueType)

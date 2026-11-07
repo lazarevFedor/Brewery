@@ -152,6 +152,10 @@ func (s *ParametersService) ApplyToClass(ctx context.Context, classID uint, rang
 		return 0, errors.New("invalid class ID")
 	}
 
+	if len(rangeIDs) == 0 && len(enumIDs) == 0 {
+		return 0, errors.New("no parameters to exclude")
+	}
+
 	added, err := s.ParamRepo.ApplyParameters(ctx, classID, rangeIDs, enumIDs)
 	if err != nil {
 		return 0, fmt.Errorf("failed to apply parameters: %w", err)

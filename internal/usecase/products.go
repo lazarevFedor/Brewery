@@ -50,8 +50,12 @@ func (ps *ProductService) CreateProduct(ctx context.Context, p entities.Product)
 	}
 
 	createdProduct, err := ps.repo.InsertProduct(ctx, p)
-	if createdProduct == nil || err != nil {
+	if err != nil {
 		return nil, fmt.Errorf("failed to create product: %w", err)
+	}
+
+	if createdProduct == nil {
+		return nil, errors.New("failed to create product: returned product is nil")
 	}
 
 	if createdProduct.BaseID != 0 {
@@ -230,7 +234,7 @@ func (ps *ProductService) ValidateProductWithParameters(ctx context.Context, pro
 		}
 
 		if enumValues == nil {
-			break
+			continue
 		}
 
 		enumClass, err := ps.enumRepo.GetEnumClassByID(ctx, uint(id))
@@ -303,8 +307,12 @@ func (ps *ProductService) ValidateProductCreation(ctx context.Context, p entitie
 	}
 
 	class, err := ps.classRepo.GetClassByName(ctx, p.ProdClass.Name)
-	if class == nil || err != nil {
+	if err != nil {
 		return p, fmt.Errorf("failed to get class by name: %w", err)
+	}
+
+	if class == nil {
+		return p, fmt.Errorf("class with name %s does not exist", p.ProdClass.Name)
 	}
 
 	p.ProdClass = *class
