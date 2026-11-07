@@ -23,6 +23,7 @@ type ProductService struct {
 	repo      ProductRepository
 	enumRepo  EnumRepository
 	paramRepo ParameterRepository
+	classRepo ClassRepository
 }
 
 func (ps *ProductService) CreateProduct(ctx context.Context, product entities.Product) (*entities.Product, error) {
@@ -61,7 +62,11 @@ func (ps *ProductService) GetProducts(ctx context.Context, limit, offset int32) 
 }
 
 func (ps *ProductService) UpdateProduct(ctx context.Context, id int64, updates map[string]any) (*entities.Product, error) {
-	err := ps.ValidateUpdates(updates)
+	_, err := ps.repo.GetProductByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get product: %w", err)
+	}
+	err = ps.ValidateUpdates(ctx, updates)
 	if err != nil {
 		return nil, fmt.Errorf("failed to validate updates: %w", err)
 	}
@@ -134,7 +139,9 @@ func (ps *ProductService) GetProductByID(ctx context.Context, id int64) (*entiti
 	return product, nil
 }
 
-func (ps *ProductService) ValidateUpdates(updates map[string]any) error {
+func (ps *ProductService) ValidateUpdates(ctx context.Context, updates map[string]any) error {
+	var baseIDInt int64
+
 	for key := range updates {
 		switch key {
 		case "name":
@@ -149,12 +156,16 @@ func (ps *ProductService) ValidateUpdates(updates map[string]any) error {
 			}
 		case "base_id":
 			baseID, _ := updates[key]
-			if baseIDUint, ok := baseID.(int); !ok || baseIDUint == 0 {
+			if baseIDInt, ok := baseID.(int64); !ok || baseIDInt == 0 {
 				return errors.New("invalid base id")
+			}
+			_, err := ps.repo.GetProductByID(ctx, baseIDInt)
+			if err != nil {
+				return fmt.Errorf("base product with id %d does not exist: %w", baseIDInt, err)
 			}
 		case "amount":
 			amount, _ := updates[key]
-			if amountUint, ok := amount.(uint); !ok || amountUint == 0 {
+			if amountUint, ok := amount.(float32); !ok || amountUint == 0 {
 				return errors.New("invalid amount")
 			}
 		case "units":
