@@ -151,7 +151,7 @@ func (c *ClassService) GetParentClass(ctx context.Context, id int64) (*entities.
 	}
 
 	class, err := c.repo.GetClassByID(ctx, id)
-	if err != nil {
+	if class == nil || err != nil {
 		return nil, fmt.Errorf("failed to get class: %w", err)
 	}
 
@@ -214,18 +214,21 @@ func (c *ClassService) ensureClassParentIsNotDescendant(ctx context.Context, cla
 }
 
 func (c *ClassService) ValidateClassUpdates(ctx context.Context, id int64, updates map[string]any) (*entities.Class, error) {
-	class := &entities.Class{}
 	var ok bool
+	class, err := c.repo.GetClassByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get class: %w", err)
+	}
 
 	for key, value := range updates {
-		if key == "name" {
+		switch key {
+		case "name":
 			class.Name, ok = value.(string)
 			if !ok {
 				return nil, errors.New("name must be a string")
 			}
-		}
 
-		if key == "parent_id" {
+		case "parent_id":
 			class.ParentID, ok = value.(int64)
 			if !ok {
 				return nil, errors.New("parent_id must be an int64")
@@ -238,22 +241,22 @@ func (c *ClassService) ValidateClassUpdates(ctx context.Context, id int64, updat
 					return nil, fmt.Errorf("failed to update parent class: %w", err)
 				}
 			}
-		}
 
-		if key == "range_param_ids" {
+		case "range_param_ids":
 			rangeParamIDs, ok := value.([]int64)
 			if !ok {
 				return nil, errors.New("range_param_ids must be a slice of int64")
 			}
 			class.RangeParamIDs = rangeParamIDs
-		}
 
-		if key == "enum_param_ids" {
+		case "enum_param_ids":
 			enumParamIDs, ok := value.([]int64)
 			if !ok {
 				return nil, errors.New("enum_param_ids must be a slice of int64")
 			}
 			class.EnumParamIDs = enumParamIDs
+		default:
+			return nil, fmt.Errorf("unknown field: %s", key)
 		}
 	}
 

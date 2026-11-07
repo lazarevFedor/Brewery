@@ -56,6 +56,10 @@ func (s *ParametersService) CreateRange(ctx context.Context, param *entities.Ran
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
+	if param == nil {
+		return nil, errors.New("parameter is nil")
+	}
+
 	if param.FieldName == "" {
 		return nil, errors.New("field_name is required")
 	}

@@ -45,6 +45,10 @@ func (s *AggregateService) CreateAggregate(ctx context.Context, aggregate *entit
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
+	if aggregate == nil {
+		return nil, errors.New("aggregate is nil")
+	}
+
 	if aggregate.Name == "" {
 		return nil, errors.New("aggregate name is required")
 	}
