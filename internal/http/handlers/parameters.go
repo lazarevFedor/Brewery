@@ -1,540 +1,278 @@
-// Package handlers содержит реализацию HTTP-обработчиков для управления пивоварней.
 package handlers
 
 import (
+	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
-	"Brewery/internal/usecase"
-	"Brewery/pkg/logger"
 	"context"
-	"encoding/json"
-	"fmt"
+	"errors"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/mailru/easyjson"
+	"go.uber.org/zap"
 )
 
-const (
-	enumQuery    = "enum"
-	numericQuery = "numeric"
-)
-
-// ParametersService - сервис для управления параметрами.
+// ParametersService - сервис для управления параметрами классов.
 type ParametersService interface {
 
 	// CreateRange создает числовой параметр.
 	CreateRange(ctx context.Context, param *entities.RangeParameter) (*entities.RangeParameter, error)
 
-	// UpdateRange обновляет числовой параметр. Единственные поля, которые можно обновлять - min_val, max_val и inheritable.
+	// UpdateRange обновляет числовой параметр. Обновлять можно только min_val, max_val, inheritable и unit.
 	UpdateRange(ctx context.Context, id uint, updates map[string]any) (*entities.RangeParameter, error)
 
 	// DeleteRange удаляет числовой параметр.
 	DeleteRange(ctx context.Context, id uint) (*entities.RangeParameter, error)
 
-	// ListParameters возвращает все параметры, применимые к категории.
-	// categoryID = 0 - без фильтра по категории, paramType = "" - все типы, "numeric" - только числовые, "enum" - только перечисления
-	ListParameters(ctx context.Context, categoryID uint, parameterType int) ([]entities.RangeParameter, []entities.EnumParameter, error)
+	// ListParameters возвращает параметры. classID = 0 - без фильтра по классу.
+	ListParameters(ctx context.Context, classID uint, parameterType int) ([]entities.RangeParameter, []entities.EnumParameter, error)
 
-	// ApplyToClass применяет указанные параметры к категории. Возвращает количество добавленных параметров.
-	ApplyToClass(ctx context.Context, categoryID uint, numericIDs, enumIDs []int) (int, error)
+	// ApplyToClass применяет параметры к классу. Возвращает количество добавленных параметров.
+	ApplyToClass(ctx context.Context, classID uint, rangeIDs, enumIDs []int) (int, error)
 
-	// ExcludeFromClass исключает указанные параметры из категории. Возвращает количество исключенных параметров.
-	ExcludeFromClass(ctx context.Context, classID uint, rangeParameters, enumParameters []int) (int, error)
+	// ExcludeFromClass исключает параметры из класса. Возвращает количество исключенных параметров.
+	ExcludeFromClass(ctx context.Context, classID uint, rangeIDs, enumIDs []int) (int, error)
 }
 
-// NewParametersService создает новый экземпляр ParametersService.
-func NewParametersService(paramRepo usecase.ParameterRepository, enumRepo usecase.EnumRepository) ParametersService {
-	return &usecase.ParametersService{
-		ParamRepo: paramRepo,
-		EnumRepo:  enumRepo,
-	}
-}
-
-// ParametersHandlers - интерфейс для обработки HTTP-запросов, связанных с параметрами категорий.
+// ParametersHandlers - HTTP-обработчики для параметров классов.
 type ParametersHandlers interface {
 
-	// CreateNumericParameter - обработчик для создания числового параметра.
-	CreateNumericParameter(c *gin.Context)
+	// CreateRangeParameter обрабатывает POST /classes/parameters/range.
+	CreateRangeParameter(c *gin.Context)
 
-	// UpdateNumericParameter - обработчик для обновления числового параметра.
-	UpdateNumericParameter(c *gin.Context)
-
-	// DeleteNumericParameter - обработчик для удаления числового параметра.
-	DeleteNumericParameter(c *gin.Context)
-
-	// CreateEnumParameter - обработчик для создания параметра типа "enum".
-	CreateEnumParameter(c *gin.Context)
-
-	// UpdateEnumParameter - обработчик для обновления параметра типа "enum".
-	UpdateEnumParameter(c *gin.Context)
-
-	// DeleteEnumParameter - обработчик для удаления параметра типа "enum".
-	DeleteEnumParameter(c *gin.Context)
-
-	// UpdateParameter - обработчик для обновления параметров.
+	// UpdateParameter обрабатывает PATCH /classes/parameters/{id}.
 	UpdateParameter(c *gin.Context)
 
-	// DeleteParameter - обработчик для удаления параметров.
+	// DeleteParameter обрабатывает DELETE /classes/parameters/{id}.
 	DeleteParameter(c *gin.Context)
 
-	// ListCategoryParameters - обработчик для получения списка параметров, связанных с категорией.
-	ListCategoryParameters(c *gin.Context)
+	// ListParameters обрабатывает GET /classes/parameters.
+	ListParameters(c *gin.Context)
 
-	// ApplyParametersToCategory - обработчик для применения параметров к категории.
-	ApplyParametersToCategory(c *gin.Context)
+	// ApplyParametersToClass обрабатывает PATCH /classes/parameters/apply/{class_id}.
+	ApplyParametersToClass(c *gin.Context)
+
+	// ExcludeParametersFromClass обрабатывает PATCH /classes/parameters/exclude/{class_id}.
+	ExcludeParametersFromClass(c *gin.Context)
+}
+
+// classParamsRequest - тело запросов apply/exclude (схемы ClassParamsApply и ClassParamsExclude).
+type classParamsRequest struct {
+	RangeParamIDs []int `json:"range_param_ids"`
+	EnumParamIDs  []int `json:"enum_param_ids"`
+}
+
+// parameterTypes сопоставляет значение query-параметра type с типом параметра.
+// numeric оставлен для совместимости со старым API.
+var parameterTypes = map[string]int{
+	"":        entities.MissingType,
+	"range":   entities.RangeParameterType,
+	"numeric": entities.RangeParameterType,
+	"enum":    entities.EnumParameterType,
 }
 
 // parametersHandlers - реализация интерфейса ParametersHandlers.
 type parametersHandlers struct {
-	uc usecase.ParametersService
+	uc ParametersService
 }
 
-// NewParametersHandlers - конструктор для создания нового экземпляра ParametersHandlers.
-func NewParametersHandlers(uc usecase.ParametersService) ParametersHandlers {
-	return &parametersHandlers{
-		uc: uc,
-	}
+// NewParametersHandlers создает обработчики параметров классов.
+func NewParametersHandlers(uc ParametersService) ParametersHandlers {
+	return &parametersHandlers{uc: uc}
 }
 
-// CreateNumericParameter - обработчик для создания числового параметра.
-func (h *parametersHandlers) CreateNumericParameter(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+// CreateRangeParameter обрабатывает POST /classes/parameters/range.
+func (h *parametersHandlers) CreateRangeParameter(c *gin.Context) {
+	log, ok := getLogger(c)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get logger from context"})
-		return
-	}
-
-	body, err := readRequestBody(c)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read request body: %v", err))
 		return
 	}
 
 	var req entities.RangeParameter
-	if err = easyjson.Unmarshal(body, &req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to unmarshal numeric parameter: %v", err))
+	if !bindJSON(c, &req) {
+		return
+	}
+
+	if req.FieldName == "" {
+		writeError(c, http.StatusBadRequest, apperrors.CodeValidation, "field_name is required")
+		return
+	}
+
+	if req.MinValue > req.MaxValue {
+		writeError(c, http.StatusBadRequest, apperrors.CodeValidation, "min_val must not be greater than max_val")
 		return
 	}
 
 	created, err := h.uc.CreateRange(c.Request.Context(), &req)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to create numeric parameter: %v", err))
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		handleError(c, log, "failed to create range parameter", err)
 		return
 	}
 
-	rawBytes, err := json.Marshal(created)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal response: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
-		return
-	}
-
-	c.Data(http.StatusCreated, "application/json; charset=utf-8", rawBytes)
-	log.Info(c.Request.Context(), fmt.Sprintf("action=create resource=numeric_parameter status=success id=%d", created.ID))
+	log.Info(c.Request.Context(), "action=create resource=range_parameter status=success", zap.Uint("id", created.ID))
+	c.JSON(http.StatusCreated, created)
 }
 
-// UpdateNumericParameter - обработчик для обновления числового параметра.
-func (h *parametersHandlers) UpdateNumericParameter(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
-	if !ok {
-		c.Status(http.StatusInternalServerError)
-		return
-	}
-
-	id, err := getUintParam(c, "id")
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid numeric parameter id: %v", err))
-		return
-	}
-
-	body, err := readRequestBody(c)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read request body: %v", err))
-		return
-	}
-
-	updates := make(map[string]any)
-	if err = json.Unmarshal(body, &updates); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-		return
-	}
-
-	if len(updates) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "empty update payload"})
-		return
-	}
-
-	updated, err := h.uc.UpdateRange(c.Request.Context(), id, updates)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to update numeric parameter: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	rawBytes, err := json.Marshal(updated)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal response: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
-		return
-	}
-
-	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
-	log.Info(c.Request.Context(), fmt.Sprintf("action=update resource=numeric_parameter status=success id=%d", id))
-}
-
-// DeleteNumericParameter - обработчик для удаления числового параметра.
-func (h *parametersHandlers) DeleteNumericParameter(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
-	if !ok {
-		c.Status(http.StatusInternalServerError)
-		return
-	}
-
-	id, err := getUintParam(c, "id")
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid numeric parameter id: %v", err))
-		return
-	}
-
-	deleted, err := h.uc.DeleteNumeric(c.Request.Context(), id)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to delete numeric parameter: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	rawBytes, err := json.Marshal(deleted)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal response: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
-		return
-	}
-
-	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
-	log.Info(c.Request.Context(), fmt.Sprintf("action=delete resource=numeric_parameter status=success id=%d", id))
-}
-
-// CreateEnumParameter - обработчик для создания параметра типа "enum".
-func (h *parametersHandlers) CreateEnumParameter(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get logger from context"})
-		return
-	}
-
-	body, err := readRequestBody(c)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read request body: %v", err))
-		return
-	}
-
-	var req entities.EnumParameter
-	if err = easyjson.Unmarshal(body, &req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to unmarshal enum parameter: %v", err))
-		return
-	}
-
-	created, err := h.uc.CreateEnum(c.Request.Context(), &req)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to create enum parameter: %v", err))
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	rawBytes, err := json.Marshal(created)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal response: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
-		return
-	}
-
-	c.Data(http.StatusCreated, "application/json; charset=utf-8", rawBytes)
-	log.Info(c.Request.Context(), fmt.Sprintf("action=create resource=enum_parameter status=success id=%d", created.ID))
-}
-
-// UpdateEnumParameter - обработчик для обновления параметра типа "enum".
-func (h *parametersHandlers) UpdateEnumParameter(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
-	if !ok {
-		c.Status(http.StatusInternalServerError)
-		return
-	}
-
-	id, err := getUintParam(c, "id")
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid enum parameter id: %v", err))
-		return
-	}
-
-	body, err := readRequestBody(c)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read request body: %v", err))
-		return
-	}
-
-	updates := make(map[string]any)
-	if err = json.Unmarshal(body, &updates); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-		return
-	}
-
-	if len(updates) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "empty update payload"})
-		return
-	}
-
-	updated, err := h.uc.UpdateEnum(c.Request.Context(), id, updates)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to update enum parameter: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	rawBytes, err := json.Marshal(updated)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal response: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
-		return
-	}
-
-	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
-	log.Info(c.Request.Context(), fmt.Sprintf("action=update resource=enum_parameter status=success id=%d", id))
-}
-
-// UpdateParameter - обработчик для обновления параметров.
-//
-//nolint:funlen
+// UpdateParameter обрабатывает PATCH /classes/parameters/{id}.
 func (h *parametersHandlers) UpdateParameter(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+	log, ok := getLogger(c)
 	if !ok {
-		c.Status(http.StatusInternalServerError)
 		return
 	}
 
-	id, err := getUintParam(c, "id")
+	id, err := getIDParam(c, "id")
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid parameter id: %v", err))
+		badRequest(c, log, apperrors.CodeInvalidID, err)
 		return
 	}
 
-	typ := c.Query("type")
-	if typ == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "type query param is required"})
+	updates, ok := bindUpdates(c)
+	if !ok {
 		return
 	}
 
-	body, err := readRequestBody(c)
+	updated, err := h.uc.UpdateRange(c.Request.Context(), toUint(id), updates)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read request body: %v", err))
+		handleError(c, log, "failed to update range parameter", err)
 		return
 	}
 
-	updates := make(map[string]any)
-	if err = json.Unmarshal(body, &updates); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-		return
-	}
-
-	if len(updates) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "empty update payload"})
-		return
-	}
-
-	switch typ {
-	case numericQuery:
-		updated, err := h.uc.UpdateRange(c.Request.Context(), id, updates)
-		if err != nil {
-			log.Error(c.Request.Context(), fmt.Sprintf("Failed to update numeric parameter: %v", err))
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		rawBytes, err := json.Marshal(updated)
-		if err != nil {
-			log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal response: %v", err))
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
-			return
-		}
-
-		c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
-		log.Info(c.Request.Context(), fmt.Sprintf("action=update resource=numeric_parameter status=success id=%d", id))
-	case enumQuery:
-		updated, err := h.uc.UpdateEnum(c.Request.Context(), id, updates)
-		if err != nil {
-			log.Error(c.Request.Context(), fmt.Sprintf("Failed to update enum parameter: %v", err))
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		rawBytes, err := json.Marshal(updated)
-		if err != nil {
-			log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal response: %v", err))
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
-			return
-		}
-
-		c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
-		log.Info(c.Request.Context(), fmt.Sprintf("action=update resource=enum_parameter status=success id=%d", id))
-	default:
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid type, must be 'numeric' or 'enum'"})
-		return
-	}
+	log.Info(c.Request.Context(), "action=update resource=range_parameter status=success", zap.Int64("id", id))
+	c.JSON(http.StatusOK, updated)
 }
 
-// DeleteParameter - обработчик для удаления параметров.
+// DeleteParameter обрабатывает DELETE /classes/parameters/{id}.
 func (h *parametersHandlers) DeleteParameter(c *gin.Context) {
-	typ := c.Query("type")
-	if typ == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "type query param is required"})
+	log, ok := getLogger(c)
+	if !ok {
 		return
 	}
 
-	switch typ {
-	case "numeric":
-		h.DeleteNumericParameter(c)
-		return
-	case "enum":
-		h.DeleteEnumParameter(c)
-		return
-	default:
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid type, must be 'numeric' or 'enum'"})
+	id, err := getIDParam(c, "id")
+	if err != nil {
+		badRequest(c, log, apperrors.CodeInvalidID, err)
 		return
 	}
+
+	if _, err = h.uc.DeleteRange(c.Request.Context(), toUint(id)); err != nil {
+		handleError(c, log, "failed to delete range parameter", err)
+		return
+	}
+
+	log.Info(c.Request.Context(), "action=delete resource=range_parameter status=success", zap.Int64("id", id))
+	c.Status(http.StatusNoContent)
 }
 
-// DeleteEnumParameter - обработчик для удаления параметра типа "enum".
-func (h *parametersHandlers) DeleteEnumParameter(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+// ListParameters обрабатывает GET /classes/parameters.
+func (h *parametersHandlers) ListParameters(c *gin.Context) {
+	log, ok := getLogger(c)
 	if !ok {
-		c.Status(http.StatusInternalServerError)
 		return
 	}
 
-	id, err := getUintParam(c, "id")
+	classID, err := getIDQuery(c, "class_id", false)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid enum parameter id: %v", err))
+		badRequest(c, log, apperrors.CodeInvalidID, err)
 		return
 	}
 
-	deleted, err := h.uc.DeleteEnum(c.Request.Context(), id)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to delete enum parameter: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	rawBytes, err := json.Marshal(deleted)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal response: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
-		return
-	}
-
-	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
-	log.Info(c.Request.Context(), fmt.Sprintf("action=delete resource=enum_parameter status=success id=%d", id))
-}
-
-// ListCategoryParameters - обработчик для получения списка параметров, связанных с категорией.
-func (h *parametersHandlers) ListCategoryParameters(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+	paramType, ok := parameterTypes[c.Query("type")]
 	if !ok {
-		c.Status(http.StatusInternalServerError)
+		badRequest(c, log, apperrors.CodeInvalidParameters, errors.New("type must be 'range' or 'enum'"))
 		return
 	}
 
-	categoryID, err := getUintParam(c, "category_id")
+	rangeParams, enumParams, err := h.uc.ListParameters(c.Request.Context(), toUint(classID), paramType)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid enum parameter id: %v", err))
+		handleError(c, log, "failed to list parameters", err)
 		return
 	}
 
-	paramTypeStr := c.Query("type")
-
-	var paramType int
-	switch paramTypeStr {
-	case "numeric":
-		paramType = entities.RangeParameterType
-	case "enum":
-		paramType = entities.EnumParameterType
-	case "":
-		paramType = entities.MissingType
-	}
-
-	log.Debug(c.Request.Context(), fmt.Sprintf("type: %s, %d", paramTypeStr, paramType))
-
-	numeric, enum, err := h.uc.ListParameters(c.Request.Context(), categoryID, paramType)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to list parameters: %v", err))
-		c.Status(http.StatusInternalServerError)
-		return
-	}
-
-	result := make([]any, 0)
-	for _, p := range numeric {
+	result := make([]any, 0, len(rangeParams)+len(enumParams))
+	for _, p := range rangeParams {
 		result = append(result, p)
 	}
-	for _, p := range enum {
+	for _, p := range enumParams {
 		result = append(result, p)
 	}
 
-	rawBytes, err := json.Marshal(result)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal response: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
-		return
-	}
-
-	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
-	log.Info(c.Request.Context(), fmt.Sprintf("action=list resource=parameters status=success numeric_count=%d enum_count=%d", len(numeric), len(enum)))
+	c.JSON(http.StatusOK, result)
 }
 
-// ApplyParametersToCategory - обработчик для применения параметров к категории.
-func (h *parametersHandlers) ApplyParametersToCategory(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+// ApplyParametersToClass обрабатывает PATCH /classes/parameters/apply/{class_id}.
+func (h *parametersHandlers) ApplyParametersToClass(c *gin.Context) {
+	log, ok := getLogger(c)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get logger from context"})
 		return
 	}
 
-	categoryIDStr := c.Param("category_id")
-	categoryID, err := strconv.ParseUint(categoryIDStr, 10, 32)
+	classID, req, ok := h.bindClassParams(c)
+	if !ok {
+		return
+	}
+
+	added, err := h.uc.ApplyToClass(c.Request.Context(), toUint(classID), req.RangeParamIDs, req.EnumParamIDs)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid category_id"})
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category_id: %v", err))
+		handleError(c, log, "failed to apply parameters", err)
 		return
 	}
 
-	body, err := readRequestBody(c)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read request body: %v", err))
-		return
-	}
-
-	var req struct {
-		NumericParamIDs []int `json:"numeric_param_ids"`
-		EnumParamIDs    []int `json:"enum_param_ids"`
-	}
-
-	if err = json.Unmarshal(body, &req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to unmarshal request: %v", err))
-		return
-	}
-
-	added, err := h.uc.ApplyToCategory(c.Request.Context(), uint(categoryID), req.NumericParamIDs, req.EnumParamIDs)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to apply parameters: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
+	log.Info(c.Request.Context(), "action=apply resource=parameters status=success",
+		zap.Int64("class_id", classID), zap.Int("added", added))
 	c.JSON(http.StatusOK, gin.H{
 		"message":      "Parameters applied successfully",
 		"params_added": added,
 	})
-	log.Info(c.Request.Context(), fmt.Sprintf("action=apply resource=parameters_to_category status=success category_id=%d added=%d", categoryID, added))
+}
+
+// ExcludeParametersFromClass обрабатывает PATCH /classes/parameters/exclude/{class_id}.
+func (h *parametersHandlers) ExcludeParametersFromClass(c *gin.Context) {
+	log, ok := getLogger(c)
+	if !ok {
+		return
+	}
+
+	classID, req, ok := h.bindClassParams(c)
+	if !ok {
+		return
+	}
+
+	excluded, err := h.uc.ExcludeFromClass(c.Request.Context(), toUint(classID), req.RangeParamIDs, req.EnumParamIDs)
+	if err != nil {
+		handleError(c, log, "failed to exclude parameters", err)
+		return
+	}
+
+	log.Info(c.Request.Context(), "action=exclude resource=parameters status=success",
+		zap.Int64("class_id", classID), zap.Int("excluded", excluded))
+	c.JSON(http.StatusOK, gin.H{
+		"message":         "Parameters excluded successfully",
+		"params_excluded": excluded,
+	})
+}
+
+// bindClassParams разбирает class_id из пути и список параметров из тела запросов apply/exclude.
+func (h *parametersHandlers) bindClassParams(c *gin.Context) (int64, classParamsRequest, bool) {
+	var req classParamsRequest
+
+	log, ok := getLogger(c)
+	if !ok {
+		return 0, req, false
+	}
+
+	classID, err := getIDParam(c, "class_id")
+	if err != nil {
+		badRequest(c, log, apperrors.CodeInvalidID, err)
+		return 0, req, false
+	}
+
+	if !bindJSON(c, &req) {
+		return 0, req, false
+	}
+
+	if len(req.RangeParamIDs) == 0 && len(req.EnumParamIDs) == 0 {
+		writeError(c, http.StatusBadRequest, apperrors.CodeValidation, "range_param_ids or enum_param_ids must not be empty")
+		return 0, req, false
+	}
+
+	return classID, req, true
 }

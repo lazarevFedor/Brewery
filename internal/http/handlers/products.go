@@ -1,381 +1,415 @@
-// Package handlers содержит реализацию HTTP-обработчиков для управления пивоварней.
 package handlers
 
 import (
 	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
-	"Brewery/internal/usecase"
-	"Brewery/pkg/logger"
 	"context"
-	"encoding/json"
-	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/mailru/easyjson"
 	"go.uber.org/zap"
 )
 
-// BeersHandlers определяет интерфейс для обработки HTTP-запросов, связанных с пивом.
-type BeersHandlers interface {
-
-	// CreateBeer обрабатывает HTTP-запрос на создание пива.
-	CreateBeer(c *gin.Context)
-
-	// UpdateBeer обрабатывает HTTP-запрос на обновление пива.
-	UpdateBeer(c *gin.Context)
-
-	// DeleteBeer обрабатывает HTTP-запрос на удаление пива.
-	DeleteBeer(c *gin.Context)
-
-	// GetAllBeers обрабатывает HTTP-запрос на получение всех видов пива.
-	GetAllBeers(c *gin.Context)
-
-	// SearchBeer обрабатывает HTTP-запрос на поиск пива по заданным фильтрам.
-	SearchBeer(c *gin.Context)
-
-	// GetFeature обрабатывает HTTP-запрос на получение характеристик пива.
-	GetFeature(c *gin.Context)
-
-	// CreateFeature обрабатывает HTTP-запрос на создание характеристики пива.
-	CreateFeature(c *gin.Context)
-
-	// DeleteFeature обрабатывает HTTP-запрос на удаление характеристики пива.
-	DeleteFeature(c *gin.Context)
-}
-
+// ProductService определяет бизнес-логику работы с изделиями, которая нужна HTTP-слою.
 type ProductService interface {
 	CreateProduct(ctx context.Context, product entities.Product) (*entities.Product, error)
 	GetProducts(ctx context.Context, limit, offset int32) ([]entities.Product, error)
+	GetProductByID(ctx context.Context, id int64) (*entities.Product, error)
 	UpdateProduct(ctx context.Context, id int64, updates map[string]any) (*entities.Product, error)
 	DeleteProduct(ctx context.Context, id int64) error
 	GetProductsByClass(ctx context.Context, classID int64, limit, offset int32) ([]entities.Product, error)
 	GetFilteredProducts(ctx context.Context, filters []entities.FilterParameter, classID *uint, limit, offset int32) ([]entities.Product, error)
-	GetProductByID(ctx context.Context, id int64) (*entities.Product, error)
 }
 
-// beersHandlers реализует интерфейс BeersHandlers и использует сервис BeerService для обработки бизнес-логики.
-type beersHandlers struct {
-	uc ProductService
+// DerivedProductService возвращает изделия, созданные на основе базового (base_id = id).
+type DerivedProductService interface {
+	GetDerivedProducts(ctx context.Context, baseID int64, limit, offset int32) ([]entities.Product, error)
 }
 
-// NewBeersHandlers создает новый экзмепляр beersHandler с предоставленным сервисом BeerService.
-func NewBeersHandlers(useCase usecase.ProductService) BeersHandlers {
-	return &beersHandlers{
-		uc: &useCase,
+// ProductHandlers определяет HTTP-обработчики для изделий.
+type ProductHandlers interface {
+
+	// ListProducts обрабатывает GET /products.
+	ListProducts(c *gin.Context)
+
+	// CreateProduct обрабатывает POST /products.
+	CreateProduct(c *gin.Context)
+
+	// GetProduct обрабатывает GET /products/{id}.
+	GetProduct(c *gin.Context)
+
+	// UpdateProduct обрабатывает PATCH /products/{id}.
+	UpdateProduct(c *gin.Context)
+
+	// DeleteProduct обрабатывает DELETE /products/{id}.
+	DeleteProduct(c *gin.Context)
+
+	// ListProductsByClass обрабатывает GET /classes/products/{class_id}.
+	ListProductsByClass(c *gin.Context)
+
+	// SearchProducts обрабатывает GET /products/search.
+	SearchProducts(c *gin.Context)
+
+	// SearchProductsByClass обрабатывает GET /classes/{id}/products/search.
+	SearchProductsByClass(c *gin.Context)
+
+	// ListDerivedProducts обрабатывает GET /products/{id}/derived.
+	ListDerivedProducts(c *gin.Context)
+}
+
+// productResponse - представление изделия в API (схема Product в swagger).
+type productResponse struct {
+	ID         int64          `json:"id"`
+	Name       string         `json:"name"`
+	Class      classBase      `json:"class"`
+	ClassID    int64          `json:"class_id"`
+	BaseID     *int64         `json:"base_id"`
+	Parameters map[string]any `json:"parameters,omitempty"`
+	Amount     float32        `json:"amount,omitempty"`
+	Units      string         `json:"units,omitempty"`
+}
+
+// classBase - краткое представление класса изделия (схема ClassBase в swagger).
+type classBase struct {
+	Name string `json:"name"`
+}
+
+// productCreateRequest - тело запроса на создание изделия (схема ProductCreate в swagger).
+type productCreateRequest struct {
+	Name       string         `json:"name"`
+	Class      *classBase     `json:"class"`
+	ClassID    int64          `json:"class_id"`
+	BaseID     *int64         `json:"base_id"`
+	Parameters map[string]any `json:"parameters"`
+	Amount     float32        `json:"amount"`
+	Units      string         `json:"units"`
+}
+
+func (r productCreateRequest) toEntity() entities.Product {
+	product := entities.Product{
+		Name:       r.Name,
+		ProdClass:  entities.Class{ID: r.ClassID},
+		Parameters: r.Parameters,
+		Amount:     r.Amount,
+		Unit:       r.Units,
 	}
+
+	if r.Class != nil {
+		product.ProdClass.Name = r.Class.Name
+	}
+
+	if r.BaseID != nil {
+		product.BaseID = *r.BaseID
+	}
+
+	return product
 }
 
-// CreateBeer обрабатывает HTTP-запрос на создание пива.
-func (h *beersHandlers) CreateBeer(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+func newProductResponse(p entities.Product) productResponse {
+	resp := productResponse{
+		ID:         p.ID,
+		Name:       p.Name,
+		Class:      classBase{Name: p.ProdClass.Name},
+		ClassID:    p.ProdClass.ID,
+		Parameters: p.Parameters,
+		Amount:     p.Amount,
+		Units:      p.Unit,
+	}
+
+	if p.BaseID != 0 {
+		baseID := p.BaseID
+		resp.BaseID = &baseID
+	}
+
+	return resp
+}
+
+func newProductsResponse(products []entities.Product) []productResponse {
+	resp := make([]productResponse, 0, len(products))
+	for _, p := range products {
+		resp = append(resp, newProductResponse(p))
+	}
+
+	return resp
+}
+
+// productUpdateIntFields - поля PATCH-запроса, которые приходят из JSON как float64, а сервис ждет целое.
+var productUpdateIntFields = []string{"class_id", "base_id"}
+
+// productHandlers реализует ProductHandlers.
+type productHandlers struct {
+	uc      ProductService
+	derived DerivedProductService
+}
+
+// NewProductHandlers создает обработчики изделий. derived может быть nil - тогда /products/{id}/derived отвечает 501.
+func NewProductHandlers(uc ProductService, derived DerivedProductService) ProductHandlers {
+	return &productHandlers{uc: uc, derived: derived}
+}
+
+// ListProducts обрабатывает GET /products.
+func (h *productHandlers) ListProducts(c *gin.Context) {
+	log, ok := getLogger(c)
 	if !ok {
-		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
 		return
 	}
 
-	body, err := readRequestBody(c)
+	offset, limit, err := getPaginationParams(c)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read request body: %v", err))
-		handleError(c, err)
+		badRequest(c, log, apperrors.CodeInvalidParameters, err)
 		return
 	}
 
-	var req entities.Beer
-	if err = easyjson.Unmarshal(body, &req); err != nil {
-		log.Error(c.Request.Context(), "failed to Unmurshal JSON", zap.Error(err))
-		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidJSON, "Request body is not valid JSON")
-		return
-	}
-
-	beer, err := h.uc.CreateBeer(c.Request.Context(), &req)
+	products, err := h.uc.GetProducts(c.Request.Context(), limit, offset)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to create beer: %v", err))
-		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
-
+		handleError(c, log, "failed to list products", err)
 		return
 	}
 
-	log.Debug(c.Request.Context(), fmt.Sprintf("beer_id = %d", beer.ID))
-	log.Info(c.Request.Context(), fmt.Sprintf("action=create resource=beer status=success name=%q", req.Name))
-	c.JSON(http.StatusCreated, beer)
+	c.JSON(http.StatusOK, newProductsResponse(products))
 }
 
-// UpdateBeer обрабатывает HTTP-запрос на обновление пива.
-func (h *beersHandlers) UpdateBeer(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+// CreateProduct обрабатывает POST /products.
+func (h *productHandlers) CreateProduct(c *gin.Context) {
+	log, ok := getLogger(c)
 	if !ok {
-		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
 		return
 	}
 
-	id, err := getUintParam(c, "id")
+	var req productCreateRequest
+	if !bindJSON(c, &req) {
+		return
+	}
+
+	if req.Name == "" {
+		writeError(c, http.StatusBadRequest, apperrors.CodeValidation, "Product name is required")
+		return
+	}
+
+	if req.ClassID == 0 && (req.Class == nil || req.Class.Name == "") {
+		writeError(c, http.StatusBadRequest, apperrors.CodeValidation, "Product class is required")
+		return
+	}
+
+	created, err := h.uc.CreateProduct(c.Request.Context(), req.toEntity())
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid beer id: %v", err))
-		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidID, "Invalid beer id")
+		handleError(c, log, "failed to create product", err)
 		return
 	}
 
-	body, err := readRequestBody(c)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read request body: %v", err))
-		writeError(c, http.StatusBadRequest, apperrors.CodeBadRequest, "Failed to read request body")
-		return
-	}
-
-	updates := make(map[string]any)
-	if err = json.Unmarshal(body, &updates); err != nil {
-		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidJSON, "Request body is not valid JSON")
-		return
-	}
-
-	if len(updates) == 0 {
-		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidJSON, "Request body is empty")
-		return
-	}
-
-	beer, err := h.uc.UpdateBeer(c.Request.Context(), id, updates)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to update beer: %v", err))
-		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
-		return
-	}
-
-	log.Debug(c.Request.Context(), fmt.Sprintf("beer_id = %d", beer.ID))
-	log.Info(c.Request.Context(), fmt.Sprintf("action=update resource=beer status=success id=%d", id))
-	c.JSON(http.StatusOK, beer)
+	log.Info(c.Request.Context(), "action=create resource=product status=success", zap.Int64("id", created.ID))
+	c.JSON(http.StatusCreated, newProductResponse(*created))
 }
 
-// DeleteBeer обрабатывает HTTP-запрос на удаление пива.
-func (h *beersHandlers) DeleteBeer(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+// GetProduct обрабатывает GET /products/{id}.
+func (h *productHandlers) GetProduct(c *gin.Context) {
+	log, ok := getLogger(c)
 	if !ok {
-		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
 		return
 	}
 
-	id, err := getUintParam(c, "id")
+	id, err := getIDParam(c, "id")
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid beer id: %v", err))
-		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidID, "Invalid beer id")
+		badRequest(c, log, apperrors.CodeInvalidID, err)
 		return
 	}
 
-	err = h.uc.DeleteBeer(c.Request.Context(), id)
+	product, err := h.uc.GetProductByID(c.Request.Context(), id)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to delete beer: %v", err))
-		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
+		handleError(c, log, "failed to get product", err)
 		return
 	}
 
-	log.Info(c.Request.Context(), fmt.Sprintf("action=delete resource=beer status=success id=%d", id))
+	if product == nil {
+		writeError(c, http.StatusNotFound, apperrors.CodeNotFound, "Product not found")
+		return
+	}
+
+	c.JSON(http.StatusOK, newProductResponse(*product))
+}
+
+// UpdateProduct обрабатывает PATCH /products/{id}.
+func (h *productHandlers) UpdateProduct(c *gin.Context) {
+	log, ok := getLogger(c)
+	if !ok {
+		return
+	}
+
+	id, err := getIDParam(c, "id")
+	if err != nil {
+		badRequest(c, log, apperrors.CodeInvalidID, err)
+		return
+	}
+
+	updates, ok := bindUpdates(c)
+	if !ok {
+		return
+	}
+
+	for _, field := range productUpdateIntFields {
+		raw, exists := updates[field]
+		if !exists {
+			continue
+		}
+
+		num, isNum := raw.(float64)
+		if !isNum || num != float64(int64(num)) {
+			writeError(c, http.StatusBadRequest, apperrors.CodeValidation, field+" must be an integer")
+			return
+		}
+
+		updates[field] = int64(num)
+	}
+
+	updated, err := h.uc.UpdateProduct(c.Request.Context(), id, updates)
+	if err != nil {
+		handleError(c, log, "failed to update product", err)
+		return
+	}
+
+	log.Info(c.Request.Context(), "action=update resource=product status=success", zap.Int64("id", id))
+	c.JSON(http.StatusOK, newProductResponse(*updated))
+}
+
+// DeleteProduct обрабатывает DELETE /products/{id}.
+func (h *productHandlers) DeleteProduct(c *gin.Context) {
+	log, ok := getLogger(c)
+	if !ok {
+		return
+	}
+
+	id, err := getIDParam(c, "id")
+	if err != nil {
+		badRequest(c, log, apperrors.CodeInvalidID, err)
+		return
+	}
+
+	if err = h.uc.DeleteProduct(c.Request.Context(), id); err != nil {
+		handleError(c, log, "failed to delete product", err)
+		return
+	}
+
+	log.Info(c.Request.Context(), "action=delete resource=product status=success", zap.Int64("id", id))
 	c.Status(http.StatusNoContent)
 }
 
-// GetAllBeers обрабатывает HTTP-запрос на получение всех видов пива.
-func (h *beersHandlers) GetAllBeers(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+// ListProductsByClass обрабатывает GET /classes/products/{class_id}.
+func (h *productHandlers) ListProductsByClass(c *gin.Context) {
+	log, ok := getLogger(c)
 	if !ok {
-		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
+		return
+	}
+
+	classID, err := getIDParam(c, "class_id")
+	if err != nil {
+		badRequest(c, log, apperrors.CodeInvalidID, err)
 		return
 	}
 
 	offset, limit, err := getPaginationParams(c)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid pagination params: %v", err))
-		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidParameters, "Invalid pagination parameters")
+		badRequest(c, log, apperrors.CodeInvalidParameters, err)
 		return
 	}
 
-	beers, err := h.uc.GetAllBeers(c.Request.Context(), limit, offset)
+	products, err := h.uc.GetProductsByClass(c.Request.Context(), classID, limit, offset)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get beers: %v", err))
-		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
-
+		handleError(c, log, "failed to list products by class", err)
 		return
 	}
 
-	rawBytes, err := easyjson.Marshal(entities.Beers(beers))
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal beers: %v", err))
-		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
-		return
-	}
-
-	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
-	log.Info(c.Request.Context(), fmt.Sprintf(
-		"action=list resource=beer status=success offset=%d limit=%d items=%d",
-		offset, limit, len(beers),
-	))
+	c.JSON(http.StatusOK, newProductsResponse(products))
 }
 
-// SearchBeer обрабатывает HTTP-запрос на поиск пива по заданным фильтрам.
-func (h *beersHandlers) SearchBeer(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+// SearchProducts обрабатывает GET /products/search. По swagger здесь только точное совпадение (eq).
+func (h *productHandlers) SearchProducts(c *gin.Context) {
+	log, ok := getLogger(c)
 	if !ok {
-		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
 		return
 	}
-	log.Debug(c.Request.Context(), "after logger")
 
-	categoryID, err := getUintParam(c, "id")
+	filters, err := getFilters(c, []entities.Operation{entities.OpEqual})
 	if err != nil {
-		if err.Error() == "invalid id" {
-			log.Debug(c.Request.Context(), "get uint param", zap.Int("id", int(categoryID)))
-			log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
-			writeError(c, http.StatusBadRequest, apperrors.CodeInvalidID, "Invalid category id")
-			return
-		}
-	}
-
-	filters := strings.Split(c.Query("filter"), "&")
-	if len(filters) == 0 {
-		log.Error(c.Request.Context(), "Missing filter parameters")
-		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidParameters, "Missing filter parameters")
+		badRequest(c, log, apperrors.CodeInvalidParameters, err)
 		return
 	}
 
-	validatedFilters := make([]*entities.FilterParameter, len(filters))
-	for i, filter := range filters {
-		vf, err := validateFilterParam(filter)
-		if err != nil {
-			log.Error(c.Request.Context(), fmt.Sprintf("Invalid filter parameter: %v", err))
-			writeError(c, http.StatusBadRequest, apperrors.CodeInvalidParameters, "Invalid filter parameters")
-			return
-		}
-		validatedFilters[i] = vf
-	}
-
-	log.Debug(c.Request.Context(), "validated filters", zap.Any("filters", validatedFilters))
-	offset, limit, err := getPaginationParams(c)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid pagination params: %v", err))
-		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidParameters, "Invalid pagination parameters")
-		return
-	}
-
-	filteredBeers, err := h.uc.FilterBeer(c.Request.Context(), validatedFilters, limit, offset, categoryID)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to filter beers: %v", err))
-		writeError(c, http.StatusInternalServerError, apperrors.CodeInvalidParameters, "Unexpected error occurred")
-		return
-	}
-
-	log.Info(
-		c.Request.Context(),
-		fmt.Sprintf(
-			"action=list resource=beer status=success offset=%d limit=%d items=%d",
-			offset, limit, len(filteredBeers),
-		),
-	)
-	c.JSON(http.StatusOK, filteredBeers)
+	h.search(c, filters, nil)
 }
 
-// GetFeature обрабатывает HTTP-запрос на получение характеристик пива.
-func (h *beersHandlers) GetFeature(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+// SearchProductsByClass обрабатывает GET /classes/{id}/products/search. Здесь разрешены и диапазоны.
+func (h *productHandlers) SearchProductsByClass(c *gin.Context) {
+	log, ok := getLogger(c)
 	if !ok {
-		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
 		return
 	}
 
-	id, err := getUintParam(c, "id")
+	classID, err := getIDParam(c, "id")
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid beer id: %v", err))
-		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidID, "Invalid beer id")
+		badRequest(c, log, apperrors.CodeInvalidID, err)
+		return
+	}
+
+	filters, err := getFilters(c, nil)
+	if err != nil {
+		badRequest(c, log, apperrors.CodeInvalidParameters, err)
+		return
+	}
+
+	id := toUint(classID)
+	h.search(c, filters, &id)
+}
+
+func (h *productHandlers) search(c *gin.Context, filters []entities.FilterParameter, classID *uint) {
+	log, ok := getLogger(c)
+	if !ok {
 		return
 	}
 
 	offset, limit, err := getPaginationParams(c)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid pagination params: %v", err))
-		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidParameters, "Invalid pagination parameters")
+		badRequest(c, log, apperrors.CodeInvalidParameters, err)
 		return
 	}
 
-	feats, err := h.uc.GetFeatures(c.Request.Context(), id)
+	products, err := h.uc.GetFilteredProducts(c.Request.Context(), filters, classID, limit, offset)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get beer's features: %v", err))
-		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
+		handleError(c, log, "failed to search products", err)
 		return
 	}
 
-	log.Info(
-		c.Request.Context(),
-		fmt.Sprintf(
-			"action=list resource=beer status=success offset=%d limit=%d items=%d",
-			offset, limit, len(feats),
-		),
-	)
-	c.JSON(http.StatusOK, feats)
+	c.JSON(http.StatusOK, newProductsResponse(products))
 }
 
-// CreateFeature обрабатывает HTTP-запрос на создание характеристики пива.
-func (h *beersHandlers) CreateFeature(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+// ListDerivedProducts обрабатывает GET /products/{id}/derived.
+func (h *productHandlers) ListDerivedProducts(c *gin.Context) {
+	if h.derived == nil {
+		notImplemented(c)
+		return
+	}
+
+	log, ok := getLogger(c)
 	if !ok {
-		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
 		return
 	}
 
-	body, err := readRequestBody(c)
+	id, err := getIDParam(c, "id")
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read request body: %v", err))
-		writeError(c, http.StatusBadRequest, apperrors.CodeBadRequest, "Failed to read request body")
+		badRequest(c, log, apperrors.CodeInvalidID, err)
 		return
 	}
 
-	id, err := getUintParam(c, "id")
+	offset, limit, err := getPaginationParams(c)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid beer id: %v", err))
-		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidID, "Invalid beer id")
+		badRequest(c, log, apperrors.CodeInvalidParameters, err)
 		return
 	}
 
-	var featName string
-	if err = json.Unmarshal(body, &featName); err != nil {
-		log.Error(c.Request.Context(), "failed to Unmurshal JSON", zap.Error(err))
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-		return
-	}
-
-	featID, err := h.uc.CreateFeature(c.Request.Context(), id, featName)
+	products, err := h.derived.GetDerivedProducts(c.Request.Context(), id, limit, offset)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to create beer's feature: %v", err))
-		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
+		handleError(c, log, "failed to list derived products", err)
 		return
 	}
 
-	log.Info(c.Request.Context(), fmt.Sprintf("action=create resource=beer status=success name=%q", featName))
-	c.JSON(http.StatusCreated, gin.H{
-		"id":   featID,
-		"name": featName,
-	})
-}
-
-// DeleteFeature обрабатывает HTTP-запрос на удаление характеристики пива.
-func (h *beersHandlers) DeleteFeature(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
-	if !ok {
-		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
-		return
-	}
-
-	id, err := getUintParam(c, "beer_id")
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid beer id: %v", err))
-		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidID, "Invalid beer id")
-		return
-	}
-
-	err = h.uc.DeleteFeature(c.Request.Context(), id)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to delete beer's feature: %v", err))
-		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
-		return
-	}
-
-	log.Info(c.Request.Context(), fmt.Sprintf("action=delete resource=beer status=success id=%d", id))
-	c.Status(http.StatusNoContent)
+	c.JSON(http.StatusOK, newProductsResponse(products))
 }

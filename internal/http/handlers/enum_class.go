@@ -1,18 +1,14 @@
-// Package handlers содержит реализацию HTTP-обработчиков для управления пивоварней.
 package handlers
 
 import (
+	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
-	"Brewery/internal/usecase"
-	"Brewery/pkg/logger"
 	"context"
-	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/mailru/easyjson"
+	"go.uber.org/zap"
 )
 
 // EnumService определяет интерфейс для работы с перечислениями и их значениями.
@@ -21,7 +17,7 @@ type EnumService interface {
 	// CreateEnum создает новое перечисление и возвращает его ID.
 	CreateEnum(ctx context.Context, enum entities.EnumClass) (uint, error)
 
-	// GetEnum получает список перечислений для заданного поля и типа.
+	// GetEnum получает список перечислений для заданного поля.
 	GetEnum(ctx context.Context, fieldName string) ([]entities.EnumClass, error)
 
 	// UpdateEnum обновляет существующее перечисление по его ID.
@@ -43,38 +39,31 @@ type EnumService interface {
 	DeleteEnumValue(ctx context.Context, id uint) error
 }
 
-// NewEnumService создает новый EnumService с заданным репозиторием.
-func NewEnumService(enumRepo usecase.EnumRepository) EnumService {
-	return &usecase.EnumService{
-		Repo: enumRepo,
-	}
-}
-
-// EnumHandlers определяет интерфейс для обработки HTTP-запросов, связанных с управлением классами перечислений и их значениями.
+// EnumHandlers определяет HTTP-обработчики для классов перечислений и их значений.
 type EnumHandlers interface {
 
-	// CreateEnum обрабатывает HTTP-запрос на создание нового класса перечислений.
+	// CreateEnum обрабатывает POST /enums.
 	CreateEnum(c *gin.Context)
 
-	// GetEnum обрабатывает HTTP-запрос на получение классов перечислений по имени сущности и поля.
+	// GetEnum обрабатывает GET /enums.
 	GetEnum(c *gin.Context)
 
-	// UpdateEnum обрабатывает HTTP-запрос на обновление существующего класса перечислений.
+	// UpdateEnum обрабатывает PATCH /enums/{id}.
 	UpdateEnum(c *gin.Context)
 
-	// DeleteEnum обрабатывает HTTP-запрос на удаление существующего класса перечислений.
+	// DeleteEnum обрабатывает DELETE /enums/{id}.
 	DeleteEnum(c *gin.Context)
 
-	// CreateValue обрабатывает HTTP-запрос на создание нового значения перечисления.
+	// CreateValue обрабатывает POST /enums/value.
 	CreateValue(c *gin.Context)
 
-	// GetValue обрабатывает HTTP-запрос на получение значений перечисления по имени сущности, поля и типа перечисления.
+	// GetValue обрабатывает GET /enums/value.
 	GetValue(c *gin.Context)
 
-	// UpdateValue обрабатывает HTTP-запрос на обновление существующего значения перечисления.
+	// UpdateValue обрабатывает PATCH /enums/value/{id}.
 	UpdateValue(c *gin.Context)
 
-	// DeleteValue обрабатывает HTTP-запрос на удаление существующего значения перечисления.
+	// DeleteValue обрабатывает DELETE /enums/value/{id}.
 	DeleteValue(c *gin.Context)
 }
 
@@ -84,335 +73,212 @@ type enumHandlers struct {
 }
 
 // NewEnumHandlers создает новый экземпляр EnumHandlers.
-func NewEnumHandlers(usecase EnumService) EnumHandlers {
-	return &enumHandlers{
-		uc: usecase,
-	}
+func NewEnumHandlers(uc EnumService) EnumHandlers {
+	return &enumHandlers{uc: uc}
 }
 
-// CreateEnum обрабатывает HTTP-запрос на создание нового класса перечислений.
+// CreateEnum обрабатывает POST /enums.
 func (h *enumHandlers) CreateEnum(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+	log, ok := getLogger(c)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get logger from context"})
-		return
-	}
-
-	body, err := readRequestBody(c)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read enum class in the request body: %v", err))
 		return
 	}
 
 	var req entities.EnumClass
-	if err = easyjson.Unmarshal(body, &req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to unmarshal enum class: %v", err))
+	if !bindJSON(c, &req) {
 		return
 	}
 
-	enumID, err := h.uc.CreateEnum(c.Request.Context(), req)
+	if req.FieldName == "" || req.Type == "" {
+		writeError(c, http.StatusBadRequest, apperrors.CodeValidation, "field_name and enum_type are required")
+		return
+	}
+
+	id, err := h.uc.CreateEnum(c.Request.Context(), req)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to create enum class: %v", err))
-		c.JSON(http.StatusNotFound, gin.H{"error": "enum class not found"})
+		handleError(c, log, "failed to create enum class", err)
 		return
 	}
 
-	log.Debug(c.Request.Context(), fmt.Sprintf("enumID=%d", enumID))
-	log.Info(
-		c.Request.Context(),
-		// fmt.Sprintf("action=create resource=category status=success name=%q level=%d",
-		// 	req.Name, req.Level))
-		fmt.Sprintf("action=create resource=category status=success name=%q", req.FieldName),
-	)
-	c.Status(http.StatusCreated)
+	req.ID = int(id)
+	log.Info(c.Request.Context(), "action=create resource=enum_class status=success", zap.Uint("id", id))
+	c.JSON(http.StatusCreated, req)
 }
 
-// GetEnum обрабатывает HTTP-запрос на получение классов перечислений по имени сущности и поля.
+// GetEnum обрабатывает GET /enums.
 func (h *enumHandlers) GetEnum(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+	log, ok := getLogger(c)
 	if !ok {
-		c.Status(http.StatusInternalServerError)
-
-		return
-	}
-
-	entityName := c.Query("entity_name")
-	if entityName == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-		log.Error(c.Request.Context(), errors.New("entity_name is empty").Error())
 		return
 	}
 
 	fieldName := c.Query("field_name")
 	if fieldName == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-		log.Error(c.Request.Context(), errors.New("field_name is empty").Error())
+		badRequest(c, log, apperrors.CodeInvalidParameters, errors.New("field_name is required"))
 		return
 	}
 
 	enums, err := h.uc.GetEnum(c.Request.Context(), fieldName)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get enum classes: %v", err))
-		c.Status(http.StatusInternalServerError)
-
+		handleError(c, log, "failed to get enum classes", err)
 		return
 	}
 
-	rawBytes, err := json.Marshal(enums)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal enum class: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
-
-		return
-	}
-
-	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
-	log.Info(
-		c.Request.Context(),
-		fmt.Sprintf(
-			"action=list resource=beer status=success items=%d", len(enums),
-		),
-	)
+	c.JSON(http.StatusOK, nonNil(enums))
 }
 
-// UpdateEnum обрабатывает HTTP-запрос на обновление существующего класса перечислений.
+// UpdateEnum обрабатывает PATCH /enums/{id}.
 func (h *enumHandlers) UpdateEnum(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+	log, ok := getLogger(c)
 	if !ok {
-		c.Status(http.StatusInternalServerError)
-
 		return
 	}
 
-	id, err := getUintParam(c, "id")
+	id, err := getIDParam(c, "id")
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid enum id: %v", err))
-
+		badRequest(c, log, apperrors.CodeInvalidID, err)
 		return
 	}
 
-	body, err := readRequestBody(c)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read updates in the request body: %v", err))
-
+	updates, ok := bindUpdates(c)
+	if !ok {
 		return
 	}
 
-	updates := make(map[string]any)
-	if err = json.Unmarshal(body, &updates); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-
+	if err = h.uc.UpdateEnum(c.Request.Context(), toUint(id), updates); err != nil {
+		handleError(c, log, "failed to update enum class", err)
 		return
 	}
 
-	if len(updates) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "empty update payload"})
-
-		return
-	}
-
-	err = h.uc.UpdateEnum(c.Request.Context(), id, updates)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to update beer: %v", err))
-		c.Status(http.StatusInternalServerError)
-
-		return
-	}
-
-	log.Info(c.Request.Context(), fmt.Sprintf("action=update resource=beer status=success id=%d", id))
-	c.Status(http.StatusOK)
+	log.Info(c.Request.Context(), "action=update resource=enum_class status=success", zap.Int64("id", id))
+	c.JSON(http.StatusOK, withID(updates, id))
 }
 
-// DeleteEnum обрабатывает HTTP-запрос на удаление существующего класса перечислений.
+// DeleteEnum обрабатывает DELETE /enums/{id}.
 func (h *enumHandlers) DeleteEnum(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+	log, ok := getLogger(c)
 	if !ok {
-		c.Status(http.StatusInternalServerError)
-
 		return
 	}
 
-	id, err := getUintParam(c, "id")
+	id, err := getIDParam(c, "id")
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid enum id: %v", err))
-
+		badRequest(c, log, apperrors.CodeInvalidID, err)
 		return
 	}
 
-	err = h.uc.DeleteEnum(c.Request.Context(), id)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to delete enum: %v", err))
-		c.Status(http.StatusInternalServerError)
-
+	if err = h.uc.DeleteEnum(c.Request.Context(), toUint(id)); err != nil {
+		handleError(c, log, "failed to delete enum class", err)
 		return
 	}
 
-	log.Info(c.Request.Context(), fmt.Sprintf("action=delete resource=beer status=success id=%d", id))
-	c.Status(http.StatusOK)
+	log.Info(c.Request.Context(), "action=delete resource=enum_class status=success", zap.Int64("id", id))
+	c.Status(http.StatusNoContent)
 }
 
-// CreateValue обрабатывает HTTP-запрос на создание нового значения перечисления.
+// CreateValue обрабатывает POST /enums/value.
 func (h *enumHandlers) CreateValue(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+	log, ok := getLogger(c)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get logger from context"})
 		return
 	}
-
-	log.Debug(c.Request.Context(), "Start Create")
-
-	body, err := readRequestBody(c)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read category in the request body: %v", err))
-		return
-	}
-
-	log.Debug(c.Request.Context(), "Bode read Create")
 
 	var req entities.EnumValue
-	if err = easyjson.Unmarshal(body, &req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to unmarshal value: %v", err))
+	if !bindJSON(c, &req) {
 		return
 	}
 
-	if req.EnumClassID == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-		log.Error(c.Request.Context(), errors.New("class_id is empty").Error())
+	if req.EnumClassID <= 0 || req.ValueType == "" || req.Value == nil {
+		writeError(c, http.StatusBadRequest, apperrors.CodeValidation, "class_id, enum_type and value are required")
 		return
 	}
 
-	log.Debug(c.Request.Context(), "Unmarshaled Create")
-
-	enumValueID, err := h.uc.CreateEnumValue(c.Request.Context(), req)
+	id, err := h.uc.CreateEnumValue(c.Request.Context(), req)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to create enum value: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "value not created"})
+		handleError(c, log, "failed to create enum value", err)
 		return
 	}
 
-	log.Debug(c.Request.Context(), "End Create")
-
-	log.Debug(c.Request.Context(), fmt.Sprintf("enum_value_id=%d", enumValueID))
-	log.Info(
-		c.Request.Context(),
-		// fmt.Sprintf("action=create resource=category status=success name=%q level=%d",
-		// 	req.Name, req.Level))
-		fmt.Sprintf("action=create resource=category status=success value=%q", req.Value),
-	)
-	c.Status(http.StatusCreated)
+	req.ID = int(id)
+	log.Info(c.Request.Context(), "action=create resource=enum_value status=success", zap.Uint("id", id))
+	c.JSON(http.StatusCreated, req)
 }
 
-// GetValue обрабатывает HTTP-запрос на получение значений перечисления по имени сущности, поля и типа перечисления.
+// GetValue обрабатывает GET /enums/value.
 func (h *enumHandlers) GetValue(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+	log, ok := getLogger(c)
 	if !ok {
-		c.Status(http.StatusInternalServerError)
-
 		return
 	}
 
 	fieldName := c.Query("field_name")
-	valueType := c.Query("enum_type")
-
-	values, err := h.uc.GetEnumValue(c.Request.Context(), fieldName, entities.EnumType(valueType))
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get enum values: %v", err))
-		c.Status(http.StatusInternalServerError)
-
+	enumType := c.Query("enum_type")
+	if fieldName == "" || enumType == "" {
+		badRequest(c, log, apperrors.CodeInvalidParameters, errors.New("field_name and enum_type are required"))
 		return
 	}
 
-	rawBytes, err := json.Marshal(values)
+	values, err := h.uc.GetEnumValue(c.Request.Context(), fieldName, entities.EnumType(enumType))
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal enums: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
-
+		handleError(c, log, "failed to get enum values", err)
 		return
 	}
 
-	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
-	log.Info(
-		c.Request.Context(),
-		fmt.Sprintf(
-			"action=list resource=beer status=success items=%d", len(values),
-		),
-	)
+	c.JSON(http.StatusOK, nonNil(values))
 }
 
-// UpdateValue обрабатывает HTTP-запрос на обновление существующего значения перечисления.
+// UpdateValue обрабатывает PATCH /enums/value/{id}.
 func (h *enumHandlers) UpdateValue(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+	log, ok := getLogger(c)
 	if !ok {
-		c.Status(http.StatusInternalServerError)
-
 		return
 	}
 
-	id, err := getUintParam(c, "id")
+	id, err := getIDParam(c, "id")
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid enum value id: %v", err))
-
+		badRequest(c, log, apperrors.CodeInvalidID, err)
 		return
 	}
 
-	body, err := readRequestBody(c)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read updates in the request body: %v", err))
-
+	updates, ok := bindUpdates(c)
+	if !ok {
 		return
 	}
 
-	updates := make(map[string]any)
-	if err = json.Unmarshal(body, &updates); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-
+	if err = h.uc.UpdateEnumValue(c.Request.Context(), toUint(id), updates); err != nil {
+		handleError(c, log, "failed to update enum value", err)
 		return
 	}
 
-	if len(updates) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "empty update payload"})
-
-		return
-	}
-
-	err = h.uc.UpdateEnumValue(c.Request.Context(), id, updates)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to update enum value: %v", err))
-		c.Status(http.StatusInternalServerError)
-
-		return
-	}
-
-	log.Info(c.Request.Context(), fmt.Sprintf("action=update resource=beer status=success id=%d", id))
-	c.Status(http.StatusOK)
+	log.Info(c.Request.Context(), "action=update resource=enum_value status=success", zap.Int64("id", id))
+	c.JSON(http.StatusOK, withID(updates, id))
 }
 
-// DeleteValue обрабатывает HTTP-запрос на удаление существующего значения перечисления.
+// DeleteValue обрабатывает DELETE /enums/value/{id}.
 func (h *enumHandlers) DeleteValue(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+	log, ok := getLogger(c)
 	if !ok {
-		c.Status(http.StatusInternalServerError)
-
 		return
 	}
 
-	id, err := getUintParam(c, "id")
+	id, err := getIDParam(c, "id")
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid enum value id: %v", err))
-
+		badRequest(c, log, apperrors.CodeInvalidID, err)
 		return
 	}
 
-	err = h.uc.DeleteEnumValue(c.Request.Context(), id)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to delete enum value: %v", err))
-		c.Status(http.StatusInternalServerError)
-
+	if err = h.uc.DeleteEnumValue(c.Request.Context(), toUint(id)); err != nil {
+		handleError(c, log, "failed to delete enum value", err)
 		return
 	}
 
-	log.Info(c.Request.Context(), fmt.Sprintf("action=delete resource=beer status=success id=%d", id))
-	c.Status(http.StatusOK)
+	log.Info(c.Request.Context(), "action=delete resource=enum_value status=success", zap.Int64("id", id))
+	c.Status(http.StatusNoContent)
+}
+
+// withID добавляет id к измененным полям. Сервис перечислений после обновления не возвращает объект,
+// поэтому в ответ отдаем то, что поменяли.
+func withID(updates map[string]any, id int64) map[string]any {
+	updates["id"] = id
+	return updates
 }
