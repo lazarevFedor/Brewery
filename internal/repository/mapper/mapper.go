@@ -3,6 +3,7 @@ package mapper
 import (
 	"Brewery/internal/entities"
 	"Brewery/internal/repository/queries"
+	"time"
 )
 
 //go:generate go run github.com/jmattheis/goverter/cmd/goverter@latest gen .
@@ -61,4 +62,19 @@ type MaterialMapper interface {
 	FromGetByProduct([]queries.GetMaterialsByProductIDRow) []entities.MaterialProduct
 	FromGetByMaterial([]queries.GetProductsByMaterialRow) []entities.MaterialProduct
 	FromDBMaterial(queries.Material) entities.Material
+}
+
+// goverter:output:file ./mapper_impl.go
+// goverter:output:package Brewery/internal/repository/mapper
+// goverter:converter
+// goverter:ignoreMissing
+// goverter:useZeroValueOnPointerInconsistency
+type HistoryMapper interface {
+	// goverter:map CreatedAt CreatedAt | TimeToTime
+	FromDBChangeRecord(queries.ChangeHistory) entities.HistoryRecord
+	FromDBChangeHistory([]queries.ChangeHistory) []entities.HistoryRecord
+}
+
+func TimeToTime(t time.Time) time.Time {
+    return t
 }
