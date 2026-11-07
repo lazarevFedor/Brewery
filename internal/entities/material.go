@@ -1,29 +1,21 @@
 package entities
 
+// Material - строка таблицы materials: материал MaterialID входит в изделие ProductID в количестве MaterialAmount.
 type Material struct {
 	MaterialID     int64
 	ProductID      int64
 	MaterialAmount float32
 }
 
+// MaterialProduct - материал вместе с данными изделия (материал - это тоже изделие).
+// Одна структура на все запросы по составу:
+//   - состав изделия (FIND_BOM): Product - материал, MaterialAmount - сколько его на единицу родителя,
+//     Materials - из чего состоит сам материал (пусто, если материал не составной);
+//   - нормы расхода: Product - материал, MaterialAmount - сколько всего его нужно на изделие, Materials пустой;
+//   - где используется материал: Product - изделие, MaterialAmount - сколько материала в него входит.
 type MaterialProduct struct {
 	Material
 	Product
-}
 
-// MaterialTreeNode - узел дерева состава изделия (результат FIND_BOM).
-type MaterialTreeNode struct {
-	MaterialID     int64              `json:"material_id"`
-	Name           string             `json:"name"`
-	MaterialAmount float32            `json:"material_amount"`
-	Units          string             `json:"units,omitempty"`
-	Materials      []MaterialTreeNode `json:"materials"`
-}
-
-// MaterialNorm - суммарная норма расхода материала для изготовления изделия.
-type MaterialNorm struct {
-	MaterialID  int64   `json:"material_id"`
-	Name        string  `json:"name"`
-	TotalAmount float64 `json:"total_amount"`
-	Units       string  `json:"units,omitempty"`
+	Materials []MaterialProduct
 }
