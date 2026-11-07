@@ -2,10 +2,13 @@ package usecase
 
 import (
 	"Brewery/internal/entities"
+	"Brewery/internal/repository/product"
 	"context"
 	"errors"
 	"fmt"
 	"reflect"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type ProductRepository interface {
@@ -16,22 +19,24 @@ type ProductRepository interface {
 	DeleteProduct(ctx context.Context, id int64) error
 	GetProductsByClass(ctx context.Context, classID int64, limit, offset int32) ([]entities.Product, error)
 	GetFilteredProducts(ctx context.Context, filters []entities.FilterParameter, classID *uint, limit int32, offset int32) ([]entities.Product, error)
-	InheritMaterials(ctx context.Context, baseID, productID int64) error
+}
+
+// NewProductRepository создает новый экземпляр ProductRepository с использованием предоставленного пула соединений к базе данных.
+func NewProductRepository(pool *pgxpool.Pool) ProductRepository {
+	return &product.Repository{Pool: pool}
 }
 
 type ProductService struct {
-	repo      ProductRepository
-	enumRepo  EnumRepository
-	paramRepo ParameterRepository
+	repo         ProductRepository
+	enumRepo     EnumRepository
+	paramRepo    ParameterRepository
+	classRepo    ClassRepository
+	materialRepo MaterialRepository
 }
 
 func (ps *ProductService) CreateProduct(ctx context.Context, product entities.Product) (*entities.Product, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
-	}
-
-	if product.Name == "" {
-		return nil, errors.New("product name is required")
 	}
 
 	err := ps.ValidateProductWithParameters(ctx, product)
@@ -61,9 +66,21 @@ func (ps *ProductService) GetProducts(ctx context.Context, limit, offset int32) 
 }
 
 func (ps *ProductService) UpdateProduct(ctx context.Context, id int64, updates map[string]any) (*entities.Product, error) {
-	err := ps.ValidateUpdates(updates)
+	_, err := ps.repo.GetProductByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get product: %w", err)
+	}
+	err = ps.ValidateUpdates(ctx, updates)
 	if err != nil {
 		return nil, fmt.Errorf("failed to validate updates: %w", err)
+	}
+
+	if baseID, ok := updates["base_id"]; ok {
+		baseIDInt, _ := baseID.(int64)
+		err = ps.materialRepo.CopyProductMaterials(ctx, baseIDInt, id)
+		if err != nil {
+			return nil, fmt.Errorf("failed to inherit materials from base product: %w", err)
+		}
 	}
 
 	product, err := ps.repo.UpdateProduct(ctx, id, updates)
@@ -134,7 +151,9 @@ func (ps *ProductService) GetProductByID(ctx context.Context, id int64) (*entiti
 	return product, nil
 }
 
-func (ps *ProductService) ValidateUpdates(updates map[string]any) error {
+func (ps *ProductService) ValidateUpdates(ctx context.Context, updates map[string]any) error {
+	var baseIDInt int64
+
 	for key := range updates {
 		switch key {
 		case "name":
@@ -149,12 +168,16 @@ func (ps *ProductService) ValidateUpdates(updates map[string]any) error {
 			}
 		case "base_id":
 			baseID, _ := updates[key]
-			if baseIDUint, ok := baseID.(int); !ok || baseIDUint == 0 {
+			if baseIDInt, ok := baseID.(int64); !ok || baseIDInt == 0 {
 				return errors.New("invalid base id")
+			}
+			_, err := ps.repo.GetProductByID(ctx, baseIDInt)
+			if err != nil {
+				return fmt.Errorf("base product with id %d does not exist: %w", baseIDInt, err)
 			}
 		case "amount":
 			amount, _ := updates[key]
-			if amountUint, ok := amount.(uint); !ok || amountUint == 0 {
+			if amountUint, ok := amount.(float32); !ok || amountUint == 0 {
 				return errors.New("invalid amount")
 			}
 		case "units":
@@ -233,4 +256,28 @@ func containsEnumValue(enumValues []entities.EnumValue, parameterValue any) bool
 	}
 
 	return false
+}
+
+func (ps *ProductService) ValidateProductCreation(ctx context.Context, product entities.Product) error {
+	if product.Name == "" {
+		return errors.New("product name is required")
+	}
+
+	_, err := ps.classRepo.GetClassByName(ctx, product.ProdClass.Name)
+	if err != nil {
+		return fmt.Errorf("failed to get class by name: %w", err)
+	}
+
+	if product.BaseID != 0 {
+		_, err = ps.repo.GetProductByID(ctx, product.BaseID)
+		if err != nil {
+			return fmt.Errorf("base product with id %d does not exist: %w", product.BaseID, err)
+		}
+		err = ps.materialRepo.CopyProductMaterials(ctx, product.BaseID, product.ID)
+		if err != nil {
+			return fmt.Errorf("failed to inherit materials from base product: %w", err)
+		}
+	}
+
+	return nil
 }
