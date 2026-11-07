@@ -5,6 +5,8 @@
 package queries
 
 import (
+	"time"
+
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -17,9 +19,9 @@ type Aggregate struct {
 
 type ChangeHistory struct {
 	ID        int64
-	ProductID *int64
+	ProductID int64
 	Changes   string
-	CreatedAt pgtype.Timestamptz
+	CreatedAt time.Time
 }
 
 type Class struct {

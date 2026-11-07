@@ -51,6 +51,65 @@ func (c *ClassMapperImpl) FromInsert(source queries.InsertClassRow) entities.Cla
 	return entitiesClass
 }
 
+type HistoryMapperImpl struct{}
+
+func (c *HistoryMapperImpl) FromDBChangeHistory(source []queries.ChangeHistory) []entities.HistoryRecord {
+	var entitiesHistoryRecordList []entities.HistoryRecord
+	if source != nil {
+		entitiesHistoryRecordList = make([]entities.HistoryRecord, len(source))
+		for i := 0; i < len(source); i++ {
+			entitiesHistoryRecordList[i] = c.FromDBChangeRecord(source[i])
+		}
+	}
+	return entitiesHistoryRecordList
+}
+func (c *HistoryMapperImpl) FromDBChangeRecord(source queries.ChangeHistory) entities.HistoryRecord {
+	var entitiesHistoryRecord entities.HistoryRecord
+	entitiesHistoryRecord.ID = source.ID
+	entitiesHistoryRecord.ProductID = source.ProductID
+	entitiesHistoryRecord.Changes = source.Changes
+	entitiesHistoryRecord.CreatedAt = TimeToTime(source.CreatedAt)
+	return entitiesHistoryRecord
+}
+
+type MaterialMapperImpl struct{}
+
+func (c *MaterialMapperImpl) FromDBMaterial(source queries.Material) entities.Material {
+	var entitiesMaterial entities.Material
+	entitiesMaterial.MaterialID = source.MaterialID
+	entitiesMaterial.ProductID = source.ProductID
+	entitiesMaterial.MaterialAmount = source.MaterialAmount
+	return entitiesMaterial
+}
+func (c *MaterialMapperImpl) FromGetByMaterial(source []queries.GetProductsByMaterialRow) []entities.MaterialProduct {
+	var entitiesMaterialProductList []entities.MaterialProduct
+	if source != nil {
+		entitiesMaterialProductList = make([]entities.MaterialProduct, len(source))
+		for i := 0; i < len(source); i++ {
+			entitiesMaterialProductList[i] = c.queriesGetProductsByMaterialRowToEntitiesMaterialProduct(source[i])
+		}
+	}
+	return entitiesMaterialProductList
+}
+func (c *MaterialMapperImpl) FromGetByProduct(source []queries.GetMaterialsByProductIDRow) []entities.MaterialProduct {
+	var entitiesMaterialProductList []entities.MaterialProduct
+	if source != nil {
+		entitiesMaterialProductList = make([]entities.MaterialProduct, len(source))
+		for i := 0; i < len(source); i++ {
+			entitiesMaterialProductList[i] = c.queriesGetMaterialsByProductIDRowToEntitiesMaterialProduct(source[i])
+		}
+	}
+	return entitiesMaterialProductList
+}
+func (c *MaterialMapperImpl) queriesGetMaterialsByProductIDRowToEntitiesMaterialProduct(source queries.GetMaterialsByProductIDRow) entities.MaterialProduct {
+	var entitiesMaterialProduct entities.MaterialProduct
+	return entitiesMaterialProduct
+}
+func (c *MaterialMapperImpl) queriesGetProductsByMaterialRowToEntitiesMaterialProduct(source queries.GetProductsByMaterialRow) entities.MaterialProduct {
+	var entitiesMaterialProduct entities.MaterialProduct
+	return entitiesMaterialProduct
+}
+
 type ProductMapperImpl struct{}
 
 func (c *ProductMapperImpl) FromDBFullProduct(source queries.GetProductByIDRow) entities.Product {
