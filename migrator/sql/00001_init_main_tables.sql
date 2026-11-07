@@ -50,9 +50,12 @@ WHERE parent_id IS NULL;
 --                INDEXES
 -- ==========================================
 
+-- Индексы для поиска по material_id и product_id
+CREATE INDEX idx_materials_material_id ON materials(material_id);
+CREATE INDEX idx_materials_product_id ON materials(product_id);
+
 -- Индекс для поиска по parent_id
 CREATE INDEX idx_classes_parent_id ON classes (parent_id);
-
 
 -- Индекс для поиска товаров по категориям
 CREATE INDEX idx_products_class_id ON products(class_id);
