@@ -16,14 +16,14 @@ type ProductRepository interface {
 	DeleteProduct(ctx context.Context, id int64) error
 	GetProductsByClass(ctx context.Context, classID int64, limit, offset int32) ([]entities.Product, error)
 	GetFilteredProducts(ctx context.Context, filters []entities.FilterParameter, classID *uint, limit int32, offset int32) ([]entities.Product, error)
-	InheritMaterials(ctx context.Context, baseID, productID int64) error
 }
 
 type ProductService struct {
-	repo      ProductRepository
-	enumRepo  EnumRepository
-	paramRepo ParameterRepository
-	classRepo ClassRepository
+	repo         ProductRepository
+	enumRepo     EnumRepository
+	paramRepo    ParameterRepository
+	classRepo    ClassRepository
+	materialRepo MaterialRepository
 }
 
 func (ps *ProductService) CreateProduct(ctx context.Context, product entities.Product) (*entities.Product, error) {
@@ -69,7 +69,7 @@ func (ps *ProductService) UpdateProduct(ctx context.Context, id int64, updates m
 
 	if baseID, ok := updates["base_id"]; ok {
 		baseIDInt, _ := baseID.(int64)
-		err = ps.repo.InheritMaterials(ctx, baseIDInt, id)
+		err = ps.materialRepo.CopyProductMaterials(ctx, baseIDInt, id)
 		if err != nil {
 			return nil, fmt.Errorf("failed to inherit materials from base product: %w", err)
 		}
@@ -265,7 +265,7 @@ func (ps *ProductService) ValidateProductCreation(ctx context.Context, product e
 		if err != nil {
 			return fmt.Errorf("base product with id %d does not exist: %w", product.BaseID, err)
 		}
-		err = ps.repo.InheritMaterials(ctx, product.BaseID, product.ID)
+		err = ps.materialRepo.CopyProductMaterials(ctx, product.BaseID, product.ID)
 		if err != nil {
 			return fmt.Errorf("failed to inherit materials from base product: %w", err)
 		}
