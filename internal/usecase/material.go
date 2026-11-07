@@ -2,7 +2,7 @@ package usecase
 
 import (
 	"Brewery/internal/entities"
-	"Brewery/internal/repository"
+	"Brewery/internal/repository/material"
 	"context"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -17,16 +17,16 @@ type MaterialRepository interface {
 	UpdateMaterial(ctx context.Context, material entities.Material) (*entities.Material, error)
 
 	// DeleteMaterial удаляет материал с заданным ID из базы данных и возвращает удаленный материал.
-	DeleteMaterial(ctx context.Context, productID, materialID int64) (*entities.Material, error)
+	DeleteMaterial(ctx context.Context, productID, materialID int64) error
 
 	// GetProductMaterials извлекает все материалы, соответствующие заданному ID продукта, из базы данных.
-	GetProductMaterials(ctx context.Context, productID int64) ([]entities.Material, error)
+	GetMaterialsByProduct(ctx context.Context, productID int64) ([]entities.MaterialProduct, error)
 
-	//GetProductsUseMaterial извлекает все продукты, использующие заданный материал, из базы данных.
-	GetProductsUseMaterial(ctx context.Context, materialID int64, limit, offset int32) ([]entities.Product, error)
+	//GetProductsByMaterial извлекает все продукты, использующие заданный материал, из базы данных.
+	GetProductsByMaterial(ctx context.Context, materialID int64, limit, offset int32) ([]entities.MaterialProduct, error)
 }
 
 // NewMaterialRepository создает новый экземпляр MaterialRepository с использованием предоставленного пула соединений к базе данных.
 func NewMaterialRepository(pool *pgxpool.Pool) MaterialRepository {
-	return &repository.MaterialPostgres{Pool: pool}
+	return &material.Repository{Pool: pool}
 }

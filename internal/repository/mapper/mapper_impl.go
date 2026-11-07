@@ -51,6 +51,44 @@ func (c *ClassMapperImpl) FromInsert(source queries.InsertClassRow) entities.Cla
 	return entitiesClass
 }
 
+type MaterialMapperImpl struct{}
+
+func (c *MaterialMapperImpl) FromDBMaterial(source queries.Material) entities.Material {
+	var entitiesMaterial entities.Material
+	entitiesMaterial.MaterialID = source.MaterialID
+	entitiesMaterial.ProductID = source.ProductID
+	entitiesMaterial.MaterialAmount = source.MaterialAmount
+	return entitiesMaterial
+}
+func (c *MaterialMapperImpl) FromGetByMaterial(source []queries.GetProductsByMaterialRow) []entities.MaterialProduct {
+	var entitiesMaterialProductList []entities.MaterialProduct
+	if source != nil {
+		entitiesMaterialProductList = make([]entities.MaterialProduct, len(source))
+		for i := 0; i < len(source); i++ {
+			entitiesMaterialProductList[i] = c.queriesGetProductsByMaterialRowToEntitiesMaterialProduct(source[i])
+		}
+	}
+	return entitiesMaterialProductList
+}
+func (c *MaterialMapperImpl) FromGetByProduct(source []queries.GetMaterialsByProductIDRow) []entities.MaterialProduct {
+	var entitiesMaterialProductList []entities.MaterialProduct
+	if source != nil {
+		entitiesMaterialProductList = make([]entities.MaterialProduct, len(source))
+		for i := 0; i < len(source); i++ {
+			entitiesMaterialProductList[i] = c.queriesGetMaterialsByProductIDRowToEntitiesMaterialProduct(source[i])
+		}
+	}
+	return entitiesMaterialProductList
+}
+func (c *MaterialMapperImpl) queriesGetMaterialsByProductIDRowToEntitiesMaterialProduct(source queries.GetMaterialsByProductIDRow) entities.MaterialProduct {
+	var entitiesMaterialProduct entities.MaterialProduct
+	return entitiesMaterialProduct
+}
+func (c *MaterialMapperImpl) queriesGetProductsByMaterialRowToEntitiesMaterialProduct(source queries.GetProductsByMaterialRow) entities.MaterialProduct {
+	var entitiesMaterialProduct entities.MaterialProduct
+	return entitiesMaterialProduct
+}
+
 type ProductMapperImpl struct{}
 
 func (c *ProductMapperImpl) FromDBFullProduct(source queries.GetProductByIDRow) entities.Product {
