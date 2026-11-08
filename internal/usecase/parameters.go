@@ -25,10 +25,10 @@ type ParameterRepository interface {
 	GetParameters(ctx context.Context, classID int64, parameterType int) ([]entities.RangeParameter, []entities.EnumParameter, error)
 
 	// ApplyParameters применяет числовые и перечисляемые параметры к категории и возвращает результат применения.
-	ApplyParameters(ctx context.Context, classID int64, rangeParameters, enumParameters []int) (int, error)
+	ApplyParameters(ctx context.Context, classID int64, rangeParameters, enumParameters []int64) (int, error)
 
 	// ExcludeParameters исключает указанные числовые и перечисляемые параметры из категории и возвращает количество исключенных параметров.
-	ExcludeParameters(ctx context.Context, classID int64, rangeParameters, enumParameters []int) (int, error)
+	ExcludeParameters(ctx context.Context, classID int64, rangeParameters, enumParameters []int64) (int, error)
 }
 
 // NewParameterRepository создает новый экземпляр ParameterRepository с предоставленным пулом соединений к базе данных.
@@ -148,7 +148,7 @@ func (s *ParametersService) ListParameters(ctx context.Context, classID int64, p
 }
 
 // ApplyToClass применяет указанные параметры к классу. Возвращает количество добавленных параметров.
-func (s *ParametersService) ApplyToClass(ctx context.Context, classID int64, rangeIDs, enumIDs []int) (int, error) {
+func (s *ParametersService) ApplyToClass(ctx context.Context, classID int64, rangeIDs, enumIDs []int64) (int, error) {
 	if err := ctx.Err(); err != nil {
 		return 0, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -169,7 +169,7 @@ func (s *ParametersService) ApplyToClass(ctx context.Context, classID int64, ran
 	return added, nil
 }
 
-func (s *ParametersService) ExcludeFromClass(ctx context.Context, classID int64, rangeIDs, enumIDs []int) (int, error) {
+func (s *ParametersService) ExcludeFromClass(ctx context.Context, classID int64, rangeIDs, enumIDs []int64) (int, error) {
 	if err := ctx.Err(); err != nil {
 		return 0, fmt.Errorf("request cancelled: %w", err)
 	}

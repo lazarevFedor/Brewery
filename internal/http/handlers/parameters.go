@@ -27,10 +27,10 @@ type ParametersService interface {
 	ListParameters(ctx context.Context, classID int64, parameterType int) ([]entities.RangeParameter, []entities.EnumParameter, error)
 
 	// ApplyToClass применяет параметры к классу. Возвращает количество добавленных параметров.
-	ApplyToClass(ctx context.Context, classID int64, rangeIDs, enumIDs []int) (int, error)
+	ApplyToClass(ctx context.Context, classID int64, rangeIDs, enumIDs []int64) (int, error)
 
 	// ExcludeFromClass исключает параметры из класса. Возвращает количество исключенных параметров.
-	ExcludeFromClass(ctx context.Context, classID int64, rangeIDs, enumIDs []int) (int, error)
+	ExcludeFromClass(ctx context.Context, classID int64, rangeIDs, enumIDs []int64) (int, error)
 }
 
 // ParametersHandlers - HTTP-обработчики для параметров классов.
@@ -57,8 +57,8 @@ type ParametersHandlers interface {
 
 // classParamsRequest - тело запросов apply/exclude (схемы ClassParamsApply и ClassParamsExclude).
 type classParamsRequest struct {
-	RangeParamIDs []int `json:"range_param_ids"`
-	EnumParamIDs  []int `json:"enum_param_ids"`
+	RangeParamIDs []int64 `json:"range_param_ids"`
+	EnumParamIDs  []int64 `json:"enum_param_ids"`
 }
 
 // parameterTypes сопоставляет значение query-параметра type с типом параметра.
@@ -108,7 +108,7 @@ func (h *parametersHandlers) CreateRangeParameter(c *gin.Context) {
 		return
 	}
 
-	log.Info(c.Request.Context(), "action=create resource=range_parameter status=success", zap.Uint("id", created.ID))
+	log.Info(c.Request.Context(), "action=create resource=range_parameter status=success", zap.Int64("id", created.ID))
 	c.JSON(http.StatusCreated, created)
 }
 

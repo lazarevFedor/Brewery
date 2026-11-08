@@ -33,7 +33,7 @@ func (p *ParameterPostgres) InsertRangeParameter(ctx context.Context, param *ent
 		return nil, err
 	}
 
-	var id uint
+	var id int64
 	err = p.Pool.QueryRow(ctx, sql, args...).Scan(&id)
 	if err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func (p *ParameterPostgres) InsertRangeParameter(ctx context.Context, param *ent
 }
 
 // UpdateRangeParameter обновляет существующий числовой параметр в базе данных и возвращает его.
-func (p *ParameterPostgres) UpdateRangeParameter(ctx context.Context, id uint, updates map[string]any) (*entities.RangeParameter, error) {
+func (p *ParameterPostgres) UpdateRangeParameter(ctx context.Context, id int64, updates map[string]any) (*entities.RangeParameter, error) {
 	if len(updates) == 0 {
 		return nil, errors.New("no updates provided")
 	}
@@ -74,7 +74,7 @@ func (p *ParameterPostgres) UpdateRangeParameter(ctx context.Context, id uint, u
 }
 
 // DeleteRangeParameter удаляет числовой параметр из базы данных и возвращает его.
-func (p *ParameterPostgres) DeleteRangeParameter(ctx context.Context, id uint) (*entities.RangeParameter, error) {
+func (p *ParameterPostgres) DeleteRangeParameter(ctx context.Context, id int64) (*entities.RangeParameter, error) {
 	param, err := p.fetchNumericParameterByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -106,8 +106,8 @@ func (p *ParameterPostgres) GetParameters(
 	[]entities.EnumParameter,
 	error,
 ) {
-	var numericIDs []uint
-	var enumIDs []uint
+	var numericIDs []int64
+	var enumIDs []int64
 	var query sq.SelectBuilder
 
 	log, ok := logger.GetLoggerFromCtx(ctx)
@@ -116,7 +116,7 @@ func (p *ParameterPostgres) GetParameters(
 	}
 
 	if classID != 0 {
-		query := queries.SelectParameterIDsByCategory(uint(classID), parameterType)
+		query := queries.SelectParameterIDsByCategory(classID, parameterType)
 		sql, args, err := query.ToSql()
 		if err != nil {
 			return nil, nil, err
@@ -190,11 +190,11 @@ func (p *ParameterPostgres) GetParameters(
 }
 
 // ApplyParameters применяет числовые и перечисляемые параметры к категории и возвращает результат применения.
-func (p *ParameterPostgres) ApplyParameters(ctx context.Context, categoryID uint, numericParameters, enumParameters []int) (int, error) {
+func (p *ParameterPostgres) ApplyParameters(ctx context.Context, categoryID int64, numericParameters, enumParameters []int64) (int, error) {
 	rowsAffected := 0
 
 	if len(numericParameters) > 0 {
-		addQuery := queries.AddNumericParametersToCategories(numericParameters, []int{int(categoryID)})
+		addQuery := queries.AddNumericParametersToCategories(numericParameters, []int64{categoryID})
 		sql, args, err := addQuery.ToSql()
 		if err != nil {
 			return 0, err
@@ -209,7 +209,7 @@ func (p *ParameterPostgres) ApplyParameters(ctx context.Context, categoryID uint
 	}
 
 	if len(enumParameters) > 0 {
-		addQuery := queries.AddEnumParametersToCategories(enumParameters, []int{int(categoryID)})
+		addQuery := queries.AddEnumParametersToCategories(enumParameters, []int64{categoryID})
 		sql, args, err := addQuery.ToSql()
 		if err != nil {
 			return 0, err
@@ -263,8 +263,8 @@ func scanEnumParameter(row pgx.Row) (*entities.EnumParameter, error) {
 }
 
 // fetchNumericParameterByID получает RangeParameter по id
-func (p *ParameterPostgres) fetchNumericParameterByID(ctx context.Context, id uint) (*entities.RangeParameter, error) {
-	selectQuery := queries.SelectNumericParameters([]uint{id})
+func (p *ParameterPostgres) fetchNumericParameterByID(ctx context.Context, id int64) (*entities.RangeParameter, error) {
+	selectQuery := queries.SelectNumericParameters([]int64{id})
 	sql, args, err := selectQuery.ToSql()
 	if err != nil {
 		return nil, err
@@ -273,8 +273,8 @@ func (p *ParameterPostgres) fetchNumericParameterByID(ctx context.Context, id ui
 }
 
 // fetchEnumParameterByID получает EnumParameter по id
-func (p *ParameterPostgres) fetchEnumParameterByID(ctx context.Context, id uint) (*entities.EnumParameter, error) {
-	selectQuery := queries.SelectEnumParameters([]uint{id})
+func (p *ParameterPostgres) fetchEnumParameterByID(ctx context.Context, id int64) (*entities.EnumParameter, error) {
+	selectQuery := queries.SelectEnumParameters([]int64{id})
 	sql, args, err := selectQuery.ToSql()
 	if err != nil {
 		return nil, err
@@ -285,7 +285,7 @@ func (p *ParameterPostgres) fetchEnumParameterByID(ctx context.Context, id uint)
 // toggleInheritance реализует обработку изменения флага наследования у параметра
 //
 //nolint:funlen
-func (p *ParameterPostgres) toggleInheritance(ctx context.Context, isEnum bool, id uint, oldValue, newValue bool) error {
+func (p *ParameterPostgres) toggleInheritance(ctx context.Context, isEnum bool, id int64, oldValue, newValue bool) error {
 	if oldValue == newValue {
 		return nil
 	}

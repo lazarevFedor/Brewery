@@ -34,7 +34,7 @@ func InsertNumericParameter(param *entities.RangeParameter) sq.InsertBuilder {
 
 // UpdateNumericParameter возвращает запрос для обновления
 // существующего числового параметра в базе данных.
-func UpdateNumericParameter(id uint, updates map[string]any) sq.UpdateBuilder {
+func UpdateNumericParameter(id int64, updates map[string]any) sq.UpdateBuilder {
 	return psql.
 		Update(NumericParametersTable).
 		SetMap(updates).
@@ -44,7 +44,7 @@ func UpdateNumericParameter(id uint, updates map[string]any) sq.UpdateBuilder {
 
 // DeleteNumericParameter возвращает запрос для
 // удаления числового параметра из базы данных.
-func DeleteNumericParameter(id uint) sq.DeleteBuilder {
+func DeleteNumericParameter(id int64) sq.DeleteBuilder {
 	return psql.
 		Delete(NumericParametersTable).
 		Where(sq.Eq{"id": id}).
@@ -86,7 +86,7 @@ func DeleteEnumParameter(id uint) sq.DeleteBuilder {
 
 // SelectParameterIDsByCategory возвращает запрос для получения всех параметров,
 // связанных с определенной категорией, включая как числовые, так и перечисляемые параметры.
-func SelectParameterIDsByCategory(categoryID uint, parameterType int) sq.SelectBuilder {
+func SelectParameterIDsByCategory(categoryID int64, parameterType int) sq.SelectBuilder {
 	var query sq.SelectBuilder
 	switch parameterType {
 	case entities.RangeParameterType:
@@ -109,7 +109,7 @@ func SelectParameterIDsByCategory(categoryID uint, parameterType int) sq.SelectB
 
 // SelectNumericParameters возвращает запрос для получения всех параметров, без фильтрации по категории,
 // включая как числовые параметры.
-func SelectNumericParameters(ids []uint) sq.SelectBuilder {
+func SelectNumericParameters(ids []int64) sq.SelectBuilder {
 	query := psql.
 		Select(NumericReturningFields).
 		From(NumericParametersTable)
@@ -121,7 +121,7 @@ func SelectNumericParameters(ids []uint) sq.SelectBuilder {
 }
 
 // SelectEnumParameters возвращает запрос для получения всех параметров, без фильтрации по категории
-func SelectEnumParameters(ids []uint) sq.SelectBuilder {
+func SelectEnumParameters(ids []int64) sq.SelectBuilder {
 	query := psql.
 		Select(EnumReturningFields).
 		From(EnumParametersTable)
@@ -133,7 +133,7 @@ func SelectEnumParameters(ids []uint) sq.SelectBuilder {
 }
 
 // AddNumericParametersToCategories возвращает запрос для добавления числовых параметров в категории
-func AddNumericParametersToCategories(parameterIDs []int, categoryIDs []int) sq.SelectBuilder {
+func AddNumericParametersToCategories(parameterIDs []int64, categoryIDs []int64) sq.SelectBuilder {
 	return psql.
 		Select().
 		Column(
@@ -146,7 +146,7 @@ func AddNumericParametersToCategories(parameterIDs []int, categoryIDs []int) sq.
 }
 
 // AddEnumParametersToCategories возвращает запрос для добавления параметров-перечислений в категории
-func AddEnumParametersToCategories(parameterIDs []int, categoryIDs []int) sq.SelectBuilder {
+func AddEnumParametersToCategories(parameterIDs []int64, categoryIDs []int64) sq.SelectBuilder {
 	return psql.
 		Select().
 		Column(
@@ -172,7 +172,7 @@ func InheritParametersToChildren(parentID int) sq.SelectBuilder {
 }
 
 // SelectCategoriesWithNumericParameter возвращает запрос для получения всех категорий, содержащих числовой параметр
-func SelectCategoriesWithNumericParameter(parameterID uint) sq.SelectBuilder {
+func SelectCategoriesWithNumericParameter(parameterID int64) sq.SelectBuilder {
 	return psql.
 		Select("id").
 		From(tableClasses).
@@ -180,7 +180,7 @@ func SelectCategoriesWithNumericParameter(parameterID uint) sq.SelectBuilder {
 }
 
 // SelectCategoriesWithEnumParameter возвращает запрос для получения всех категорий, содержащих параметр-перечисление
-func SelectCategoriesWithEnumParameter(parameterID uint) sq.SelectBuilder {
+func SelectCategoriesWithEnumParameter(parameterID int64) sq.SelectBuilder {
 	return psql.
 		Select("id").
 		From(tableClasses).
