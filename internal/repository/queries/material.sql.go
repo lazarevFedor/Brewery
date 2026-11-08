@@ -9,6 +9,30 @@ import (
 	"context"
 )
 
+const copyBaseMaterials = `-- name: CopyBaseMaterials :exec
+INSERT INTO materials (
+    product_id,
+    material_id,
+    material_amount
+) SELECT 
+    $1,
+    material_id,
+    material_amount
+FROM materials
+WHERE materials.product_id = $2
+ON CONFLICT (material_id, product_id) DO NOTHING
+`
+
+type CopyBaseMaterialsParams struct {
+	ProductID int64
+	BaseID    int64
+}
+
+func (q *Queries) CopyBaseMaterials(ctx context.Context, arg CopyBaseMaterialsParams) error {
+	_, err := q.db.Exec(ctx, copyBaseMaterials, arg.ProductID, arg.BaseID)
+	return err
+}
+
 const deleteMaterial = `-- name: DeleteMaterial :exec
 DELETE FROM materials
 WHERE material_id = $1
@@ -22,6 +46,16 @@ type DeleteMaterialParams struct {
 
 func (q *Queries) DeleteMaterial(ctx context.Context, arg DeleteMaterialParams) error {
 	_, err := q.db.Exec(ctx, deleteMaterial, arg.MaterialID, arg.ProductID)
+	return err
+}
+
+const deleteProductsMaterials = `-- name: DeleteProductsMaterials :exec
+DELETE FROM materials
+WHERE product_id = $1
+`
+
+func (q *Queries) DeleteProductsMaterials(ctx context.Context, productID int64) error {
+	_, err := q.db.Exec(ctx, deleteProductsMaterials, productID)
 	return err
 }
 

@@ -62,6 +62,7 @@ func (repo *Repository) UpdateMaterial(ctx context.Context, material entities.Ma
 	if err != nil {
 		return nil, fmt.Errorf("UpdateMaterial: %w", err)
 	}
+
 	material = mapper.FromDBMaterial(dbMaterial)
 	return &material, nil
 }

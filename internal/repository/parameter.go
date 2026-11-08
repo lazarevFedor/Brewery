@@ -390,3 +390,43 @@ func (p *ParameterPostgres) toggleInheritance(ctx context.Context, isEnum bool, 
 
 	return nil
 }
+
+func (s *ParameterPostgres) ExcludeParameters(ctx context.Context, id int64, rangeParameters, enumParameters []int64) (int, error) {
+	tx, err := s.Pool.Begin(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("Begin: %w", err)
+	}
+
+	defer tx.Rollback(ctx)
+
+	qTx := queries.New(s.Pool).WithTx(tx)
+	affected := 0
+
+	if len(enumParameters) != 0 {
+		params := queries.ExcludeEnumParametersParams{
+			ProductID:        &id,
+			EnumParameterIds: enumParameters,
+		}
+		if err := qTx.ExcludeEnumParameters(ctx, params); err != nil {
+			return 0, fmt.Errorf("ExlideEnumParameters: %w", err)
+		}
+		affected += len(enumParameters)
+	}
+
+	if len(rangeParameters) != 0 {
+		params := queries.ExcludeRangeParametersParams{
+			ProductID:         &id,
+			RangeParameterIds: rangeParameters,
+		}
+		if err := qTx.ExcludeRangeParameters(ctx, params); err != nil {
+			return 0, fmt.Errorf("ExlideEnumParameters: %w", err)
+		}
+		affected += len(rangeParameters)
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return 0, fmt.Errorf("Commit: %w", err)
+	}
+
+	return affected, nil
+}

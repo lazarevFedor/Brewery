@@ -212,3 +212,4 @@ func RemoveEnumParametersFromDescendants(parameterIDs []int, parentIDs []int) sq
 			),
 		)
 }
+

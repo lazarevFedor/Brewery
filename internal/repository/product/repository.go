@@ -75,6 +75,12 @@ func (repo *Repository) UpdateProduct(ctx context.Context, id int64, updates map
 	if repo.Pool == nil {
 		return nil, errors.New("db pool is empty")
 	}
+	tx, err := repo.Pool.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to begin tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+	qTx := repo.query.WithTx(tx)
 
 	params := queries.UpdateProductParams{ID: id}
 	if val, ok := updates["name"]; ok {
@@ -97,16 +103,37 @@ func (repo *Repository) UpdateProduct(ctx context.Context, id int64, updates map
 			params.ClassID = &classID
 		}
 	}
+	var baseID int64 = -1
 	if val, ok := updates["base_id"]; ok {
 		if baseID, ok := val.(int64); ok {
 			params.BaseID = &baseID
 		}
 	}
 
-	dbProduct, err := repo.query.UpdateProduct(ctx, params)
+	dbProduct, err := qTx.UpdateProduct(ctx, params)
 	if err != nil {
 		return nil, fmt.Errorf("InsertProduct: %w", err)
 	}
+
+	// При обновлении base_id необходимо поменять все необходимые материалы со старого изделия на новое
+	if baseID != -1 {
+		if err := qTx.DeleteProductsMaterials(ctx, id); err != nil {
+			return nil, fmt.Errorf("DeleteProductsMaterials: %w", err)
+		}
+		params := queries.CopyBaseMaterialsParams{
+			ProductID: id,
+			BaseID:    baseID,
+		}
+		err := qTx.CopyBaseMaterials(ctx, params)
+		if err != nil {
+			return nil, fmt.Errorf("CopyBaseMaterials: %w", err)
+		}
+	}
+	err = tx.Commit(ctx)
+	if err != nil{
+		return nil, fmt.Errorf("Commot: %w", err)
+	}
+	
 	products := repo.mapper.FromUpdate(dbProduct)
 	return &products, nil
 }
