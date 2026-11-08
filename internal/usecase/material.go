@@ -111,12 +111,46 @@ func (s *MaterialService) GetMaterialsByProduct(ctx context.Context, productID i
 		return nil, errors.New("invalid product id")
 	}
 
-	materials, err := s.repo.GetMaterialsByProduct(ctx, productID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get materials by product: %w", err)
+	ancestors := make(map[int64]bool)
+	cache := make(map[int64][]entities.MaterialProduct)
+	var buildTree func(int64) ([]entities.MaterialProduct, error)
+	buildTree = func(id int64) ([]entities.MaterialProduct, error) {
+		if err := ctx.Err(); err != nil {
+			return nil, fmt.Errorf("request cancelled: %w", err)
+		}
+		if ancestors[id] {
+			return nil, fmt.Errorf("material composition contains a cycle at product %d", id)
+		}
+		ancestors[id] = true
+		defer delete(ancestors, id)
+
+		rows, ok := cache[id]
+		if !ok {
+			var err error
+			rows, err = s.repo.GetMaterialsByProduct(ctx, id)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get materials for product %d: %w", id, err)
+			}
+			cache[id] = rows
+		}
+
+		materials := make([]entities.MaterialProduct, len(rows))
+		for i, row := range rows {
+			materialID := row.MaterialID
+			if materialID == 0 {
+				materialID = row.ID
+			}
+			children, err := buildTree(materialID)
+			if err != nil {
+				return nil, err
+			}
+			materials[i] = row
+			materials[i].Materials = children
+		}
+		return materials, nil
 	}
 
-	return materials, nil
+	return buildTree(productID)
 }
 
 func (s *MaterialService) GetProductsByMaterial(ctx context.Context, materialID int64, limit, offset int32) ([]entities.MaterialProduct, error) {
@@ -154,7 +188,7 @@ func (s *MaterialService) GetMaterialNorms(ctx context.Context, productID int64,
 		return nil, errors.New("quantity must be greater than 0")
 	}
 
-	rows, err := s.repo.GetMaterialsByProduct(ctx, productID)
+	rows, err := s.GetMaterialsByProduct(ctx, productID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get materials by product: %w", err)
 	}
@@ -174,8 +208,10 @@ func (s *MaterialService) GetMaterialNorms(ctx context.Context, productID int64,
 			existing.MaterialAmount += amount
 			grouped[node.MaterialID] = existing
 		} else {
-			node.MaterialAmount = amount
-			grouped[node.MaterialID] = node
+			item := node
+			item.MaterialAmount = amount
+			item.Materials = nil
+			grouped[node.MaterialID] = item
 		}
 
 		nextAncestors := make(map[int64]struct{}, len(ancestors)+1)
