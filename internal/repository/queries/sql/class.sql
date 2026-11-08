@@ -33,9 +33,7 @@ WHERE id = $1;
 UPDATE classes
 SET 
     name = COALESCE(sqlc.narg(name), name),
-    parent_id = COALESCE(sqlc.narg(parent_id), parent_id),
-    numeric_parameter_ids = COALESCE(sqlc.narg(numeric_parameter_ids), numeric_parameter_ids),
-    enum_parameter_ids = COALESCE(sqlc.narg(enum_parameter_ids), enum_parameter_ids)
+    parent_id = COALESCE(sqlc.narg(parent_id), parent_id)
 WHERE id = sqlc.arg(id)
 RETURNING 
     id, 
