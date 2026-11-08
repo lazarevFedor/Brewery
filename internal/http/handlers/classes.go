@@ -125,7 +125,15 @@ func (h *classHandlers) UpdateClass(c *gin.Context) {
 
 	updates, ok := bindUpdates(c)
 	if !ok {
+		handleError(c, log, "no updates", err)
 		return
+	}
+
+	if val, ok := updates["parent_id"]; ok{
+		if parentID, ok := val.(float64); ok{
+			log.Debug(c.Request.Context(), "float")
+			updates["parent_id"] = int64(parentID)
+		}
 	}
 
 	updated, err := h.uc.UpdateClass(c.Request.Context(), id, updates)
