@@ -20,7 +20,6 @@ import (
 	"github.com/gin-contrib/graceful"
 	"github.com/gin-gonic/gin"
 	cors "github.com/rs/cors/wrapper/gin"
-	"go.uber.org/zap"
 )
 
 const devMode = true
@@ -50,7 +49,7 @@ func main() {
 		panic(fmt.Errorf("failed to create postgres pool: %w", err))
 	}
 
-	if err = migrator.Up(pool); err != nil{
+	if err = migrator.Up(pool); err != nil {
 		panic(fmt.Errorf("failed to migrate: %w", err))
 	}
 
