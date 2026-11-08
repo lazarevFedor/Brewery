@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"reflect"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -181,12 +182,17 @@ func (ps *ProductService) ValidateUpdates(ctx context.Context, updates map[strin
 			}
 		case "class_id":
 			classID, _ := updates[key]
-			if classIDUint, ok := classID.(int64); !ok || classIDUint == 0 {
+			switch v := classID.(type) {
+			case int, int8, int16, int32, int64:
+				if toInt64(v) == 0 {
+					return errors.New("invalid class id")
+				}
+			default:
 				return errors.New("invalid class id")
 			}
 		case "base_id":
 			baseID, _ := updates[key]
-			if baseIDInt, ok := baseID.(int64); !ok || baseIDInt == 0 {
+			if baseIDInt, ok := toInt64Value(baseID); !ok || baseIDInt == 0 {
 				return errors.New("invalid base id")
 			}
 			_, err := ps.repo.GetProductByID(ctx, baseIDInt)
@@ -195,7 +201,7 @@ func (ps *ProductService) ValidateUpdates(ctx context.Context, updates map[strin
 			}
 		case "amount":
 			amount, _ := updates[key]
-			if amountUint, ok := amount.(float32); !ok || amountUint < 0 {
+			if _, ok := toFloat64Value(amount); !ok {
 				return errors.New("invalid amount")
 			}
 		case "units":
@@ -209,6 +215,136 @@ func (ps *ProductService) ValidateUpdates(ctx context.Context, updates map[strin
 	}
 
 	return nil
+}
+
+func toInt64Value(v any) (int64, bool) {
+	switch x := v.(type) {
+	case int:
+		return int64(x), true
+	case int8:
+		return int64(x), true
+	case int16:
+		return int64(x), true
+	case int32:
+		return int64(x), true
+	case int64:
+		return x, true
+	case uint:
+		return int64(x), true
+	case uint8:
+		return int64(x), true
+	case uint16:
+		return int64(x), true
+	case uint32:
+		return int64(x), true
+	case uint64:
+		return int64(x), true
+	case float32:
+		if math.IsNaN(float64(x)) || math.IsInf(float64(x), 0) {
+			return 0, false
+		}
+		return int64(x), true
+	case float64:
+		if math.IsNaN(x) || math.IsInf(x, 0) {
+			return 0, false
+		}
+		return int64(x), true
+	default:
+		return 0, false
+	}
+}
+
+func toFloat64Value(v any) (float64, bool) {
+	switch x := v.(type) {
+	case float32:
+		return float64(x), true
+	case float64:
+		return x, true
+	case int:
+		return float64(x), true
+	case int8:
+		return float64(x), true
+	case int16:
+		return float64(x), true
+	case int32:
+		return float64(x), true
+	case int64:
+		return float64(x), true
+	case uint:
+		return float64(x), true
+	case uint8:
+		return float64(x), true
+	case uint16:
+		return float64(x), true
+	case uint32:
+		return float64(x), true
+	case uint64:
+		return float64(x), true
+	default:
+		return 0, false
+	}
+}
+
+func toInt64(v any) int64 {
+	switch x := v.(type) {
+	case int:
+		return int64(x)
+	case int8:
+		return int64(x)
+	case int16:
+		return int64(x)
+	case int32:
+		return int64(x)
+	case int64:
+		return x
+	case uint:
+		return int64(x)
+	case uint8:
+		return int64(x)
+	case uint16:
+		return int64(x)
+	case uint32:
+		return int64(x)
+	case uint64:
+		return int64(x)
+	case float32:
+		return int64(x)
+	case float64:
+		return int64(x)
+	default:
+		return 0
+	}
+}
+
+func normalizeEnumValue(value any) any {
+	switch v := value.(type) {
+	case float32:
+		return float64(v)
+	case float64:
+		return v
+	case int:
+		return int64(v)
+	case int8:
+		return int64(v)
+	case int16:
+		return int64(v)
+	case int32:
+		return int64(v)
+	case int64:
+		return v
+	case uint:
+		return uint64(v)
+	case uint8:
+		return uint64(v)
+	case uint16:
+		return uint64(v)
+	case uint32:
+		return uint64(v)
+	case uint64:
+		return v
+	default:
+		return value
+	}
 }
 
 func (ps *ProductService) ValidateProductWithParameters(ctx context.Context, product entities.Product) error {
@@ -232,10 +368,11 @@ func (ps *ProductService) ValidateProductWithParameters(ctx context.Context, pro
 			return fmt.Errorf("parameter %q is required", enumClass.FieldName)
 		}
 
-		if !containsEnumValue(enumValues, parameterValue) {
+		normalizedValue := normalizeEnumValue(parameterValue)
+		if !containsEnumValue(enumValues, normalizedValue) {
 			return fmt.Errorf(
 				"invalid value %v for parameter %q",
-				parameterValue,
+				normalizedValue,
 				enumClass.FieldName,
 			)
 		}

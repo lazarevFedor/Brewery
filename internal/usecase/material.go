@@ -144,46 +144,48 @@ func (s *MaterialService) GetMaterialNorms(ctx context.Context, productID int64)
 		return nil, errors.New("invalid product id")
 	}
 
-	active := make(map[int64]struct{})
-	grouped := make(map[int64]entities.MaterialProduct)
-
-	var walk func(productID int64) error
-
-	walk = func(productID int64) error {
-		if _, ok := active[productID]; ok {
-			return nil
-		}
-		active[productID] = struct{}{}
-		defer delete(active, productID)
-
-		rows, err := s.repo.GetMaterialsByProduct(ctx, productID)
-		if err != nil {
-			return fmt.Errorf("failed to get materials by product %d: %w", productID, err)
-		}
-
-		for _, row := range rows {
-			if existing, ok := grouped[row.ProductID]; ok {
-				existing.MaterialAmount += row.MaterialAmount
-				grouped[row.ProductID] = existing
-			} else {
-				grouped[row.ProductID] = row
-			}
-
-			if err := walk(row.MaterialID); err != nil {
-				return err
-			}
-		}
-
-		return nil
+	rows, err := s.repo.GetMaterialsByProduct(ctx, productID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get materials by product: %w", err)
 	}
 
-	if err := walk(productID); err != nil {
-		return nil, err
+	grouped := make(map[int64]entities.MaterialProduct)
+	var walk func(node entities.MaterialProduct, multiplier float32, ancestors map[int64]struct{})
+	walk = func(node entities.MaterialProduct, multiplier float32, ancestors map[int64]struct{}) {
+		if node.MaterialID == 0 {
+			return
+		}
+		if _, seen := ancestors[node.MaterialID]; seen {
+			return
+		}
+
+		amount := node.MaterialAmount * multiplier
+		if existing, ok := grouped[node.MaterialID]; ok {
+			existing.MaterialAmount += amount
+			grouped[node.MaterialID] = existing
+		} else {
+			node.MaterialAmount = amount
+			grouped[node.MaterialID] = node
+		}
+
+		nextAncestors := make(map[int64]struct{}, len(ancestors)+1)
+		for id := range ancestors {
+			nextAncestors[id] = struct{}{}
+		}
+		nextAncestors[node.MaterialID] = struct{}{}
+
+		for _, child := range node.Materials {
+			walk(child, amount, nextAncestors)
+		}
+	}
+
+	for _, row := range rows {
+		walk(row, 1, map[int64]struct{}{})
 	}
 
 	result := make([]entities.MaterialProduct, 0, len(grouped))
-	for _, v := range grouped {
-		result = append(result, v)
+	for _, item := range grouped {
+		result = append(result, item)
 	}
 
 	return result, nil

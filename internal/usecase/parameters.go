@@ -153,7 +153,7 @@ func (s *ParametersService) ApplyToClass(ctx context.Context, classID uint, rang
 	}
 
 	if len(rangeIDs) == 0 && len(enumIDs) == 0 {
-		return 0, errors.New("no parameters to exclude")
+		return 0, errors.New("no parameters to apply")
 	}
 
 	added, err := s.ParamRepo.ApplyParameters(ctx, classID, rangeIDs, enumIDs)
