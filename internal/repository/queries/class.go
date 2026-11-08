@@ -33,7 +33,7 @@ func ClassInsert(class entities.Class) sq.InsertBuilder {
 		data[classParentIDCol] = class.ParentID
 	}
 
-	return psql.Insert(tableCategories).
+	return psql.Insert(tableClasses).
 		SetMap(data).
 		Suffix("RETURNING id")
 }
@@ -46,25 +46,25 @@ func SelectClassByID(id uint) sq.SelectBuilder {
 // SelectClassByName возвращает запрос для получения категории по её имени, включая обработку NULL для parent_id
 func SelectClassByName(name string) sq.SelectBuilder {
 	return psql.Select(classIDCol).
-		From(tableCategories).
+		From(tableClasses).
 		Where(sq.Eq{classNameCol: name})
 }
 
 // UpdateClass возвращает запрос для обновления категории по её ID, учитывая возможность обновления parent_id
 func UpdateClass(id uint, updates map[string]any) sq.UpdateBuilder {
-	return psql.Update(tableCategories).
+	return psql.Update(tableClasses).
 		SetMap(updates).
 		Where(sq.Eq{classIDCol: id})
 }
 
 // DeleteClass возвращает запрос для удаления категории по её ID
-func DeleteClass(id uint) sq.DeleteBuilder {
-	return psql.Delete(tableCategories).Where(sq.Eq{classIDCol: id})
+func DeleteClass(id int64) sq.DeleteBuilder {
+	return psql.Delete(tableClasses).Where(sq.Eq{classIDCol: id})
 }
 
 // SelectChildrenCategories возвращает запрос для получения всех дочерних категорий по ID родительской категории
-func SelectChildrenClasses(id uint) sq.SelectBuilder {
+func SelectChildrenClasses(id int64) sq.SelectBuilder {
 	return psql.Select(classIDCol).
-		From(tableCategories).
+		From(tableClasses).
 		Where(sq.Eq{classParentIDCol: id})
 }

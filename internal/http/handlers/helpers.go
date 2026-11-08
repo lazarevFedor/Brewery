@@ -110,7 +110,7 @@ func readRequestBody(c *gin.Context) ([]byte, error) {
 }
 
 // getPaginationParams извлекает параметры пагинации из HTTP-запроса
-func getPaginationParams(c *gin.Context) (uint64, uint64, error) {
+func getPaginationParams(c *gin.Context) (int32, int32, error) {
 	offset := defaultOffset
 	limit := defaultLimit
 
@@ -136,7 +136,7 @@ func getPaginationParams(c *gin.Context) (uint64, uint64, error) {
 		limit = parsedLimit
 	}
 
-	return uint64(offset), uint64(limit), nil
+	return int32(offset), int32(limit), nil
 }
 
 func jwtSecret() []byte {
