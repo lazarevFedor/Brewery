@@ -408,7 +408,7 @@ func (s *ParameterPostgres) ExcludeParameters(ctx context.Context, id int64, ran
 			EnumParameterIds: enumParameters,
 		}
 		if err := qTx.ExcludeEnumParameters(ctx, params); err != nil {
-			return 0, fmt.Errorf("ExlideEnumParameters: %w", err)
+			return 0, fmt.Errorf("ExcludeEnumParameters: %w", err)
 		}
 		affected += len(enumParameters)
 	}
@@ -419,7 +419,7 @@ func (s *ParameterPostgres) ExcludeParameters(ctx context.Context, id int64, ran
 			RangeParameterIds: rangeParameters,
 		}
 		if err := qTx.ExcludeRangeParameters(ctx, params); err != nil {
-			return 0, fmt.Errorf("ExlideEnumParameters: %w", err)
+			return 0, fmt.Errorf("ExcludeRangeParameters: %w", err)
 		}
 		affected += len(rangeParameters)
 	}

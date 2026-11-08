@@ -42,6 +42,11 @@ type ParametersService struct {
 	EnumRepo  EnumRepository
 }
 
+// NewParametersService creates parameters service.
+func NewParametersService(paramRepo ParameterRepository, enumRepo EnumRepository) *ParametersService {
+	return &ParametersService{ParamRepo: paramRepo, EnumRepo: enumRepo}
+}
+
 // allowedParametersToUpdate содержит список полей, которые можно обновлять в числовом параметре.
 var allowedParametersToUpdate = map[string]struct{}{
 	"min_val":     {},

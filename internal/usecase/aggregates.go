@@ -20,13 +20,13 @@ type AggregateRepository interface {
 	GetAggregates(ctx context.Context, name string) ([]entities.Aggregate, error)
 
 	// ApplyAggregate применяет агрегат к классу и возвращает результат применения.
-	ApplyAggregate(ctx context.Context, classID uint, id uint) (int, error)
+	ApplyAggregate(ctx context.Context, classID, id int64) (int, error)
 
 	// UpdateAggregate обновляет существующий агрегат с заданным ID и возвращает обновленный агрегат.
-	UpdateAggregate(ctx context.Context, id uint, updates map[string]any) (*entities.Aggregate, error)
+	UpdateAggregate(ctx context.Context, id int64, updates map[string]any) (*entities.Aggregate, error)
 
 	// DeleteAggregate удаляет агрегат с заданным ID из базы данных и возвращает удаленный агрегат.
-	DeleteAggregate(ctx context.Context, id uint) (*entities.Aggregate, error)
+	DeleteAggregate(ctx context.Context, id int64) (*entities.Aggregate, error)
 }
 
 // NewAggregateRepository создает новый экземпляр AggregateRepository с использованием предоставленного пула соединений к базе данных.
@@ -37,6 +37,11 @@ func NewAggregateRepository(pool *pgxpool.Pool) AggregateRepository {
 // AggregateService реализует интерфейс AggregateService.
 type AggregateService struct {
 	AggregateRepo AggregateRepository
+}
+
+// NewAggregateService creates aggregate service.
+func NewAggregateService(repo AggregateRepository) *AggregateService {
+	return &AggregateService{AggregateRepo: repo}
 }
 
 // CreateAggregate создает новый агрегат.
@@ -76,7 +81,7 @@ func (s *AggregateService) GetAggregates(ctx context.Context, name string) ([]en
 }
 
 // UpdateAggregate обновляет существующий агрегат по его ID.
-func (s *AggregateService) UpdateAggregate(ctx context.Context, id uint, updates map[string]any) (*entities.Aggregate, error) {
+func (s *AggregateService) UpdateAggregate(ctx context.Context, id int64, updates map[string]any) (*entities.Aggregate, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -98,7 +103,7 @@ func (s *AggregateService) UpdateAggregate(ctx context.Context, id uint, updates
 }
 
 // DeleteAggregate удаляет агрегат по его ID.
-func (s *AggregateService) DeleteAggregate(ctx context.Context, id uint) (*entities.Aggregate, error) {
+func (s *AggregateService) DeleteAggregate(ctx context.Context, id int64) (*entities.Aggregate, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -116,7 +121,7 @@ func (s *AggregateService) DeleteAggregate(ctx context.Context, id uint) (*entit
 }
 
 // ApplyAggregateToClass применяет агрегат к классу, возвращая количество добавленных связей.
-func (s *AggregateService) ApplyAggregateToClass(ctx context.Context, classID, aggregateID uint) (int, error) {
+func (s *AggregateService) ApplyAggregateToClass(ctx context.Context, classID, aggregateID int64) (int, error) {
 	if err := ctx.Err(); err != nil {
 		return 0, fmt.Errorf("request cancelled: %w", err)
 	}

@@ -20,13 +20,13 @@ type AggregateService interface {
 	GetAggregates(ctx context.Context, name string) ([]entities.Aggregate, error)
 
 	// UpdateAggregate обновляет существующий агрегат по его ID.
-	UpdateAggregate(ctx context.Context, id uint, updates map[string]any) (*entities.Aggregate, error)
+	UpdateAggregate(ctx context.Context, id int64, updates map[string]any) (*entities.Aggregate, error)
 
 	// DeleteAggregate удаляет агрегат по его ID.
-	DeleteAggregate(ctx context.Context, id uint) (*entities.Aggregate, error)
+	DeleteAggregate(ctx context.Context, id int64) (*entities.Aggregate, error)
 
 	// ApplyAggregateToClass применяет агрегат к классу, возвращая количество добавленных параметров.
-	ApplyAggregateToClass(ctx context.Context, classID, aggregateID uint) (int, error)
+	ApplyAggregateToClass(ctx context.Context, classID, aggregateID int64) (int, error)
 }
 
 // AggregateHandlers - HTTP-обработчики для агрегатов параметров.
@@ -119,7 +119,7 @@ func (h *aggregateHandlers) UpdateAggregate(c *gin.Context) {
 		return
 	}
 
-	updated, err := h.uc.UpdateAggregate(c.Request.Context(), toUint(id), updates)
+	updated, err := h.uc.UpdateAggregate(c.Request.Context(), id, updates)
 	if err != nil {
 		handleError(c, log, "failed to update aggregate", err)
 		return
@@ -142,7 +142,7 @@ func (h *aggregateHandlers) DeleteAggregate(c *gin.Context) {
 		return
 	}
 
-	if _, err = h.uc.DeleteAggregate(c.Request.Context(), toUint(id)); err != nil {
+	if _, err = h.uc.DeleteAggregate(c.Request.Context(), id); err != nil {
 		handleError(c, log, "failed to delete aggregate", err)
 		return
 	}
@@ -170,7 +170,7 @@ func (h *aggregateHandlers) ApplyAggregateToClass(c *gin.Context) {
 		return
 	}
 
-	added, err := h.uc.ApplyAggregateToClass(c.Request.Context(), toUint(classID), toUint(aggregateID))
+	added, err := h.uc.ApplyAggregateToClass(c.Request.Context(), classID, aggregateID)
 	if err != nil {
 		handleError(c, log, "failed to apply aggregate", err)
 		return

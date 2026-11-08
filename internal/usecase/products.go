@@ -35,6 +35,23 @@ type ProductService struct {
 	materialRepo MaterialRepository
 }
 
+// NewProductService creates product service with all dependencies.
+func NewProductService(
+	repo ProductRepository,
+	enumRepo EnumRepository,
+	paramRepo ParameterRepository,
+	classRepo ClassRepository,
+	materialRepo MaterialRepository,
+) *ProductService {
+	return &ProductService{
+		repo:         repo,
+		enumRepo:     enumRepo,
+		paramRepo:    paramRepo,
+		classRepo:    classRepo,
+		materialRepo: materialRepo,
+	}
+}
+
 func (ps *ProductService) ensureRepo() error {
 	if ps == nil {
 		return errors.New("product service is nil")

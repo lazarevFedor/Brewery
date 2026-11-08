@@ -6,7 +6,7 @@ import (
 	"Brewery/internal/http/handlers"
 	"Brewery/internal/http/middleware"
 	"Brewery/internal/http/routers"
-	"Brewery/internal/repository"
+	classrepo "Brewery/internal/repository/class"
 	"Brewery/internal/usecase"
 	"Brewery/pkg/logger"
 	"Brewery/pkg/postgres"
@@ -48,13 +48,18 @@ func main() {
 		panic(fmt.Errorf("failed to create postgres pool: %w", err))
 	}
 
-	beerRepo := repository.NewBeerRepository(pool)
-	ctgRepo := repository.NewCategoryRepository(pool)
-	enumRepo := repository.NewEnumRepository(pool)
-	parameterRepo := repository.NewParameterRepository(pool)
-	aggregateRepo := repository.NewAggregateRepository(pool)
+	classRepo := classrepo.NewRepository(pool)
+	productRepo := usecase.NewProductRepository(pool)
+	materialRepo := usecase.NewMaterialRepository(pool)
+	historyRepo := usecase.NewHistoryRecordRepository(pool)
+	enumRepo := usecase.NewEnumRepository(pool)
+	parameterRepo := usecase.NewParameterRepository(pool)
+	aggregateRepo := usecase.NewAggregateRepository(pool)
 
-	beerService := usecase.NewBeerService(beerRepo, ctgRepo, enumRepo, parameterRepo)
+	classService := usecase.NewClassService(classRepo)
+	productService := usecase.NewProductService(productRepo, enumRepo, parameterRepo, classRepo, materialRepo)
+	materialService := usecase.NewMaterialService(materialRepo, productRepo)
+	historyService := usecase.NewHistoryService(historyRepo)
 	enumService := usecase.NewEnumService(enumRepo)
 	parameterService := usecase.NewParametersService(parameterRepo, enumRepo)
 	aggregateService := usecase.NewAggregateService(aggregateRepo)
@@ -87,8 +92,10 @@ func main() {
 	defer router.Close()
 
 	h := handlers.Handlers{
-		CategoryHandler:   handlers.NewCategoriesHandlers(beerService),
-		BeersHandler:      handlers.NewBeersHandlers(beerService),
+		ClassHandler:      handlers.NewClassHandlers(classService),
+		ProductHandler:    handlers.NewProductHandlers(productService, nil),
+		MaterialHandler:   handlers.NewMaterialHandlers(materialService),
+		HistoryHandler:    handlers.NewHistoryHandlers(historyService),
 		EnumHandler:       handlers.NewEnumHandlers(enumService),
 		ParametersHandler: handlers.NewParametersHandlers(parameterService),
 		AggregatesHandler: handlers.NewAggregateHandlers(aggregateService),
