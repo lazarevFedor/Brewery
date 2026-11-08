@@ -276,7 +276,7 @@ func TestCalculateMaterialNorms_InvalidID_ReturnsBadRequest(t *testing.T) {
 
 func TestCalculateMaterialNorms_OK(t *testing.T) {
 	env := newTestEnv(t)
-	env.MaterialMock.GetMaterialNormsMock.Expect(minimock.AnyContext, int64(1)).
+	env.MaterialMock.GetMaterialNormsMock.Expect(minimock.AnyContext, int64(1), float32(1)).
 		Return([]entities.MaterialProduct{
 			{
 				Material: entities.Material{MaterialID: 5, MaterialAmount: 37.5},
@@ -294,6 +294,25 @@ func TestCalculateMaterialNorms_OK(t *testing.T) {
 	assert.JSONEq(t, `[
 		{"material_id":5,"name":"Хмель","total_amount":37.5,"units":"kg"},
 		{"material_id":7,"name":"Солод","total_amount":2,"units":"kg"}]`, resp.Body.String())
+}
+
+func TestCalculateMaterialNorms_PassesQuantity(t *testing.T) {
+	env := newTestEnv(t)
+	env.MaterialMock.GetMaterialNormsMock.Expect(minimock.AnyContext, int64(1), float32(2.5)).Return(nil, nil)
+
+	resp := env.DoRequest(t.Context(), "", http.MethodGet, "/api/products/1/materials/norms?quantity=2.5", nil)
+
+	require.Equal(t, http.StatusOK, resp.Code)
+	assert.JSONEq(t, `[]`, resp.Body.String())
+}
+
+func TestCalculateMaterialNorms_InvalidQuantity_ReturnsBadRequest(t *testing.T) {
+	env := newTestEnv(t)
+
+	for _, q := range []string{"0", "-1", "abc"} {
+		resp := env.DoRequest(t.Context(), "", http.MethodGet, "/api/products/1/materials/norms?quantity="+q, nil)
+		require.Equal(t, http.StatusBadRequest, resp.Code, "quantity=%s", q)
+	}
 }
 
 func TestAddProductMaterial_SelfReference_ReturnsBadRequest(t *testing.T) {

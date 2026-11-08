@@ -28,8 +28,9 @@ type MaterialService interface {
 	GetMaterialsByProduct(ctx context.Context, productID int64) ([]entities.MaterialProduct, error)
 
 	// GetMaterialNorms возвращает сводные нормы расхода для всего изделия (CALC_BOM):
-	// каждый материал один раз, в MaterialAmount - сколько всего его нужно с учетом всей глубины состава.
-	GetMaterialNorms(ctx context.Context, productID int64) ([]entities.MaterialProduct, error)
+	// каждый материал один раз, в MaterialAmount - сколько всего его нужно на quantity изделий
+	// с учетом всей глубины состава.
+	GetMaterialNorms(ctx context.Context, productID int64, quantity float32) ([]entities.MaterialProduct, error)
 
 	// GetProductsByMaterial возвращает изделия, в состав которых входит материал.
 	GetProductsByMaterial(ctx context.Context, materialID int64, limit, offset int32) ([]entities.MaterialProduct, error)
@@ -298,7 +299,13 @@ func (h *materialHandlers) CalculateMaterialNorms(c *gin.Context) {
 		return
 	}
 
-	norms, err := h.uc.GetMaterialNorms(c.Request.Context(), productID)
+	quantity, err := getPositiveFloatQuery(c, "quantity", 1)
+	if err != nil {
+		badRequest(c, log, apperrors.CodeInvalidParameters, err)
+		return
+	}
+
+	norms, err := h.uc.GetMaterialNorms(c.Request.Context(), productID, quantity)
 	if err != nil {
 		handleError(c, log, "failed to calculate material norms", err)
 		return

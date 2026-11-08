@@ -33,9 +33,9 @@ type MaterialServiceMock struct {
 	beforeDeleteMaterialCounter uint64
 	DeleteMaterialMock          mMaterialServiceMockDeleteMaterial
 
-	funcGetMaterialNorms          func(ctx context.Context, productID int64) (ma1 []entities.MaterialProduct, err error)
+	funcGetMaterialNorms          func(ctx context.Context, productID int64, quantity float32) (ma1 []entities.MaterialProduct, err error)
 	funcGetMaterialNormsOrigin    string
-	inspectFuncGetMaterialNorms   func(ctx context.Context, productID int64)
+	inspectFuncGetMaterialNorms   func(ctx context.Context, productID int64, quantity float32)
 	afterGetMaterialNormsCounter  uint64
 	beforeGetMaterialNormsCounter uint64
 	GetMaterialNormsMock          mMaterialServiceMockGetMaterialNorms
@@ -837,12 +837,14 @@ type MaterialServiceMockGetMaterialNormsExpectation struct {
 type MaterialServiceMockGetMaterialNormsParams struct {
 	ctx       context.Context
 	productID int64
+	quantity  float32
 }
 
 // MaterialServiceMockGetMaterialNormsParamPtrs contains pointers to parameters of the MaterialService.GetMaterialNorms
 type MaterialServiceMockGetMaterialNormsParamPtrs struct {
 	ctx       *context.Context
 	productID *int64
+	quantity  *float32
 }
 
 // MaterialServiceMockGetMaterialNormsResults contains results of the MaterialService.GetMaterialNorms
@@ -856,6 +858,7 @@ type MaterialServiceMockGetMaterialNormsExpectationOrigins struct {
 	origin          string
 	originCtx       string
 	originProductID string
+	originQuantity  string
 }
 
 // Marks this method to be optional. The default behavior of any method with Return() is '1 or more', meaning
@@ -869,7 +872,7 @@ func (mmGetMaterialNorms *mMaterialServiceMockGetMaterialNorms) Optional() *mMat
 }
 
 // Expect sets up expected params for MaterialService.GetMaterialNorms
-func (mmGetMaterialNorms *mMaterialServiceMockGetMaterialNorms) Expect(ctx context.Context, productID int64) *mMaterialServiceMockGetMaterialNorms {
+func (mmGetMaterialNorms *mMaterialServiceMockGetMaterialNorms) Expect(ctx context.Context, productID int64, quantity float32) *mMaterialServiceMockGetMaterialNorms {
 	if mmGetMaterialNorms.mock.funcGetMaterialNorms != nil {
 		mmGetMaterialNorms.mock.t.Fatalf("MaterialServiceMock.GetMaterialNorms mock is already set by Set")
 	}
@@ -882,7 +885,7 @@ func (mmGetMaterialNorms *mMaterialServiceMockGetMaterialNorms) Expect(ctx conte
 		mmGetMaterialNorms.mock.t.Fatalf("MaterialServiceMock.GetMaterialNorms mock is already set by ExpectParams functions")
 	}
 
-	mmGetMaterialNorms.defaultExpectation.params = &MaterialServiceMockGetMaterialNormsParams{ctx, productID}
+	mmGetMaterialNorms.defaultExpectation.params = &MaterialServiceMockGetMaterialNormsParams{ctx, productID, quantity}
 	mmGetMaterialNorms.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
 	for _, e := range mmGetMaterialNorms.expectations {
 		if minimock.Equal(e.params, mmGetMaterialNorms.defaultExpectation.params) {
@@ -939,8 +942,31 @@ func (mmGetMaterialNorms *mMaterialServiceMockGetMaterialNorms) ExpectProductIDP
 	return mmGetMaterialNorms
 }
 
+// ExpectQuantityParam3 sets up expected param quantity for MaterialService.GetMaterialNorms
+func (mmGetMaterialNorms *mMaterialServiceMockGetMaterialNorms) ExpectQuantityParam3(quantity float32) *mMaterialServiceMockGetMaterialNorms {
+	if mmGetMaterialNorms.mock.funcGetMaterialNorms != nil {
+		mmGetMaterialNorms.mock.t.Fatalf("MaterialServiceMock.GetMaterialNorms mock is already set by Set")
+	}
+
+	if mmGetMaterialNorms.defaultExpectation == nil {
+		mmGetMaterialNorms.defaultExpectation = &MaterialServiceMockGetMaterialNormsExpectation{}
+	}
+
+	if mmGetMaterialNorms.defaultExpectation.params != nil {
+		mmGetMaterialNorms.mock.t.Fatalf("MaterialServiceMock.GetMaterialNorms mock is already set by Expect")
+	}
+
+	if mmGetMaterialNorms.defaultExpectation.paramPtrs == nil {
+		mmGetMaterialNorms.defaultExpectation.paramPtrs = &MaterialServiceMockGetMaterialNormsParamPtrs{}
+	}
+	mmGetMaterialNorms.defaultExpectation.paramPtrs.quantity = &quantity
+	mmGetMaterialNorms.defaultExpectation.expectationOrigins.originQuantity = minimock.CallerInfo(1)
+
+	return mmGetMaterialNorms
+}
+
 // Inspect accepts an inspector function that has same arguments as the MaterialService.GetMaterialNorms
-func (mmGetMaterialNorms *mMaterialServiceMockGetMaterialNorms) Inspect(f func(ctx context.Context, productID int64)) *mMaterialServiceMockGetMaterialNorms {
+func (mmGetMaterialNorms *mMaterialServiceMockGetMaterialNorms) Inspect(f func(ctx context.Context, productID int64, quantity float32)) *mMaterialServiceMockGetMaterialNorms {
 	if mmGetMaterialNorms.mock.inspectFuncGetMaterialNorms != nil {
 		mmGetMaterialNorms.mock.t.Fatalf("Inspect function is already set for MaterialServiceMock.GetMaterialNorms")
 	}
@@ -965,7 +991,7 @@ func (mmGetMaterialNorms *mMaterialServiceMockGetMaterialNorms) Return(ma1 []ent
 }
 
 // Set uses given function f to mock the MaterialService.GetMaterialNorms method
-func (mmGetMaterialNorms *mMaterialServiceMockGetMaterialNorms) Set(f func(ctx context.Context, productID int64) (ma1 []entities.MaterialProduct, err error)) *MaterialServiceMock {
+func (mmGetMaterialNorms *mMaterialServiceMockGetMaterialNorms) Set(f func(ctx context.Context, productID int64, quantity float32) (ma1 []entities.MaterialProduct, err error)) *MaterialServiceMock {
 	if mmGetMaterialNorms.defaultExpectation != nil {
 		mmGetMaterialNorms.mock.t.Fatalf("Default expectation is already set for the MaterialService.GetMaterialNorms method")
 	}
@@ -981,14 +1007,14 @@ func (mmGetMaterialNorms *mMaterialServiceMockGetMaterialNorms) Set(f func(ctx c
 
 // When sets expectation for the MaterialService.GetMaterialNorms which will trigger the result defined by the following
 // Then helper
-func (mmGetMaterialNorms *mMaterialServiceMockGetMaterialNorms) When(ctx context.Context, productID int64) *MaterialServiceMockGetMaterialNormsExpectation {
+func (mmGetMaterialNorms *mMaterialServiceMockGetMaterialNorms) When(ctx context.Context, productID int64, quantity float32) *MaterialServiceMockGetMaterialNormsExpectation {
 	if mmGetMaterialNorms.mock.funcGetMaterialNorms != nil {
 		mmGetMaterialNorms.mock.t.Fatalf("MaterialServiceMock.GetMaterialNorms mock is already set by Set")
 	}
 
 	expectation := &MaterialServiceMockGetMaterialNormsExpectation{
 		mock:               mmGetMaterialNorms.mock,
-		params:             &MaterialServiceMockGetMaterialNormsParams{ctx, productID},
+		params:             &MaterialServiceMockGetMaterialNormsParams{ctx, productID, quantity},
 		expectationOrigins: MaterialServiceMockGetMaterialNormsExpectationOrigins{origin: minimock.CallerInfo(1)},
 	}
 	mmGetMaterialNorms.expectations = append(mmGetMaterialNorms.expectations, expectation)
@@ -1023,17 +1049,17 @@ func (mmGetMaterialNorms *mMaterialServiceMockGetMaterialNorms) invocationsDone(
 }
 
 // GetMaterialNorms implements mm_handlers.MaterialService
-func (mmGetMaterialNorms *MaterialServiceMock) GetMaterialNorms(ctx context.Context, productID int64) (ma1 []entities.MaterialProduct, err error) {
+func (mmGetMaterialNorms *MaterialServiceMock) GetMaterialNorms(ctx context.Context, productID int64, quantity float32) (ma1 []entities.MaterialProduct, err error) {
 	mm_atomic.AddUint64(&mmGetMaterialNorms.beforeGetMaterialNormsCounter, 1)
 	defer mm_atomic.AddUint64(&mmGetMaterialNorms.afterGetMaterialNormsCounter, 1)
 
 	mmGetMaterialNorms.t.Helper()
 
 	if mmGetMaterialNorms.inspectFuncGetMaterialNorms != nil {
-		mmGetMaterialNorms.inspectFuncGetMaterialNorms(ctx, productID)
+		mmGetMaterialNorms.inspectFuncGetMaterialNorms(ctx, productID, quantity)
 	}
 
-	mm_params := MaterialServiceMockGetMaterialNormsParams{ctx, productID}
+	mm_params := MaterialServiceMockGetMaterialNormsParams{ctx, productID, quantity}
 
 	// Record call args
 	mmGetMaterialNorms.GetMaterialNormsMock.mutex.Lock()
@@ -1052,7 +1078,7 @@ func (mmGetMaterialNorms *MaterialServiceMock) GetMaterialNorms(ctx context.Cont
 		mm_want := mmGetMaterialNorms.GetMaterialNormsMock.defaultExpectation.params
 		mm_want_ptrs := mmGetMaterialNorms.GetMaterialNormsMock.defaultExpectation.paramPtrs
 
-		mm_got := MaterialServiceMockGetMaterialNormsParams{ctx, productID}
+		mm_got := MaterialServiceMockGetMaterialNormsParams{ctx, productID, quantity}
 
 		if mm_want_ptrs != nil {
 
@@ -1064,6 +1090,11 @@ func (mmGetMaterialNorms *MaterialServiceMock) GetMaterialNorms(ctx context.Cont
 			if mm_want_ptrs.productID != nil && !minimock.Equal(*mm_want_ptrs.productID, mm_got.productID) {
 				mmGetMaterialNorms.t.Errorf("MaterialServiceMock.GetMaterialNorms got unexpected parameter productID, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
 					mmGetMaterialNorms.GetMaterialNormsMock.defaultExpectation.expectationOrigins.originProductID, *mm_want_ptrs.productID, mm_got.productID, minimock.Diff(*mm_want_ptrs.productID, mm_got.productID))
+			}
+
+			if mm_want_ptrs.quantity != nil && !minimock.Equal(*mm_want_ptrs.quantity, mm_got.quantity) {
+				mmGetMaterialNorms.t.Errorf("MaterialServiceMock.GetMaterialNorms got unexpected parameter quantity, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmGetMaterialNorms.GetMaterialNormsMock.defaultExpectation.expectationOrigins.originQuantity, *mm_want_ptrs.quantity, mm_got.quantity, minimock.Diff(*mm_want_ptrs.quantity, mm_got.quantity))
 			}
 
 		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
@@ -1078,9 +1109,9 @@ func (mmGetMaterialNorms *MaterialServiceMock) GetMaterialNorms(ctx context.Cont
 		return (*mm_results).ma1, (*mm_results).err
 	}
 	if mmGetMaterialNorms.funcGetMaterialNorms != nil {
-		return mmGetMaterialNorms.funcGetMaterialNorms(ctx, productID)
+		return mmGetMaterialNorms.funcGetMaterialNorms(ctx, productID, quantity)
 	}
-	mmGetMaterialNorms.t.Fatalf("Unexpected call to MaterialServiceMock.GetMaterialNorms. %v %v", ctx, productID)
+	mmGetMaterialNorms.t.Fatalf("Unexpected call to MaterialServiceMock.GetMaterialNorms. %v %v %v", ctx, productID, quantity)
 	return
 }
 

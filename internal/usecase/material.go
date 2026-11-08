@@ -135,13 +135,18 @@ func (s *MaterialService) GetProductsByMaterial(ctx context.Context, materialID 
 	return products, nil
 }
 
-func (s *MaterialService) GetMaterialNorms(ctx context.Context, productID int64) ([]entities.MaterialProduct, error) {
+// GetMaterialNorms считает сводные нормы расхода материалов на quantity единиц изделия (CALC_BOM).
+func (s *MaterialService) GetMaterialNorms(ctx context.Context, productID int64, quantity float32) ([]entities.MaterialProduct, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
 	if productID == 0 {
 		return nil, errors.New("invalid product id")
+	}
+
+	if quantity <= 0 {
+		return nil, errors.New("quantity must be greater than 0")
 	}
 
 	rows, err := s.repo.GetMaterialsByProduct(ctx, productID)
@@ -180,7 +185,7 @@ func (s *MaterialService) GetMaterialNorms(ctx context.Context, productID int64)
 	}
 
 	for _, row := range rows {
-		walk(row, 1, map[int64]struct{}{})
+		walk(row, quantity, map[int64]struct{}{})
 	}
 
 	result := make([]entities.MaterialProduct, 0, len(grouped))
