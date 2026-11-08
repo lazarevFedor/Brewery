@@ -115,8 +115,8 @@ func (repo *Repository) UpdateProduct(ctx context.Context, id int64, updates map
 		}
 	}
 	if val, ok := updates["units"]; ok {
-		if units, ok := val.(float32); ok {
-			params.Amount = &units
+		if units, ok := val.(string); ok {
+			params.Units = &units
 		}
 	}
 	if val, ok := updates["class_id"]; ok {
@@ -124,7 +124,6 @@ func (repo *Repository) UpdateProduct(ctx context.Context, id int64, updates map
 			params.ClassID = &classID
 		}
 	}
-	var baseID int64 = -1
 	if val, ok := updates["base_id"]; ok {
 		if baseID, ok := val.(int64); ok {
 			params.BaseID = &baseID
@@ -137,15 +136,15 @@ func (repo *Repository) UpdateProduct(ctx context.Context, id int64, updates map
 	}
 
 	// При обновлении base_id необходимо поменять все необходимые материалы со старого изделия на новое
-	if baseID != -1 {
+	if params.BaseID != nil {
 		if err := qTx.DeleteProductsMaterials(ctx, id); err != nil {
 			return nil, fmt.Errorf("DeleteProductsMaterials: %w", err)
 		}
-		params := queries.CopyBaseMaterialsParams{
+		copyParams := queries.CopyBaseMaterialsParams{
 			ProductID: id,
-			BaseID:    baseID,
+			BaseID:    *params.BaseID,
 		}
-		err := qTx.CopyBaseMaterials(ctx, params)
+		err := qTx.CopyBaseMaterials(ctx, copyParams)
 		if err != nil {
 			return nil, fmt.Errorf("CopyBaseMaterials: %w", err)
 		}
