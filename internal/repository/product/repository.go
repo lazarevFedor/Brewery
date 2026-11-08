@@ -29,6 +29,13 @@ func (repo *Repository) InsertProduct(ctx context.Context, product entities.Prod
 	if repo.Pool == nil {
 		return nil, errors.New("db pool is empty")
 	}
+	tx, err := repo.Pool.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to begin tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+	qTx := repo.query.WithTx(tx)
+
 	params := queries.InsertProductParams{
 		Name:    product.Name,
 		Amount:  &product.Amount,
@@ -38,9 +45,20 @@ func (repo *Repository) InsertProduct(ctx context.Context, product entities.Prod
 	if product.BaseID != 0 {
 		params.BaseID = &product.BaseID
 	}
-	productRow, err := repo.query.InsertProduct(ctx, params)
+	productRow, err := qTx.InsertProduct(ctx, params)
 	if err != nil {
 		return nil, fmt.Errorf("InsertProduct: %w", err)
+	}
+	if product.BaseID != 0 {
+		if err := qTx.CopyBaseMaterials(ctx, queries.CopyBaseMaterialsParams{
+			ProductID: productRow.ID,
+			BaseID:    product.BaseID,
+		}); err != nil {
+			return nil, fmt.Errorf("CopyBaseMaterials: %w", err)
+		}
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("failed to commit product creation: %w", err)
 	}
 	product = repo.mapper.FromInsert(productRow)
 	return &product, nil
