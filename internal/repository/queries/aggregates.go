@@ -72,7 +72,7 @@ func GetAggregates(name string) sq.SelectBuilder {
 // на значения из агрегата, соответствующего заданному ID.
 func ApplyAggregate(classID int64, id int64) sq.UpdateBuilder {
 	return psql.
-		Update(tableCategories).
+		Update(tableClasses).
 		Set("numeric_parameter_ids", sq.Expr("a.numeric_parameter_ids")).
 		Set("enum_parameter_ids", sq.Expr("a.enum_parameter_ids")).
 		From(aggregatesTable + " a").

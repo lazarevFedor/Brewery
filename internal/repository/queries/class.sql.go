@@ -138,10 +138,8 @@ const updateClass = `-- name: UpdateClass :one
 UPDATE classes
 SET 
     name = COALESCE($1, name),
-    parent_id = COALESCE($2, parent_id),
-    numeric_parameter_ids = COALESCE($3, numeric_parameter_ids),
-    enum_parameter_ids = COALESCE($4, enum_parameter_ids)
-WHERE id = $5
+    parent_id = COALESCE($2, parent_id)
+WHERE id = $3
 RETURNING 
     id, 
     name, 
@@ -151,21 +149,13 @@ RETURNING
 `
 
 type UpdateClassParams struct {
-	Name                *string
-	ParentID            *int64
-	NumericParameterIds []int64
-	EnumParameterIds    []int64
-	ID                  int64
+	Name     *string
+	ParentID *int64
+	ID       int64
 }
 
 func (q *Queries) UpdateClass(ctx context.Context, arg UpdateClassParams) (Class, error) {
-	row := q.db.QueryRow(ctx, updateClass,
-		arg.Name,
-		arg.ParentID,
-		arg.NumericParameterIds,
-		arg.EnumParameterIds,
-		arg.ID,
-	)
+	row := q.db.QueryRow(ctx, updateClass, arg.Name, arg.ParentID, arg.ID)
 	var i Class
 	err := row.Scan(
 		&i.ID,
