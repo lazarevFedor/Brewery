@@ -8,14 +8,14 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var mapper = mpr.ProductMapperImpl{}
-
 type Repository struct {
-	Pool  *pgxpool.Pool
-	query *queries.Queries
+	Pool   *pgxpool.Pool
+	query  *queries.Queries
+	mapper mpr.ProductMapperImpl
 }
 
 func NewRepository(pool *pgxpool.Pool) *Repository {
@@ -39,7 +39,7 @@ func (repo *Repository) InsertProduct(ctx context.Context, product entities.Prod
 	if err != nil {
 		return nil, fmt.Errorf("InsertProduct: %w", err)
 	}
-	product = mapper.FromInsert(productRow)
+	product = repo.mapper.FromInsert(productRow)
 	return &product, nil
 }
 
@@ -55,7 +55,7 @@ func (repo *Repository) GetProducts(ctx context.Context, limit, offset int32) ([
 	if err != nil {
 		return nil, fmt.Errorf("InsertProduct: %w", err)
 	}
-	products := mapper.FromDBProducts(dbProducts)
+	products := repo.mapper.FromDBProducts(dbProducts)
 	return products, nil
 }
 
@@ -67,7 +67,7 @@ func (repo *Repository) GetProductByID(ctx context.Context, id int64) (*entities
 	if err != nil {
 		return nil, fmt.Errorf("InsertProduct: %w", err)
 	}
-	products := mapper.FromDBFullProduct(dbProduct)
+	products := repo.mapper.FromDBFullProduct(dbProduct)
 	return &products, nil
 }
 
@@ -107,7 +107,7 @@ func (repo *Repository) UpdateProduct(ctx context.Context, id int64, updates map
 	if err != nil {
 		return nil, fmt.Errorf("InsertProduct: %w", err)
 	}
-	products := mapper.FromUpdate(dbProduct)
+	products := repo.mapper.FromUpdate(dbProduct)
 	return &products, nil
 }
 
@@ -132,11 +132,75 @@ func (repo *Repository) GetProductsByClass(
 	if err != nil {
 		return nil, fmt.Errorf("InsertProduct: %w", err)
 	}
-	products := mapper.FromDBProducts(dbProduct)
+	products := repo.mapper.FromDBProducts(dbProduct)
 	return products, nil
 }
 
 func (repo *Repository) GetFilteredProducts(
 	ctx context.Context, filters []entities.FilterParameter,
 	classID *uint, limit, offset int32,
-) ([]entities.Product, error)
+) ([]entities.Product, error) {
+	if repo.Pool == nil {
+		return nil, errors.New("db pool is empty")
+	}
+	builder := squirrel.Select(
+		"id",
+		"name",
+		"amount",
+		"units",
+		"class_id",
+		"base_id",
+	).From("products").
+		PlaceholderFormat(squirrel.Dollar)
+
+	if len(filters) != 0 {
+		for _, filter := range filters {
+			field := filter.FieldName
+			val := filter.Value
+			var pred any
+
+			oper := filter.Operation
+			switch oper {
+			case entities.OpEqual:
+				pred = squirrel.Eq{field: val}
+			case entities.OpGreater:
+				pred = squirrel.Gt{field: val}
+			case entities.OpGreaterEqual:
+				pred = squirrel.GtOrEq{field: val}
+			case entities.OpLess:
+				pred = squirrel.Lt{field: val}
+			case entities.OpLessEqual:
+				pred = squirrel.LtOrEq{field: val}
+			case entities.OpNotEqual:
+				pred = squirrel.NotEq{field: val}
+			}
+
+			builder = builder.Where(pred)
+		}
+	}
+
+	if classID != nil {
+		builder = builder.Where(squirrel.Eq{"product_id": *classID})
+	}
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("ToSql: %w", err)
+	}
+
+	rows, err := repo.Pool.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("Query: %w", err)
+	}
+	defer rows.Close()
+
+	var filteredProducts []queries.Product
+	for rows.Next() {
+		var p queries.Product
+		if err := rows.Scan(&p.ID, &p.Name, &p.Amount, &p.Units, &p.ClassID, &p.BaseID); err != nil {
+			return nil, err
+		}
+		filteredProducts = append(filteredProducts, p)
+	}
+	return repo.mapper.FromDBProducts(filteredProducts), nil
+}
