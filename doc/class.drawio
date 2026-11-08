@@ -1,0 +1,344 @@
+<mxfile host="drawio-plugin" modified="2026-11-08T16:38:05.898Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36" etag="eXMWhmbP4edQONds4RxY" version="22.1.22" type="embed">
+  <diagram id="entities-uml" name="Entities — UML Class Diagram">
+    <mxGraphModel dx="579" dy="662" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2100" pageHeight="1400" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="Product" value="Product" style="swimlane;html=0;startSize=44;horizontal=1;rounded=0;collapsible=0;container=1;recursiveResize=0;fillColor=#dbeafe;swimlaneFillColor=#ffffff;strokeColor=#3b82f6;fontColor=#0f172a;fontSize=18;fontStyle=1;align=center;whiteSpace=wrap;" parent="1" vertex="1">
+          <mxGeometry x="100" y="180" width="350" height="337" as="geometry" />
+        </mxCell>
+        <mxCell id="Product-attributes" value="+ ID: int64&#xa;+ Name: string&#xa;+ ProdClass: Class&#xa;+ BaseID: int64&#xa;+ Parameters: map[string]any&#xa;+ Unit: string&#xa;+ Amount: float32" style="text;html=0;align=left;verticalAlign=top;spacingLeft=14;spacingTop=8;fontFamily=Courier New;fontSize=15;fontColor=#0f172a;whiteSpace=wrap;overflow=hidden;" parent="Product" vertex="1">
+          <mxGeometry y="44" width="350" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="Product-method-separator" value="" style="line;strokeColor=#3b82f6;" parent="Product" vertex="1">
+          <mxGeometry y="224" width="350" height="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Product-methods" value="+ Create()&#xa;+ Get()&#xa;+ Update()&#xa;+ Delete()" style="text;html=0;align=left;verticalAlign=top;spacingLeft=14;spacingTop=8;fontFamily=Courier New;fontSize=15;fontColor=#0f172a;whiteSpace=wrap;overflow=hidden;" parent="Product" vertex="1">
+          <mxGeometry y="225" width="350" height="112" as="geometry" />
+        </mxCell>
+        <mxCell id="Class" value="Class" style="swimlane;html=0;startSize=44;horizontal=1;rounded=0;collapsible=0;container=1;recursiveResize=0;fillColor=#dbeafe;swimlaneFillColor=#ffffff;strokeColor=#3b82f6;fontColor=#0f172a;fontSize=18;fontStyle=1;align=center;whiteSpace=wrap;" parent="1" vertex="1">
+          <mxGeometry x="650" y="180" width="350" height="337" as="geometry" />
+        </mxCell>
+        <mxCell id="Class-attributes" value="+ ID: int64&#xa;+ Name: string&#xa;+ ParentID: int64&#xa;+ RangeParamIDs: []int64&#xa;+ EnumParamIDs: []int64" style="text;html=0;align=left;verticalAlign=top;spacingLeft=14;spacingTop=8;fontFamily=Courier New;fontSize=15;fontColor=#0f172a;whiteSpace=wrap;overflow=hidden;" parent="Class" vertex="1">
+          <mxGeometry y="44" width="350" height="132" as="geometry" />
+        </mxCell>
+        <mxCell id="Class-method-separator" value="" style="line;strokeColor=#3b82f6;" parent="Class" vertex="1">
+          <mxGeometry y="176" width="350" height="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Class-methods" value="+ Create()&#xa;+ Get()&#xa;+ Update()&#xa;+ Delete()&#xa;+ ApplyParameters()&#xa;+ ExcludeParameters()" style="text;html=0;align=left;verticalAlign=top;spacingLeft=14;spacingTop=8;fontFamily=Courier New;fontSize=15;fontColor=#0f172a;whiteSpace=wrap;overflow=hidden;" parent="Class" vertex="1">
+          <mxGeometry y="177" width="350" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="RangeParameter" value="RangeParameter" style="swimlane;html=0;startSize=44;horizontal=1;rounded=0;collapsible=0;container=1;recursiveResize=0;fillColor=#dcfce7;swimlaneFillColor=#ffffff;strokeColor=#16a34a;fontColor=#0f172a;fontSize=18;fontStyle=1;align=center;whiteSpace=wrap;" parent="1" vertex="1">
+          <mxGeometry x="1190" y="180" width="350" height="313" as="geometry" />
+        </mxCell>
+        <mxCell id="RangeParameter-attributes" value="+ ID: uint&#xa;+ MinValue: int&#xa;+ MaxValue: int&#xa;+ FieldName: string&#xa;+ Inheritable: bool&#xa;+ Unit: string" style="text;html=0;align=left;verticalAlign=top;spacingLeft=14;spacingTop=8;fontFamily=Courier New;fontSize=15;fontColor=#0f172a;whiteSpace=wrap;overflow=hidden;" parent="RangeParameter" vertex="1">
+          <mxGeometry y="44" width="350" height="156" as="geometry" />
+        </mxCell>
+        <mxCell id="RangeParameter-method-separator" value="" style="line;strokeColor=#16a34a;" parent="RangeParameter" vertex="1">
+          <mxGeometry y="200" width="350" height="1" as="geometry" />
+        </mxCell>
+        <mxCell id="RangeParameter-methods" value="+ Create()&#xa;+ Get()&#xa;+ Update()&#xa;+ Delete()" style="text;html=0;align=left;verticalAlign=top;spacingLeft=14;spacingTop=8;fontFamily=Courier New;fontSize=15;fontColor=#0f172a;whiteSpace=wrap;overflow=hidden;" parent="RangeParameter" vertex="1">
+          <mxGeometry y="201" width="350" height="112" as="geometry" />
+        </mxCell>
+        <mxCell id="Material" value="Material" style="swimlane;html=0;startSize=44;horizontal=1;rounded=0;collapsible=0;container=1;recursiveResize=0;fillColor=#dbeafe;swimlaneFillColor=#ffffff;strokeColor=#3b82f6;fontColor=#0f172a;fontSize=18;fontStyle=1;align=center;whiteSpace=wrap;" parent="1" vertex="1">
+          <mxGeometry x="100" y="650" width="350" height="265" as="geometry" />
+        </mxCell>
+        <mxCell id="Material-attributes" value="+ MaterialID: int64&#xa;+ ProductID: int64&#xa;+ MaterialAmount: float32" style="text;html=0;align=left;verticalAlign=top;spacingLeft=14;spacingTop=8;fontFamily=Courier New;fontSize=15;fontColor=#0f172a;whiteSpace=wrap;overflow=hidden;" parent="Material" vertex="1">
+          <mxGeometry y="44" width="350" height="84" as="geometry" />
+        </mxCell>
+        <mxCell id="Material-method-separator" value="" style="line;strokeColor=#3b82f6;" parent="Material" vertex="1">
+          <mxGeometry y="128" width="350" height="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Material-methods" value="+ Add()&#xa;+ Get()&#xa;+ Update()&#xa;+ Remove()&#xa;+ CalculateNorms()" style="text;html=0;align=left;verticalAlign=top;spacingLeft=14;spacingTop=8;fontFamily=Courier New;fontSize=15;fontColor=#0f172a;whiteSpace=wrap;overflow=hidden;" parent="Material" vertex="1">
+          <mxGeometry y="129" width="350" height="136" as="geometry" />
+        </mxCell>
+        <mxCell id="HistoryRecord" value="HistoryRecord" style="swimlane;html=0;startSize=44;horizontal=1;rounded=0;collapsible=0;container=1;recursiveResize=0;fillColor=#fef3c7;swimlaneFillColor=#ffffff;strokeColor=#d97706;fontColor=#0f172a;fontSize=18;fontStyle=1;align=center;whiteSpace=wrap;" parent="1" vertex="1">
+          <mxGeometry x="650" y="650" width="350" height="217" as="geometry" />
+        </mxCell>
+        <mxCell id="HistoryRecord-attributes" value="+ ID: int64&#xa;+ ProductID: int64&#xa;+ Changes: string&#xa;+ CreatedAt: time.Time" style="text;html=0;align=left;verticalAlign=top;spacingLeft=14;spacingTop=8;fontFamily=Courier New;fontSize=15;fontColor=#0f172a;whiteSpace=wrap;overflow=hidden;" parent="HistoryRecord" vertex="1">
+          <mxGeometry y="44" width="350" height="108" as="geometry" />
+        </mxCell>
+        <mxCell id="HistoryRecord-method-separator" value="" style="line;strokeColor=#d97706;" parent="HistoryRecord" vertex="1">
+          <mxGeometry y="152" width="350" height="1" as="geometry" />
+        </mxCell>
+        <mxCell id="HistoryRecord-methods" value="+ Create()&#xa;+ Get()" style="text;html=0;align=left;verticalAlign=top;spacingLeft=14;spacingTop=8;fontFamily=Courier New;fontSize=15;fontColor=#0f172a;whiteSpace=wrap;overflow=hidden;" parent="HistoryRecord" vertex="1">
+          <mxGeometry y="153" width="350" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="EnumClass" value="EnumClass" style="swimlane;html=0;startSize=44;horizontal=1;rounded=0;collapsible=0;container=1;recursiveResize=0;fillColor=#dcfce7;swimlaneFillColor=#ffffff;strokeColor=#16a34a;fontColor=#0f172a;fontSize=18;fontStyle=1;align=center;whiteSpace=wrap;" parent="1" vertex="1">
+          <mxGeometry x="1190" y="650" width="350" height="313" as="geometry" />
+        </mxCell>
+        <mxCell id="EnumClass-attributes" value="+ ID: int&#xa;+ Type: string&#xa;+ FieldName: string&#xa;+ Unit: string&#xa;+ IsActive: bool&#xa;+ Inheritable: bool" style="text;html=0;align=left;verticalAlign=top;spacingLeft=14;spacingTop=8;fontFamily=Courier New;fontSize=15;fontColor=#0f172a;whiteSpace=wrap;overflow=hidden;" parent="EnumClass" vertex="1">
+          <mxGeometry y="44" width="350" height="156" as="geometry" />
+        </mxCell>
+        <mxCell id="EnumClass-method-separator" value="" style="line;strokeColor=#16a34a;" parent="EnumClass" vertex="1">
+          <mxGeometry y="200" width="350" height="1" as="geometry" />
+        </mxCell>
+        <mxCell id="EnumClass-methods" value="+ Create()&#xa;+ Get()&#xa;+ Update()&#xa;+ Delete()" style="text;html=0;align=left;verticalAlign=top;spacingLeft=14;spacingTop=8;fontFamily=Courier New;fontSize=15;fontColor=#0f172a;whiteSpace=wrap;overflow=hidden;" parent="EnumClass" vertex="1">
+          <mxGeometry y="201" width="350" height="112" as="geometry" />
+        </mxCell>
+        <mxCell id="Aggregate" value="Aggregate" style="swimlane;html=0;startSize=44;horizontal=1;rounded=0;collapsible=0;container=1;recursiveResize=0;fillColor=#dbeafe;swimlaneFillColor=#ffffff;strokeColor=#3b82f6;fontColor=#0f172a;fontSize=18;fontStyle=1;align=center;whiteSpace=wrap;" parent="1" vertex="1">
+          <mxGeometry x="1620" y="430" width="350" height="313" as="geometry" />
+        </mxCell>
+        <mxCell id="Aggregate-attributes" value="+ ID: int64&#xa;+ Name: string&#xa;+ Description: string&#xa;+ NumericParameters: []int64&#xa;+ EnumParameters: []int64" style="text;html=0;align=left;verticalAlign=top;spacingLeft=14;spacingTop=8;fontFamily=Courier New;fontSize=15;fontColor=#0f172a;whiteSpace=wrap;overflow=hidden;" parent="Aggregate" vertex="1">
+          <mxGeometry y="44" width="350" height="132" as="geometry" />
+        </mxCell>
+        <mxCell id="Aggregate-method-separator" value="" style="line;strokeColor=#3b82f6;" parent="Aggregate" vertex="1">
+          <mxGeometry y="176" width="350" height="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Aggregate-methods" value="+ Create()&#xa;+ Get()&#xa;+ Update()&#xa;+ Delete()&#xa;+ Apply()" style="text;html=0;align=left;verticalAlign=top;spacingLeft=14;spacingTop=8;fontFamily=Courier New;fontSize=15;fontColor=#0f172a;whiteSpace=wrap;overflow=hidden;" parent="Aggregate" vertex="1">
+          <mxGeometry y="177" width="350" height="136" as="geometry" />
+        </mxCell>
+        <mxCell id="EnumValue" value="EnumValue" style="swimlane;html=0;startSize=44;horizontal=1;rounded=0;collapsible=0;container=1;recursiveResize=0;fillColor=#dcfce7;swimlaneFillColor=#ffffff;strokeColor=#16a34a;fontColor=#0f172a;fontSize=18;fontStyle=1;align=center;whiteSpace=wrap;" parent="1" vertex="1">
+          <mxGeometry x="1190" y="1060" width="450" height="289" as="geometry" />
+        </mxCell>
+        <mxCell id="EnumValue-attributes" value="+ ID: int&#xa;+ EnumClassID: int&#xa;+ Value: any&#xa;+ ValueType: EnumType&#xa;+ Position: int" style="text;html=0;align=left;verticalAlign=top;spacingLeft=14;spacingTop=8;fontFamily=Courier New;fontSize=15;fontColor=#0f172a;whiteSpace=wrap;overflow=hidden;" parent="EnumValue" vertex="1">
+          <mxGeometry y="44" width="450" height="132" as="geometry" />
+        </mxCell>
+        <mxCell id="EnumValue-method-separator" value="" style="line;strokeColor=#16a34a;" parent="EnumValue" vertex="1">
+          <mxGeometry y="176" width="450" height="1" as="geometry" />
+        </mxCell>
+        <mxCell id="EnumValue-methods" value="+ Create()&#xa;+ Get()&#xa;+ Update()&#xa;+ Delete()" style="text;html=0;align=left;verticalAlign=top;spacingLeft=14;spacingTop=8;fontFamily=Courier New;fontSize=15;fontColor=#0f172a;whiteSpace=wrap;overflow=hidden;" parent="EnumValue" vertex="1">
+          <mxGeometry y="177" width="450" height="112" as="geometry" />
+        </mxCell>
+        <mxCell id="product-base" value="является модификацией" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;startArrow=none;endArrow=open;endFill=0;dashed=0;strokeWidth=1.7;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;exitX=0.25;exitY=0;exitDx=0;exitDy=0;entryX=0.897;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="Product" target="Product" edge="1">
+          <mxGeometry x="0.0141" y="10" relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="188" y="90" />
+              <mxPoint x="414" y="90" />
+            </Array>
+            <mxPoint as="offset" />
+            <mxPoint x="240" y="180" as="sourcePoint" />
+            <mxPoint x="415" y="180" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="product-base-modifications" value="modifications [0..*]" style="edgeLabel;html=0;align=right;verticalAlign=middle;resizable=0;points=[];fontSize=14;fontColor=#334155;labelBackgroundColor=#ffffff;" parent="product-base" vertex="1" connectable="0">
+          <mxGeometry x="-1" relative="1" as="geometry">
+            <mxPoint x="53" y="-30" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="product-base-base-product" value="baseProduct [0..1]" style="edgeLabel;html=0;align=left;verticalAlign=middle;resizable=0;points=[];fontSize=14;fontColor=#334155;labelBackgroundColor=#ffffff;" parent="product-base" vertex="1" connectable="0">
+          <mxGeometry x="1" relative="1" as="geometry">
+            <mxPoint x="-44" y="-30" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="5" value="" style="endArrow=open;endFill=1;endSize=12;html=1;rounded=0;exitX=1;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" parent="1" source="Product-attributes" target="Class-attributes" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="480" y="260" as="sourcePoint" />
+            <mxPoint x="640" y="260" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="16" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="5" vertex="1" connectable="0">
+          <mxGeometry x="-0.8768" y="-2" relative="1" as="geometry">
+            <mxPoint x="18" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="17" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="5" vertex="1" connectable="0">
+          <mxGeometry x="0.5994" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="31" value="принадлежит классу" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="5" vertex="1" connectable="0">
+          <mxGeometry x="-0.0624" y="1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="6" value="" style="endArrow=open;endFill=1;endSize=12;html=1;rounded=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;exitX=0;exitY=0;exitDx=0;exitDy=0;" parent="1" source="HistoryRecord-attributes" target="Product-attributes" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="600" y="590" as="sourcePoint" />
+            <mxPoint x="490" y="380" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="540" y="540" />
+              <mxPoint x="510" y="480" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="18" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="6" vertex="1" connectable="0">
+          <mxGeometry x="-0.7345" y="2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="19" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="6" vertex="1" connectable="0">
+          <mxGeometry x="0.5658" relative="1" as="geometry">
+            <mxPoint y="-1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="32" value="фиксирует изменения изделия" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="6" vertex="1" connectable="0">
+          <mxGeometry x="0.111" relative="1" as="geometry">
+            <mxPoint x="-1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="7" value="" style="endArrow=diamondThin;endFill=0;endSize=24;html=1;rounded=0;exitX=0;exitY=0.25;exitDx=0;exitDy=0;entryX=1;entryY=0.25;entryDx=0;entryDy=0;" parent="1" source="RangeParameter-attributes" target="Class-attributes" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="1020" y="480" as="sourcePoint" />
+            <mxPoint x="1180" y="480" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="22" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="7" vertex="1" connectable="0">
+          <mxGeometry x="0.4946" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="23" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="7" vertex="1" connectable="0">
+          <mxGeometry x="-0.578" y="-3" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="33" value="включает числовые параметры" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="7" vertex="1" connectable="0">
+          <mxGeometry x="0.0204" y="2" relative="1" as="geometry">
+            <mxPoint x="7" y="-22" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="8" value="" style="endArrow=diamondThin;endFill=0;endSize=24;html=1;rounded=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;exitX=0;exitY=0;exitDx=0;exitDy=0;" parent="1" source="EnumClass-attributes" target="Class-attributes" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="1020" y="520" as="sourcePoint" />
+            <mxPoint x="1180" y="520" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="20" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="8" vertex="1" connectable="0">
+          <mxGeometry x="-0.6524" y="-1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="21" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="8" vertex="1" connectable="0">
+          <mxGeometry x="0.5879" y="-1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="34" value="включает перечислимые параметры" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="8" vertex="1" connectable="0">
+          <mxGeometry x="-0.0129" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="9" value="" style="endArrow=diamondThin;endFill=0;endSize=24;html=1;rounded=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" parent="1" source="EnumValue" target="EnumClass" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="1080" y="970" as="sourcePoint" />
+            <mxPoint x="1240" y="970" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="28" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="9" vertex="1" connectable="0">
+          <mxGeometry x="-0.6101" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="29" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="9" vertex="1" connectable="0">
+          <mxGeometry x="0.4407" y="1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="37" value="содержит значения" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="9" vertex="1" connectable="0">
+          <mxGeometry x="-0.0481" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="10" value="" style="endArrow=diamondThin;endFill=0;endSize=24;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" parent="1" source="RangeParameter-attributes" target="Aggregate" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="1560" y="330" as="sourcePoint" />
+            <mxPoint x="1720" y="330" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="24" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="10" vertex="1" connectable="0">
+          <mxGeometry x="-0.5864" y="1" relative="1" as="geometry">
+            <mxPoint x="-1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="25" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="10" vertex="1" connectable="0">
+          <mxGeometry x="0.3831" y="2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="35" value="объединяет числовые параметры" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="10" vertex="1" connectable="0">
+          <mxGeometry x="-0.0074" y="-2" relative="1" as="geometry">
+            <mxPoint x="18" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="11" value="" style="endArrow=diamondThin;endFill=0;endSize=24;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" parent="1" source="EnumClass" target="Aggregate-attributes" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="1480" y="660" as="sourcePoint" />
+            <mxPoint x="1560" y="500" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="26" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="11" vertex="1" connectable="0">
+          <mxGeometry x="0.5268" y="4" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="27" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="11" vertex="1" connectable="0">
+          <mxGeometry x="-0.4555" y="-1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="36" value="объединяет перечислимые параметры" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="11" vertex="1" connectable="0">
+          <mxGeometry x="0.0519" y="-2" relative="1" as="geometry">
+            <mxPoint x="-20" y="4" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="12" value="" style="endArrow=open;endFill=1;endSize=12;html=1;rounded=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;exitX=0.75;exitY=0;exitDx=0;exitDy=0;elbow=vertical;" parent="1" source="Class" target="Class" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="790" y="90" as="sourcePoint" />
+            <mxPoint x="790" y="150" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="820" y="100" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="14" value="children [0..*]" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="12" vertex="1" connectable="0">
+          <mxGeometry x="-0.7827" y="-2" relative="1" as="geometry">
+            <mxPoint y="1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="15" value="parent [0..1]" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="12" vertex="1" connectable="0">
+          <mxGeometry x="0.6628" y="3" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="30" value="имеет родительский класс" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="12" vertex="1" connectable="0">
+          <mxGeometry x="-0.1537" y="1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="44" value="" style="endArrow=open;endFill=1;endSize=12;html=1;rounded=0;exitX=0.75;exitY=0;exitDx=0;exitDy=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;" parent="1" source="Material" target="Product" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="362.5" y="642.5" as="sourcePoint" />
+            <mxPoint x="340" y="470" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="48" value="ссылается на компонент" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="44" vertex="1" connectable="0">
+          <mxGeometry x="0.3455" y="-5" relative="1" as="geometry">
+            <mxPoint y="28" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="49" value="0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="44" vertex="1" connectable="0">
+          <mxGeometry x="-0.7636" y="-2" relative="1" as="geometry">
+            <mxPoint x="1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="50" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="44" vertex="1" connectable="0">
+          <mxGeometry x="0.6636" y="-1" relative="1" as="geometry">
+            <mxPoint x="1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="45" value="" style="endArrow=open;endFill=1;endSize=12;html=1;rounded=0;exitX=0.25;exitY=0;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;" parent="1" source="Material" target="Product" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="160" y="610" as="sourcePoint" />
+            <mxPoint x="320" y="610" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="46" value="&amp;nbsp;0..*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="45" vertex="1" connectable="0">
+          <mxGeometry x="-0.7818" y="1" relative="1" as="geometry">
+            <mxPoint x="1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="47" value="относится к изделию" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="45" vertex="1" connectable="0">
+          <mxGeometry y="1" relative="1" as="geometry">
+            <mxPoint x="1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="51" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="45" vertex="1" connectable="0">
+          <mxGeometry x="0.6909" y="2" relative="1" as="geometry">
+            <mxPoint x="1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
