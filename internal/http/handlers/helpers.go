@@ -176,6 +176,21 @@ func getPaginationParams(c *gin.Context) (offset, limit int32, err error) {
 	return offset, limit, nil
 }
 
+// getPositiveFloatQuery извлекает необязательный положительный дробный query-параметр. Если он не передан, возвращает def.
+func getPositiveFloatQuery(c *gin.Context, name string, def float32) (float32, error) {
+	raw := c.Query(name)
+	if raw == "" {
+		return def, nil
+	}
+
+	val, err := strconv.ParseFloat(raw, 32)
+	if err != nil || val <= 0 {
+		return 0, errors.New(name + " must be a positive number")
+	}
+
+	return float32(val), nil
+}
+
 // getTimeQuery извлекает необязательный query-параметр с датой в формате RFC 3339.
 func getTimeQuery(c *gin.Context, name string) (time.Time, error) {
 	raw := c.Query(name)

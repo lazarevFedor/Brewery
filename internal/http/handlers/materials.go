@@ -11,7 +11,7 @@ import (
 )
 
 // MaterialService определяет бизнес-логику работы с составом изделий.
-// Сигнатуры совпадают с usecase.MaterialService, кроме GetMaterialNorms - его там еще нет.
+// Сигнатуры совпадают с usecase.MaterialService.
 type MaterialService interface {
 
 	// CreateMaterial добавляет материал в состав изделия.
@@ -27,9 +27,10 @@ type MaterialService interface {
 	// Вложенный состав каждого материала лежит в MaterialProduct.Materials.
 	GetMaterialsByProduct(ctx context.Context, productID int64) ([]entities.MaterialProduct, error)
 
-	// GetMaterialNorms возвращает сводные нормы расхода материалов заданного класса для изделия:
-	// каждый материал один раз, в MaterialAmount - сколько всего его нужно с учетом всей глубины состава.
-	GetMaterialNorms(ctx context.Context, productID, classID int64) ([]entities.MaterialProduct, error)
+	// GetMaterialNorms возвращает сводные нормы расхода для всего изделия (CALC_BOM):
+	// каждый материал один раз, в MaterialAmount - сколько всего его нужно на quantity изделий
+	// с учетом всей глубины состава.
+	GetMaterialNorms(ctx context.Context, productID int64, quantity float32) ([]entities.MaterialProduct, error)
 
 	// GetProductsByMaterial возвращает изделия, в состав которых входит материал.
 	GetProductsByMaterial(ctx context.Context, materialID int64, limit, offset int32) ([]entities.MaterialProduct, error)
@@ -85,7 +86,7 @@ func newMaterialTreeResponse(items []entities.MaterialProduct) []materialTreeNod
 	resp := make([]materialTreeNodeResponse, 0, len(items))
 	for _, m := range items {
 		resp = append(resp, materialTreeNodeResponse{
-			MaterialID:     m.ID,
+			MaterialID:     materialIDOf(m),
 			Name:           m.Name,
 			MaterialAmount: m.MaterialAmount,
 			Units:          m.Unit,
@@ -94,6 +95,16 @@ func newMaterialTreeResponse(items []entities.MaterialProduct) []materialTreeNod
 	}
 
 	return resp
+}
+
+// materialIDOf возвращает id материала. Сервис норм опирается на Material.MaterialID,
+// а запрос состава кладет id материала в Product.ID, поэтому берем то, что заполнено.
+func materialIDOf(m entities.MaterialProduct) int64 {
+	if m.MaterialID != 0 {
+		return m.MaterialID
+	}
+
+	return m.ID
 }
 
 // materialNormResponse - норма расхода материала (схема MaterialNorm в swagger).
@@ -270,7 +281,7 @@ func (h *materialHandlers) DeleteProductMaterial(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
-// CalculateMaterialNorms обрабатывает GET /products/{id}/materials/norms?class_id=.
+// CalculateMaterialNorms обрабатывает GET /products/{id}/materials/norms.
 func (h *materialHandlers) CalculateMaterialNorms(c *gin.Context) {
 	if h.uc == nil {
 		notImplemented(c)
@@ -288,13 +299,13 @@ func (h *materialHandlers) CalculateMaterialNorms(c *gin.Context) {
 		return
 	}
 
-	classID, err := getIDQuery(c, "class_id", true)
+	quantity, err := getPositiveFloatQuery(c, "quantity", 1)
 	if err != nil {
-		badRequest(c, log, apperrors.CodeInvalidID, err)
+		badRequest(c, log, apperrors.CodeInvalidParameters, err)
 		return
 	}
 
-	norms, err := h.uc.GetMaterialNorms(c.Request.Context(), productID, classID)
+	norms, err := h.uc.GetMaterialNorms(c.Request.Context(), productID, quantity)
 	if err != nil {
 		handleError(c, log, "failed to calculate material norms", err)
 		return
@@ -303,7 +314,7 @@ func (h *materialHandlers) CalculateMaterialNorms(c *gin.Context) {
 	resp := make([]materialNormResponse, 0, len(norms))
 	for _, n := range norms {
 		resp = append(resp, materialNormResponse{
-			MaterialID:  n.ID,
+			MaterialID:  materialIDOf(n),
 			Name:        n.Name,
 			TotalAmount: n.MaterialAmount,
 			Units:       n.Unit,

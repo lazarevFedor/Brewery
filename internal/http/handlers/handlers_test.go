@@ -266,26 +266,53 @@ func TestGetProductBomTree_OK(t *testing.T) {
 		{"material_id":7,"name":"Солод","material_amount":2,"materials":[]}]}]`, resp.Body.String())
 }
 
-func TestCalculateMaterialNorms_RequiresClassID(t *testing.T) {
+func TestCalculateMaterialNorms_InvalidID_ReturnsBadRequest(t *testing.T) {
 	env := newTestEnv(t)
 
-	resp := env.DoRequest(t.Context(), "", http.MethodGet, "/api/products/1/materials/norms", nil)
+	resp := env.DoRequest(t.Context(), "", http.MethodGet, "/api/products/abc/materials/norms", nil)
 
 	require.Equal(t, http.StatusBadRequest, resp.Code)
 }
 
 func TestCalculateMaterialNorms_OK(t *testing.T) {
 	env := newTestEnv(t)
-	env.MaterialMock.GetMaterialNormsMock.Expect(minimock.AnyContext, int64(1), int64(3)).
-		Return([]entities.MaterialProduct{{
-			Material: entities.Material{MaterialAmount: 37.5},
-			Product:  entities.Product{ID: 5, Name: "Хмель", Unit: "kg"},
-		}}, nil)
+	env.MaterialMock.GetMaterialNormsMock.Expect(minimock.AnyContext, int64(1), float32(1)).
+		Return([]entities.MaterialProduct{
+			{
+				Material: entities.Material{MaterialID: 5, MaterialAmount: 37.5},
+				Product:  entities.Product{Name: "Хмель", Unit: "kg"},
+			},
+			{
+				Material: entities.Material{MaterialAmount: 2},
+				Product:  entities.Product{ID: 7, Name: "Солод", Unit: "kg"},
+			},
+		}, nil)
 
-	resp := env.DoRequest(t.Context(), "", http.MethodGet, "/api/products/1/materials/norms?class_id=3", nil)
+	resp := env.DoRequest(t.Context(), "", http.MethodGet, "/api/products/1/materials/norms", nil)
 
 	require.Equal(t, http.StatusOK, resp.Code)
-	assert.JSONEq(t, `[{"material_id":5,"name":"Хмель","total_amount":37.5,"units":"kg"}]`, resp.Body.String())
+	assert.JSONEq(t, `[
+		{"material_id":5,"name":"Хмель","total_amount":37.5,"units":"kg"},
+		{"material_id":7,"name":"Солод","total_amount":2,"units":"kg"}]`, resp.Body.String())
+}
+
+func TestCalculateMaterialNorms_PassesQuantity(t *testing.T) {
+	env := newTestEnv(t)
+	env.MaterialMock.GetMaterialNormsMock.Expect(minimock.AnyContext, int64(1), float32(2.5)).Return(nil, nil)
+
+	resp := env.DoRequest(t.Context(), "", http.MethodGet, "/api/products/1/materials/norms?quantity=2.5", nil)
+
+	require.Equal(t, http.StatusOK, resp.Code)
+	assert.JSONEq(t, `[]`, resp.Body.String())
+}
+
+func TestCalculateMaterialNorms_InvalidQuantity_ReturnsBadRequest(t *testing.T) {
+	env := newTestEnv(t)
+
+	for _, q := range []string{"0", "-1", "abc"} {
+		resp := env.DoRequest(t.Context(), "", http.MethodGet, "/api/products/1/materials/norms?quantity="+q, nil)
+		require.Equal(t, http.StatusBadRequest, resp.Code, "quantity=%s", q)
+	}
 }
 
 func TestAddProductMaterial_SelfReference_ReturnsBadRequest(t *testing.T) {
@@ -427,7 +454,7 @@ func TestListParameters_InvalidType_ReturnsBadRequest(t *testing.T) {
 
 func TestListParameters_RangeType(t *testing.T) {
 	env := newTestEnv(t)
-	env.ParameterMock.ListParametersMock.Expect(minimock.AnyContext, uint(2), entities.RangeParameterType).
+	env.ParameterMock.ListParametersMock.Expect(minimock.AnyContext, int64(2), entities.RangeParameterType).
 		Return([]entities.RangeParameter{{ID: 1, FieldName: "abv"}}, nil, nil)
 
 	resp := env.DoRequest(t.Context(), "", http.MethodGet, "/api/classes/parameters?class_id=2&type=range", nil)
@@ -437,7 +464,7 @@ func TestListParameters_RangeType(t *testing.T) {
 
 func TestExcludeParameters_OK(t *testing.T) {
 	env := newTestEnv(t)
-	env.ParameterMock.ExcludeFromClassMock.Expect(minimock.AnyContext, uint(2), []int{1}, []int(nil)).Return(1, nil)
+	env.ParameterMock.ExcludeFromClassMock.Expect(minimock.AnyContext, int64(2), []int{1}, []int(nil)).Return(1, nil)
 
 	resp := env.DoRequest(t.Context(), env.JWT, http.MethodPatch, "/api/classes/parameters/exclude/2",
 		strings.NewReader(`{"range_param_ids":[1]}`))

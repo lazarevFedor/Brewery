@@ -18,19 +18,19 @@ type ParametersService interface {
 	CreateRange(ctx context.Context, param *entities.RangeParameter) (*entities.RangeParameter, error)
 
 	// UpdateRange обновляет числовой параметр. Обновлять можно только min_val, max_val, inheritable и unit.
-	UpdateRange(ctx context.Context, id uint, updates map[string]any) (*entities.RangeParameter, error)
+	UpdateRange(ctx context.Context, id int64, updates map[string]any) (*entities.RangeParameter, error)
 
 	// DeleteRange удаляет числовой параметр.
-	DeleteRange(ctx context.Context, id uint) (*entities.RangeParameter, error)
+	DeleteRange(ctx context.Context, id int64) (*entities.RangeParameter, error)
 
 	// ListParameters возвращает параметры. classID = 0 - без фильтра по классу.
-	ListParameters(ctx context.Context, classID uint, parameterType int) ([]entities.RangeParameter, []entities.EnumParameter, error)
+	ListParameters(ctx context.Context, classID int64, parameterType int) ([]entities.RangeParameter, []entities.EnumParameter, error)
 
 	// ApplyToClass применяет параметры к классу. Возвращает количество добавленных параметров.
-	ApplyToClass(ctx context.Context, classID uint, rangeIDs, enumIDs []int) (int, error)
+	ApplyToClass(ctx context.Context, classID int64, rangeIDs, enumIDs []int) (int, error)
 
 	// ExcludeFromClass исключает параметры из класса. Возвращает количество исключенных параметров.
-	ExcludeFromClass(ctx context.Context, classID uint, rangeIDs, enumIDs []int) (int, error)
+	ExcludeFromClass(ctx context.Context, classID int64, rangeIDs, enumIDs []int) (int, error)
 }
 
 // ParametersHandlers - HTTP-обработчики для параметров классов.
@@ -130,7 +130,7 @@ func (h *parametersHandlers) UpdateParameter(c *gin.Context) {
 		return
 	}
 
-	updated, err := h.uc.UpdateRange(c.Request.Context(), toUint(id), updates)
+	updated, err := h.uc.UpdateRange(c.Request.Context(), id, updates)
 	if err != nil {
 		handleError(c, log, "failed to update range parameter", err)
 		return
@@ -153,7 +153,7 @@ func (h *parametersHandlers) DeleteParameter(c *gin.Context) {
 		return
 	}
 
-	if _, err = h.uc.DeleteRange(c.Request.Context(), toUint(id)); err != nil {
+	if _, err = h.uc.DeleteRange(c.Request.Context(), id); err != nil {
 		handleError(c, log, "failed to delete range parameter", err)
 		return
 	}
@@ -181,7 +181,7 @@ func (h *parametersHandlers) ListParameters(c *gin.Context) {
 		return
 	}
 
-	rangeParams, enumParams, err := h.uc.ListParameters(c.Request.Context(), toUint(classID), paramType)
+	rangeParams, enumParams, err := h.uc.ListParameters(c.Request.Context(), classID, paramType)
 	if err != nil {
 		handleError(c, log, "failed to list parameters", err)
 		return
@@ -210,7 +210,7 @@ func (h *parametersHandlers) ApplyParametersToClass(c *gin.Context) {
 		return
 	}
 
-	added, err := h.uc.ApplyToClass(c.Request.Context(), toUint(classID), req.RangeParamIDs, req.EnumParamIDs)
+	added, err := h.uc.ApplyToClass(c.Request.Context(), classID, req.RangeParamIDs, req.EnumParamIDs)
 	if err != nil {
 		handleError(c, log, "failed to apply parameters", err)
 		return
@@ -236,7 +236,7 @@ func (h *parametersHandlers) ExcludeParametersFromClass(c *gin.Context) {
 		return
 	}
 
-	excluded, err := h.uc.ExcludeFromClass(c.Request.Context(), toUint(classID), req.RangeParamIDs, req.EnumParamIDs)
+	excluded, err := h.uc.ExcludeFromClass(c.Request.Context(), classID, req.RangeParamIDs, req.EnumParamIDs)
 	if err != nil {
 		handleError(c, log, "failed to exclude parameters", err)
 		return
