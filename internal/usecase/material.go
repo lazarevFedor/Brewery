@@ -24,9 +24,6 @@ type MaterialRepository interface {
 
 	// GetProductsByMaterial извлекает все продукты, использующие заданный материал, из базы данных.
 	GetProductsByMaterial(ctx context.Context, materialID int64, limit, offset int32) ([]entities.MaterialProduct, error)
-
-	// CopyProductMaterials копирует материалы из базового изделия в модификацию.
-	CopyProductMaterials(ctx context.Context, sourceProductID, targetProductID int64) error
 }
 
 // NewMaterialRepository создает новый экземпляр MaterialRepository с использованием предоставленного пула соединений к базе данных.
@@ -56,5 +53,9 @@ func (s *MaterialService) GetMaterialsByProduct(ctx context.Context, productID i
 }
 
 func (s *MaterialService) GetProductsByMaterial(ctx context.Context, materialID int64, limit, offset int32) ([]entities.MaterialProduct, error) {
+	return nil, nil
+}
+
+func (s *MaterialService) GetMaterialNorms(ctx context.Context, productID, classID int64) ([]entities.MaterialProduct, error) {
 	return nil, nil
 }

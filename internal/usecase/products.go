@@ -58,13 +58,6 @@ func (ps *ProductService) CreateProduct(ctx context.Context, p entities.Product)
 		return nil, errors.New("failed to create product: returned product is nil")
 	}
 
-	if createdProduct.BaseID != 0 {
-		err = ps.materialRepo.CopyProductMaterials(ctx, createdProduct.BaseID, createdProduct.ID)
-		if err != nil {
-			return createdProduct, fmt.Errorf("failed to inherit materials from base product: %w", err)
-		}
-	}
-
 	return createdProduct, nil
 }
 
@@ -103,14 +96,6 @@ func (ps *ProductService) UpdateProduct(ctx context.Context, id int64, updates m
 	p, err := ps.repo.UpdateProduct(ctx, id, updates)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update product: %w", err)
-	}
-
-	if baseID, ok := updates["base_id"]; ok {
-		baseIDInt, _ := baseID.(int64)
-		err = ps.materialRepo.CopyProductMaterials(ctx, baseIDInt, id)
-		if err != nil {
-			return nil, fmt.Errorf("failed to inherit materials from base product: %w", err)
-		}
 	}
 
 	return p, nil
