@@ -99,7 +99,7 @@ func SelectParameterIDsByCategory(categoryID uint, parameterType int) sq.SelectB
 		query = psql.Select("numeric_parameter_ids, enum_parameter_ids")
 	}
 
-	query = query.From(tableCategories)
+	query = query.From(tableClasses)
 	if categoryID != 0 {
 		query = query.Where(sq.Eq{"id": categoryID})
 	}
@@ -175,7 +175,7 @@ func InheritParametersToChildren(parentID int) sq.SelectBuilder {
 func SelectCategoriesWithNumericParameter(parameterID uint) sq.SelectBuilder {
 	return psql.
 		Select("id").
-		From(tableCategories).
+		From(tableClasses).
 		Where(sq.Expr("numeric_parameter_ids @> ARRAY[?::INT]", int(parameterID)))
 }
 
@@ -183,7 +183,7 @@ func SelectCategoriesWithNumericParameter(parameterID uint) sq.SelectBuilder {
 func SelectCategoriesWithEnumParameter(parameterID uint) sq.SelectBuilder {
 	return psql.
 		Select("id").
-		From(tableCategories).
+		From(tableClasses).
 		Where(sq.Expr("enum_parameter_ids @> ARRAY[?::INT]", int(parameterID)))
 }
 
@@ -212,4 +212,3 @@ func RemoveEnumParametersFromDescendants(parameterIDs []int, parentIDs []int) sq
 			),
 		)
 }
-

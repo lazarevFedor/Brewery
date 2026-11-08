@@ -64,21 +64,18 @@ func (repo *Repository) GetClassByID(ctx context.Context, id int64) (*entities.C
 	return &class, nil
 }
 
-func (repo *Repository) UpdateClass(ctx context.Context, classUpdates entities.Class) (*entities.Class, error) {
+func (repo *Repository) UpdateClass(ctx context.Context, id int64, updates entities.Class) (*entities.Class, error) {
 	if repo.Pool == nil {
 		return nil, errors.New("db pool is empty")
 	}
 
-	updateParams := queries.UpdateClassParams{
-		ID:                  classUpdates.ID,
-		NumericParameterIds: classUpdates.RangeParamIDs,
-		EnumParameterIds:    classUpdates.EnumParamIDs,
-	}
-	if classUpdates.Name == "" {
-		updateParams.Name = nil
-	}
-	if classUpdates.ParentID == 0 {
+	updateParams := queries.UpdateClassParams{ID: updates.ID}
+
+	if updates.ParentID == 0 {
 		updateParams.ParentID = nil
+	}
+	if updates.Name == "" {
+		updateParams.Name = nil
 	}
 
 	dbClass, err := repo.query.UpdateClass(ctx, updateParams)
