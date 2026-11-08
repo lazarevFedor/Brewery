@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS range_parameters (
     unit TEXT NOT NULL,
     field_name TEXT NOT NULL,
     inheritable BOOLEAN NOT NULL,
-    CONSTRAINT chk_min_lower_max CHECK (min_val < max_val)
+    CONSTRAINT chk_min_lower_max CHECK (min_val <= max_val)
 );
 
 CREATE TABLE IF NOT EXISTS range_parameters (

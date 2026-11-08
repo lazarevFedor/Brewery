@@ -2,10 +2,13 @@ package usecase
 
 import (
 	"Brewery/internal/entities"
+	"Brewery/internal/repository/product"
 	"context"
 	"errors"
 	"fmt"
 	"reflect"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type ProductRepository interface {
@@ -16,32 +19,50 @@ type ProductRepository interface {
 	DeleteProduct(ctx context.Context, id int64) error
 	GetProductsByClass(ctx context.Context, classID int64, limit, offset int32) ([]entities.Product, error)
 	GetFilteredProducts(ctx context.Context, filters []entities.FilterParameter, classID *uint, limit int32, offset int32) ([]entities.Product, error)
-	InheritMaterials(ctx context.Context, baseID, productID int64) error
+}
+
+// NewProductRepository создает новый экземпляр ProductRepository с использованием предоставленного пула соединений к базе данных.
+func NewProductRepository(pool *pgxpool.Pool) ProductRepository {
+	return &product.Repository{Pool: pool}
 }
 
 type ProductService struct {
-	repo      ProductRepository
-	enumRepo  EnumRepository
-	paramRepo ParameterRepository
+	repo         ProductRepository
+	enumRepo     EnumRepository
+	paramRepo    ParameterRepository
+	classRepo    ClassRepository
+	materialRepo MaterialRepository
 }
 
-func (ps *ProductService) CreateProduct(ctx context.Context, product entities.Product) (*entities.Product, error) {
+func (ps *ProductService) CreateProduct(ctx context.Context, p entities.Product) (*entities.Product, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	if product.Name == "" {
-		return nil, errors.New("product name is required")
+	p, err := ps.ValidateProductCreation(ctx, p)
+	if err != nil {
+		return nil, fmt.Errorf("failed to validate product creation: %w", err)
 	}
 
-	err := ps.ValidateProductWithParameters(ctx, product)
+	err = ps.ValidateProductWithParameters(ctx, p)
 	if err != nil {
 		return nil, fmt.Errorf("failed to validate product: %w", err)
 	}
 
-	createdProduct, err := ps.repo.InsertProduct(ctx, product)
+	createdProduct, err := ps.repo.InsertProduct(ctx, p)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create product: %w", err)
+	}
+
+	if createdProduct == nil {
+		return nil, errors.New("failed to create product: returned product is nil")
+	}
+
+	if createdProduct.BaseID != 0 {
+		err = ps.materialRepo.CopyProductMaterials(ctx, createdProduct.BaseID, createdProduct.ID)
+		if err != nil {
+			return createdProduct, fmt.Errorf("failed to inherit materials from base product: %w", err)
+		}
 	}
 
 	return createdProduct, nil
@@ -61,17 +82,38 @@ func (ps *ProductService) GetProducts(ctx context.Context, limit, offset int32) 
 }
 
 func (ps *ProductService) UpdateProduct(ctx context.Context, id int64, updates map[string]any) (*entities.Product, error) {
-	err := ps.ValidateUpdates(updates)
+	if err := ctx.Err(); err != nil {
+		return nil, fmt.Errorf("request cancelled: %w", err)
+	}
+
+	if id == 0 {
+		return nil, errors.New("invalid product id")
+	}
+
+	_, err := ps.repo.GetProductByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get product: %w", err)
+	}
+
+	err = ps.ValidateUpdates(ctx, updates)
 	if err != nil {
 		return nil, fmt.Errorf("failed to validate updates: %w", err)
 	}
 
-	product, err := ps.repo.UpdateProduct(ctx, id, updates)
+	p, err := ps.repo.UpdateProduct(ctx, id, updates)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update product: %w", err)
 	}
 
-	return product, nil
+	if baseID, ok := updates["base_id"]; ok {
+		baseIDInt, _ := baseID.(int64)
+		err = ps.materialRepo.CopyProductMaterials(ctx, baseIDInt, id)
+		if err != nil {
+			return nil, fmt.Errorf("failed to inherit materials from base product: %w", err)
+		}
+	}
+
+	return p, nil
 }
 
 func (ps *ProductService) DeleteProduct(ctx context.Context, id int64) error {
@@ -126,15 +168,25 @@ func (ps *ProductService) GetProductByID(ctx context.Context, id int64) (*entiti
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	product, err := ps.repo.GetProductByID(ctx, id)
+	if id == 0 {
+		return nil, errors.New("invalid product id")
+	}
+
+	p, err := ps.repo.GetProductByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get product: %w", err)
 	}
 
-	return product, nil
+	return p, nil
 }
 
-func (ps *ProductService) ValidateUpdates(updates map[string]any) error {
+func (ps *ProductService) ValidateUpdates(ctx context.Context, updates map[string]any) error {
+	var baseIDInt int64
+
+	if len(updates) == 0 {
+		return errors.New("no fields to update")
+	}
+
 	for key := range updates {
 		switch key {
 		case "name":
@@ -149,12 +201,16 @@ func (ps *ProductService) ValidateUpdates(updates map[string]any) error {
 			}
 		case "base_id":
 			baseID, _ := updates[key]
-			if baseIDUint, ok := baseID.(int); !ok || baseIDUint == 0 {
+			if baseIDInt, ok := baseID.(int64); !ok || baseIDInt == 0 {
 				return errors.New("invalid base id")
+			}
+			_, err := ps.repo.GetProductByID(ctx, baseIDInt)
+			if err != nil {
+				return fmt.Errorf("base product with id %d does not exist: %w", baseIDInt, err)
 			}
 		case "amount":
 			amount, _ := updates[key]
-			if amountUint, ok := amount.(uint); !ok || amountUint == 0 {
+			if amountUint, ok := amount.(float32); !ok || amountUint < 0 {
 				return errors.New("invalid amount")
 			}
 		case "units":
@@ -171,13 +227,18 @@ func (ps *ProductService) ValidateUpdates(updates map[string]any) error {
 }
 
 func (ps *ProductService) ValidateProductWithParameters(ctx context.Context, product entities.Product) error {
-	for id := range product.ProdClass.EnumParamIDs {
+	for _, id := range product.ProdClass.EnumParamIDs {
 		enumValues, err := ps.enumRepo.GetEnumValuesByClassID(ctx, uint(id))
 		if err != nil {
 			return fmt.Errorf("failed to get enum values for class ID %d: %w", id, err)
 		}
+
+		if enumValues == nil {
+			continue
+		}
+
 		enumClass, err := ps.enumRepo.GetEnumClassByID(ctx, uint(id))
-		if err != nil {
+		if enumClass == nil || err != nil {
 			return fmt.Errorf("failed to get enum class for ID %d: %w", id, err)
 		}
 
@@ -200,6 +261,11 @@ func (ps *ProductService) ValidateProductWithParameters(ctx context.Context, pro
 	if err != nil {
 		return fmt.Errorf("failed to get range parameters for class ID %d: %w", product.ProdClass.ID, err)
 	}
+
+	if rangeParameters == nil {
+		return nil
+	}
+
 	for _, rangeParam := range rangeParameters {
 		parameterValue, exists := product.Parameters[rangeParam.FieldName]
 		if !exists {
@@ -233,4 +299,30 @@ func containsEnumValue(enumValues []entities.EnumValue, parameterValue any) bool
 	}
 
 	return false
+}
+
+func (ps *ProductService) ValidateProductCreation(ctx context.Context, p entities.Product) (entities.Product, error) {
+	if p.Name == "" {
+		return p, errors.New("product name is required")
+	}
+
+	class, err := ps.classRepo.GetClassByName(ctx, p.ProdClass.Name)
+	if err != nil {
+		return p, fmt.Errorf("failed to get class by name: %w", err)
+	}
+
+	if class == nil {
+		return p, fmt.Errorf("class with name %s does not exist", p.ProdClass.Name)
+	}
+
+	p.ProdClass = *class
+
+	if p.BaseID != 0 {
+		_, err = ps.repo.GetProductByID(ctx, p.BaseID)
+		if err != nil {
+			return p, fmt.Errorf("base product with id %d does not exist: %w", p.BaseID, err)
+		}
+	}
+
+	return p, nil
 }

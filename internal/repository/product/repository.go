@@ -43,13 +43,13 @@ func (repo *Repository) InsertProduct(ctx context.Context, product entities.Prod
 	return &product, nil
 }
 
-func (repo *Repository) GetProducts(ctx context.Context, limit, offset uint64) ([]entities.Product, error) {
+func (repo *Repository) GetProducts(ctx context.Context, limit, offset int32) ([]entities.Product, error) {
 	if repo.Pool == nil {
 		return nil, errors.New("db pool is empty")
 	}
 	params := queries.GetProductsParams{
-		Limit:  int32(limit),
-		Offset: int32(offset),
+		Limit:  limit,
+		Offset: offset,
 	}
 	dbProducts, err := repo.query.GetProducts(ctx, params)
 	if err != nil {

@@ -56,6 +56,10 @@ func (s *ParametersService) CreateRange(ctx context.Context, param *entities.Ran
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
+	if param == nil {
+		return nil, errors.New("parameter is nil")
+	}
+
 	if param.FieldName == "" {
 		return nil, errors.New("field_name is required")
 	}
@@ -80,6 +84,14 @@ func (s *ParametersService) UpdateRange(ctx context.Context, id uint, updates ma
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
+	if id == 0 {
+		return nil, errors.New("invalid parameter ID")
+	}
+
+	if len(updates) == 0 {
+		return nil, errors.New("no updates provided")
+	}
+
 	for k := range updates {
 		if _, ok := allowedParametersToUpdate[k]; !ok {
 			return nil, fmt.Errorf("unknown parameter: %s", k)
@@ -100,6 +112,10 @@ func (s *ParametersService) DeleteRange(ctx context.Context, id uint) (*entities
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
+	if id == 0 {
+		return nil, errors.New("invalid parameter ID")
+	}
+
 	deleted, err := s.ParamRepo.DeleteRangeParameter(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete range parameter: %w", err)
@@ -112,6 +128,10 @@ func (s *ParametersService) DeleteRange(ctx context.Context, id uint) (*entities
 func (s *ParametersService) ListParameters(ctx context.Context, classID uint, parameterType int) ([]entities.RangeParameter, []entities.EnumParameter, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, nil, fmt.Errorf("request cancelled: %w", err)
+	}
+
+	if classID == 0 {
+		return nil, nil, errors.New("invalid class ID")
 	}
 
 	numeric, enum, err := s.ParamRepo.GetParameters(ctx, int64(classID), parameterType)
@@ -128,6 +148,14 @@ func (s *ParametersService) ApplyToClass(ctx context.Context, classID uint, rang
 		return 0, fmt.Errorf("request cancelled: %w", err)
 	}
 
+	if classID == 0 {
+		return 0, errors.New("invalid class ID")
+	}
+
+	if len(rangeIDs) == 0 && len(enumIDs) == 0 {
+		return 0, errors.New("no parameters to exclude")
+	}
+
 	added, err := s.ParamRepo.ApplyParameters(ctx, classID, rangeIDs, enumIDs)
 	if err != nil {
 		return 0, fmt.Errorf("failed to apply parameters: %w", err)
@@ -137,6 +165,22 @@ func (s *ParametersService) ApplyToClass(ctx context.Context, classID uint, rang
 }
 
 func (s *ParametersService) ExcludeFromClass(ctx context.Context, classID uint, rangeIDs, enumIDs []int) (int, error) {
-	//TODO: сделаю завтра
-	return 0, nil
+	if err := ctx.Err(); err != nil {
+		return 0, fmt.Errorf("request cancelled: %w", err)
+	}
+
+	if classID == 0 {
+		return 0, errors.New("invalid class ID")
+	}
+
+	if len(rangeIDs) == 0 && len(enumIDs) == 0 {
+		return 0, errors.New("no parameters to exclude")
+	}
+
+	excluded, err := s.ParamRepo.ExcludeParameters(ctx, classID, rangeIDs, enumIDs)
+	if err != nil {
+		return 0, fmt.Errorf("failed to exclude parameters: %w", err)
+	}
+
+	return excluded, nil
 }

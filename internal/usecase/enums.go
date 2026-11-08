@@ -74,6 +74,10 @@ func (s *EnumService) GetEnum(ctx context.Context, fieldName string) ([]entities
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
+	if fieldName == "" {
+		return nil, fmt.Errorf("field name cannot be empty")
+	}
+
 	enums, err := s.Repo.GetEnumClasses(ctx, fieldName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get enums: %w", err)
@@ -88,10 +92,18 @@ func (s *EnumService) UpdateEnum(ctx context.Context, id uint, updates map[strin
 		return fmt.Errorf("request cancelled: %w", err)
 	}
 
+	if id == 0 {
+		return fmt.Errorf("invalid enum ID")
+	}
+
+	if len(updates) == 0 {
+		return fmt.Errorf("no updates provided")
+	}
+
 	err := s.Repo.UpdateEnumClass(ctx, id, updates)
 
 	if err != nil {
-		return fmt.Errorf("failed to create enum: %w", err)
+		return fmt.Errorf("failed to update enum: %w", err)
 	}
 
 	return nil
@@ -101,6 +113,10 @@ func (s *EnumService) UpdateEnum(ctx context.Context, id uint, updates map[strin
 func (s *EnumService) DeleteEnum(ctx context.Context, id uint) error {
 	if err := ctx.Err(); err != nil {
 		return fmt.Errorf("request cancelled: %w", err)
+	}
+
+	if id == 0 {
+		return fmt.Errorf("invalid enum ID")
 	}
 
 	err := s.Repo.DeleteEnumClassByID(ctx, id)
@@ -117,6 +133,18 @@ func (s *EnumService) CreateEnumValue(ctx context.Context, enum entities.EnumVal
 		return 0, fmt.Errorf("request cancelled: %w", err)
 	}
 
+	if enum.EnumClassID == 0 {
+		return 0, fmt.Errorf("enum class ID cannot be zero")
+	}
+
+	if enum.Value == nil {
+		return 0, fmt.Errorf("enum value cannot be nil")
+	}
+
+	if enum.ValueType == "" {
+		return 0, fmt.Errorf("enum value type cannot be empty")
+	}
+
 	id, err := s.Repo.InsertEnumValue(ctx, enum)
 	if err != nil {
 		return 0, fmt.Errorf("failed to create enum value: %w", err)
@@ -129,6 +157,14 @@ func (s *EnumService) CreateEnumValue(ctx context.Context, enum entities.EnumVal
 func (s *EnumService) GetEnumValue(ctx context.Context, fieldName string, valueType entities.EnumType) ([]entities.EnumValue, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
+	}
+
+	if fieldName == "" {
+		return nil, fmt.Errorf("field name cannot be empty")
+	}
+
+	if valueType == "" {
+		return nil, fmt.Errorf("value type cannot be empty")
 	}
 
 	enums, err := s.Repo.GetEnumValues(ctx, fieldName, valueType)
@@ -145,6 +181,14 @@ func (s *EnumService) UpdateEnumValue(ctx context.Context, id uint, updates map[
 		return fmt.Errorf("request cancelled: %w", err)
 	}
 
+	if id == 0 {
+		return fmt.Errorf("invalid enum value ID")
+	}
+
+	if len(updates) == 0 {
+		return fmt.Errorf("no updates provided")
+	}
+
 	val, ok := updates["value"]
 	if ok {
 		delete(updates, "value")
@@ -154,7 +198,7 @@ func (s *EnumService) UpdateEnumValue(ctx context.Context, id uint, updates map[
 	err := s.Repo.UpdateEnumValue(ctx, id, updates)
 
 	if err != nil {
-		return fmt.Errorf("failed to create enum value: %w", err)
+		return fmt.Errorf("failed to update enum value: %w", err)
 	}
 
 	return nil
@@ -164,6 +208,10 @@ func (s *EnumService) UpdateEnumValue(ctx context.Context, id uint, updates map[
 func (s *EnumService) DeleteEnumValue(ctx context.Context, id uint) error {
 	if err := ctx.Err(); err != nil {
 		return fmt.Errorf("request cancelled: %w", err)
+	}
+
+	if id == 0 {
+		return fmt.Errorf("invalid enum value ID")
 	}
 
 	err := s.Repo.DeleteEnumValueByID(ctx, id)
