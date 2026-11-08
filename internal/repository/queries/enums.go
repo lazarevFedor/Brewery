@@ -61,7 +61,6 @@ func SelectEnumClassByID(id uint) sq.SelectBuilder {
 	return psql.Select(
 		"id",
 		"enum_type",
-		"entity_name",
 		"field_name",
 		"unit",
 		"is_active",
