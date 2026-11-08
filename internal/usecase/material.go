@@ -194,8 +194,8 @@ func (s *MaterialService) GetMaterialNorms(ctx context.Context, productID int64,
 	}
 
 	grouped := make(map[int64]entities.MaterialProduct)
-	var walk func(node entities.MaterialProduct, multiplier float32, ancestors map[int64]struct{})
-	walk = func(node entities.MaterialProduct, multiplier float32, ancestors map[int64]struct{}) {
+	var walk func(node entities.MaterialProduct, ancestors map[int64]struct{})
+	walk = func(node entities.MaterialProduct, ancestors map[int64]struct{}) {
 		if node.MaterialID == 0 {
 			return
 		}
@@ -203,7 +203,8 @@ func (s *MaterialService) GetMaterialNorms(ctx context.Context, productID int64,
 			return
 		}
 
-		amount := node.MaterialAmount * multiplier
+		// Нормы каждого вхождения масштабируются только количеством конечных изделий.
+		amount := node.MaterialAmount * quantity
 		if existing, ok := grouped[node.MaterialID]; ok {
 			existing.MaterialAmount += amount
 			grouped[node.MaterialID] = existing
@@ -221,12 +222,12 @@ func (s *MaterialService) GetMaterialNorms(ctx context.Context, productID int64,
 		nextAncestors[node.MaterialID] = struct{}{}
 
 		for _, child := range node.Materials {
-			walk(child, amount, nextAncestors)
+			walk(child, nextAncestors)
 		}
 	}
 
 	for _, row := range rows {
-		walk(row, quantity, map[int64]struct{}{})
+		walk(row, map[int64]struct{}{})
 	}
 
 	result := make([]entities.MaterialProduct, 0, len(grouped))

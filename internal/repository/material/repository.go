@@ -47,15 +47,10 @@ func (repo *Repository) UpdateMaterial(ctx context.Context, material entities.Ma
 		return nil, errors.New("db pool is empty")
 	}
 
-	var updateParams queries.UpdateMaterialParams
-	if material.MaterialID == 0 {
-		updateParams.MaterialID = nil
-	}
-	if material.ProductID == 0 {
-		updateParams.ProductID = nil
-	}
-	if material.MaterialAmount == 0 {
-		updateParams.MaterialAmount = nil
+	updateParams := queries.UpdateMaterialParams{
+		MaterialID:     material.MaterialID,
+		ProductID:      material.ProductID,
+		MaterialAmount: material.MaterialAmount,
 	}
 
 	dbMaterial, err := repo.query.UpdateMaterial(ctx, updateParams)

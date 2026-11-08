@@ -821,7 +821,7 @@
           "Materials"
         ],
         "summary": "Calculate total material consumption norms for product",
-        "description": "Сводные нормы расхода для всего изделия (CALC_BOM): какой материал и сколько всего его требуется для изготовления quantity единиц изделия с учётом всей глубины состава.",
+        "description": "Сводные нормы расхода для всего изделия (CALC_BOM) с учётом всей глубины состава. Количества всех вхождений одного материала суммируются и умножаются на quantity, без дополнительного умножения на количества родительских материалов.",
         "operationId": "calculateMaterialNorms",
         "parameters": [
           {
