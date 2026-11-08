@@ -290,9 +290,8 @@ func (c *ClassService) ValidateClassUpdates(ctx context.Context, id int64, updat
 			if !ok {
 				return nil, errors.New("parent_id must be an int64")
 			}
-			if class.ParentID == 0 {
-				updates["parent_id"] = nil
-			} else {
+
+			if class.ParentID != 0 {
 				err := c.ensureClassParentIsNotDescendant(ctx, id, class.ParentID)
 				if err != nil {
 					return nil, fmt.Errorf("failed to update parent class: %w", err)
