@@ -29,13 +29,19 @@ type ClassMapper interface {
 // goverter:ignoreMissing
 // goverter:useZeroValueOnPointerInconsistency
 type ProductMapper interface {
+	// goverter:map ClassID ProdClass | ClassFromID
 	FromInsert(queries.InsertProductRow) entities.Product
 	FromUpdate(queries.UpdateProductRow) entities.Product
 
 	// goverter:map . ProdClass | BuildClass
 	FromDBFullProduct(queries.GetProductByIDRow) entities.Product
+	// goverter:map ClassID ProdClass | ClassFromID
 	FromDBProduct(queries.Product) entities.Product
 	FromDBProducts([]queries.Product) []entities.Product
+}
+
+func ClassFromID(id int64) entities.Class {
+	return entities.Class{ID: id}
 }
 
 func BuildClass(row queries.GetProductByIDRow) entities.Class {
@@ -51,7 +57,6 @@ func BuildClass(row queries.GetProductByIDRow) entities.Class {
 		EnumParamIDs:  row.ClassEnumParams,
 	}
 }
-
 
 // goverter:output:file ./mapper_impl.go
 // goverter:output:package Brewery/internal/repository/mapper
@@ -76,5 +81,5 @@ type HistoryMapper interface {
 }
 
 func TimeToTime(t time.Time) time.Time {
-    return t
+	return t
 }

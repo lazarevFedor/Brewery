@@ -98,6 +98,7 @@ func (ps *ProductService) CreateProduct(ctx context.Context, p entities.Product)
 		return nil, errors.New("failed to create product: returned product is nil")
 	}
 
+	createdProduct.ProdClass = p.ProdClass
 	return createdProduct, nil
 }
 
