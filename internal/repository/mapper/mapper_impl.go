@@ -15,7 +15,8 @@ func (c *ClassMapperImpl) FromDBClass(source queries.Class) entities.Class {
 	entitiesClass.ID = source.ID
 	entitiesClass.Name = source.Name
 	if source.ParentID != nil {
-		entitiesClass.ParentID = *source.ParentID
+		xint64 := *source.ParentID
+		entitiesClass.ParentID = &xint64
 	}
 	if source.NumericParameterIds != nil {
 		entitiesClass.RangeParamIDs = make([]int64, len(source.NumericParameterIds))
@@ -46,7 +47,8 @@ func (c *ClassMapperImpl) FromInsert(source queries.InsertClassRow) entities.Cla
 	entitiesClass.ID = source.ID
 	entitiesClass.Name = source.Name
 	if source.ParentID != nil {
-		entitiesClass.ParentID = *source.ParentID
+		xint64 := *source.ParentID
+		entitiesClass.ParentID = &xint64
 	}
 	return entitiesClass
 }

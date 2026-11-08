@@ -42,7 +42,7 @@ func (repo *Repository) InsertClass(ctx context.Context, class entities.Class) (
 	}
 	insertParams := queries.InsertClassParams{
 		Name:     class.Name,
-		ParentID: &class.ParentID,
+		ParentID: class.ParentID,
 	}
 	dbClass, err := repo.query.InsertClass(ctx, insertParams)
 	if err != nil {
@@ -71,7 +71,7 @@ func (repo *Repository) UpdateClass(ctx context.Context, id int64, updates entit
 
 	updateParams := queries.UpdateClassParams{ID: id}
 
-	if updates.ParentID == 0 {
+	if updates.ParentID == nil {
 		updateParams.ParentID = nil
 	}
 	if updates.Name == "" {

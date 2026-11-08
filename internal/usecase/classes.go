@@ -78,18 +78,22 @@ func (c *ClassService) CreateClass(ctx context.Context, class *entities.Class) (
 		return nil, errors.New("class name is required")
 	}
 
-	if class.ParentID == 0 {
+	if *class.ParentID == 0{
+		class.ParentID = nil
+	}
+
+	if class.ParentID == nil {
 		classes, err := c.repo.GetClasses(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to check existing classes: %w", err)
 		}
 		for _, c := range classes {
-			if c.ParentID == 0 {
+			if c.ParentID == nil {
 				return nil, errors.New("root class already exists")
 			}
 		}
 	} else {
-		parent, err := c.repo.GetClassByID(ctx, class.ParentID)
+		parent, err := c.repo.GetClassByID(ctx, *class.ParentID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get parent class: %w", err)
 		}
@@ -196,11 +200,11 @@ func (c *ClassService) GetParentClass(ctx context.Context, id int64) (*entities.
 		return nil, errors.New("class not found")
 	}
 
-	if class.ParentID == 0 {
+	if class.ParentID == nil {
 		return nil, nil
 	}
 
-	parent, err := c.repo.GetClassByID(ctx, class.ParentID)
+	parent, err := c.repo.GetClassByID(ctx, *class.ParentID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get parent class: %w", err)
 	}
@@ -226,7 +230,7 @@ func (c *ClassService) GetChildClasses(ctx context.Context, id int64) ([]entitie
 	}
 	children := make([]entities.Class, 0)
 	for _, c := range classes {
-		if c.ParentID != 0 && c.ParentID == id {
+		if c.ParentID != nil && *c.ParentID == id {
 			children = append(children, c)
 		}
 	}
@@ -255,7 +259,7 @@ func (c *ClassService) ensureClassParentIsNotDescendant(ctx context.Context, cla
 			return errors.New("class parent creates a cycle")
 		}
 
-		currentID = class.ParentID
+		currentID = *class.ParentID
 	}
 
 	return nil
@@ -281,8 +285,9 @@ func (c *ClassService) ValidateClassUpdates(ctx context.Context, id int64, updat
 			}
 
 		case "parent_id":
-			class.ParentID, ok = value.(int64)
-			_, err := c.repo.GetClassByID(ctx, class.ParentID)
+			parentID, ok := value.(int64)
+			class.ParentID = &parentID
+			_, err := c.repo.GetClassByID(ctx, *class.ParentID)
 			if err != nil {
 				return nil, fmt.Errorf("failed to get parent class: %w", err)
 			}
@@ -291,8 +296,8 @@ func (c *ClassService) ValidateClassUpdates(ctx context.Context, id int64, updat
 				return nil, errors.New("parent_id must be an int64")
 			}
 
-			if class.ParentID != 0 {
-				err := c.ensureClassParentIsNotDescendant(ctx, id, class.ParentID)
+			if class.ParentID != nil {
+				err := c.ensureClassParentIsNotDescendant(ctx, id, *class.ParentID)
 				if err != nil {
 					return nil, fmt.Errorf("failed to update parent class: %w", err)
 				}

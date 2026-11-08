@@ -46,7 +46,7 @@ func BuildClass(row queries.GetProductByIDRow) entities.Class {
 	return entities.Class{
 		ID:            row.ClassID,
 		Name:          row.ClassName,
-		ParentID:      *row.ClassParentID,
+		ParentID:      row.ClassParentID,
 		RangeParamIDs: row.ClassNumParams,
 		EnumParamIDs:  row.ClassEnumParams,
 	}
