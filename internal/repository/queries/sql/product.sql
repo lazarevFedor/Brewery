@@ -3,11 +3,13 @@ INSERT INTO products(
     name,
     amount,
     units,
+    class_id,
     base_id
 ) VALUES (
     sqlc.arg(name),
     sqlc.arg(amount),
     sqlc.arg(units),
+    sqlc.arg(class_id),
     sqlc.arg(base_id)
 ) RETURNING 
     id,

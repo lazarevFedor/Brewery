@@ -30,10 +30,13 @@ func (repo *Repository) InsertProduct(ctx context.Context, product entities.Prod
 		return nil, errors.New("db pool is empty")
 	}
 	params := queries.InsertProductParams{
-		Name:   product.Name,
-		Amount: &product.Amount,
-		Units:  &product.Unit,
-		BaseID: &product.BaseID,
+		Name:    product.Name,
+		Amount:  &product.Amount,
+		Units:   &product.Unit,
+		ClassID: product.ProdClass.ID,
+	}
+	if product.BaseID != 0 {
+		params.BaseID = &product.BaseID
 	}
 	productRow, err := repo.query.InsertProduct(ctx, params)
 	if err != nil {
@@ -130,10 +133,10 @@ func (repo *Repository) UpdateProduct(ctx context.Context, id int64, updates map
 		}
 	}
 	err = tx.Commit(ctx)
-	if err != nil{
+	if err != nil {
 		return nil, fmt.Errorf("Commot: %w", err)
 	}
-	
+
 	products := repo.mapper.FromUpdate(dbProduct)
 	return &products, nil
 }

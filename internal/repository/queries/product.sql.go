@@ -156,12 +156,14 @@ INSERT INTO products(
     name,
     amount,
     units,
+    class_id,
     base_id
 ) VALUES (
     $1,
     $2,
     $3,
-    $4
+    $4,
+    $5
 ) RETURNING 
     id,
     name,
@@ -172,10 +174,11 @@ INSERT INTO products(
 `
 
 type InsertProductParams struct {
-	Name   string
-	Amount *float32
-	Units  *string
-	BaseID *int64
+	Name    string
+	Amount  *float32
+	Units   *string
+	ClassID int64
+	BaseID  *int64
 }
 
 type InsertProductRow struct {
@@ -192,6 +195,7 @@ func (q *Queries) InsertProduct(ctx context.Context, arg InsertProductParams) (I
 		arg.Name,
 		arg.Amount,
 		arg.Units,
+		arg.ClassID,
 		arg.BaseID,
 	)
 	var i InsertProductRow
