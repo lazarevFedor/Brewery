@@ -24,7 +24,7 @@ type ProductRepository interface {
 
 // NewProductRepository создает новый экземпляр ProductRepository с использованием предоставленного пула соединений к базе данных.
 func NewProductRepository(pool *pgxpool.Pool) ProductRepository {
-	return &product.Repository{Pool: pool}
+	return product.NewRepository(pool)
 }
 
 type ProductService struct {
