@@ -30,7 +30,7 @@ type MaterialRepository interface {
 
 // NewMaterialRepository создает новый экземпляр MaterialRepository с использованием предоставленного пула соединений к базе данных.
 func NewMaterialRepository(pool *pgxpool.Pool) MaterialRepository {
-	return &material.Repository{Pool: pool}
+	return material.NewRepository(pool)
 }
 
 type MaterialService struct {

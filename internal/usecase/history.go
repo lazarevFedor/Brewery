@@ -24,7 +24,7 @@ type HistoryRecordRepository interface {
 
 // NewHistoryRecordRepository создает новый экземпляр HistoryRecordRepository с использованием предоставленного пула соединений к базе даннх.
 func NewHistoryRecordRepository(pool *pgxpool.Pool) HistoryRecordRepository {
-	return &history.Repository{Pool: pool}
+	return history.NewRepository(pool)
 }
 
 type HistoryService struct {

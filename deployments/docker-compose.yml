@@ -4,10 +4,16 @@ services:
     container_name: postgres_container
     env_file:
       - ../configs/.env
+    healthcheck:
+      test: ["CMD-SHELL", "PGPASSWORD=\"$$POSTGRES_PASSWORD\" psql -h 127.0.0.1 -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\" -w -v ON_ERROR_STOP=1 -c 'SELECT 1' > /dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     ports:
       - "${POSTGRES_PORT}:${POSTGRES_PORT}"
     volumes:
-      - ./pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
     networks:
       - app_net
   
@@ -21,7 +27,8 @@ services:
     env_file:
       - ../configs/.env
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - app_net
     develop:
