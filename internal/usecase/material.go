@@ -38,6 +38,11 @@ type MaterialService struct {
 	productRepo ProductRepository
 }
 
+// NewMaterialService creates material service.
+func NewMaterialService(repo MaterialRepository, productRepo ProductRepository) *MaterialService {
+	return &MaterialService{repo: repo, productRepo: productRepo}
+}
+
 func (s *MaterialService) CreateMaterial(ctx context.Context, material entities.Material) (*entities.Material, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)

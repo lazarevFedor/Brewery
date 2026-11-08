@@ -54,6 +54,11 @@ type EnumService struct {
 	Repo EnumRepository
 }
 
+// NewEnumService creates enum service.
+func NewEnumService(repo EnumRepository) *EnumService {
+	return &EnumService{Repo: repo}
+}
+
 // CreateEnum создает новое перечисление и возвращает его ID.
 func (s *EnumService) CreateEnum(ctx context.Context, enum entities.EnumClass) (uint, error) {
 	if err := ctx.Err(); err != nil {

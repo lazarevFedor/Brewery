@@ -31,6 +31,11 @@ type ClassService struct {
 	repo ClassRepository
 }
 
+// NewClassService creates class service.
+func NewClassService(repo ClassRepository) *ClassService {
+	return &ClassService{repo: repo}
+}
+
 func (c *ClassService) ensureRepo() error {
 	if c == nil {
 		return errors.New("class service is nil")

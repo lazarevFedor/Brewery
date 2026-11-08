@@ -31,6 +31,11 @@ type HistoryService struct {
 	repo HistoryRecordRepository
 }
 
+// NewHistoryService creates history service.
+func NewHistoryService(repo HistoryRecordRepository) *HistoryService {
+	return &HistoryService{repo: repo}
+}
+
 func (hs *HistoryService) CreateChangeRecord(ctx context.Context, record *entities.HistoryRecord) (*entities.HistoryRecord, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
