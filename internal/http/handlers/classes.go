@@ -1,54 +1,16 @@
-// Package handlers содержит реализацию HTTP-обработчиков для управления пивоварней.
 package handlers
 
 import (
+	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
-	"Brewery/internal/usecase"
-	"Brewery/pkg/logger"
 	"context"
-	"encoding/json"
-	"fmt"
 	"net/http"
 
-	"Brewery/internal/apperrors"
-
 	"github.com/gin-gonic/gin"
-	"github.com/mailru/easyjson"
+	"go.uber.org/zap"
 )
 
-// CategoriesHandlers определяет интерфейс для обработки HTTP-запросов, связанных с категориями продуктов.
-type CategoriesHandlers interface {
-
-	// CreateCategory обрабатывает HTTP-запрос на создание новой категории продукта.
-	CreateCategory(c *gin.Context)
-
-	// GetCategoryByID обрабатывает HTTP-запрос на получение категории продукта по ее идентификатору.
-	GetCategoryByID(c *gin.Context)
-
-	// UpdateCategory обрабатывает HTTP-запрос на обновление существующей категории продукта по ее идентификатору.
-	UpdateCategory(c *gin.Context)
-
-	// DeleteCategory обрабатывает HTTP-запрос на удаление категории по ее идентификатору.
-	DeleteCategory(c *gin.Context)
-
-	// GetAllCategories обрабатывает HTTP-запрос на получение всех категорий продуктов.
-	GetAllCategories(c *gin.Context)
-
-	// GetBeersByCategory обрабатывает HTTP-запрос на получение пива по заданной идентификатором категории.
-	GetBeersByCategory(c *gin.Context)
-
-	// GetParentCategory обрабатывает HTTP-запрос на получение родительской категории для заданной категории по ее идентификатору.
-	GetParentCategory(c *gin.Context)
-
-	// GetChildCategory обрабатывает HTTP-запрос на получение дочерней категории для заданной категории по ее идентификатору.
-	GetChildCategory(c *gin.Context)
-}
-
-// categoriesHandlers конкретная реализация интерфейса CategoriesHandlers, которая использует сервис BeerService для обработки бизнес-логики.
-type categoriesHandlers struct {
-	uc ClassService
-}
-
+// ClassService определяет бизнес-логику работы с классами изделий, которая нужна HTTP-слою.
 type ClassService interface {
 	GetAllClasses(ctx context.Context) ([]entities.Class, error)
 	CreateClass(ctx context.Context, class *entities.Class) (*entities.Class, error)
@@ -59,303 +21,216 @@ type ClassService interface {
 	GetChildClasses(ctx context.Context, id int64) ([]entities.Class, error)
 }
 
-// NewCategoriesHandlers создает новый экземпляр categoriesHandler с предоставленным сервисом BeerService.
-func NewCategoriesHandlers(useCase usecase.ClassService) CategoriesHandlers {
-	return &categoriesHandlers{
-		uc: &useCase,
-	}
+// ClassHandlers определяет HTTP-обработчики для классов изделий.
+type ClassHandlers interface {
+
+	// CreateClass обрабатывает POST /classes.
+	CreateClass(c *gin.Context)
+
+	// GetClass обрабатывает GET /classes/{id}.
+	GetClass(c *gin.Context)
+
+	// UpdateClass обрабатывает PATCH /classes/{id}.
+	UpdateClass(c *gin.Context)
+
+	// DeleteClass обрабатывает DELETE /classes/{id}.
+	DeleteClass(c *gin.Context)
+
+	// ListClasses обрабатывает GET /classes.
+	ListClasses(c *gin.Context)
+
+	// GetClassParent обрабатывает GET /classes/parent/{id}.
+	GetClassParent(c *gin.Context)
+
+	// ListClassChildren обрабатывает GET /classes/children/{id}.
+	ListClassChildren(c *gin.Context)
 }
 
-// CreateCategory обрабатывает HTTP-запрос на создание новой категории продукта.
-func (h *categoriesHandlers) CreateCategory(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get logger from context"})
-		return
-	}
-
-	body, err := readRequestBody(c)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read category in the request body: %v", err))
-		return
-	}
-
-	var req entities.ProductCategory
-
-	if err = easyjson.Unmarshal(body, &req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to unmarshal category: %v", err))
-		return
-	}
-
-	ctgID, err := h.uc.CreateCategory(c.Request.Context(), &req)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get category: %v", err))
-		c.JSON(http.StatusNotFound, gin.H{"error": "category not found"})
-		return
-	}
-
-	log.Debug(c.Request.Context(), fmt.Sprintf("ctgID=%d", ctgID))
-	log.Info(
-		c.Request.Context(),
-		fmt.Sprintf("action=create resource=category status=success name=%q", req.Name),
-	)
-	c.Status(http.StatusCreated)
+// classHandlers реализует ClassHandlers поверх ClassService.
+type classHandlers struct {
+	uc ClassService
 }
 
-// GetCategoryByID обрабатывает HTTP-запрос на получение категории продукта по ее идентификатору.
-//
-//nolint:staticcheck, ineffassign, wastedassign
-func (h *categoriesHandlers) GetCategoryByID(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get logger from context"})
-
-		return
-	}
-
-	categoryID, err := getUintParam(c, "id")
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
-
-		return
-	}
-
-	category, err := h.uc.GetCategoryByID(c.Request.Context(), categoryID)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get category: %v", err))
-		c.JSON(http.StatusNotFound, gin.H{"error": "category not found"})
-
-		return
-	}
-
-	rawBytes, err := easyjson.Marshal(category)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal category: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal category"})
-
-		return
-	}
-
-	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
-	log.Info(c.Request.Context(), fmt.Sprintf("action=get resource=category status=success id=%d", categoryID))
+// NewClassHandlers создает обработчики классов изделий.
+func NewClassHandlers(uc ClassService) ClassHandlers {
+	return &classHandlers{uc: uc}
 }
 
-// UpdateCategory обрабатывает HTTP-запрос на обновление существующей категории продукта по ее идентификатору.
-func (h *categoriesHandlers) UpdateCategory(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+// CreateClass обрабатывает POST /classes.
+func (h *classHandlers) CreateClass(c *gin.Context) {
+	log, ok := getLogger(c)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get logger from context"})
-
 		return
 	}
 
-	id, err := getUintParam(c, "id")
+	var req entities.Class
+	if !bindJSON(c, &req) {
+		return
+	}
+
+	if req.Name == "" {
+		writeError(c, http.StatusBadRequest, apperrors.CodeValidation, "Class name is required")
+		return
+	}
+
+	created, err := h.uc.CreateClass(c.Request.Context(), &req)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
-
+		handleError(c, log, "failed to create class", err)
 		return
 	}
 
-	body, err := readRequestBody(c)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read updates in the request body: %v", err))
-
-		return
-	}
-
-	updates := make(map[string]any)
-	if err = json.Unmarshal(body, &updates); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-
-		return
-	}
-
-	if len(updates) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "empty update payload"})
-
-		return
-	}
-
-	err = h.uc.UpdateCategory(c.Request.Context(), id, updates)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to update category: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update category"})
-
-		return
-	}
-
-	log.Info(c.Request.Context(), fmt.Sprintf("action=update resource=category status=success id=%d", id))
-	c.Status(http.StatusOK)
+	log.Info(c.Request.Context(), "action=create resource=class status=success", zap.Int64("id", created.ID))
+	c.JSON(http.StatusCreated, created)
 }
 
-// DeleteCategory обрабатывает HTTP-запрос на удаление категории по ее идентификатору.
-func (h *categoriesHandlers) DeleteCategory(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+// GetClass обрабатывает GET /classes/{id}.
+func (h *classHandlers) GetClass(c *gin.Context) {
+	log, ok := getLogger(c)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get logger from context"})
-
 		return
 	}
 
-	id, err := getUintParam(c, "id")
+	id, err := getIDParam(c, "id")
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
-
+		badRequest(c, log, apperrors.CodeInvalidID, err)
 		return
 	}
 
-	err = h.uc.DeleteCategory(c.Request.Context(), id)
+	class, err := h.uc.GetClassByID(c.Request.Context(), id)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to delete category: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete category"})
-
+		handleError(c, log, "failed to get class", err)
 		return
 	}
 
-	log.Info(c.Request.Context(), fmt.Sprintf("action=delete resource=category status=success id=%d", id))
-	c.Status(http.StatusOK)
+	if class == nil {
+		writeError(c, http.StatusNotFound, apperrors.CodeNotFound, "Class not found")
+		return
+	}
+
+	c.JSON(http.StatusOK, class)
 }
 
-// GetAllCategories обрабатывает HTTP-запрос на получение всех категорий продуктов.
-func (h *categoriesHandlers) GetAllCategories(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+// UpdateClass обрабатывает PATCH /classes/{id}.
+func (h *classHandlers) UpdateClass(c *gin.Context) {
+	log, ok := getLogger(c)
 	if !ok {
-		c.Status(http.StatusInternalServerError)
-
 		return
 	}
 
-	categories, err := h.uc.GetAllCategories(c.Request.Context())
+	id, err := getIDParam(c, "id")
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get all categories: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get all categories"})
-
+		badRequest(c, log, apperrors.CodeInvalidID, err)
 		return
 	}
 
-	rawBytes, err := easyjson.Marshal(entities.Products(categories))
+	updates, ok := bindUpdates(c)
+	if !ok {
+		return
+	}
+
+	updated, err := h.uc.UpdateClass(c.Request.Context(), id, updates)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal categories: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal categories"})
-
+		handleError(c, log, "failed to update class", err)
 		return
 	}
 
-	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
-	log.Info(c.Request.Context(), fmt.Sprintf("action=list resource=category status=success items=%d", len(categories)))
+	log.Info(c.Request.Context(), "action=update resource=class status=success", zap.Int64("id", id))
+	c.JSON(http.StatusOK, updated)
 }
 
-// GetParentCategory обрабатывает HTTP-запрос на получение родительской категории для заданной категории по ее идентификатору.
-func (h *categoriesHandlers) GetParentCategory(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+// DeleteClass обрабатывает DELETE /classes/{id}.
+func (h *classHandlers) DeleteClass(c *gin.Context) {
+	log, ok := getLogger(c)
 	if !ok {
-		c.Status(http.StatusInternalServerError)
-
 		return
 	}
 
-	id, err := getUintParam(c, "id")
+	id, err := getIDParam(c, "id")
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
-
+		badRequest(c, log, apperrors.CodeInvalidID, err)
 		return
 	}
 
-	category, err := h.uc.GetParentCategory(c.Request.Context(), id)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get parent category: %v", err))
-		c.Status(http.StatusInternalServerError)
-
+	if err = h.uc.DeleteClassByID(c.Request.Context(), id); err != nil {
+		handleError(c, log, "failed to delete class", err)
 		return
 	}
 
-	rawBytes, err := easyjson.Marshal(category)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal category: %v", err))
-		c.Status(http.StatusInternalServerError)
-
-		return
-	}
-
-	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
-	log.Info(c.Request.Context(), fmt.Sprintf("action=get resource=category_parent status=success id=%d", id))
+	log.Info(c.Request.Context(), "action=delete resource=class status=success", zap.Int64("id", id))
+	c.Status(http.StatusNoContent)
 }
 
-// GetChildCategory обрабатывает HTTP-запрос на получение дочерней категории для заданной категории по ее идентификатору.
-func (h *categoriesHandlers) GetChildCategory(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+// ListClasses обрабатывает GET /classes.
+func (h *classHandlers) ListClasses(c *gin.Context) {
+	log, ok := getLogger(c)
 	if !ok {
-		c.Status(http.StatusInternalServerError)
-
 		return
 	}
 
-	id, err := getUintParam(c, "id")
+	classes, err := h.uc.GetAllClasses(c.Request.Context())
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
-
+		handleError(c, log, "failed to list classes", err)
 		return
 	}
 
-	children, err := h.uc.GetChildCategories(c.Request.Context(), id)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get child category: %v", err))
-		c.Status(http.StatusInternalServerError)
-
-		return
-	}
-
-	rawBytes, err := easyjson.Marshal(entities.Products(children))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal category: %v", err))
-
-		return
-	}
-
-	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
-	log.Info(c.Request.Context(), fmt.Sprintf("action=get resource=category_child status=success id=%d", id))
+	c.JSON(http.StatusOK, nonNil(classes))
 }
 
-// GetBeersByCategory обрабатывает HTTP-запрос на получение пива по заданной идентификатором категории.
-func (h *categoriesHandlers) GetBeersByCategory(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+// GetClassParent обрабатывает GET /classes/parent/{id}.
+func (h *classHandlers) GetClassParent(c *gin.Context) {
+	log, ok := getLogger(c)
 	if !ok {
-		writeError(c, http.StatusInternalServerError, apperrors.CodeInternalError, "Unexpected error occurred")
 		return
 	}
 
-	id, err := getUintParam(c, "category_id")
+	id, err := getIDParam(c, "id")
 	if err != nil {
-		log.Info(c.Request.Context(), fmt.Sprintf("Invalid category id: %v", err))
-		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidID, "Invalid category id")
+		badRequest(c, log, apperrors.CodeInvalidID, err)
 		return
 	}
 
-	offset, limit, err := getPaginationParams(c)
+	parent, err := h.uc.GetParentClass(c.Request.Context(), id)
 	if err != nil {
-		log.Info(c.Request.Context(), fmt.Sprintf("Invalid pagination params: %v", err))
-		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidParameters, "Invalid pagination parameters")
+		handleError(c, log, "failed to get parent class", err)
 		return
 	}
 
-	beers, err := h.uc.GetBeersByCategory(c.Request.Context(), id, limit, offset)
+	// У корневого класса родителя нет.
+	if parent == nil {
+		writeError(c, http.StatusNotFound, apperrors.CodeNotFound, "Parent class not found")
+		return
+	}
+
+	c.JSON(http.StatusOK, parent)
+}
+
+// ListClassChildren обрабатывает GET /classes/children/{id}.
+func (h *classHandlers) ListClassChildren(c *gin.Context) {
+	log, ok := getLogger(c)
+	if !ok {
+		return
+	}
+
+	id, err := getIDParam(c, "id")
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get beers by category: %v", err))
-		c.Status(http.StatusInternalServerError)
-
+		badRequest(c, log, apperrors.CodeInvalidID, err)
 		return
 	}
 
-	rawBytes, err := easyjson.Marshal(entities.Beers(beers))
+	children, err := h.uc.GetChildClasses(c.Request.Context(), id)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal beers: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
-
+		handleError(c, log, "failed to get child classes", err)
 		return
 	}
 
-	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
-	log.Info(c.Request.Context(), fmt.Sprintf("action=list resource=beer_by_category status=success category_id=%d offset=%d limit=%d items=%d", id, offset, limit, len(beers)))
+	c.JSON(http.StatusOK, nonNil(children))
+}
+
+// nonNil возвращает пустой срез вместо nil, чтобы в JSON был [] а не null.
+func nonNil[T any](items []T) []T {
+	if items == nil {
+		return []T{}
+	}
+
+	return items
 }

@@ -31,7 +31,25 @@ type ClassService struct {
 	repo ClassRepository
 }
 
+// NewClassService creates class service.
+func NewClassService(repo ClassRepository) *ClassService {
+	return &ClassService{repo: repo}
+}
+
+func (c *ClassService) ensureRepo() error {
+	if c == nil {
+		return errors.New("class service is nil")
+	}
+	if c.repo == nil {
+		return errors.New("class repository is nil")
+	}
+	return nil
+}
+
 func (c *ClassService) GetAllClasses(ctx context.Context) ([]entities.Class, error) {
+	if err := c.ensureRepo(); err != nil {
+		return nil, err
+	}
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -45,6 +63,9 @@ func (c *ClassService) GetAllClasses(ctx context.Context) ([]entities.Class, err
 }
 
 func (c *ClassService) CreateClass(ctx context.Context, class *entities.Class) (*entities.Class, error) {
+	if err := c.ensureRepo(); err != nil {
+		return nil, err
+	}
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -86,6 +107,9 @@ func (c *ClassService) CreateClass(ctx context.Context, class *entities.Class) (
 }
 
 func (c *ClassService) GetClassByID(ctx context.Context, id int64) (*entities.Class, error) {
+	if err := c.ensureRepo(); err != nil {
+		return nil, err
+	}
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -103,6 +127,9 @@ func (c *ClassService) GetClassByID(ctx context.Context, id int64) (*entities.Cl
 }
 
 func (c *ClassService) UpdateClass(ctx context.Context, id int64, updates map[string]any) (*entities.Class, error) {
+	if err := c.ensureRepo(); err != nil {
+		return nil, err
+	}
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -129,6 +156,9 @@ func (c *ClassService) UpdateClass(ctx context.Context, id int64, updates map[st
 }
 
 func (c *ClassService) DeleteClassByID(ctx context.Context, id int64) error {
+	if err := c.ensureRepo(); err != nil {
+		return err
+	}
 	if err := ctx.Err(); err != nil {
 		return fmt.Errorf("request cancelled: %w", err)
 	}
@@ -146,8 +176,15 @@ func (c *ClassService) DeleteClassByID(ctx context.Context, id int64) error {
 }
 
 func (c *ClassService) GetParentClass(ctx context.Context, id int64) (*entities.Class, error) {
+	if err := c.ensureRepo(); err != nil {
+		return nil, err
+	}
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
+	}
+
+	if id == 0 {
+		return nil, errors.New("invalid class id")
 	}
 
 	class, err := c.repo.GetClassByID(ctx, id)
@@ -172,8 +209,15 @@ func (c *ClassService) GetParentClass(ctx context.Context, id int64) (*entities.
 }
 
 func (c *ClassService) GetChildClasses(ctx context.Context, id int64) ([]entities.Class, error) {
+	if err := c.ensureRepo(); err != nil {
+		return nil, err
+	}
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
+	}
+
+	if id == 0 {
+		return nil, errors.New("invalid class id")
 	}
 
 	classes, err := c.repo.GetClasses(ctx)
@@ -238,6 +282,11 @@ func (c *ClassService) ValidateClassUpdates(ctx context.Context, id int64, updat
 
 		case "parent_id":
 			class.ParentID, ok = value.(int64)
+			_, err := c.repo.GetClassByID(ctx, class.ParentID)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get parent class: %w", err)
+			}
+
 			if !ok {
 				return nil, errors.New("parent_id must be an int64")
 			}

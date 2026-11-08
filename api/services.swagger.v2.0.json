@@ -727,8 +727,9 @@
         "tags": [
           "Materials"
         ],
-        "summary": "Get product's materials (composition)",
-        "operationId": "listProductMaterials",
+        "summary": "Get product's full composition tree (BOM)",
+        "description": "Рекурсивно строит полное дерево состава изделия на всю глубину (FIND_BOM(pIdProd)).",
+        "operationId": "getProductBomTree",
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
@@ -736,13 +737,13 @@
         ],
         "responses": {
           "200": {
-            "description": "Materials list",
+            "description": "Composition tree: top-level materials with nested materials",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Material"
+                    "$ref": "#/components/schemas/MaterialTreeNode"
                   }
                 }
               }
@@ -819,31 +820,12 @@
         "tags": [
           "Materials"
         ],
-        "summary": "Calculate total material consumption norms of given class for product",
-        "description": "Рекурсивно разворачивает спецификацию изделия (материал может сам иметь состав), перемножает количества по уровням и суммирует нормы расхода по каждому материалу заданного класса. Результат рассчитан на количество единиц изделия.",
+        "summary": "Calculate total material consumption norms for product",
+        "description": "Сводные нормы расхода для всего изделия (CALC_BOM): какой материал и сколько всего его требуется для изготовления quantity единиц изделия с учётом всей глубины состава.",
         "operationId": "calculateMaterialNorms",
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
-          },
-          {
-            "name": "class_id",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            },
-            "description": "Класс материалов, по которому считаются нормы"
-          },
-          {
-            "name": "include_subclasses",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "boolean",
-              "default": true
-            },
-            "description": "Учитывать материалы из дочерних классов"
           },
           {
             "name": "quantity",
@@ -851,12 +833,12 @@
             "required": false,
             "schema": {
               "type": "number",
-              "format": "double",
+              "format": "float",
               "default": 1,
               "minimum": 0,
               "exclusiveMinimum": true
             },
-            "description": "Количество изделий, на которое считается расход"
+            "description": "Количество изделий, на которое считается расход (pQ в CALC_BOM)"
           }
         ],
         "responses": {
@@ -865,7 +847,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MaterialNorms"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MaterialNorm"
+                  }
                 }
               }
             }
@@ -2381,11 +2366,11 @@
           }
         ]
       },
-      "MaterialNormItem": {
+      "MaterialNorm": {
         "type": "object",
         "required": [
           "material_id",
-          "class_id",
+          "name",
           "total_amount"
         ],
         "properties": {
@@ -2393,18 +2378,15 @@
             "type": "integer",
             "example": 5
           },
-          "material": {
-            "$ref": "#/components/schemas/ProductBase"
-          },
-          "class_id": {
-            "type": "integer",
-            "example": 3
+          "name": {
+            "type": "string",
+            "example": "Хмель"
           },
           "total_amount": {
             "type": "number",
             "format": "double",
             "example": 37.5,
-            "description": "Суммарная норма расхода материала с учётом всех уровней спецификации"
+            "description": "Сколько всего материала требуется для изготовления изделия"
           },
           "units": {
             "type": "string",
@@ -2412,34 +2394,56 @@
           }
         }
       },
-      "MaterialNorms": {
+      "MaterialTreeNode": {
         "type": "object",
         "required": [
-          "product_id",
-          "class_id",
-          "quantity",
-          "items"
+          "material_id",
+          "name",
+          "material_amount",
+          "materials"
         ],
         "properties": {
-          "product_id": {
+          "material_id": {
             "type": "integer",
-            "example": 1
+            "example": 5
           },
-          "class_id": {
-            "type": "integer",
-            "example": 3
+          "name": {
+            "type": "string",
+            "example": "Сусло"
           },
-          "quantity": {
+          "material_amount": {
             "type": "number",
             "format": "double",
-            "example": 1
+            "example": 12.5,
+            "description": "Количество материала на одну единицу родителя"
           },
-          "items": {
+          "units": {
+            "type": "string",
+            "example": "L"
+          },
+          "materials": {
             "type": "array",
+            "description": "Состав этого материала (пустой, если материал не составной)",
             "items": {
-              "$ref": "#/components/schemas/MaterialNormItem"
-            }
+              "$ref": "#/components/schemas/MaterialTreeNode"
+            },
+            "default": []
           }
+        },
+        "example": {
+          "material_id": 5,
+          "name": "Сусло",
+          "material_amount": 12.5,
+          "units": "L",
+          "materials": [
+            {
+              "material_id": 7,
+              "name": "Солод",
+              "material_amount": 2,
+              "units": "kg",
+              "materials": []
+            }
+          ]
         }
       },
       "HistoryRecordCreate": {

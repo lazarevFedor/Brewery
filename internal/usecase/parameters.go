@@ -42,6 +42,11 @@ type ParametersService struct {
 	EnumRepo  EnumRepository
 }
 
+// NewParametersService creates parameters service.
+func NewParametersService(paramRepo ParameterRepository, enumRepo EnumRepository) *ParametersService {
+	return &ParametersService{ParamRepo: paramRepo, EnumRepo: enumRepo}
+}
+
 // allowedParametersToUpdate содержит список полей, которые можно обновлять в числовом параметре.
 var allowedParametersToUpdate = map[string]struct{}{
 	"min_val":     {},
@@ -153,7 +158,7 @@ func (s *ParametersService) ApplyToClass(ctx context.Context, classID int64, ran
 	}
 
 	if len(rangeIDs) == 0 && len(enumIDs) == 0 {
-		return 0, errors.New("no parameters to exclude")
+		return 0, errors.New("no parameters to apply")
 	}
 
 	added, err := s.ParamRepo.ApplyParameters(ctx, classID, rangeIDs, enumIDs)
