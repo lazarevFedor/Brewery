@@ -227,8 +227,9 @@ func (repo *Repository) GetFilteredProducts(
 	}
 
 	if classID != nil {
-		builder = builder.Where(squirrel.Eq{"product_id": *classID})
+		builder = builder.Where(squirrel.Eq{"class_id": *classID})
 	}
+	builder = builder.OrderBy("id").Limit(uint64(limit)).Offset(uint64(offset))
 
 	query, args, err := builder.ToSql()
 	if err != nil {
@@ -248,6 +249,9 @@ func (repo *Repository) GetFilteredProducts(
 			return nil, err
 		}
 		filteredProducts = append(filteredProducts, p)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("read filtered products: %w", err)
 	}
 	return repo.mapper.FromDBProducts(filteredProducts), nil
 }

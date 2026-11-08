@@ -1,6 +1,7 @@
 package history
 
 import (
+	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
 	mpr "Brewery/internal/repository/mapper"
 	"Brewery/internal/repository/queries"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -36,6 +38,10 @@ func (repo *Repository) InsertChangeRecord(ctx context.Context, record entities.
 	}
 	dbRecord, err := repo.query.InsertChange(ctx, params)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23503" && pgErr.ConstraintName == "change_history_product_id_fkey" {
+			return nil, apperrors.NotFound(fmt.Sprintf("Product with id %d not found", record.ProductID), err)
+		}
 		return nil, fmt.Errorf("InsertChange: %w", err)
 	}
 	record = repo.mapper.FromDBChangeRecord(dbRecord)

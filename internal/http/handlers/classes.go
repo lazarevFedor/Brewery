@@ -129,11 +129,13 @@ func (h *classHandlers) UpdateClass(c *gin.Context) {
 		return
 	}
 
-	if val, ok := updates["parent_id"]; ok{
-		if parentID, ok := val.(float64); ok{
-			log.Debug(c.Request.Context(), "float")
-			updates["parent_id"] = int64(parentID)
+	if val, ok := updates["parent_id"]; ok {
+		parentID, isNumber := val.(float64)
+		if !isNumber || parentID <= 0 || parentID != float64(int64(parentID)) {
+			writeError(c, http.StatusBadRequest, apperrors.CodeValidation, "parent_id must be a positive integer")
+			return
 		}
+		updates["parent_id"] = int64(parentID)
 	}
 
 	updated, err := h.uc.UpdateClass(c.Request.Context(), id, updates)

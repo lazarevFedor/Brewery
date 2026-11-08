@@ -78,7 +78,7 @@ func (c *ClassService) CreateClass(ctx context.Context, class *entities.Class) (
 		return nil, errors.New("class name is required")
 	}
 
-	if *class.ParentID == 0{
+	if *class.ParentID == 0 {
 		class.ParentID = nil
 	}
 
@@ -150,7 +150,7 @@ func (c *ClassService) UpdateClass(ctx context.Context, id int64, updates map[st
 	if err != nil {
 		return nil, fmt.Errorf("failed to validate class updates: %w", err)
 	}
-	
+
 	class, err = c.repo.UpdateClass(ctx, id, *class)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update class: %w", err)
@@ -259,9 +259,10 @@ func (c *ClassService) ensureClassParentIsNotDescendant(ctx context.Context, cla
 			return errors.New("class parent creates a cycle")
 		}
 
-		if class.ParentID != nil{
-			currentID = *class.ParentID
+		if class.ParentID == nil {
+			break
 		}
+		currentID = *class.ParentID
 	}
 
 	return nil
@@ -288,25 +289,14 @@ func (c *ClassService) ValidateClassUpdates(ctx context.Context, id int64, updat
 
 		case "parent_id":
 			parentID, ok := value.(int64)
-			if !ok {
-				return nil, errors.New("parent_id must be an int64")
+			if !ok || parentID <= 0 {
+				return nil, errors.New("parent_id must be a positive int64")
 			}
 
-			_, err := c.repo.GetClassByID(ctx, parentID)
-			if err != nil {
-				return nil, fmt.Errorf("failed to get parent class: %w", err)
+			if err := c.ensureClassParentIsNotDescendant(ctx, id, parentID); err != nil {
+				return nil, fmt.Errorf("failed to update parent class: %w", err)
 			}
-
-			if !ok {
-				return nil, errors.New("parent_id must be an int64")
-			}
-
-			if class.ParentID != nil {
-				err := c.ensureClassParentIsNotDescendant(ctx, id, *class.ParentID)
-				if err != nil {
-					return nil, fmt.Errorf("failed to update parent class: %w", err)
-				}
-			}
+			class.ParentID = &parentID
 
 		case "range_param_ids":
 			rangeParamIDs, ok := value.([]int64)
