@@ -62,6 +62,7 @@ func (repo *Repository) UpdateMaterial(ctx context.Context, material entities.Ma
 	if err != nil {
 		return nil, fmt.Errorf("UpdateMaterial: %w", err)
 	}
+
 	material = mapper.FromDBMaterial(dbMaterial)
 	return &material, nil
 }
@@ -102,20 +103,4 @@ func (repo *Repository) GetProductsByMaterial(ctx context.Context, materialID in
 	}
 	matProducts := mapper.FromGetByMaterial(dbMatProducts)
 	return matProducts, nil
-}
-
-// CopyProductMaterials копирует материалы из базового изделия в модификацию.
-func (repo *Repository) CopyProductMaterials(ctx context.Context, sourceProductID, targetProductID int64) error{
-	if repo.Pool == nil {
-		return errors.New("db pool is empty")
-	}	
-	params := queries.CopyBaseMaterialsParams{
-		ProductID: targetProductID,
-		BaseID: sourceProductID,
-	}
-	err := repo.query.CopyBaseMaterials(ctx, params)
-	if err != nil {
-		return fmt.Errorf("GetProductsByMaterial: %w", err)
-	}
-	return nil
 }

@@ -49,6 +49,16 @@ func (q *Queries) DeleteMaterial(ctx context.Context, arg DeleteMaterialParams) 
 	return err
 }
 
+const deleteProductsMaterials = `-- name: DeleteProductsMaterials :exec
+DELETE FROM materials
+WHERE product_id = $1
+`
+
+func (q *Queries) DeleteProductsMaterials(ctx context.Context, productID int64) error {
+	_, err := q.db.Exec(ctx, deleteProductsMaterials, productID)
+	return err
+}
+
 const getMaterialsByProductID = `-- name: GetMaterialsByProductID :many
 SELECT 
     m.material_id AS id,

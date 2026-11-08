@@ -66,3 +66,7 @@ INSERT INTO materials (
 FROM materials
 WHERE materials.product_id = sqlc.arg(base_id)
 ON CONFLICT (material_id, product_id) DO NOTHING;
+
+-- name: DeleteProductsMaterials :exec
+DELETE FROM materials
+WHERE product_id = $1;
