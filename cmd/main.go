@@ -8,6 +8,7 @@ import (
 	"Brewery/internal/http/routers"
 	classrepo "Brewery/internal/repository/class"
 	"Brewery/internal/usecase"
+	"Brewery/migrator"
 	"Brewery/pkg/logger"
 	"Brewery/pkg/postgres"
 	"context"
@@ -19,6 +20,7 @@ import (
 	"github.com/gin-contrib/graceful"
 	"github.com/gin-gonic/gin"
 	cors "github.com/rs/cors/wrapper/gin"
+	"go.uber.org/zap"
 )
 
 const devMode = true
@@ -46,6 +48,10 @@ func main() {
 	pool, err := postgres.NewPool(ctx, cfg.Postgres)
 	if err != nil {
 		panic(fmt.Errorf("failed to create postgres pool: %w", err))
+	}
+
+	if err = migrator.Up(pool); err != nil{
+		panic(fmt.Errorf("failed to migrate: %w", err))
 	}
 
 	classRepo := classrepo.NewRepository(pool)

@@ -1,3 +1,4 @@
+-- +goose Up
 -- +goose StatementBegin
 CREATE OR REPLACE FUNCTION fn_enum_values_reorder_before()
 RETURNS trigger AS
@@ -11,10 +12,10 @@ BEGIN
     END IF;
 
     IF TG_OP = 'INSERT' THEN
-        PERFORM 1 FROM enum_values WHERE enum_parameter_id = NEW.enum_parameter_id FOR UPDATE;
+        PERFORM 1 FROM parameter_values WHERE enum_parameter_id = NEW.enum_parameter_id FOR UPDATE;
 
         SELECT COUNT(*) INTO max_pos
-        FROM enum_values
+        FROM parameter_values
         WHERE enum_parameter_id = NEW.enum_parameter_id;
 
         IF NEW.position IS NULL OR NEW.position < 1 THEN
@@ -23,7 +24,7 @@ BEGIN
             NEW.position := max_pos + 1;
         END IF;
 
-        UPDATE enum_values
+        UPDATE parameter_values
         SET position = position + 1
         WHERE enum_parameter_id = NEW.enum_parameter_id
           AND position >= NEW.position;
@@ -37,10 +38,10 @@ BEGIN
         END IF;
 
         IF NEW.enum_parameter_id = OLD.enum_parameter_id THEN
-            PERFORM 1 FROM enum_values WHERE enum_parameter_id = NEW.enum_parameter_id FOR UPDATE;
+            PERFORM 1 FROM parameter_values WHERE enum_parameter_id = NEW.enum_parameter_id FOR UPDATE;
 
             SELECT COUNT(*) INTO max_pos
-            FROM enum_values
+            FROM parameter_values
             WHERE enum_parameter_id = NEW.enum_parameter_id
               AND id <> OLD.id;
 
@@ -51,14 +52,14 @@ BEGIN
             END IF;
 
             IF NEW.position < OLD.position THEN
-                UPDATE enum_values
+                UPDATE parameter_values
                 SET position = position + 1
                 WHERE enum_parameter_id = OLD.enum_parameter_id
                   AND id <> OLD.id
                   AND position >= NEW.position
                   AND position < OLD.position;
             ELSIF NEW.position > OLD.position THEN
-                UPDATE enum_values
+                UPDATE parameter_values
                 SET position = position - 1
                 WHERE enum_parameter_id = OLD.enum_parameter_id
                   AND id <> OLD.id
@@ -70,15 +71,15 @@ BEGIN
         END IF;
 
         -- Move between classes: compact old class and insert in new class position.
-        PERFORM 1 FROM enum_values WHERE enum_parameter_id IN (OLD.enum_parameter_id, NEW.enum_parameter_id) FOR UPDATE;
+        PERFORM 1 FROM parameter_values WHERE enum_parameter_id IN (OLD.enum_parameter_id, NEW.enum_parameter_id) FOR UPDATE;
 
-        UPDATE enum_values
+        UPDATE parameter_values
         SET position = position - 1
         WHERE enum_parameter_id = OLD.enum_parameter_id
           AND position > OLD.position;
 
         SELECT COUNT(*) INTO max_pos
-        FROM enum_values
+        FROM parameter_values
         WHERE enum_parameter_id = NEW.enum_parameter_id;
 
         IF NEW.position < 1 THEN
@@ -87,7 +88,7 @@ BEGIN
             NEW.position := max_pos + 1;
         END IF;
 
-        UPDATE enum_values
+        UPDATE parameter_values
         SET position = position + 1
         WHERE enum_parameter_id = NEW.enum_parameter_id
           AND position >= NEW.position;
@@ -109,7 +110,7 @@ BEGIN
         RETURN OLD;
     END IF;
 
-    UPDATE enum_values
+    UPDATE parameter_values
     SET position = position - 1
     WHERE enum_parameter_id = OLD.enum_parameter_id
       AND position > OLD.position;
@@ -119,15 +120,19 @@ END;
 $$ LANGUAGE plpgsql;
 -- +goose StatementEnd
 
+-- +goose StatementBegin
 CREATE TRIGGER trg_enum_values_reorder_before
-BEFORE INSERT OR UPDATE ON enum_values
+BEFORE INSERT OR UPDATE ON parameter_values
 FOR EACH ROW
 EXECUTE FUNCTION fn_enum_values_reorder_before();
+-- +goose StatementEnd
 
+-- +goose StatementBegin
 CREATE TRIGGER trg_enum_values_reorder_after_delete
-AFTER DELETE ON enum_values
+AFTER DELETE ON parameter_values
 FOR EACH ROW
 EXECUTE FUNCTION fn_enum_values_reorder_after_delete();
+-- +goose StatementEnd
 
 
 
@@ -360,7 +365,7 @@ $$ LANGUAGE plpgsql;
 
 -- +goose StatementBegin
 CREATE TRIGGER trg_before_delete_numeric_parameter
-BEFORE DELETE ON numeric_parameters
+BEFORE DELETE ON range_parameters
 FOR EACH ROW
 EXECUTE FUNCTION cleanup_numeric_parameter_from_categories();
 -- +goose StatementEnd
@@ -390,18 +395,18 @@ EXECUTE FUNCTION cleanup_enum_parameter_from_categories();
 
 -- +goose Down
 DROP TRIGGER IF EXISTS trg_before_delete_enum_parameter ON enum_parameters;
-DROP TRIGGER IF EXISTS trg_before_delete_numeric_parameter ON numeric_parameters;
+DROP TRIGGER IF EXISTS trg_before_delete_numeric_parameter ON range_parameters;
 DROP FUNCTION IF EXISTS cleanup_enum_parameter_from_categories();
 DROP FUNCTION IF EXISTS cleanup_numeric_parameter_from_categories();
-DROP FUNCTION IF EXISTS remove_enum_parameters_from_descendants(INT[], INT[]);
-DROP FUNCTION IF EXISTS remove_numeric_parameters_from_descendants(INT[], INT[]);
-DROP FUNCTION IF EXISTS inherit_parameters_to_children(INT);
-DROP FUNCTION IF EXISTS get_descendants(INT[]);
-DROP FUNCTION IF EXISTS remove_enum_parameters_from_categories(INT[], INT[]);
-DROP FUNCTION IF EXISTS add_enum_parameters_to_categories(INT[], INT[]);
-DROP FUNCTION IF EXISTS remove_numeric_parameters_from_categories(INT[], INT[]);
-DROP FUNCTION IF EXISTS add_numeric_parameters_to_categories(INT[], INT[]);
-DROP TRIGGER IF EXISTS trg_enum_values_reorder_after_delete ON enum_values;
-DROP TRIGGER IF EXISTS trg_enum_values_reorder_before ON enum_values;
+DROP FUNCTION IF EXISTS remove_enum_parameters_from_descendants(BIGINT[], BIGINT[]);
+DROP FUNCTION IF EXISTS remove_numeric_parameters_from_descendants(BIGINT[], BIGINT[]);
+DROP FUNCTION IF EXISTS inherit_parameters_to_children(BIGINT);
+DROP FUNCTION IF EXISTS get_descendants(BIGINT[]);
+DROP FUNCTION IF EXISTS remove_enum_parameters_from_categories(BIGINT[], BIGINT[]);
+DROP FUNCTION IF EXISTS add_enum_parameters_to_categories(BIGINT[], BIGINT[]);
+DROP FUNCTION IF EXISTS remove_numeric_parameters_from_categories(BIGINT[], BIGINT[]);
+DROP FUNCTION IF EXISTS add_numeric_parameters_to_categories(BIGINT[], BIGINT[]);
+DROP TRIGGER IF EXISTS trg_enum_values_reorder_after_delete ON parameter_values;
+DROP TRIGGER IF EXISTS trg_enum_values_reorder_before ON parameter_values;
 DROP FUNCTION IF EXISTS fn_enum_values_reorder_after_delete;
 DROP FUNCTION IF EXISTS fn_enum_values_reorder_before;
