@@ -129,6 +129,11 @@ func (repo *Repository) UpdateProduct(ctx context.Context, id int64, updates map
 			return nil, fmt.Errorf("CopyBaseMaterials: %w", err)
 		}
 	}
+	err = tx.Commit(ctx)
+	if err != nil{
+		return nil, fmt.Errorf("Commot: %w", err)
+	}
+	
 	products := repo.mapper.FromUpdate(dbProduct)
 	return &products, nil
 }

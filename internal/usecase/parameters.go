@@ -16,19 +16,19 @@ type ParameterRepository interface {
 	InsertRangeParameter(ctx context.Context, param *entities.RangeParameter) (*entities.RangeParameter, error)
 
 	// UpdateRangeParameter обновляет существующий числовой параметр в базе данных и возвращает его.
-	UpdateRangeParameter(ctx context.Context, id uint, updates map[string]any) (*entities.RangeParameter, error)
+	UpdateRangeParameter(ctx context.Context, id int64, updates map[string]any) (*entities.RangeParameter, error)
 
 	// DeleteRangeParameter удаляет числовой параметр из базы данных и возвращает его.
-	DeleteRangeParameter(ctx context.Context, id uint) (*entities.RangeParameter, error)
+	DeleteRangeParameter(ctx context.Context, id int64) (*entities.RangeParameter, error)
 
 	// GetParameters извлекает все числовые и перечисляемые параметры из базы данных и возвращает их.
 	GetParameters(ctx context.Context, classID int64, parameterType int) ([]entities.RangeParameter, []entities.EnumParameter, error)
 
 	// ApplyParameters применяет числовые и перечисляемые параметры к категории и возвращает результат применения.
-	ApplyParameters(ctx context.Context, classID uint, rangeParameters, enumParameters []int) (int, error)
+	ApplyParameters(ctx context.Context, classID int64, rangeParameters, enumParameters []int) (int, error)
 
 	// ExcludeParameters исключает указанные числовые и перечисляемые параметры из категории и возвращает количество исключенных параметров.
-	ExcludeParameters(ctx context.Context, classID uint, rangeParameters, enumParameters []int) (int, error)
+	ExcludeParameters(ctx context.Context, classID int64, rangeParameters, enumParameters []int) (int, error)
 }
 
 // NewParameterRepository создает новый экземпляр ParameterRepository с предоставленным пулом соединений к базе данных.
@@ -79,7 +79,7 @@ func (s *ParametersService) CreateRange(ctx context.Context, param *entities.Ran
 }
 
 // UpdateRange обновляет числовой параметр. Единственные поля, которые можно обновлять - min_val, max_val и inheritable.
-func (s *ParametersService) UpdateRange(ctx context.Context, id uint, updates map[string]any) (*entities.RangeParameter, error) {
+func (s *ParametersService) UpdateRange(ctx context.Context, id int64, updates map[string]any) (*entities.RangeParameter, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -107,7 +107,7 @@ func (s *ParametersService) UpdateRange(ctx context.Context, id uint, updates ma
 }
 
 // DeleteRange удаляет числовой параметр.
-func (s *ParametersService) DeleteRange(ctx context.Context, id uint) (*entities.RangeParameter, error) {
+func (s *ParametersService) DeleteRange(ctx context.Context, id int64) (*entities.RangeParameter, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -125,7 +125,7 @@ func (s *ParametersService) DeleteRange(ctx context.Context, id uint) (*entities
 }
 
 // ListParameters возвращает все параметры, применимые к классу.
-func (s *ParametersService) ListParameters(ctx context.Context, classID uint, parameterType int) ([]entities.RangeParameter, []entities.EnumParameter, error) {
+func (s *ParametersService) ListParameters(ctx context.Context, classID int64, parameterType int) ([]entities.RangeParameter, []entities.EnumParameter, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, nil, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -143,7 +143,7 @@ func (s *ParametersService) ListParameters(ctx context.Context, classID uint, pa
 }
 
 // ApplyToClass применяет указанные параметры к классу. Возвращает количество добавленных параметров.
-func (s *ParametersService) ApplyToClass(ctx context.Context, classID uint, rangeIDs, enumIDs []int) (int, error) {
+func (s *ParametersService) ApplyToClass(ctx context.Context, classID int64, rangeIDs, enumIDs []int) (int, error) {
 	if err := ctx.Err(); err != nil {
 		return 0, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -164,7 +164,7 @@ func (s *ParametersService) ApplyToClass(ctx context.Context, classID uint, rang
 	return added, nil
 }
 
-func (s *ParametersService) ExcludeFromClass(ctx context.Context, classID uint, rangeIDs, enumIDs []int) (int, error) {
+func (s *ParametersService) ExcludeFromClass(ctx context.Context, classID int64, rangeIDs, enumIDs []int) (int, error) {
 	if err := ctx.Err(); err != nil {
 		return 0, fmt.Errorf("request cancelled: %w", err)
 	}
