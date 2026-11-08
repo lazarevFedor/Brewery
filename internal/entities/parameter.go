@@ -3,7 +3,7 @@ package entities
 
 // RangeParameter представляет собой структуру, описывающую численный параметр.
 type RangeParameter struct {
-	ID          uint   `json:"id,omitempty" info:"ID численного параметра"`
+	ID          int64   `json:"id,omitempty" info:"ID численного параметра"`
 	MinValue    int    `json:"min_val,omitempty" info:"Минимальное значение параметра"`
 	MaxValue    int    `json:"max_val,omitempty" info:"Максимальное значение параметра"`
 	FieldName   string `json:"field_name,omitempty" info:"Имя поля сущности"`
@@ -18,8 +18,8 @@ type RangeParameters []RangeParameter
 
 // EnumParameter представляет собой структуру, описывающую параметр-перечисление.
 type EnumParameter struct {
-	ID          uint `json:"id,omitempty" info:"ID параметра-перечисления"`
-	EnumClassID uint `json:"enum_class_id,omitempty" info:"ID класса перечисления"`
+	ID          int64 `json:"id,omitempty" info:"ID параметра-перечисления"`
+	EnumClassID int64 `json:"enum_class_id,omitempty" info:"ID класса перечисления"`
 	Inheritable bool `json:"inheritable,omitempty" info:"Флаг, указывающий, может ли параметр наследоваться от родительской категории"`
 }
 

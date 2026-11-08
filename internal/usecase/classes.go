@@ -18,7 +18,7 @@ type ClassRepository interface {
 	GetClassByID(ctx context.Context, id int64) (*entities.Class, error)
 
 	// UpdateClass обновляет поля класса по его ID.
-	UpdateClass(ctx context.Context, classUpdates entities.Class) (*entities.Class, error)
+	UpdateClass(ctx context.Context, id int64, classUpdates entities.Class) (*entities.Class, error)
 
 	// DeleteClass удаляет класс.
 	DeleteClass(ctx context.Context, id int64) error
@@ -147,7 +147,7 @@ func (c *ClassService) UpdateClass(ctx context.Context, id int64, updates map[st
 		return nil, fmt.Errorf("failed to validate class updates: %w", err)
 	}
 
-	class, err = c.repo.UpdateClass(ctx, *class)
+	class, err = c.repo.UpdateClass(ctx, id, *class)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update class: %w", err)
 	}

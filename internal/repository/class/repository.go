@@ -69,7 +69,7 @@ func (repo *Repository) UpdateClass(ctx context.Context, id int64, updates entit
 		return nil, errors.New("db pool is empty")
 	}
 
-	updateParams := queries.UpdateClassParams{ID: updates.ID}
+	updateParams := queries.UpdateClassParams{ID: id}
 
 	if updates.ParentID == 0 {
 		updateParams.ParentID = nil
