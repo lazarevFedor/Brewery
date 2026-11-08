@@ -2,7 +2,7 @@
 
 package mocks
 
-//go:generate minimock -i Brewery/internal/usecase.AggregateService -o aggregate_service_mock.go -n AggregateServiceMock -p mocks
+//go:generate minimock -i Brewery/internal/http/handlers.AggregateService -o aggregate_service_mock.go -n AggregateServiceMock -p mocks
 
 import (
 	"Brewery/internal/entities"
@@ -14,17 +14,17 @@ import (
 	"github.com/gojuno/minimock/v3"
 )
 
-// AggregateServiceMock implements mm_usecase.AggregateService
+// AggregateServiceMock implements mm_handlers.AggregateService
 type AggregateServiceMock struct {
 	t          minimock.Tester
 	finishOnce sync.Once
 
-	funcApplyAggregateToCategory          func(ctx context.Context, categoryID uint, aggregateID uint) (i1 int, err error)
-	funcApplyAggregateToCategoryOrigin    string
-	inspectFuncApplyAggregateToCategory   func(ctx context.Context, categoryID uint, aggregateID uint)
-	afterApplyAggregateToCategoryCounter  uint64
-	beforeApplyAggregateToCategoryCounter uint64
-	ApplyAggregateToCategoryMock          mAggregateServiceMockApplyAggregateToCategory
+	funcApplyAggregateToClass          func(ctx context.Context, classID uint, aggregateID uint) (i1 int, err error)
+	funcApplyAggregateToClassOrigin    string
+	inspectFuncApplyAggregateToClass   func(ctx context.Context, classID uint, aggregateID uint)
+	afterApplyAggregateToClassCounter  uint64
+	beforeApplyAggregateToClassCounter uint64
+	ApplyAggregateToClassMock          mAggregateServiceMockApplyAggregateToClass
 
 	funcCreateAggregate          func(ctx context.Context, aggregate *entities.Aggregate) (ap1 *entities.Aggregate, err error)
 	funcCreateAggregateOrigin    string
@@ -55,7 +55,7 @@ type AggregateServiceMock struct {
 	UpdateAggregateMock          mAggregateServiceMockUpdateAggregate
 }
 
-// NewAggregateServiceMock returns a mock for mm_usecase.AggregateService
+// NewAggregateServiceMock returns a mock for mm_handlers.AggregateService
 func NewAggregateServiceMock(t minimock.Tester) *AggregateServiceMock {
 	m := &AggregateServiceMock{t: t}
 
@@ -63,8 +63,8 @@ func NewAggregateServiceMock(t minimock.Tester) *AggregateServiceMock {
 		controller.RegisterMocker(m)
 	}
 
-	m.ApplyAggregateToCategoryMock = mAggregateServiceMockApplyAggregateToCategory{mock: m}
-	m.ApplyAggregateToCategoryMock.callArgs = []*AggregateServiceMockApplyAggregateToCategoryParams{}
+	m.ApplyAggregateToClassMock = mAggregateServiceMockApplyAggregateToClass{mock: m}
+	m.ApplyAggregateToClassMock.callArgs = []*AggregateServiceMockApplyAggregateToClassParams{}
 
 	m.CreateAggregateMock = mAggregateServiceMockCreateAggregate{mock: m}
 	m.CreateAggregateMock.callArgs = []*AggregateServiceMockCreateAggregateParams{}
@@ -83,55 +83,55 @@ func NewAggregateServiceMock(t minimock.Tester) *AggregateServiceMock {
 	return m
 }
 
-type mAggregateServiceMockApplyAggregateToCategory struct {
+type mAggregateServiceMockApplyAggregateToClass struct {
 	optional           bool
 	mock               *AggregateServiceMock
-	defaultExpectation *AggregateServiceMockApplyAggregateToCategoryExpectation
-	expectations       []*AggregateServiceMockApplyAggregateToCategoryExpectation
+	defaultExpectation *AggregateServiceMockApplyAggregateToClassExpectation
+	expectations       []*AggregateServiceMockApplyAggregateToClassExpectation
 
-	callArgs []*AggregateServiceMockApplyAggregateToCategoryParams
+	callArgs []*AggregateServiceMockApplyAggregateToClassParams
 	mutex    sync.RWMutex
 
 	expectedInvocations       uint64
 	expectedInvocationsOrigin string
 }
 
-// AggregateServiceMockApplyAggregateToCategoryExpectation specifies expectation struct of the AggregateService.ApplyAggregateToCategory
-type AggregateServiceMockApplyAggregateToCategoryExpectation struct {
+// AggregateServiceMockApplyAggregateToClassExpectation specifies expectation struct of the AggregateService.ApplyAggregateToClass
+type AggregateServiceMockApplyAggregateToClassExpectation struct {
 	mock               *AggregateServiceMock
-	params             *AggregateServiceMockApplyAggregateToCategoryParams
-	paramPtrs          *AggregateServiceMockApplyAggregateToCategoryParamPtrs
-	expectationOrigins AggregateServiceMockApplyAggregateToCategoryExpectationOrigins
-	results            *AggregateServiceMockApplyAggregateToCategoryResults
+	params             *AggregateServiceMockApplyAggregateToClassParams
+	paramPtrs          *AggregateServiceMockApplyAggregateToClassParamPtrs
+	expectationOrigins AggregateServiceMockApplyAggregateToClassExpectationOrigins
+	results            *AggregateServiceMockApplyAggregateToClassResults
 	returnOrigin       string
 	Counter            uint64
 }
 
-// AggregateServiceMockApplyAggregateToCategoryParams contains parameters of the AggregateService.ApplyAggregateToCategory
-type AggregateServiceMockApplyAggregateToCategoryParams struct {
+// AggregateServiceMockApplyAggregateToClassParams contains parameters of the AggregateService.ApplyAggregateToClass
+type AggregateServiceMockApplyAggregateToClassParams struct {
 	ctx         context.Context
-	categoryID  uint
+	classID     uint
 	aggregateID uint
 }
 
-// AggregateServiceMockApplyAggregateToCategoryParamPtrs contains pointers to parameters of the AggregateService.ApplyAggregateToCategory
-type AggregateServiceMockApplyAggregateToCategoryParamPtrs struct {
+// AggregateServiceMockApplyAggregateToClassParamPtrs contains pointers to parameters of the AggregateService.ApplyAggregateToClass
+type AggregateServiceMockApplyAggregateToClassParamPtrs struct {
 	ctx         *context.Context
-	categoryID  *uint
+	classID     *uint
 	aggregateID *uint
 }
 
-// AggregateServiceMockApplyAggregateToCategoryResults contains results of the AggregateService.ApplyAggregateToCategory
-type AggregateServiceMockApplyAggregateToCategoryResults struct {
+// AggregateServiceMockApplyAggregateToClassResults contains results of the AggregateService.ApplyAggregateToClass
+type AggregateServiceMockApplyAggregateToClassResults struct {
 	i1  int
 	err error
 }
 
-// AggregateServiceMockApplyAggregateToCategoryOrigins contains origins of expectations of the AggregateService.ApplyAggregateToCategory
-type AggregateServiceMockApplyAggregateToCategoryExpectationOrigins struct {
+// AggregateServiceMockApplyAggregateToClassOrigins contains origins of expectations of the AggregateService.ApplyAggregateToClass
+type AggregateServiceMockApplyAggregateToClassExpectationOrigins struct {
 	origin            string
 	originCtx         string
-	originCategoryID  string
+	originClassID     string
 	originAggregateID string
 }
 
@@ -140,320 +140,320 @@ type AggregateServiceMockApplyAggregateToCategoryExpectationOrigins struct {
 // Optional() makes method check to work in '0 or more' mode.
 // It is NOT RECOMMENDED to use this option unless you really need it, as default behaviour helps to
 // catch the problems when the expected method call is totally skipped during test run.
-func (mmApplyAggregateToCategory *mAggregateServiceMockApplyAggregateToCategory) Optional() *mAggregateServiceMockApplyAggregateToCategory {
-	mmApplyAggregateToCategory.optional = true
-	return mmApplyAggregateToCategory
+func (mmApplyAggregateToClass *mAggregateServiceMockApplyAggregateToClass) Optional() *mAggregateServiceMockApplyAggregateToClass {
+	mmApplyAggregateToClass.optional = true
+	return mmApplyAggregateToClass
 }
 
-// Expect sets up expected params for AggregateService.ApplyAggregateToCategory
-func (mmApplyAggregateToCategory *mAggregateServiceMockApplyAggregateToCategory) Expect(ctx context.Context, categoryID uint, aggregateID uint) *mAggregateServiceMockApplyAggregateToCategory {
-	if mmApplyAggregateToCategory.mock.funcApplyAggregateToCategory != nil {
-		mmApplyAggregateToCategory.mock.t.Fatalf("AggregateServiceMock.ApplyAggregateToCategory mock is already set by Set")
+// Expect sets up expected params for AggregateService.ApplyAggregateToClass
+func (mmApplyAggregateToClass *mAggregateServiceMockApplyAggregateToClass) Expect(ctx context.Context, classID uint, aggregateID uint) *mAggregateServiceMockApplyAggregateToClass {
+	if mmApplyAggregateToClass.mock.funcApplyAggregateToClass != nil {
+		mmApplyAggregateToClass.mock.t.Fatalf("AggregateServiceMock.ApplyAggregateToClass mock is already set by Set")
 	}
 
-	if mmApplyAggregateToCategory.defaultExpectation == nil {
-		mmApplyAggregateToCategory.defaultExpectation = &AggregateServiceMockApplyAggregateToCategoryExpectation{}
+	if mmApplyAggregateToClass.defaultExpectation == nil {
+		mmApplyAggregateToClass.defaultExpectation = &AggregateServiceMockApplyAggregateToClassExpectation{}
 	}
 
-	if mmApplyAggregateToCategory.defaultExpectation.paramPtrs != nil {
-		mmApplyAggregateToCategory.mock.t.Fatalf("AggregateServiceMock.ApplyAggregateToCategory mock is already set by ExpectParams functions")
+	if mmApplyAggregateToClass.defaultExpectation.paramPtrs != nil {
+		mmApplyAggregateToClass.mock.t.Fatalf("AggregateServiceMock.ApplyAggregateToClass mock is already set by ExpectParams functions")
 	}
 
-	mmApplyAggregateToCategory.defaultExpectation.params = &AggregateServiceMockApplyAggregateToCategoryParams{ctx, categoryID, aggregateID}
-	mmApplyAggregateToCategory.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
-	for _, e := range mmApplyAggregateToCategory.expectations {
-		if minimock.Equal(e.params, mmApplyAggregateToCategory.defaultExpectation.params) {
-			mmApplyAggregateToCategory.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmApplyAggregateToCategory.defaultExpectation.params)
+	mmApplyAggregateToClass.defaultExpectation.params = &AggregateServiceMockApplyAggregateToClassParams{ctx, classID, aggregateID}
+	mmApplyAggregateToClass.defaultExpectation.expectationOrigins.origin = minimock.CallerInfo(1)
+	for _, e := range mmApplyAggregateToClass.expectations {
+		if minimock.Equal(e.params, mmApplyAggregateToClass.defaultExpectation.params) {
+			mmApplyAggregateToClass.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmApplyAggregateToClass.defaultExpectation.params)
 		}
 	}
 
-	return mmApplyAggregateToCategory
+	return mmApplyAggregateToClass
 }
 
-// ExpectCtxParam1 sets up expected param ctx for AggregateService.ApplyAggregateToCategory
-func (mmApplyAggregateToCategory *mAggregateServiceMockApplyAggregateToCategory) ExpectCtxParam1(ctx context.Context) *mAggregateServiceMockApplyAggregateToCategory {
-	if mmApplyAggregateToCategory.mock.funcApplyAggregateToCategory != nil {
-		mmApplyAggregateToCategory.mock.t.Fatalf("AggregateServiceMock.ApplyAggregateToCategory mock is already set by Set")
+// ExpectCtxParam1 sets up expected param ctx for AggregateService.ApplyAggregateToClass
+func (mmApplyAggregateToClass *mAggregateServiceMockApplyAggregateToClass) ExpectCtxParam1(ctx context.Context) *mAggregateServiceMockApplyAggregateToClass {
+	if mmApplyAggregateToClass.mock.funcApplyAggregateToClass != nil {
+		mmApplyAggregateToClass.mock.t.Fatalf("AggregateServiceMock.ApplyAggregateToClass mock is already set by Set")
 	}
 
-	if mmApplyAggregateToCategory.defaultExpectation == nil {
-		mmApplyAggregateToCategory.defaultExpectation = &AggregateServiceMockApplyAggregateToCategoryExpectation{}
+	if mmApplyAggregateToClass.defaultExpectation == nil {
+		mmApplyAggregateToClass.defaultExpectation = &AggregateServiceMockApplyAggregateToClassExpectation{}
 	}
 
-	if mmApplyAggregateToCategory.defaultExpectation.params != nil {
-		mmApplyAggregateToCategory.mock.t.Fatalf("AggregateServiceMock.ApplyAggregateToCategory mock is already set by Expect")
+	if mmApplyAggregateToClass.defaultExpectation.params != nil {
+		mmApplyAggregateToClass.mock.t.Fatalf("AggregateServiceMock.ApplyAggregateToClass mock is already set by Expect")
 	}
 
-	if mmApplyAggregateToCategory.defaultExpectation.paramPtrs == nil {
-		mmApplyAggregateToCategory.defaultExpectation.paramPtrs = &AggregateServiceMockApplyAggregateToCategoryParamPtrs{}
+	if mmApplyAggregateToClass.defaultExpectation.paramPtrs == nil {
+		mmApplyAggregateToClass.defaultExpectation.paramPtrs = &AggregateServiceMockApplyAggregateToClassParamPtrs{}
 	}
-	mmApplyAggregateToCategory.defaultExpectation.paramPtrs.ctx = &ctx
-	mmApplyAggregateToCategory.defaultExpectation.expectationOrigins.originCtx = minimock.CallerInfo(1)
+	mmApplyAggregateToClass.defaultExpectation.paramPtrs.ctx = &ctx
+	mmApplyAggregateToClass.defaultExpectation.expectationOrigins.originCtx = minimock.CallerInfo(1)
 
-	return mmApplyAggregateToCategory
+	return mmApplyAggregateToClass
 }
 
-// ExpectCategoryIDParam2 sets up expected param categoryID for AggregateService.ApplyAggregateToCategory
-func (mmApplyAggregateToCategory *mAggregateServiceMockApplyAggregateToCategory) ExpectCategoryIDParam2(categoryID uint) *mAggregateServiceMockApplyAggregateToCategory {
-	if mmApplyAggregateToCategory.mock.funcApplyAggregateToCategory != nil {
-		mmApplyAggregateToCategory.mock.t.Fatalf("AggregateServiceMock.ApplyAggregateToCategory mock is already set by Set")
+// ExpectClassIDParam2 sets up expected param classID for AggregateService.ApplyAggregateToClass
+func (mmApplyAggregateToClass *mAggregateServiceMockApplyAggregateToClass) ExpectClassIDParam2(classID uint) *mAggregateServiceMockApplyAggregateToClass {
+	if mmApplyAggregateToClass.mock.funcApplyAggregateToClass != nil {
+		mmApplyAggregateToClass.mock.t.Fatalf("AggregateServiceMock.ApplyAggregateToClass mock is already set by Set")
 	}
 
-	if mmApplyAggregateToCategory.defaultExpectation == nil {
-		mmApplyAggregateToCategory.defaultExpectation = &AggregateServiceMockApplyAggregateToCategoryExpectation{}
+	if mmApplyAggregateToClass.defaultExpectation == nil {
+		mmApplyAggregateToClass.defaultExpectation = &AggregateServiceMockApplyAggregateToClassExpectation{}
 	}
 
-	if mmApplyAggregateToCategory.defaultExpectation.params != nil {
-		mmApplyAggregateToCategory.mock.t.Fatalf("AggregateServiceMock.ApplyAggregateToCategory mock is already set by Expect")
+	if mmApplyAggregateToClass.defaultExpectation.params != nil {
+		mmApplyAggregateToClass.mock.t.Fatalf("AggregateServiceMock.ApplyAggregateToClass mock is already set by Expect")
 	}
 
-	if mmApplyAggregateToCategory.defaultExpectation.paramPtrs == nil {
-		mmApplyAggregateToCategory.defaultExpectation.paramPtrs = &AggregateServiceMockApplyAggregateToCategoryParamPtrs{}
+	if mmApplyAggregateToClass.defaultExpectation.paramPtrs == nil {
+		mmApplyAggregateToClass.defaultExpectation.paramPtrs = &AggregateServiceMockApplyAggregateToClassParamPtrs{}
 	}
-	mmApplyAggregateToCategory.defaultExpectation.paramPtrs.categoryID = &categoryID
-	mmApplyAggregateToCategory.defaultExpectation.expectationOrigins.originCategoryID = minimock.CallerInfo(1)
+	mmApplyAggregateToClass.defaultExpectation.paramPtrs.classID = &classID
+	mmApplyAggregateToClass.defaultExpectation.expectationOrigins.originClassID = minimock.CallerInfo(1)
 
-	return mmApplyAggregateToCategory
+	return mmApplyAggregateToClass
 }
 
-// ExpectAggregateIDParam3 sets up expected param aggregateID for AggregateService.ApplyAggregateToCategory
-func (mmApplyAggregateToCategory *mAggregateServiceMockApplyAggregateToCategory) ExpectAggregateIDParam3(aggregateID uint) *mAggregateServiceMockApplyAggregateToCategory {
-	if mmApplyAggregateToCategory.mock.funcApplyAggregateToCategory != nil {
-		mmApplyAggregateToCategory.mock.t.Fatalf("AggregateServiceMock.ApplyAggregateToCategory mock is already set by Set")
+// ExpectAggregateIDParam3 sets up expected param aggregateID for AggregateService.ApplyAggregateToClass
+func (mmApplyAggregateToClass *mAggregateServiceMockApplyAggregateToClass) ExpectAggregateIDParam3(aggregateID uint) *mAggregateServiceMockApplyAggregateToClass {
+	if mmApplyAggregateToClass.mock.funcApplyAggregateToClass != nil {
+		mmApplyAggregateToClass.mock.t.Fatalf("AggregateServiceMock.ApplyAggregateToClass mock is already set by Set")
 	}
 
-	if mmApplyAggregateToCategory.defaultExpectation == nil {
-		mmApplyAggregateToCategory.defaultExpectation = &AggregateServiceMockApplyAggregateToCategoryExpectation{}
+	if mmApplyAggregateToClass.defaultExpectation == nil {
+		mmApplyAggregateToClass.defaultExpectation = &AggregateServiceMockApplyAggregateToClassExpectation{}
 	}
 
-	if mmApplyAggregateToCategory.defaultExpectation.params != nil {
-		mmApplyAggregateToCategory.mock.t.Fatalf("AggregateServiceMock.ApplyAggregateToCategory mock is already set by Expect")
+	if mmApplyAggregateToClass.defaultExpectation.params != nil {
+		mmApplyAggregateToClass.mock.t.Fatalf("AggregateServiceMock.ApplyAggregateToClass mock is already set by Expect")
 	}
 
-	if mmApplyAggregateToCategory.defaultExpectation.paramPtrs == nil {
-		mmApplyAggregateToCategory.defaultExpectation.paramPtrs = &AggregateServiceMockApplyAggregateToCategoryParamPtrs{}
+	if mmApplyAggregateToClass.defaultExpectation.paramPtrs == nil {
+		mmApplyAggregateToClass.defaultExpectation.paramPtrs = &AggregateServiceMockApplyAggregateToClassParamPtrs{}
 	}
-	mmApplyAggregateToCategory.defaultExpectation.paramPtrs.aggregateID = &aggregateID
-	mmApplyAggregateToCategory.defaultExpectation.expectationOrigins.originAggregateID = minimock.CallerInfo(1)
+	mmApplyAggregateToClass.defaultExpectation.paramPtrs.aggregateID = &aggregateID
+	mmApplyAggregateToClass.defaultExpectation.expectationOrigins.originAggregateID = minimock.CallerInfo(1)
 
-	return mmApplyAggregateToCategory
+	return mmApplyAggregateToClass
 }
 
-// Inspect accepts an inspector function that has same arguments as the AggregateService.ApplyAggregateToCategory
-func (mmApplyAggregateToCategory *mAggregateServiceMockApplyAggregateToCategory) Inspect(f func(ctx context.Context, categoryID uint, aggregateID uint)) *mAggregateServiceMockApplyAggregateToCategory {
-	if mmApplyAggregateToCategory.mock.inspectFuncApplyAggregateToCategory != nil {
-		mmApplyAggregateToCategory.mock.t.Fatalf("Inspect function is already set for AggregateServiceMock.ApplyAggregateToCategory")
+// Inspect accepts an inspector function that has same arguments as the AggregateService.ApplyAggregateToClass
+func (mmApplyAggregateToClass *mAggregateServiceMockApplyAggregateToClass) Inspect(f func(ctx context.Context, classID uint, aggregateID uint)) *mAggregateServiceMockApplyAggregateToClass {
+	if mmApplyAggregateToClass.mock.inspectFuncApplyAggregateToClass != nil {
+		mmApplyAggregateToClass.mock.t.Fatalf("Inspect function is already set for AggregateServiceMock.ApplyAggregateToClass")
 	}
 
-	mmApplyAggregateToCategory.mock.inspectFuncApplyAggregateToCategory = f
+	mmApplyAggregateToClass.mock.inspectFuncApplyAggregateToClass = f
 
-	return mmApplyAggregateToCategory
+	return mmApplyAggregateToClass
 }
 
-// Return sets up results that will be returned by AggregateService.ApplyAggregateToCategory
-func (mmApplyAggregateToCategory *mAggregateServiceMockApplyAggregateToCategory) Return(i1 int, err error) *AggregateServiceMock {
-	if mmApplyAggregateToCategory.mock.funcApplyAggregateToCategory != nil {
-		mmApplyAggregateToCategory.mock.t.Fatalf("AggregateServiceMock.ApplyAggregateToCategory mock is already set by Set")
+// Return sets up results that will be returned by AggregateService.ApplyAggregateToClass
+func (mmApplyAggregateToClass *mAggregateServiceMockApplyAggregateToClass) Return(i1 int, err error) *AggregateServiceMock {
+	if mmApplyAggregateToClass.mock.funcApplyAggregateToClass != nil {
+		mmApplyAggregateToClass.mock.t.Fatalf("AggregateServiceMock.ApplyAggregateToClass mock is already set by Set")
 	}
 
-	if mmApplyAggregateToCategory.defaultExpectation == nil {
-		mmApplyAggregateToCategory.defaultExpectation = &AggregateServiceMockApplyAggregateToCategoryExpectation{mock: mmApplyAggregateToCategory.mock}
+	if mmApplyAggregateToClass.defaultExpectation == nil {
+		mmApplyAggregateToClass.defaultExpectation = &AggregateServiceMockApplyAggregateToClassExpectation{mock: mmApplyAggregateToClass.mock}
 	}
-	mmApplyAggregateToCategory.defaultExpectation.results = &AggregateServiceMockApplyAggregateToCategoryResults{i1, err}
-	mmApplyAggregateToCategory.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
-	return mmApplyAggregateToCategory.mock
+	mmApplyAggregateToClass.defaultExpectation.results = &AggregateServiceMockApplyAggregateToClassResults{i1, err}
+	mmApplyAggregateToClass.defaultExpectation.returnOrigin = minimock.CallerInfo(1)
+	return mmApplyAggregateToClass.mock
 }
 
-// Set uses given function f to mock the AggregateService.ApplyAggregateToCategory method
-func (mmApplyAggregateToCategory *mAggregateServiceMockApplyAggregateToCategory) Set(f func(ctx context.Context, categoryID uint, aggregateID uint) (i1 int, err error)) *AggregateServiceMock {
-	if mmApplyAggregateToCategory.defaultExpectation != nil {
-		mmApplyAggregateToCategory.mock.t.Fatalf("Default expectation is already set for the AggregateService.ApplyAggregateToCategory method")
+// Set uses given function f to mock the AggregateService.ApplyAggregateToClass method
+func (mmApplyAggregateToClass *mAggregateServiceMockApplyAggregateToClass) Set(f func(ctx context.Context, classID uint, aggregateID uint) (i1 int, err error)) *AggregateServiceMock {
+	if mmApplyAggregateToClass.defaultExpectation != nil {
+		mmApplyAggregateToClass.mock.t.Fatalf("Default expectation is already set for the AggregateService.ApplyAggregateToClass method")
 	}
 
-	if len(mmApplyAggregateToCategory.expectations) > 0 {
-		mmApplyAggregateToCategory.mock.t.Fatalf("Some expectations are already set for the AggregateService.ApplyAggregateToCategory method")
+	if len(mmApplyAggregateToClass.expectations) > 0 {
+		mmApplyAggregateToClass.mock.t.Fatalf("Some expectations are already set for the AggregateService.ApplyAggregateToClass method")
 	}
 
-	mmApplyAggregateToCategory.mock.funcApplyAggregateToCategory = f
-	mmApplyAggregateToCategory.mock.funcApplyAggregateToCategoryOrigin = minimock.CallerInfo(1)
-	return mmApplyAggregateToCategory.mock
+	mmApplyAggregateToClass.mock.funcApplyAggregateToClass = f
+	mmApplyAggregateToClass.mock.funcApplyAggregateToClassOrigin = minimock.CallerInfo(1)
+	return mmApplyAggregateToClass.mock
 }
 
-// When sets expectation for the AggregateService.ApplyAggregateToCategory which will trigger the result defined by the following
+// When sets expectation for the AggregateService.ApplyAggregateToClass which will trigger the result defined by the following
 // Then helper
-func (mmApplyAggregateToCategory *mAggregateServiceMockApplyAggregateToCategory) When(ctx context.Context, categoryID uint, aggregateID uint) *AggregateServiceMockApplyAggregateToCategoryExpectation {
-	if mmApplyAggregateToCategory.mock.funcApplyAggregateToCategory != nil {
-		mmApplyAggregateToCategory.mock.t.Fatalf("AggregateServiceMock.ApplyAggregateToCategory mock is already set by Set")
+func (mmApplyAggregateToClass *mAggregateServiceMockApplyAggregateToClass) When(ctx context.Context, classID uint, aggregateID uint) *AggregateServiceMockApplyAggregateToClassExpectation {
+	if mmApplyAggregateToClass.mock.funcApplyAggregateToClass != nil {
+		mmApplyAggregateToClass.mock.t.Fatalf("AggregateServiceMock.ApplyAggregateToClass mock is already set by Set")
 	}
 
-	expectation := &AggregateServiceMockApplyAggregateToCategoryExpectation{
-		mock:               mmApplyAggregateToCategory.mock,
-		params:             &AggregateServiceMockApplyAggregateToCategoryParams{ctx, categoryID, aggregateID},
-		expectationOrigins: AggregateServiceMockApplyAggregateToCategoryExpectationOrigins{origin: minimock.CallerInfo(1)},
+	expectation := &AggregateServiceMockApplyAggregateToClassExpectation{
+		mock:               mmApplyAggregateToClass.mock,
+		params:             &AggregateServiceMockApplyAggregateToClassParams{ctx, classID, aggregateID},
+		expectationOrigins: AggregateServiceMockApplyAggregateToClassExpectationOrigins{origin: minimock.CallerInfo(1)},
 	}
-	mmApplyAggregateToCategory.expectations = append(mmApplyAggregateToCategory.expectations, expectation)
+	mmApplyAggregateToClass.expectations = append(mmApplyAggregateToClass.expectations, expectation)
 	return expectation
 }
 
-// Then sets up AggregateService.ApplyAggregateToCategory return parameters for the expectation previously defined by the When method
-func (e *AggregateServiceMockApplyAggregateToCategoryExpectation) Then(i1 int, err error) *AggregateServiceMock {
-	e.results = &AggregateServiceMockApplyAggregateToCategoryResults{i1, err}
+// Then sets up AggregateService.ApplyAggregateToClass return parameters for the expectation previously defined by the When method
+func (e *AggregateServiceMockApplyAggregateToClassExpectation) Then(i1 int, err error) *AggregateServiceMock {
+	e.results = &AggregateServiceMockApplyAggregateToClassResults{i1, err}
 	return e.mock
 }
 
-// Times sets number of times AggregateService.ApplyAggregateToCategory should be invoked
-func (mmApplyAggregateToCategory *mAggregateServiceMockApplyAggregateToCategory) Times(n uint64) *mAggregateServiceMockApplyAggregateToCategory {
+// Times sets number of times AggregateService.ApplyAggregateToClass should be invoked
+func (mmApplyAggregateToClass *mAggregateServiceMockApplyAggregateToClass) Times(n uint64) *mAggregateServiceMockApplyAggregateToClass {
 	if n == 0 {
-		mmApplyAggregateToCategory.mock.t.Fatalf("Times of AggregateServiceMock.ApplyAggregateToCategory mock can not be zero")
+		mmApplyAggregateToClass.mock.t.Fatalf("Times of AggregateServiceMock.ApplyAggregateToClass mock can not be zero")
 	}
-	mm_atomic.StoreUint64(&mmApplyAggregateToCategory.expectedInvocations, n)
-	mmApplyAggregateToCategory.expectedInvocationsOrigin = minimock.CallerInfo(1)
-	return mmApplyAggregateToCategory
+	mm_atomic.StoreUint64(&mmApplyAggregateToClass.expectedInvocations, n)
+	mmApplyAggregateToClass.expectedInvocationsOrigin = minimock.CallerInfo(1)
+	return mmApplyAggregateToClass
 }
 
-func (mmApplyAggregateToCategory *mAggregateServiceMockApplyAggregateToCategory) invocationsDone() bool {
-	if len(mmApplyAggregateToCategory.expectations) == 0 && mmApplyAggregateToCategory.defaultExpectation == nil && mmApplyAggregateToCategory.mock.funcApplyAggregateToCategory == nil {
+func (mmApplyAggregateToClass *mAggregateServiceMockApplyAggregateToClass) invocationsDone() bool {
+	if len(mmApplyAggregateToClass.expectations) == 0 && mmApplyAggregateToClass.defaultExpectation == nil && mmApplyAggregateToClass.mock.funcApplyAggregateToClass == nil {
 		return true
 	}
 
-	totalInvocations := mm_atomic.LoadUint64(&mmApplyAggregateToCategory.mock.afterApplyAggregateToCategoryCounter)
-	expectedInvocations := mm_atomic.LoadUint64(&mmApplyAggregateToCategory.expectedInvocations)
+	totalInvocations := mm_atomic.LoadUint64(&mmApplyAggregateToClass.mock.afterApplyAggregateToClassCounter)
+	expectedInvocations := mm_atomic.LoadUint64(&mmApplyAggregateToClass.expectedInvocations)
 
 	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
 }
 
-// ApplyAggregateToCategory implements mm_usecase.AggregateService
-func (mmApplyAggregateToCategory *AggregateServiceMock) ApplyAggregateToCategory(ctx context.Context, categoryID uint, aggregateID uint) (i1 int, err error) {
-	mm_atomic.AddUint64(&mmApplyAggregateToCategory.beforeApplyAggregateToCategoryCounter, 1)
-	defer mm_atomic.AddUint64(&mmApplyAggregateToCategory.afterApplyAggregateToCategoryCounter, 1)
+// ApplyAggregateToClass implements mm_handlers.AggregateService
+func (mmApplyAggregateToClass *AggregateServiceMock) ApplyAggregateToClass(ctx context.Context, classID uint, aggregateID uint) (i1 int, err error) {
+	mm_atomic.AddUint64(&mmApplyAggregateToClass.beforeApplyAggregateToClassCounter, 1)
+	defer mm_atomic.AddUint64(&mmApplyAggregateToClass.afterApplyAggregateToClassCounter, 1)
 
-	mmApplyAggregateToCategory.t.Helper()
+	mmApplyAggregateToClass.t.Helper()
 
-	if mmApplyAggregateToCategory.inspectFuncApplyAggregateToCategory != nil {
-		mmApplyAggregateToCategory.inspectFuncApplyAggregateToCategory(ctx, categoryID, aggregateID)
+	if mmApplyAggregateToClass.inspectFuncApplyAggregateToClass != nil {
+		mmApplyAggregateToClass.inspectFuncApplyAggregateToClass(ctx, classID, aggregateID)
 	}
 
-	mm_params := AggregateServiceMockApplyAggregateToCategoryParams{ctx, categoryID, aggregateID}
+	mm_params := AggregateServiceMockApplyAggregateToClassParams{ctx, classID, aggregateID}
 
 	// Record call args
-	mmApplyAggregateToCategory.ApplyAggregateToCategoryMock.mutex.Lock()
-	mmApplyAggregateToCategory.ApplyAggregateToCategoryMock.callArgs = append(mmApplyAggregateToCategory.ApplyAggregateToCategoryMock.callArgs, &mm_params)
-	mmApplyAggregateToCategory.ApplyAggregateToCategoryMock.mutex.Unlock()
+	mmApplyAggregateToClass.ApplyAggregateToClassMock.mutex.Lock()
+	mmApplyAggregateToClass.ApplyAggregateToClassMock.callArgs = append(mmApplyAggregateToClass.ApplyAggregateToClassMock.callArgs, &mm_params)
+	mmApplyAggregateToClass.ApplyAggregateToClassMock.mutex.Unlock()
 
-	for _, e := range mmApplyAggregateToCategory.ApplyAggregateToCategoryMock.expectations {
+	for _, e := range mmApplyAggregateToClass.ApplyAggregateToClassMock.expectations {
 		if minimock.Equal(*e.params, mm_params) {
 			mm_atomic.AddUint64(&e.Counter, 1)
 			return e.results.i1, e.results.err
 		}
 	}
 
-	if mmApplyAggregateToCategory.ApplyAggregateToCategoryMock.defaultExpectation != nil {
-		mm_atomic.AddUint64(&mmApplyAggregateToCategory.ApplyAggregateToCategoryMock.defaultExpectation.Counter, 1)
-		mm_want := mmApplyAggregateToCategory.ApplyAggregateToCategoryMock.defaultExpectation.params
-		mm_want_ptrs := mmApplyAggregateToCategory.ApplyAggregateToCategoryMock.defaultExpectation.paramPtrs
+	if mmApplyAggregateToClass.ApplyAggregateToClassMock.defaultExpectation != nil {
+		mm_atomic.AddUint64(&mmApplyAggregateToClass.ApplyAggregateToClassMock.defaultExpectation.Counter, 1)
+		mm_want := mmApplyAggregateToClass.ApplyAggregateToClassMock.defaultExpectation.params
+		mm_want_ptrs := mmApplyAggregateToClass.ApplyAggregateToClassMock.defaultExpectation.paramPtrs
 
-		mm_got := AggregateServiceMockApplyAggregateToCategoryParams{ctx, categoryID, aggregateID}
+		mm_got := AggregateServiceMockApplyAggregateToClassParams{ctx, classID, aggregateID}
 
 		if mm_want_ptrs != nil {
 
 			if mm_want_ptrs.ctx != nil && !minimock.Equal(*mm_want_ptrs.ctx, mm_got.ctx) {
-				mmApplyAggregateToCategory.t.Errorf("AggregateServiceMock.ApplyAggregateToCategory got unexpected parameter ctx, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
-					mmApplyAggregateToCategory.ApplyAggregateToCategoryMock.defaultExpectation.expectationOrigins.originCtx, *mm_want_ptrs.ctx, mm_got.ctx, minimock.Diff(*mm_want_ptrs.ctx, mm_got.ctx))
+				mmApplyAggregateToClass.t.Errorf("AggregateServiceMock.ApplyAggregateToClass got unexpected parameter ctx, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmApplyAggregateToClass.ApplyAggregateToClassMock.defaultExpectation.expectationOrigins.originCtx, *mm_want_ptrs.ctx, mm_got.ctx, minimock.Diff(*mm_want_ptrs.ctx, mm_got.ctx))
 			}
 
-			if mm_want_ptrs.categoryID != nil && !minimock.Equal(*mm_want_ptrs.categoryID, mm_got.categoryID) {
-				mmApplyAggregateToCategory.t.Errorf("AggregateServiceMock.ApplyAggregateToCategory got unexpected parameter categoryID, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
-					mmApplyAggregateToCategory.ApplyAggregateToCategoryMock.defaultExpectation.expectationOrigins.originCategoryID, *mm_want_ptrs.categoryID, mm_got.categoryID, minimock.Diff(*mm_want_ptrs.categoryID, mm_got.categoryID))
+			if mm_want_ptrs.classID != nil && !minimock.Equal(*mm_want_ptrs.classID, mm_got.classID) {
+				mmApplyAggregateToClass.t.Errorf("AggregateServiceMock.ApplyAggregateToClass got unexpected parameter classID, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmApplyAggregateToClass.ApplyAggregateToClassMock.defaultExpectation.expectationOrigins.originClassID, *mm_want_ptrs.classID, mm_got.classID, minimock.Diff(*mm_want_ptrs.classID, mm_got.classID))
 			}
 
 			if mm_want_ptrs.aggregateID != nil && !minimock.Equal(*mm_want_ptrs.aggregateID, mm_got.aggregateID) {
-				mmApplyAggregateToCategory.t.Errorf("AggregateServiceMock.ApplyAggregateToCategory got unexpected parameter aggregateID, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
-					mmApplyAggregateToCategory.ApplyAggregateToCategoryMock.defaultExpectation.expectationOrigins.originAggregateID, *mm_want_ptrs.aggregateID, mm_got.aggregateID, minimock.Diff(*mm_want_ptrs.aggregateID, mm_got.aggregateID))
+				mmApplyAggregateToClass.t.Errorf("AggregateServiceMock.ApplyAggregateToClass got unexpected parameter aggregateID, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+					mmApplyAggregateToClass.ApplyAggregateToClassMock.defaultExpectation.expectationOrigins.originAggregateID, *mm_want_ptrs.aggregateID, mm_got.aggregateID, minimock.Diff(*mm_want_ptrs.aggregateID, mm_got.aggregateID))
 			}
 
 		} else if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
-			mmApplyAggregateToCategory.t.Errorf("AggregateServiceMock.ApplyAggregateToCategory got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
-				mmApplyAggregateToCategory.ApplyAggregateToCategoryMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+			mmApplyAggregateToClass.t.Errorf("AggregateServiceMock.ApplyAggregateToClass got unexpected parameters, expected at\n%s:\nwant: %#v\n got: %#v%s\n",
+				mmApplyAggregateToClass.ApplyAggregateToClassMock.defaultExpectation.expectationOrigins.origin, *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
 		}
 
-		mm_results := mmApplyAggregateToCategory.ApplyAggregateToCategoryMock.defaultExpectation.results
+		mm_results := mmApplyAggregateToClass.ApplyAggregateToClassMock.defaultExpectation.results
 		if mm_results == nil {
-			mmApplyAggregateToCategory.t.Fatal("No results are set for the AggregateServiceMock.ApplyAggregateToCategory")
+			mmApplyAggregateToClass.t.Fatal("No results are set for the AggregateServiceMock.ApplyAggregateToClass")
 		}
 		return (*mm_results).i1, (*mm_results).err
 	}
-	if mmApplyAggregateToCategory.funcApplyAggregateToCategory != nil {
-		return mmApplyAggregateToCategory.funcApplyAggregateToCategory(ctx, categoryID, aggregateID)
+	if mmApplyAggregateToClass.funcApplyAggregateToClass != nil {
+		return mmApplyAggregateToClass.funcApplyAggregateToClass(ctx, classID, aggregateID)
 	}
-	mmApplyAggregateToCategory.t.Fatalf("Unexpected call to AggregateServiceMock.ApplyAggregateToCategory. %v %v %v", ctx, categoryID, aggregateID)
+	mmApplyAggregateToClass.t.Fatalf("Unexpected call to AggregateServiceMock.ApplyAggregateToClass. %v %v %v", ctx, classID, aggregateID)
 	return
 }
 
-// ApplyAggregateToCategoryAfterCounter returns a count of finished AggregateServiceMock.ApplyAggregateToCategory invocations
-func (mmApplyAggregateToCategory *AggregateServiceMock) ApplyAggregateToCategoryAfterCounter() uint64 {
-	return mm_atomic.LoadUint64(&mmApplyAggregateToCategory.afterApplyAggregateToCategoryCounter)
+// ApplyAggregateToClassAfterCounter returns a count of finished AggregateServiceMock.ApplyAggregateToClass invocations
+func (mmApplyAggregateToClass *AggregateServiceMock) ApplyAggregateToClassAfterCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmApplyAggregateToClass.afterApplyAggregateToClassCounter)
 }
 
-// ApplyAggregateToCategoryBeforeCounter returns a count of AggregateServiceMock.ApplyAggregateToCategory invocations
-func (mmApplyAggregateToCategory *AggregateServiceMock) ApplyAggregateToCategoryBeforeCounter() uint64 {
-	return mm_atomic.LoadUint64(&mmApplyAggregateToCategory.beforeApplyAggregateToCategoryCounter)
+// ApplyAggregateToClassBeforeCounter returns a count of AggregateServiceMock.ApplyAggregateToClass invocations
+func (mmApplyAggregateToClass *AggregateServiceMock) ApplyAggregateToClassBeforeCounter() uint64 {
+	return mm_atomic.LoadUint64(&mmApplyAggregateToClass.beforeApplyAggregateToClassCounter)
 }
 
-// Calls returns a list of arguments used in each call to AggregateServiceMock.ApplyAggregateToCategory.
+// Calls returns a list of arguments used in each call to AggregateServiceMock.ApplyAggregateToClass.
 // The list is in the same order as the calls were made (i.e. recent calls have a higher index)
-func (mmApplyAggregateToCategory *mAggregateServiceMockApplyAggregateToCategory) Calls() []*AggregateServiceMockApplyAggregateToCategoryParams {
-	mmApplyAggregateToCategory.mutex.RLock()
+func (mmApplyAggregateToClass *mAggregateServiceMockApplyAggregateToClass) Calls() []*AggregateServiceMockApplyAggregateToClassParams {
+	mmApplyAggregateToClass.mutex.RLock()
 
-	argCopy := make([]*AggregateServiceMockApplyAggregateToCategoryParams, len(mmApplyAggregateToCategory.callArgs))
-	copy(argCopy, mmApplyAggregateToCategory.callArgs)
+	argCopy := make([]*AggregateServiceMockApplyAggregateToClassParams, len(mmApplyAggregateToClass.callArgs))
+	copy(argCopy, mmApplyAggregateToClass.callArgs)
 
-	mmApplyAggregateToCategory.mutex.RUnlock()
+	mmApplyAggregateToClass.mutex.RUnlock()
 
 	return argCopy
 }
 
-// MinimockApplyAggregateToCategoryDone returns true if the count of the ApplyAggregateToCategory invocations corresponds
+// MinimockApplyAggregateToClassDone returns true if the count of the ApplyAggregateToClass invocations corresponds
 // the number of defined expectations
-func (m *AggregateServiceMock) MinimockApplyAggregateToCategoryDone() bool {
-	if m.ApplyAggregateToCategoryMock.optional {
+func (m *AggregateServiceMock) MinimockApplyAggregateToClassDone() bool {
+	if m.ApplyAggregateToClassMock.optional {
 		// Optional methods provide '0 or more' call count restriction.
 		return true
 	}
 
-	for _, e := range m.ApplyAggregateToCategoryMock.expectations {
+	for _, e := range m.ApplyAggregateToClassMock.expectations {
 		if mm_atomic.LoadUint64(&e.Counter) < 1 {
 			return false
 		}
 	}
 
-	return m.ApplyAggregateToCategoryMock.invocationsDone()
+	return m.ApplyAggregateToClassMock.invocationsDone()
 }
 
-// MinimockApplyAggregateToCategoryInspect logs each unmet expectation
-func (m *AggregateServiceMock) MinimockApplyAggregateToCategoryInspect() {
-	for _, e := range m.ApplyAggregateToCategoryMock.expectations {
+// MinimockApplyAggregateToClassInspect logs each unmet expectation
+func (m *AggregateServiceMock) MinimockApplyAggregateToClassInspect() {
+	for _, e := range m.ApplyAggregateToClassMock.expectations {
 		if mm_atomic.LoadUint64(&e.Counter) < 1 {
-			m.t.Errorf("Expected call to AggregateServiceMock.ApplyAggregateToCategory at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
+			m.t.Errorf("Expected call to AggregateServiceMock.ApplyAggregateToClass at\n%s with params: %#v", e.expectationOrigins.origin, *e.params)
 		}
 	}
 
-	afterApplyAggregateToCategoryCounter := mm_atomic.LoadUint64(&m.afterApplyAggregateToCategoryCounter)
+	afterApplyAggregateToClassCounter := mm_atomic.LoadUint64(&m.afterApplyAggregateToClassCounter)
 	// if default expectation was set then invocations count should be greater than zero
-	if m.ApplyAggregateToCategoryMock.defaultExpectation != nil && afterApplyAggregateToCategoryCounter < 1 {
-		if m.ApplyAggregateToCategoryMock.defaultExpectation.params == nil {
-			m.t.Errorf("Expected call to AggregateServiceMock.ApplyAggregateToCategory at\n%s", m.ApplyAggregateToCategoryMock.defaultExpectation.returnOrigin)
+	if m.ApplyAggregateToClassMock.defaultExpectation != nil && afterApplyAggregateToClassCounter < 1 {
+		if m.ApplyAggregateToClassMock.defaultExpectation.params == nil {
+			m.t.Errorf("Expected call to AggregateServiceMock.ApplyAggregateToClass at\n%s", m.ApplyAggregateToClassMock.defaultExpectation.returnOrigin)
 		} else {
-			m.t.Errorf("Expected call to AggregateServiceMock.ApplyAggregateToCategory at\n%s with params: %#v", m.ApplyAggregateToCategoryMock.defaultExpectation.expectationOrigins.origin, *m.ApplyAggregateToCategoryMock.defaultExpectation.params)
+			m.t.Errorf("Expected call to AggregateServiceMock.ApplyAggregateToClass at\n%s with params: %#v", m.ApplyAggregateToClassMock.defaultExpectation.expectationOrigins.origin, *m.ApplyAggregateToClassMock.defaultExpectation.params)
 		}
 	}
 	// if func was set then invocations count should be greater than zero
-	if m.funcApplyAggregateToCategory != nil && afterApplyAggregateToCategoryCounter < 1 {
-		m.t.Errorf("Expected call to AggregateServiceMock.ApplyAggregateToCategory at\n%s", m.funcApplyAggregateToCategoryOrigin)
+	if m.funcApplyAggregateToClass != nil && afterApplyAggregateToClassCounter < 1 {
+		m.t.Errorf("Expected call to AggregateServiceMock.ApplyAggregateToClass at\n%s", m.funcApplyAggregateToClassOrigin)
 	}
 
-	if !m.ApplyAggregateToCategoryMock.invocationsDone() && afterApplyAggregateToCategoryCounter > 0 {
-		m.t.Errorf("Expected %d calls to AggregateServiceMock.ApplyAggregateToCategory at\n%s but found %d calls",
-			mm_atomic.LoadUint64(&m.ApplyAggregateToCategoryMock.expectedInvocations), m.ApplyAggregateToCategoryMock.expectedInvocationsOrigin, afterApplyAggregateToCategoryCounter)
+	if !m.ApplyAggregateToClassMock.invocationsDone() && afterApplyAggregateToClassCounter > 0 {
+		m.t.Errorf("Expected %d calls to AggregateServiceMock.ApplyAggregateToClass at\n%s but found %d calls",
+			mm_atomic.LoadUint64(&m.ApplyAggregateToClassMock.expectedInvocations), m.ApplyAggregateToClassMock.expectedInvocationsOrigin, afterApplyAggregateToClassCounter)
 	}
 }
 
@@ -670,7 +670,7 @@ func (mmCreateAggregate *mAggregateServiceMockCreateAggregate) invocationsDone()
 	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
 }
 
-// CreateAggregate implements mm_usecase.AggregateService
+// CreateAggregate implements mm_handlers.AggregateService
 func (mmCreateAggregate *AggregateServiceMock) CreateAggregate(ctx context.Context, aggregate *entities.Aggregate) (ap1 *entities.Aggregate, err error) {
 	mm_atomic.AddUint64(&mmCreateAggregate.beforeCreateAggregateCounter, 1)
 	defer mm_atomic.AddUint64(&mmCreateAggregate.afterCreateAggregateCounter, 1)
@@ -1013,7 +1013,7 @@ func (mmDeleteAggregate *mAggregateServiceMockDeleteAggregate) invocationsDone()
 	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
 }
 
-// DeleteAggregate implements mm_usecase.AggregateService
+// DeleteAggregate implements mm_handlers.AggregateService
 func (mmDeleteAggregate *AggregateServiceMock) DeleteAggregate(ctx context.Context, id uint) (ap1 *entities.Aggregate, err error) {
 	mm_atomic.AddUint64(&mmDeleteAggregate.beforeDeleteAggregateCounter, 1)
 	defer mm_atomic.AddUint64(&mmDeleteAggregate.afterDeleteAggregateCounter, 1)
@@ -1356,7 +1356,7 @@ func (mmGetAggregates *mAggregateServiceMockGetAggregates) invocationsDone() boo
 	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
 }
 
-// GetAggregates implements mm_usecase.AggregateService
+// GetAggregates implements mm_handlers.AggregateService
 func (mmGetAggregates *AggregateServiceMock) GetAggregates(ctx context.Context, name string) (aa1 []entities.Aggregate, err error) {
 	mm_atomic.AddUint64(&mmGetAggregates.beforeGetAggregatesCounter, 1)
 	defer mm_atomic.AddUint64(&mmGetAggregates.afterGetAggregatesCounter, 1)
@@ -1725,7 +1725,7 @@ func (mmUpdateAggregate *mAggregateServiceMockUpdateAggregate) invocationsDone()
 	return totalInvocations > 0 && (expectedInvocations == 0 || expectedInvocations == totalInvocations)
 }
 
-// UpdateAggregate implements mm_usecase.AggregateService
+// UpdateAggregate implements mm_handlers.AggregateService
 func (mmUpdateAggregate *AggregateServiceMock) UpdateAggregate(ctx context.Context, id uint, updates map[string]any) (ap1 *entities.Aggregate, err error) {
 	mm_atomic.AddUint64(&mmUpdateAggregate.beforeUpdateAggregateCounter, 1)
 	defer mm_atomic.AddUint64(&mmUpdateAggregate.afterUpdateAggregateCounter, 1)
@@ -1864,7 +1864,7 @@ func (m *AggregateServiceMock) MinimockUpdateAggregateInspect() {
 func (m *AggregateServiceMock) MinimockFinish() {
 	m.finishOnce.Do(func() {
 		if !m.minimockDone() {
-			m.MinimockApplyAggregateToCategoryInspect()
+			m.MinimockApplyAggregateToClassInspect()
 
 			m.MinimockCreateAggregateInspect()
 
@@ -1896,7 +1896,7 @@ func (m *AggregateServiceMock) MinimockWait(timeout mm_time.Duration) {
 func (m *AggregateServiceMock) minimockDone() bool {
 	done := true
 	return done &&
-		m.MinimockApplyAggregateToCategoryDone() &&
+		m.MinimockApplyAggregateToClassDone() &&
 		m.MinimockCreateAggregateDone() &&
 		m.MinimockDeleteAggregateDone() &&
 		m.MinimockGetAggregatesDone() &&

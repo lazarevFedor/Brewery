@@ -9,110 +9,94 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+// RegisterRouters регистрирует маршруты API в соответствии с api/services.swagger.v2.0.json.
+// Запросы, помеченные в swagger как bearerAuth, регистрируются в группе admin.
 func RegisterRouters(e *gin.Engine, h handlers.Handlers) {
 	api := e.Group("/api")
 	admin := api.Group("", middleware.AdminAuth())
 
-	registerBeerRouters(api, admin, h)
-	registerCategoryRouters(api, admin, h)
-	registerEnumRouters(api, h)
-	registerAggregatesRouters(api, h)
-
 	api.POST("/login", h.AuthHandler.Login)
+
+	registerClassRouters(api, admin, h)
+	registerProductRouters(api, admin, h)
+	registerMaterialRouters(api, admin, h)
+	registerHistoryRouters(api, admin, h)
+	registerEnumRouters(admin, h)
+	registerParameterRouters(api, admin, h)
+	registerAggregateRouters(admin, h)
+
 	e.GET("/metrics", gin.WrapH(promhttp.Handler()))
 }
 
-func registerBeerRouters(api *gin.RouterGroup, admin *gin.RouterGroup, h handlers.Handlers) {
-	beers := api.Group("/beers")
-	{
-		beers.GET("", h.BeersHandler.GetAllBeers)
-		beers.GET("/search", h.BeersHandler.SearchBeer)
+func registerClassRouters(api, admin *gin.RouterGroup, h handlers.Handlers) {
+	api.GET("/classes", h.ClassHandler.ListClasses)
+	api.GET("/classes/:id", h.ClassHandler.GetClass)
+	api.GET("/classes/parent/:id", h.ClassHandler.GetClassParent)
+	api.GET("/classes/children/:id", h.ClassHandler.ListClassChildren)
 
-		features := beers.Group("/feats")
-		{
-			features.GET("/:beer_id", h.BeersHandler.GetFeature)
-		}
-	}
-
-	adminBeers := admin.Group("/beers")
-	{
-		adminBeers.POST("", h.BeersHandler.CreateBeer)
-		adminBeers.PATCH("/:id", h.BeersHandler.UpdateBeer)
-		adminBeers.DELETE("/:id", h.BeersHandler.DeleteBeer)
-
-		features := adminBeers.Group("/feats")
-		{
-			features.POST("/:beer_id", h.BeersHandler.CreateFeature)
-			features.PATCH("/:beer_id", h.BeersHandler.UpdateBeer)
-			features.DELETE("/:beer_id", h.BeersHandler.DeleteFeature)
-		}
-	}
+	admin.POST("/classes", h.ClassHandler.CreateClass)
+	admin.PATCH("/classes/:id", h.ClassHandler.UpdateClass)
+	admin.DELETE("/classes/:id", h.ClassHandler.DeleteClass)
 }
 
-func registerCategoryRouters(api *gin.RouterGroup, admin *gin.RouterGroup, h handlers.Handlers) {
-	categories := api.Group("/categories")
-	{
-		categories.GET("/:id", h.CategoryHandler.GetCategoryByID)
-		categories.GET("", h.CategoryHandler.GetAllCategories)
-		categories.GET("/beers/:category_id", h.CategoryHandler.GetBeersByCategory)
-		categories.GET("/parent/:id", h.CategoryHandler.GetParentCategory)
-		categories.GET("/children/:id", h.CategoryHandler.GetChildCategory)
-		categories.GET("/:id/beers/search", h.BeersHandler.SearchBeer)
+func registerProductRouters(api, admin *gin.RouterGroup, h handlers.Handlers) {
+	api.GET("/products", h.ProductHandler.ListProducts)
+	api.GET("/products/search", h.ProductHandler.SearchProducts)
+	api.GET("/products/:id", h.ProductHandler.GetProduct)
+	api.GET("/products/:id/derived", h.ProductHandler.ListDerivedProducts)
+	api.GET("/classes/products/:class_id", h.ProductHandler.ListProductsByClass)
+	api.GET("/classes/:id/products/search", h.ProductHandler.SearchProductsByClass)
 
-		parameters := categories.Group("/parameters")
-		{
-			parameters.GET("", h.ParametersHandler.ListCategoryParameters)
-		}
-	}
-
-	adminCategories := admin.Group("/categories")
-	{
-		adminCategories.POST("", h.CategoryHandler.CreateCategory)
-		adminCategories.PATCH("/:id", h.CategoryHandler.UpdateCategory)
-		adminCategories.DELETE("/:id", h.CategoryHandler.DeleteCategory)
-
-		adminParameters := categories.Group("/parameters")
-		{
-			adminParameters.PATCH("/apply/:category_id", h.ParametersHandler.ApplyParametersToCategory)
-			adminParameters.POST("/numeric", h.ParametersHandler.CreateNumericParameter)
-			adminParameters.PATCH("/:id", h.ParametersHandler.UpdateParameter)
-			adminParameters.DELETE("/:id", h.ParametersHandler.DeleteParameter)
-			adminParameters.POST("/enum", h.ParametersHandler.CreateEnumParameter)
-		}
-	}
+	admin.POST("/products", h.ProductHandler.CreateProduct)
+	admin.PATCH("/products/:id", h.ProductHandler.UpdateProduct)
+	admin.DELETE("/products/:id", h.ProductHandler.DeleteProduct)
 }
 
-func registerEnumRouters(
-	admin *gin.RouterGroup,
-	h handlers.Handlers,
-) {
-	enums := admin.Group("/enums")
-	{
-		enums.POST("", h.EnumHandler.CreateEnum)
-		enums.GET("", h.EnumHandler.GetEnum)
-		enums.PATCH("/:id", h.EnumHandler.UpdateEnum)
-		enums.DELETE("/:id", h.EnumHandler.DeleteEnum)
+func registerMaterialRouters(api, admin *gin.RouterGroup, h handlers.Handlers) {
+	api.GET("/products/:id/materials", h.MaterialHandler.GetProductBomTree)
+	api.GET("/products/:id/materials/norms", h.MaterialHandler.CalculateMaterialNorms)
+	api.GET("/materials/:material_id/products", h.MaterialHandler.ListProductsByMaterial)
 
-		value := enums.Group("/value")
-		{
-			value.POST("", h.EnumHandler.CreateValue)
-			value.GET("", h.EnumHandler.GetValue)
-			value.PATCH("/:id", h.EnumHandler.UpdateValue)
-			value.DELETE("/:id", h.EnumHandler.DeleteValue)
-		}
-	}
+	admin.POST("/products/:id/materials", h.MaterialHandler.AddProductMaterial)
+	admin.PATCH("/products/:id/materials/:material_id", h.MaterialHandler.UpdateProductMaterial)
+	admin.DELETE("/products/:id/materials/:material_id", h.MaterialHandler.DeleteProductMaterial)
 }
 
-func registerAggregatesRouters(
-	admin *gin.RouterGroup,
-	h handlers.Handlers,
-) {
-	aggregates := admin.Group("/aggregates")
-	{
-		aggregates.PATCH("/apply/:category_id", h.AggregatesHandler.ApplyAggregateToCategory)
-		aggregates.PATCH("/:id", h.AggregatesHandler.UpdateAggregate)
-		aggregates.DELETE("/:id", h.AggregatesHandler.DeleteAggregate)
-		aggregates.POST("", h.AggregatesHandler.CreateAggregate)
-		aggregates.GET("", h.AggregatesHandler.GetAggregates)
-	}
+func registerHistoryRouters(api, admin *gin.RouterGroup, h handlers.Handlers) {
+	api.GET("/products/:id/history", h.HistoryHandler.ListProductHistory)
+	api.GET("/history/:id", h.HistoryHandler.GetHistoryRecord)
+
+	admin.POST("/products/:id/history", h.HistoryHandler.RegisterProductChange)
+}
+
+// registerEnumRouters - по swagger все запросы перечислений требуют авторизации, включая GET.
+func registerEnumRouters(admin *gin.RouterGroup, h handlers.Handlers) {
+	admin.POST("/enums", h.EnumHandler.CreateEnum)
+	admin.GET("/enums", h.EnumHandler.GetEnum)
+	admin.PATCH("/enums/:id", h.EnumHandler.UpdateEnum)
+	admin.DELETE("/enums/:id", h.EnumHandler.DeleteEnum)
+
+	admin.POST("/enums/value", h.EnumHandler.CreateValue)
+	admin.GET("/enums/value", h.EnumHandler.GetValue)
+	admin.PATCH("/enums/value/:id", h.EnumHandler.UpdateValue)
+	admin.DELETE("/enums/value/:id", h.EnumHandler.DeleteValue)
+}
+
+func registerParameterRouters(api, admin *gin.RouterGroup, h handlers.Handlers) {
+	api.GET("/classes/parameters", h.ParametersHandler.ListParameters)
+
+	admin.POST("/classes/parameters/range", h.ParametersHandler.CreateRangeParameter)
+	admin.PATCH("/classes/parameters/apply/:class_id", h.ParametersHandler.ApplyParametersToClass)
+	admin.PATCH("/classes/parameters/exclude/:class_id", h.ParametersHandler.ExcludeParametersFromClass)
+	admin.PATCH("/classes/parameters/:id", h.ParametersHandler.UpdateParameter)
+	admin.DELETE("/classes/parameters/:id", h.ParametersHandler.DeleteParameter)
+}
+
+// registerAggregateRouters - по swagger все запросы агрегатов требуют авторизации, включая GET.
+func registerAggregateRouters(admin *gin.RouterGroup, h handlers.Handlers) {
+	admin.POST("/aggregates", h.AggregatesHandler.CreateAggregate)
+	admin.GET("/aggregates", h.AggregatesHandler.GetAggregates)
+	admin.PATCH("/aggregates/apply/:class_id", h.AggregatesHandler.ApplyAggregateToClass)
+	admin.PATCH("/aggregates/:id", h.AggregatesHandler.UpdateAggregate)
+	admin.DELETE("/aggregates/:id", h.AggregatesHandler.DeleteAggregate)
 }

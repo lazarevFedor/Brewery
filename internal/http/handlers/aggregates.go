@@ -1,18 +1,13 @@
-// Package handlers содержит реализацию HTTP-обработчиков для управления пивоварней.
 package handlers
 
 import (
+	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
-	"Brewery/internal/usecase"
-	"Brewery/pkg/logger"
 	"context"
-	"encoding/json"
-	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/mailru/easyjson"
+	"go.uber.org/zap"
 )
 
 // AggregateService определяет интерфейс для работы с агрегатами.
@@ -30,229 +25,158 @@ type AggregateService interface {
 	// DeleteAggregate удаляет агрегат по его ID.
 	DeleteAggregate(ctx context.Context, id uint) (*entities.Aggregate, error)
 
-	// ApplyAggregateToClass применяет агрегат к классу, возвращая количество добавленных связей.
+	// ApplyAggregateToClass применяет агрегат к классу, возвращая количество добавленных параметров.
 	ApplyAggregateToClass(ctx context.Context, classID, aggregateID uint) (int, error)
 }
 
-// NewAggregateService создает новый экземпляр AggregateService.
-func NewAggregateService(aggregateRepo usecase.AggregateRepository) AggregateService {
-	return &usecase.AggregateService{
-		AggregateRepo: aggregateRepo,
-	}
-}
-
-// AggregateHandlers - интерфейс для обработки HTTP-запросов, связанных с агрегатами.
+// AggregateHandlers - HTTP-обработчики для агрегатов параметров.
 type AggregateHandlers interface {
 
-	// CreateAggregate - обработчик для создания нового агрегата.
+	// CreateAggregate обрабатывает POST /aggregates.
 	CreateAggregate(c *gin.Context)
 
-	// GetAggregates - обработчик для получения списка агрегатов, с возможностью фильтрации по имени.
+	// GetAggregates обрабатывает GET /aggregates.
 	GetAggregates(c *gin.Context)
 
-	// UpdateAggregate - обработчик для обновления существующего агрегата по его ID.
+	// UpdateAggregate обрабатывает PATCH /aggregates/{id}.
 	UpdateAggregate(c *gin.Context)
 
-	// DeleteAggregate - обработчик для удаления агрегата по его ID.
+	// DeleteAggregate обрабатывает DELETE /aggregates/{id}.
 	DeleteAggregate(c *gin.Context)
 
-	// ApplyAggregateToClass - обработчик для применения агрегата к классу по их ID.
+	// ApplyAggregateToClass обрабатывает PATCH /aggregates/apply/{class_id}.
 	ApplyAggregateToClass(c *gin.Context)
 }
 
-// aggregateHandlers - реализация интерфейса AggregateHandlers, использующая сервис агрегатов для бизнес-логики.
+// aggregateHandlers - реализация интерфейса AggregateHandlers.
 type aggregateHandlers struct {
-	uc usecase.AggregateService
+	uc AggregateService
 }
 
-// NewAggregateHandlers - конструктор для создания нового экземпляра AggregateHandlers.
-func NewAggregateHandlers(uc usecase.AggregateService) AggregateHandlers {
-	return &aggregateHandlers{
-		uc: uc,
-	}
+// NewAggregateHandlers создает обработчики агрегатов.
+func NewAggregateHandlers(uc AggregateService) AggregateHandlers {
+	return &aggregateHandlers{uc: uc}
 }
 
-// CreateAggregate - обработчик для создания нового агрегата.
+// CreateAggregate обрабатывает POST /aggregates.
 func (h *aggregateHandlers) CreateAggregate(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+	log, ok := getLogger(c)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get logger from context"})
-		return
-	}
-
-	body, err := readRequestBody(c)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read request body: %v", err))
 		return
 	}
 
 	var req entities.Aggregate
-	if err = easyjson.Unmarshal(body, &req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to unmarshal aggregate: %v", err))
+	if !bindJSON(c, &req) {
+		return
+	}
+
+	if req.Name == "" {
+		writeError(c, http.StatusBadRequest, apperrors.CodeValidation, "Aggregate name is required")
 		return
 	}
 
 	created, err := h.uc.CreateAggregate(c.Request.Context(), &req)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to create aggregate: %v", err))
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		handleError(c, log, "failed to create aggregate", err)
 		return
 	}
 
-	rawBytes, err := json.Marshal(created)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal response: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
-		return
-	}
-
-	c.Data(http.StatusCreated, "application/json; charset=utf-8", rawBytes)
-	log.Info(c.Request.Context(), fmt.Sprintf("action=create resource=aggregate status=success id=%d name=%q", created.ID, created.Name))
+	log.Info(c.Request.Context(), "action=create resource=aggregate status=success", zap.Uint("id", created.ID))
+	c.JSON(http.StatusCreated, created)
 }
 
-// GetAggregates - обработчик для получения списка агрегатов, с возможностью фильтрации по имени.
+// GetAggregates обрабатывает GET /aggregates.
 func (h *aggregateHandlers) GetAggregates(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+	log, ok := getLogger(c)
 	if !ok {
-		c.Status(http.StatusInternalServerError)
 		return
 	}
 
-	name := c.Query("name")
-
-	aggregates, err := h.uc.GetAggregates(c.Request.Context(), name)
+	aggregates, err := h.uc.GetAggregates(c.Request.Context(), c.Query("name"))
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to get aggregates: %v", err))
-		c.Status(http.StatusInternalServerError)
+		handleError(c, log, "failed to get aggregates", err)
 		return
 	}
 
-	rawBytes, err := json.Marshal(aggregates)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal response: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
-		return
-	}
-
-	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
-	log.Info(c.Request.Context(), fmt.Sprintf("action=list resource=aggregates status=success count=%d", len(aggregates)))
+	c.JSON(http.StatusOK, nonNil(aggregates))
 }
 
-// UpdateAggregate - обработчик для обновления существующего агрегата по его ID.
+// UpdateAggregate обрабатывает PATCH /aggregates/{id}.
 func (h *aggregateHandlers) UpdateAggregate(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+	log, ok := getLogger(c)
 	if !ok {
-		c.Status(http.StatusInternalServerError)
 		return
 	}
 
-	id, err := getUintParam(c, "id")
+	id, err := getIDParam(c, "id")
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid aggregate id: %v", err))
+		badRequest(c, log, apperrors.CodeInvalidID, err)
 		return
 	}
 
-	body, err := readRequestBody(c)
+	updates, ok := bindUpdates(c)
+	if !ok {
+		return
+	}
+
+	updated, err := h.uc.UpdateAggregate(c.Request.Context(), toUint(id), updates)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to read request body: %v", err))
+		handleError(c, log, "failed to update aggregate", err)
 		return
 	}
 
-	updates := make(map[string]any)
-	if err = json.Unmarshal(body, &updates); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json"})
-		return
-	}
-
-	if len(updates) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "empty update payload"})
-		return
-	}
-
-	updated, err := h.uc.UpdateAggregate(c.Request.Context(), id, updates)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to update aggregate: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	rawBytes, err := json.Marshal(updated)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal response: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
-		return
-	}
-
-	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
-	log.Info(c.Request.Context(), fmt.Sprintf("action=update resource=aggregate status=success id=%d", id))
+	log.Info(c.Request.Context(), "action=update resource=aggregate status=success", zap.Int64("id", id))
+	c.JSON(http.StatusOK, updated)
 }
 
-// DeleteAggregate - обработчик для удаления агрегата по его ID.
+// DeleteAggregate обрабатывает DELETE /aggregates/{id}.
 func (h *aggregateHandlers) DeleteAggregate(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+	log, ok := getLogger(c)
 	if !ok {
-		c.Status(http.StatusInternalServerError)
 		return
 	}
 
-	id, err := getUintParam(c, "id")
+	id, err := getIDParam(c, "id")
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid aggregate id: %v", err))
+		badRequest(c, log, apperrors.CodeInvalidID, err)
 		return
 	}
 
-	deleted, err := h.uc.DeleteAggregate(c.Request.Context(), id)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to delete aggregate: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	if _, err = h.uc.DeleteAggregate(c.Request.Context(), toUint(id)); err != nil {
+		handleError(c, log, "failed to delete aggregate", err)
 		return
 	}
 
-	rawBytes, err := json.Marshal(deleted)
-	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to marshal response: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to marshal response"})
-		return
-	}
-
-	c.Data(http.StatusOK, "application/json; charset=utf-8", rawBytes)
-	log.Info(c.Request.Context(), fmt.Sprintf("action=delete resource=aggregate status=success id=%d", id))
+	log.Info(c.Request.Context(), "action=delete resource=aggregate status=success", zap.Int64("id", id))
+	c.Status(http.StatusNoContent)
 }
 
-// ApplyAggregateToClass - обработчик для применения агрегата к классу по их ID.
+// ApplyAggregateToClass обрабатывает PATCH /aggregates/apply/{class_id}?aggregate_id=.
 func (h *aggregateHandlers) ApplyAggregateToClass(c *gin.Context) {
-	log, ok := logger.GetLoggerFromCtx(c.Request.Context())
+	log, ok := getLogger(c)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get logger from context"})
 		return
 	}
 
-	classIDStr := c.Param("class_id")
-	classID, err := strconv.ParseUint(classIDStr, 10, 32)
+	classID, err := getIDParam(c, "class_id")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid class_id"})
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid class_id: %v", err))
+		badRequest(c, log, apperrors.CodeInvalidID, err)
 		return
 	}
 
-	aggregateIDStr := c.Query("aggregate_id")
-	aggregateID, err := strconv.ParseUint(aggregateIDStr, 10, 32)
-	if err != nil || aggregateIDStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "aggregate_id query parameter is required"})
-		log.Error(c.Request.Context(), fmt.Sprintf("Invalid aggregate_id: %v", err))
-		return
-	}
-
-	added, err := h.uc.ApplyAggregateToClass(c.Request.Context(), uint(classID), uint(aggregateID))
+	aggregateID, err := getIDQuery(c, "aggregate_id", true)
 	if err != nil {
-		log.Error(c.Request.Context(), fmt.Sprintf("Failed to apply aggregate: %v", err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		badRequest(c, log, apperrors.CodeInvalidID, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"params_added": added,
-	})
-	log.Info(c.Request.Context(), fmt.Sprintf("action=apply resource=aggregate_to_class status=success class_id=%d aggregate_id=%d added=%d", classID, aggregateID, added))
+	added, err := h.uc.ApplyAggregateToClass(c.Request.Context(), toUint(classID), toUint(aggregateID))
+	if err != nil {
+		handleError(c, log, "failed to apply aggregate", err)
+		return
+	}
+
+	log.Info(c.Request.Context(), "action=apply resource=aggregate status=success",
+		zap.Int64("class_id", classID), zap.Int64("aggregate_id", aggregateID), zap.Int("added", added))
+	c.JSON(http.StatusOK, gin.H{"params_added": added})
 }
