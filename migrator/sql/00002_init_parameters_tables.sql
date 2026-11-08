@@ -29,25 +29,6 @@ CREATE TABLE IF NOT EXISTS range_parameters (
     CONSTRAINT chk_min_lower_max CHECK (min_val <= max_val)
 );
 
-CREATE TABLE IF NOT EXISTS range_parameters (
-    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    min_val NUMERIC(8, 3),
-    max_val NUMERIC(8, 3),
-    unit TEXT NOT NULL,
-    field_name TEXT NOT NULL,
-    inheritable BOOLEAN NOT NULL,
-    CONSTRAINT chk_min_lower_max CHECK (min_val < max_val)
-);
-
-CREATE TABLE IF NOT EXISTS range_parameters (
-    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    min_val NUMERIC(8, 3),
-    max_val NUMERIC(8, 3),
-    unit TEXT NOT NULL,
-    field_name TEXT NOT NULL,
-    inheritable BOOLEAN NOT NULL,
-    CONSTRAINT chk_min_lower_max CHECK (min_val < max_val)
-);
 
 CREATE TABLE IF NOT EXISTS products_parameters (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
