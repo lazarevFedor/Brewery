@@ -35,7 +35,29 @@ type ProductService struct {
 	materialRepo MaterialRepository
 }
 
+func (ps *ProductService) ensureRepo() error {
+	if ps == nil {
+		return errors.New("product service is nil")
+	}
+	if ps.repo == nil {
+		return errors.New("product repository is nil")
+	}
+	if ps.classRepo == nil {
+		return errors.New("class repository is nil")
+	}
+	if ps.paramRepo == nil {
+		return errors.New("parameter repository is nil")
+	}
+	if ps.enumRepo == nil {
+		return errors.New("enum repository is nil")
+	}
+	return nil
+}
+
 func (ps *ProductService) CreateProduct(ctx context.Context, p entities.Product) (*entities.Product, error) {
+	if err := ps.ensureRepo(); err != nil {
+		return nil, err
+	}
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -63,6 +85,9 @@ func (ps *ProductService) CreateProduct(ctx context.Context, p entities.Product)
 }
 
 func (ps *ProductService) GetProducts(ctx context.Context, limit, offset int32) ([]entities.Product, error) {
+	if err := ps.ensureRepo(); err != nil {
+		return nil, err
+	}
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -76,6 +101,9 @@ func (ps *ProductService) GetProducts(ctx context.Context, limit, offset int32) 
 }
 
 func (ps *ProductService) UpdateProduct(ctx context.Context, id int64, updates map[string]any) (*entities.Product, error) {
+	if err := ps.ensureRepo(); err != nil {
+		return nil, err
+	}
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -103,6 +131,9 @@ func (ps *ProductService) UpdateProduct(ctx context.Context, id int64, updates m
 }
 
 func (ps *ProductService) DeleteProduct(ctx context.Context, id int64) error {
+	if err := ps.ensureRepo(); err != nil {
+		return err
+	}
 	if err := ctx.Err(); err != nil {
 		return fmt.Errorf("request cancelled: %w", err)
 	}
@@ -120,6 +151,9 @@ func (ps *ProductService) DeleteProduct(ctx context.Context, id int64) error {
 }
 
 func (ps *ProductService) GetProductsByClass(ctx context.Context, classID int64, limit, offset int32) ([]entities.Product, error) {
+	if err := ps.ensureRepo(); err != nil {
+		return nil, err
+	}
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -137,6 +171,9 @@ func (ps *ProductService) GetProductsByClass(ctx context.Context, classID int64,
 }
 
 func (ps *ProductService) GetFilteredProducts(ctx context.Context, filters []entities.FilterParameter, classID *uint, limit, offset int32) ([]entities.Product, error) {
+	if err := ps.ensureRepo(); err != nil {
+		return nil, err
+	}
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -150,6 +187,9 @@ func (ps *ProductService) GetFilteredProducts(ctx context.Context, filters []ent
 }
 
 func (ps *ProductService) GetProductByID(ctx context.Context, id int64) (*entities.Product, error) {
+	if err := ps.ensureRepo(); err != nil {
+		return nil, err
+	}
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -354,18 +394,21 @@ func (ps *ProductService) ValidateProductWithParameters(ctx context.Context, pro
 			return fmt.Errorf("failed to get enum values for class ID %d: %w", id, err)
 		}
 
-		if enumValues == nil {
+		if len(enumValues) == 0 {
 			continue
 		}
 
 		enumClass, err := ps.enumRepo.GetEnumClassByID(ctx, uint(id))
-		if enumClass == nil || err != nil {
+		if err != nil {
 			return fmt.Errorf("failed to get enum class for ID %d: %w", id, err)
+		}
+		if enumClass == nil {
+			return fmt.Errorf("enum class for ID %d not found", id)
 		}
 
 		parameterValue, exists := product.Parameters[enumClass.FieldName]
 		if !exists {
-			return fmt.Errorf("parameter %q is required", enumClass.FieldName)
+			continue
 		}
 
 		normalizedValue := normalizeEnumValue(parameterValue)
@@ -376,7 +419,6 @@ func (ps *ProductService) ValidateProductWithParameters(ctx context.Context, pro
 				enumClass.FieldName,
 			)
 		}
-
 	}
 
 	rangeParameters, _, err := ps.paramRepo.GetParameters(ctx, product.ProdClass.ID, entities.RangeParameterType)
@@ -384,26 +426,22 @@ func (ps *ProductService) ValidateProductWithParameters(ctx context.Context, pro
 		return fmt.Errorf("failed to get range parameters for class ID %d: %w", product.ProdClass.ID, err)
 	}
 
-	if rangeParameters == nil {
-		return nil
-	}
-
 	for _, rangeParam := range rangeParameters {
 		parameterValue, exists := product.Parameters[rangeParam.FieldName]
 		if !exists {
-			return fmt.Errorf("parameter %q is required", rangeParam.FieldName)
+			continue
 		}
 
-		parameterValueInt, ok := parameterValue.(int)
+		numberValue, ok := toFloat64Value(parameterValue)
 		if !ok {
 			return fmt.Errorf("parameter %q must be a number", rangeParam.FieldName)
 		}
 
-		if parameterValueInt < rangeParam.MinValue || parameterValueInt > rangeParam.MaxValue {
+		if numberValue < float64(rangeParam.MinValue) || numberValue > float64(rangeParam.MaxValue) {
 			return fmt.Errorf(
 				"parameter %q value %v is out of range [%v, %v]",
 				rangeParam.FieldName,
-				parameterValueInt,
+				numberValue,
 				rangeParam.MinValue,
 				rangeParam.MaxValue,
 			)
