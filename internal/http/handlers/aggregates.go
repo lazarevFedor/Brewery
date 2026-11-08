@@ -81,7 +81,7 @@ func (h *aggregateHandlers) CreateAggregate(c *gin.Context) {
 		return
 	}
 
-	log.Info(c.Request.Context(), "action=create resource=aggregate status=success", zap.Uint("id", created.ID))
+	log.Info(c.Request.Context(), "action=create resource=aggregate status=success", zap.Int64("id", created.ID))
 	c.JSON(http.StatusCreated, created)
 }
 

@@ -19,9 +19,9 @@ type ParametersServiceMock struct {
 	t          minimock.Tester
 	finishOnce sync.Once
 
-	funcApplyToClass          func(ctx context.Context, classID uint, rangeIDs []int, enumIDs []int) (i1 int, err error)
+	funcApplyToClass          func(ctx context.Context, classID int64, rangeIDs []int, enumIDs []int) (i1 int, err error)
 	funcApplyToClassOrigin    string
-	inspectFuncApplyToClass   func(ctx context.Context, classID uint, rangeIDs []int, enumIDs []int)
+	inspectFuncApplyToClass   func(ctx context.Context, classID int64, rangeIDs []int, enumIDs []int)
 	afterApplyToClassCounter  uint64
 	beforeApplyToClassCounter uint64
 	ApplyToClassMock          mParametersServiceMockApplyToClass
@@ -33,30 +33,30 @@ type ParametersServiceMock struct {
 	beforeCreateRangeCounter uint64
 	CreateRangeMock          mParametersServiceMockCreateRange
 
-	funcDeleteRange          func(ctx context.Context, id uint) (rp1 *entities.RangeParameter, err error)
+	funcDeleteRange          func(ctx context.Context, id int64) (rp1 *entities.RangeParameter, err error)
 	funcDeleteRangeOrigin    string
-	inspectFuncDeleteRange   func(ctx context.Context, id uint)
+	inspectFuncDeleteRange   func(ctx context.Context, id int64)
 	afterDeleteRangeCounter  uint64
 	beforeDeleteRangeCounter uint64
 	DeleteRangeMock          mParametersServiceMockDeleteRange
 
-	funcExcludeFromClass          func(ctx context.Context, classID uint, rangeIDs []int, enumIDs []int) (i1 int, err error)
+	funcExcludeFromClass          func(ctx context.Context, classID int64, rangeIDs []int, enumIDs []int) (i1 int, err error)
 	funcExcludeFromClassOrigin    string
-	inspectFuncExcludeFromClass   func(ctx context.Context, classID uint, rangeIDs []int, enumIDs []int)
+	inspectFuncExcludeFromClass   func(ctx context.Context, classID int64, rangeIDs []int, enumIDs []int)
 	afterExcludeFromClassCounter  uint64
 	beforeExcludeFromClassCounter uint64
 	ExcludeFromClassMock          mParametersServiceMockExcludeFromClass
 
-	funcListParameters          func(ctx context.Context, classID uint, parameterType int) (ra1 []entities.RangeParameter, ea1 []entities.EnumParameter, err error)
+	funcListParameters          func(ctx context.Context, classID int64, parameterType int) (ra1 []entities.RangeParameter, ea1 []entities.EnumParameter, err error)
 	funcListParametersOrigin    string
-	inspectFuncListParameters   func(ctx context.Context, classID uint, parameterType int)
+	inspectFuncListParameters   func(ctx context.Context, classID int64, parameterType int)
 	afterListParametersCounter  uint64
 	beforeListParametersCounter uint64
 	ListParametersMock          mParametersServiceMockListParameters
 
-	funcUpdateRange          func(ctx context.Context, id uint, updates map[string]any) (rp1 *entities.RangeParameter, err error)
+	funcUpdateRange          func(ctx context.Context, id int64, updates map[string]any) (rp1 *entities.RangeParameter, err error)
 	funcUpdateRangeOrigin    string
-	inspectFuncUpdateRange   func(ctx context.Context, id uint, updates map[string]any)
+	inspectFuncUpdateRange   func(ctx context.Context, id int64, updates map[string]any)
 	afterUpdateRangeCounter  uint64
 	beforeUpdateRangeCounter uint64
 	UpdateRangeMock          mParametersServiceMockUpdateRange
@@ -120,7 +120,7 @@ type ParametersServiceMockApplyToClassExpectation struct {
 // ParametersServiceMockApplyToClassParams contains parameters of the ParametersService.ApplyToClass
 type ParametersServiceMockApplyToClassParams struct {
 	ctx      context.Context
-	classID  uint
+	classID  int64
 	rangeIDs []int
 	enumIDs  []int
 }
@@ -128,7 +128,7 @@ type ParametersServiceMockApplyToClassParams struct {
 // ParametersServiceMockApplyToClassParamPtrs contains pointers to parameters of the ParametersService.ApplyToClass
 type ParametersServiceMockApplyToClassParamPtrs struct {
 	ctx      *context.Context
-	classID  *uint
+	classID  *int64
 	rangeIDs *[]int
 	enumIDs  *[]int
 }
@@ -159,7 +159,7 @@ func (mmApplyToClass *mParametersServiceMockApplyToClass) Optional() *mParameter
 }
 
 // Expect sets up expected params for ParametersService.ApplyToClass
-func (mmApplyToClass *mParametersServiceMockApplyToClass) Expect(ctx context.Context, classID uint, rangeIDs []int, enumIDs []int) *mParametersServiceMockApplyToClass {
+func (mmApplyToClass *mParametersServiceMockApplyToClass) Expect(ctx context.Context, classID int64, rangeIDs []int, enumIDs []int) *mParametersServiceMockApplyToClass {
 	if mmApplyToClass.mock.funcApplyToClass != nil {
 		mmApplyToClass.mock.t.Fatalf("ParametersServiceMock.ApplyToClass mock is already set by Set")
 	}
@@ -207,7 +207,7 @@ func (mmApplyToClass *mParametersServiceMockApplyToClass) ExpectCtxParam1(ctx co
 }
 
 // ExpectClassIDParam2 sets up expected param classID for ParametersService.ApplyToClass
-func (mmApplyToClass *mParametersServiceMockApplyToClass) ExpectClassIDParam2(classID uint) *mParametersServiceMockApplyToClass {
+func (mmApplyToClass *mParametersServiceMockApplyToClass) ExpectClassIDParam2(classID int64) *mParametersServiceMockApplyToClass {
 	if mmApplyToClass.mock.funcApplyToClass != nil {
 		mmApplyToClass.mock.t.Fatalf("ParametersServiceMock.ApplyToClass mock is already set by Set")
 	}
@@ -276,7 +276,7 @@ func (mmApplyToClass *mParametersServiceMockApplyToClass) ExpectEnumIDsParam4(en
 }
 
 // Inspect accepts an inspector function that has same arguments as the ParametersService.ApplyToClass
-func (mmApplyToClass *mParametersServiceMockApplyToClass) Inspect(f func(ctx context.Context, classID uint, rangeIDs []int, enumIDs []int)) *mParametersServiceMockApplyToClass {
+func (mmApplyToClass *mParametersServiceMockApplyToClass) Inspect(f func(ctx context.Context, classID int64, rangeIDs []int, enumIDs []int)) *mParametersServiceMockApplyToClass {
 	if mmApplyToClass.mock.inspectFuncApplyToClass != nil {
 		mmApplyToClass.mock.t.Fatalf("Inspect function is already set for ParametersServiceMock.ApplyToClass")
 	}
@@ -301,7 +301,7 @@ func (mmApplyToClass *mParametersServiceMockApplyToClass) Return(i1 int, err err
 }
 
 // Set uses given function f to mock the ParametersService.ApplyToClass method
-func (mmApplyToClass *mParametersServiceMockApplyToClass) Set(f func(ctx context.Context, classID uint, rangeIDs []int, enumIDs []int) (i1 int, err error)) *ParametersServiceMock {
+func (mmApplyToClass *mParametersServiceMockApplyToClass) Set(f func(ctx context.Context, classID int64, rangeIDs []int, enumIDs []int) (i1 int, err error)) *ParametersServiceMock {
 	if mmApplyToClass.defaultExpectation != nil {
 		mmApplyToClass.mock.t.Fatalf("Default expectation is already set for the ParametersService.ApplyToClass method")
 	}
@@ -317,7 +317,7 @@ func (mmApplyToClass *mParametersServiceMockApplyToClass) Set(f func(ctx context
 
 // When sets expectation for the ParametersService.ApplyToClass which will trigger the result defined by the following
 // Then helper
-func (mmApplyToClass *mParametersServiceMockApplyToClass) When(ctx context.Context, classID uint, rangeIDs []int, enumIDs []int) *ParametersServiceMockApplyToClassExpectation {
+func (mmApplyToClass *mParametersServiceMockApplyToClass) When(ctx context.Context, classID int64, rangeIDs []int, enumIDs []int) *ParametersServiceMockApplyToClassExpectation {
 	if mmApplyToClass.mock.funcApplyToClass != nil {
 		mmApplyToClass.mock.t.Fatalf("ParametersServiceMock.ApplyToClass mock is already set by Set")
 	}
@@ -359,7 +359,7 @@ func (mmApplyToClass *mParametersServiceMockApplyToClass) invocationsDone() bool
 }
 
 // ApplyToClass implements mm_handlers.ParametersService
-func (mmApplyToClass *ParametersServiceMock) ApplyToClass(ctx context.Context, classID uint, rangeIDs []int, enumIDs []int) (i1 int, err error) {
+func (mmApplyToClass *ParametersServiceMock) ApplyToClass(ctx context.Context, classID int64, rangeIDs []int, enumIDs []int) (i1 int, err error) {
 	mm_atomic.AddUint64(&mmApplyToClass.beforeApplyToClassCounter, 1)
 	defer mm_atomic.AddUint64(&mmApplyToClass.afterApplyToClassCounter, 1)
 
@@ -868,13 +868,13 @@ type ParametersServiceMockDeleteRangeExpectation struct {
 // ParametersServiceMockDeleteRangeParams contains parameters of the ParametersService.DeleteRange
 type ParametersServiceMockDeleteRangeParams struct {
 	ctx context.Context
-	id  uint
+	id  int64
 }
 
 // ParametersServiceMockDeleteRangeParamPtrs contains pointers to parameters of the ParametersService.DeleteRange
 type ParametersServiceMockDeleteRangeParamPtrs struct {
 	ctx *context.Context
-	id  *uint
+	id  *int64
 }
 
 // ParametersServiceMockDeleteRangeResults contains results of the ParametersService.DeleteRange
@@ -901,7 +901,7 @@ func (mmDeleteRange *mParametersServiceMockDeleteRange) Optional() *mParametersS
 }
 
 // Expect sets up expected params for ParametersService.DeleteRange
-func (mmDeleteRange *mParametersServiceMockDeleteRange) Expect(ctx context.Context, id uint) *mParametersServiceMockDeleteRange {
+func (mmDeleteRange *mParametersServiceMockDeleteRange) Expect(ctx context.Context, id int64) *mParametersServiceMockDeleteRange {
 	if mmDeleteRange.mock.funcDeleteRange != nil {
 		mmDeleteRange.mock.t.Fatalf("ParametersServiceMock.DeleteRange mock is already set by Set")
 	}
@@ -949,7 +949,7 @@ func (mmDeleteRange *mParametersServiceMockDeleteRange) ExpectCtxParam1(ctx cont
 }
 
 // ExpectIdParam2 sets up expected param id for ParametersService.DeleteRange
-func (mmDeleteRange *mParametersServiceMockDeleteRange) ExpectIdParam2(id uint) *mParametersServiceMockDeleteRange {
+func (mmDeleteRange *mParametersServiceMockDeleteRange) ExpectIdParam2(id int64) *mParametersServiceMockDeleteRange {
 	if mmDeleteRange.mock.funcDeleteRange != nil {
 		mmDeleteRange.mock.t.Fatalf("ParametersServiceMock.DeleteRange mock is already set by Set")
 	}
@@ -972,7 +972,7 @@ func (mmDeleteRange *mParametersServiceMockDeleteRange) ExpectIdParam2(id uint) 
 }
 
 // Inspect accepts an inspector function that has same arguments as the ParametersService.DeleteRange
-func (mmDeleteRange *mParametersServiceMockDeleteRange) Inspect(f func(ctx context.Context, id uint)) *mParametersServiceMockDeleteRange {
+func (mmDeleteRange *mParametersServiceMockDeleteRange) Inspect(f func(ctx context.Context, id int64)) *mParametersServiceMockDeleteRange {
 	if mmDeleteRange.mock.inspectFuncDeleteRange != nil {
 		mmDeleteRange.mock.t.Fatalf("Inspect function is already set for ParametersServiceMock.DeleteRange")
 	}
@@ -997,7 +997,7 @@ func (mmDeleteRange *mParametersServiceMockDeleteRange) Return(rp1 *entities.Ran
 }
 
 // Set uses given function f to mock the ParametersService.DeleteRange method
-func (mmDeleteRange *mParametersServiceMockDeleteRange) Set(f func(ctx context.Context, id uint) (rp1 *entities.RangeParameter, err error)) *ParametersServiceMock {
+func (mmDeleteRange *mParametersServiceMockDeleteRange) Set(f func(ctx context.Context, id int64) (rp1 *entities.RangeParameter, err error)) *ParametersServiceMock {
 	if mmDeleteRange.defaultExpectation != nil {
 		mmDeleteRange.mock.t.Fatalf("Default expectation is already set for the ParametersService.DeleteRange method")
 	}
@@ -1013,7 +1013,7 @@ func (mmDeleteRange *mParametersServiceMockDeleteRange) Set(f func(ctx context.C
 
 // When sets expectation for the ParametersService.DeleteRange which will trigger the result defined by the following
 // Then helper
-func (mmDeleteRange *mParametersServiceMockDeleteRange) When(ctx context.Context, id uint) *ParametersServiceMockDeleteRangeExpectation {
+func (mmDeleteRange *mParametersServiceMockDeleteRange) When(ctx context.Context, id int64) *ParametersServiceMockDeleteRangeExpectation {
 	if mmDeleteRange.mock.funcDeleteRange != nil {
 		mmDeleteRange.mock.t.Fatalf("ParametersServiceMock.DeleteRange mock is already set by Set")
 	}
@@ -1055,7 +1055,7 @@ func (mmDeleteRange *mParametersServiceMockDeleteRange) invocationsDone() bool {
 }
 
 // DeleteRange implements mm_handlers.ParametersService
-func (mmDeleteRange *ParametersServiceMock) DeleteRange(ctx context.Context, id uint) (rp1 *entities.RangeParameter, err error) {
+func (mmDeleteRange *ParametersServiceMock) DeleteRange(ctx context.Context, id int64) (rp1 *entities.RangeParameter, err error) {
 	mm_atomic.AddUint64(&mmDeleteRange.beforeDeleteRangeCounter, 1)
 	defer mm_atomic.AddUint64(&mmDeleteRange.afterDeleteRangeCounter, 1)
 
@@ -1211,7 +1211,7 @@ type ParametersServiceMockExcludeFromClassExpectation struct {
 // ParametersServiceMockExcludeFromClassParams contains parameters of the ParametersService.ExcludeFromClass
 type ParametersServiceMockExcludeFromClassParams struct {
 	ctx      context.Context
-	classID  uint
+	classID  int64
 	rangeIDs []int
 	enumIDs  []int
 }
@@ -1219,7 +1219,7 @@ type ParametersServiceMockExcludeFromClassParams struct {
 // ParametersServiceMockExcludeFromClassParamPtrs contains pointers to parameters of the ParametersService.ExcludeFromClass
 type ParametersServiceMockExcludeFromClassParamPtrs struct {
 	ctx      *context.Context
-	classID  *uint
+	classID  *int64
 	rangeIDs *[]int
 	enumIDs  *[]int
 }
@@ -1250,7 +1250,7 @@ func (mmExcludeFromClass *mParametersServiceMockExcludeFromClass) Optional() *mP
 }
 
 // Expect sets up expected params for ParametersService.ExcludeFromClass
-func (mmExcludeFromClass *mParametersServiceMockExcludeFromClass) Expect(ctx context.Context, classID uint, rangeIDs []int, enumIDs []int) *mParametersServiceMockExcludeFromClass {
+func (mmExcludeFromClass *mParametersServiceMockExcludeFromClass) Expect(ctx context.Context, classID int64, rangeIDs []int, enumIDs []int) *mParametersServiceMockExcludeFromClass {
 	if mmExcludeFromClass.mock.funcExcludeFromClass != nil {
 		mmExcludeFromClass.mock.t.Fatalf("ParametersServiceMock.ExcludeFromClass mock is already set by Set")
 	}
@@ -1298,7 +1298,7 @@ func (mmExcludeFromClass *mParametersServiceMockExcludeFromClass) ExpectCtxParam
 }
 
 // ExpectClassIDParam2 sets up expected param classID for ParametersService.ExcludeFromClass
-func (mmExcludeFromClass *mParametersServiceMockExcludeFromClass) ExpectClassIDParam2(classID uint) *mParametersServiceMockExcludeFromClass {
+func (mmExcludeFromClass *mParametersServiceMockExcludeFromClass) ExpectClassIDParam2(classID int64) *mParametersServiceMockExcludeFromClass {
 	if mmExcludeFromClass.mock.funcExcludeFromClass != nil {
 		mmExcludeFromClass.mock.t.Fatalf("ParametersServiceMock.ExcludeFromClass mock is already set by Set")
 	}
@@ -1367,7 +1367,7 @@ func (mmExcludeFromClass *mParametersServiceMockExcludeFromClass) ExpectEnumIDsP
 }
 
 // Inspect accepts an inspector function that has same arguments as the ParametersService.ExcludeFromClass
-func (mmExcludeFromClass *mParametersServiceMockExcludeFromClass) Inspect(f func(ctx context.Context, classID uint, rangeIDs []int, enumIDs []int)) *mParametersServiceMockExcludeFromClass {
+func (mmExcludeFromClass *mParametersServiceMockExcludeFromClass) Inspect(f func(ctx context.Context, classID int64, rangeIDs []int, enumIDs []int)) *mParametersServiceMockExcludeFromClass {
 	if mmExcludeFromClass.mock.inspectFuncExcludeFromClass != nil {
 		mmExcludeFromClass.mock.t.Fatalf("Inspect function is already set for ParametersServiceMock.ExcludeFromClass")
 	}
@@ -1392,7 +1392,7 @@ func (mmExcludeFromClass *mParametersServiceMockExcludeFromClass) Return(i1 int,
 }
 
 // Set uses given function f to mock the ParametersService.ExcludeFromClass method
-func (mmExcludeFromClass *mParametersServiceMockExcludeFromClass) Set(f func(ctx context.Context, classID uint, rangeIDs []int, enumIDs []int) (i1 int, err error)) *ParametersServiceMock {
+func (mmExcludeFromClass *mParametersServiceMockExcludeFromClass) Set(f func(ctx context.Context, classID int64, rangeIDs []int, enumIDs []int) (i1 int, err error)) *ParametersServiceMock {
 	if mmExcludeFromClass.defaultExpectation != nil {
 		mmExcludeFromClass.mock.t.Fatalf("Default expectation is already set for the ParametersService.ExcludeFromClass method")
 	}
@@ -1408,7 +1408,7 @@ func (mmExcludeFromClass *mParametersServiceMockExcludeFromClass) Set(f func(ctx
 
 // When sets expectation for the ParametersService.ExcludeFromClass which will trigger the result defined by the following
 // Then helper
-func (mmExcludeFromClass *mParametersServiceMockExcludeFromClass) When(ctx context.Context, classID uint, rangeIDs []int, enumIDs []int) *ParametersServiceMockExcludeFromClassExpectation {
+func (mmExcludeFromClass *mParametersServiceMockExcludeFromClass) When(ctx context.Context, classID int64, rangeIDs []int, enumIDs []int) *ParametersServiceMockExcludeFromClassExpectation {
 	if mmExcludeFromClass.mock.funcExcludeFromClass != nil {
 		mmExcludeFromClass.mock.t.Fatalf("ParametersServiceMock.ExcludeFromClass mock is already set by Set")
 	}
@@ -1450,7 +1450,7 @@ func (mmExcludeFromClass *mParametersServiceMockExcludeFromClass) invocationsDon
 }
 
 // ExcludeFromClass implements mm_handlers.ParametersService
-func (mmExcludeFromClass *ParametersServiceMock) ExcludeFromClass(ctx context.Context, classID uint, rangeIDs []int, enumIDs []int) (i1 int, err error) {
+func (mmExcludeFromClass *ParametersServiceMock) ExcludeFromClass(ctx context.Context, classID int64, rangeIDs []int, enumIDs []int) (i1 int, err error) {
 	mm_atomic.AddUint64(&mmExcludeFromClass.beforeExcludeFromClassCounter, 1)
 	defer mm_atomic.AddUint64(&mmExcludeFromClass.afterExcludeFromClassCounter, 1)
 
@@ -1616,14 +1616,14 @@ type ParametersServiceMockListParametersExpectation struct {
 // ParametersServiceMockListParametersParams contains parameters of the ParametersService.ListParameters
 type ParametersServiceMockListParametersParams struct {
 	ctx           context.Context
-	classID       uint
+	classID       int64
 	parameterType int
 }
 
 // ParametersServiceMockListParametersParamPtrs contains pointers to parameters of the ParametersService.ListParameters
 type ParametersServiceMockListParametersParamPtrs struct {
 	ctx           *context.Context
-	classID       *uint
+	classID       *int64
 	parameterType *int
 }
 
@@ -1653,7 +1653,7 @@ func (mmListParameters *mParametersServiceMockListParameters) Optional() *mParam
 }
 
 // Expect sets up expected params for ParametersService.ListParameters
-func (mmListParameters *mParametersServiceMockListParameters) Expect(ctx context.Context, classID uint, parameterType int) *mParametersServiceMockListParameters {
+func (mmListParameters *mParametersServiceMockListParameters) Expect(ctx context.Context, classID int64, parameterType int) *mParametersServiceMockListParameters {
 	if mmListParameters.mock.funcListParameters != nil {
 		mmListParameters.mock.t.Fatalf("ParametersServiceMock.ListParameters mock is already set by Set")
 	}
@@ -1701,7 +1701,7 @@ func (mmListParameters *mParametersServiceMockListParameters) ExpectCtxParam1(ct
 }
 
 // ExpectClassIDParam2 sets up expected param classID for ParametersService.ListParameters
-func (mmListParameters *mParametersServiceMockListParameters) ExpectClassIDParam2(classID uint) *mParametersServiceMockListParameters {
+func (mmListParameters *mParametersServiceMockListParameters) ExpectClassIDParam2(classID int64) *mParametersServiceMockListParameters {
 	if mmListParameters.mock.funcListParameters != nil {
 		mmListParameters.mock.t.Fatalf("ParametersServiceMock.ListParameters mock is already set by Set")
 	}
@@ -1747,7 +1747,7 @@ func (mmListParameters *mParametersServiceMockListParameters) ExpectParameterTyp
 }
 
 // Inspect accepts an inspector function that has same arguments as the ParametersService.ListParameters
-func (mmListParameters *mParametersServiceMockListParameters) Inspect(f func(ctx context.Context, classID uint, parameterType int)) *mParametersServiceMockListParameters {
+func (mmListParameters *mParametersServiceMockListParameters) Inspect(f func(ctx context.Context, classID int64, parameterType int)) *mParametersServiceMockListParameters {
 	if mmListParameters.mock.inspectFuncListParameters != nil {
 		mmListParameters.mock.t.Fatalf("Inspect function is already set for ParametersServiceMock.ListParameters")
 	}
@@ -1772,7 +1772,7 @@ func (mmListParameters *mParametersServiceMockListParameters) Return(ra1 []entit
 }
 
 // Set uses given function f to mock the ParametersService.ListParameters method
-func (mmListParameters *mParametersServiceMockListParameters) Set(f func(ctx context.Context, classID uint, parameterType int) (ra1 []entities.RangeParameter, ea1 []entities.EnumParameter, err error)) *ParametersServiceMock {
+func (mmListParameters *mParametersServiceMockListParameters) Set(f func(ctx context.Context, classID int64, parameterType int) (ra1 []entities.RangeParameter, ea1 []entities.EnumParameter, err error)) *ParametersServiceMock {
 	if mmListParameters.defaultExpectation != nil {
 		mmListParameters.mock.t.Fatalf("Default expectation is already set for the ParametersService.ListParameters method")
 	}
@@ -1788,7 +1788,7 @@ func (mmListParameters *mParametersServiceMockListParameters) Set(f func(ctx con
 
 // When sets expectation for the ParametersService.ListParameters which will trigger the result defined by the following
 // Then helper
-func (mmListParameters *mParametersServiceMockListParameters) When(ctx context.Context, classID uint, parameterType int) *ParametersServiceMockListParametersExpectation {
+func (mmListParameters *mParametersServiceMockListParameters) When(ctx context.Context, classID int64, parameterType int) *ParametersServiceMockListParametersExpectation {
 	if mmListParameters.mock.funcListParameters != nil {
 		mmListParameters.mock.t.Fatalf("ParametersServiceMock.ListParameters mock is already set by Set")
 	}
@@ -1830,7 +1830,7 @@ func (mmListParameters *mParametersServiceMockListParameters) invocationsDone() 
 }
 
 // ListParameters implements mm_handlers.ParametersService
-func (mmListParameters *ParametersServiceMock) ListParameters(ctx context.Context, classID uint, parameterType int) (ra1 []entities.RangeParameter, ea1 []entities.EnumParameter, err error) {
+func (mmListParameters *ParametersServiceMock) ListParameters(ctx context.Context, classID int64, parameterType int) (ra1 []entities.RangeParameter, ea1 []entities.EnumParameter, err error) {
 	mm_atomic.AddUint64(&mmListParameters.beforeListParametersCounter, 1)
 	defer mm_atomic.AddUint64(&mmListParameters.afterListParametersCounter, 1)
 
@@ -1991,14 +1991,14 @@ type ParametersServiceMockUpdateRangeExpectation struct {
 // ParametersServiceMockUpdateRangeParams contains parameters of the ParametersService.UpdateRange
 type ParametersServiceMockUpdateRangeParams struct {
 	ctx     context.Context
-	id      uint
+	id      int64
 	updates map[string]any
 }
 
 // ParametersServiceMockUpdateRangeParamPtrs contains pointers to parameters of the ParametersService.UpdateRange
 type ParametersServiceMockUpdateRangeParamPtrs struct {
 	ctx     *context.Context
-	id      *uint
+	id      *int64
 	updates *map[string]any
 }
 
@@ -2027,7 +2027,7 @@ func (mmUpdateRange *mParametersServiceMockUpdateRange) Optional() *mParametersS
 }
 
 // Expect sets up expected params for ParametersService.UpdateRange
-func (mmUpdateRange *mParametersServiceMockUpdateRange) Expect(ctx context.Context, id uint, updates map[string]any) *mParametersServiceMockUpdateRange {
+func (mmUpdateRange *mParametersServiceMockUpdateRange) Expect(ctx context.Context, id int64, updates map[string]any) *mParametersServiceMockUpdateRange {
 	if mmUpdateRange.mock.funcUpdateRange != nil {
 		mmUpdateRange.mock.t.Fatalf("ParametersServiceMock.UpdateRange mock is already set by Set")
 	}
@@ -2075,7 +2075,7 @@ func (mmUpdateRange *mParametersServiceMockUpdateRange) ExpectCtxParam1(ctx cont
 }
 
 // ExpectIdParam2 sets up expected param id for ParametersService.UpdateRange
-func (mmUpdateRange *mParametersServiceMockUpdateRange) ExpectIdParam2(id uint) *mParametersServiceMockUpdateRange {
+func (mmUpdateRange *mParametersServiceMockUpdateRange) ExpectIdParam2(id int64) *mParametersServiceMockUpdateRange {
 	if mmUpdateRange.mock.funcUpdateRange != nil {
 		mmUpdateRange.mock.t.Fatalf("ParametersServiceMock.UpdateRange mock is already set by Set")
 	}
@@ -2121,7 +2121,7 @@ func (mmUpdateRange *mParametersServiceMockUpdateRange) ExpectUpdatesParam3(upda
 }
 
 // Inspect accepts an inspector function that has same arguments as the ParametersService.UpdateRange
-func (mmUpdateRange *mParametersServiceMockUpdateRange) Inspect(f func(ctx context.Context, id uint, updates map[string]any)) *mParametersServiceMockUpdateRange {
+func (mmUpdateRange *mParametersServiceMockUpdateRange) Inspect(f func(ctx context.Context, id int64, updates map[string]any)) *mParametersServiceMockUpdateRange {
 	if mmUpdateRange.mock.inspectFuncUpdateRange != nil {
 		mmUpdateRange.mock.t.Fatalf("Inspect function is already set for ParametersServiceMock.UpdateRange")
 	}
@@ -2146,7 +2146,7 @@ func (mmUpdateRange *mParametersServiceMockUpdateRange) Return(rp1 *entities.Ran
 }
 
 // Set uses given function f to mock the ParametersService.UpdateRange method
-func (mmUpdateRange *mParametersServiceMockUpdateRange) Set(f func(ctx context.Context, id uint, updates map[string]any) (rp1 *entities.RangeParameter, err error)) *ParametersServiceMock {
+func (mmUpdateRange *mParametersServiceMockUpdateRange) Set(f func(ctx context.Context, id int64, updates map[string]any) (rp1 *entities.RangeParameter, err error)) *ParametersServiceMock {
 	if mmUpdateRange.defaultExpectation != nil {
 		mmUpdateRange.mock.t.Fatalf("Default expectation is already set for the ParametersService.UpdateRange method")
 	}
@@ -2162,7 +2162,7 @@ func (mmUpdateRange *mParametersServiceMockUpdateRange) Set(f func(ctx context.C
 
 // When sets expectation for the ParametersService.UpdateRange which will trigger the result defined by the following
 // Then helper
-func (mmUpdateRange *mParametersServiceMockUpdateRange) When(ctx context.Context, id uint, updates map[string]any) *ParametersServiceMockUpdateRangeExpectation {
+func (mmUpdateRange *mParametersServiceMockUpdateRange) When(ctx context.Context, id int64, updates map[string]any) *ParametersServiceMockUpdateRangeExpectation {
 	if mmUpdateRange.mock.funcUpdateRange != nil {
 		mmUpdateRange.mock.t.Fatalf("ParametersServiceMock.UpdateRange mock is already set by Set")
 	}
@@ -2204,7 +2204,7 @@ func (mmUpdateRange *mParametersServiceMockUpdateRange) invocationsDone() bool {
 }
 
 // UpdateRange implements mm_handlers.ParametersService
-func (mmUpdateRange *ParametersServiceMock) UpdateRange(ctx context.Context, id uint, updates map[string]any) (rp1 *entities.RangeParameter, err error) {
+func (mmUpdateRange *ParametersServiceMock) UpdateRange(ctx context.Context, id int64, updates map[string]any) (rp1 *entities.RangeParameter, err error) {
 	mm_atomic.AddUint64(&mmUpdateRange.beforeUpdateRangeCounter, 1)
 	defer mm_atomic.AddUint64(&mmUpdateRange.afterUpdateRangeCounter, 1)
 

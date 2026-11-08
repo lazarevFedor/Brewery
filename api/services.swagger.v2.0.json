@@ -820,21 +820,12 @@
         "tags": [
           "Materials"
         ],
-        "summary": "Calculate total material consumption norms of given class for product",
-        "description": "Сводка по материалам заданного класса: какой материал и сколько всего его требуется для изготовления изделия (с учётом всей глубины состава).",
+        "summary": "Calculate total material consumption norms for product",
+        "description": "Сводные нормы расхода для всего изделия (CALC_BOM): какой материал и сколько всего его требуется для изготовления изделия с учётом всей глубины состава.",
         "operationId": "calculateMaterialNorms",
         "parameters": [
           {
             "$ref": "#/components/parameters/Id"
-          },
-          {
-            "name": "class_id",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            },
-            "description": "Класс материалов, по которому считаются нормы"
           }
         ],
         "responses": {
