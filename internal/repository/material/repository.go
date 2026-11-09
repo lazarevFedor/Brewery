@@ -33,6 +33,7 @@ func (repo *Repository) InsertMaterial(ctx context.Context, material entities.Ma
 		MaterialID:     material.MaterialID,
 		ProductID:      material.ProductID,
 		MaterialAmount: material.MaterialAmount,
+		Base:           material.Base,
 	}
 	dbMaterial, err := repo.query.InsertMaterial(ctx, params)
 	if err != nil {
@@ -51,6 +52,7 @@ func (repo *Repository) UpdateMaterial(ctx context.Context, material entities.Ma
 		MaterialID:     material.MaterialID,
 		ProductID:      material.ProductID,
 		MaterialAmount: material.MaterialAmount,
+		Base:           material.Base,
 	}
 
 	dbMaterial, err := repo.query.UpdateMaterial(ctx, updateParams)

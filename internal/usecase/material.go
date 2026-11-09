@@ -48,6 +48,13 @@ func (s *MaterialService) CreateMaterial(ctx context.Context, material entities.
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
+	if material.ProductID <= 0 || material.MaterialID <= 0 {
+		return nil, errors.New("invalid product id or material id")
+	}
+	if err := validateMaterialComposition(ctx, s.repo, material.ProductID, []int64{material.MaterialID}); err != nil {
+		return nil, fmt.Errorf("failed to validate material composition: %w", err)
+	}
+
 	insertedMaterial, err := s.repo.InsertMaterial(ctx, material)
 	if err != nil {
 		return nil, fmt.Errorf("failed to insert material: %w", err)
@@ -60,24 +67,20 @@ func (s *MaterialService) CreateMaterial(ctx context.Context, material entities.
 	return insertedMaterial, nil
 }
 
-func (s *MaterialService) UpdateMaterial(ctx context.Context, productID, materialID int64, amount float32) (*entities.Material, error) {
+func (s *MaterialService) UpdateMaterial(ctx context.Context, material entities.Material) (*entities.Material, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	if productID == 0 || materialID == 0 {
+	if material.ProductID == 0 || material.MaterialID == 0 {
 		return nil, errors.New("invalid product id or material id")
 	}
 
-	if amount < 0 {
+	if material.MaterialAmount < 0 {
 		return nil, errors.New("invalid material amount")
 	}
 
-	m, err := s.repo.UpdateMaterial(ctx, entities.Material{
-		ProductID:      productID,
-		MaterialID:     materialID,
-		MaterialAmount: amount,
-	})
+	m, err := s.repo.UpdateMaterial(ctx, material)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update material: %w", err)
 	}

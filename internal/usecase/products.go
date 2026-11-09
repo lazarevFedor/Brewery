@@ -140,6 +140,30 @@ func (ps *ProductService) UpdateProduct(ctx context.Context, id int64, updates m
 		return nil, fmt.Errorf("failed to validate updates: %w", err)
 	}
 
+	if baseID, ok := updates["base_id"].(int64); ok {
+		if baseID == id {
+			return nil, errors.New("product cannot be its own base")
+		}
+		if ps.materialRepo == nil {
+			return nil, errors.New("material repository is nil")
+		}
+		materials, err := ps.materialRepo.GetMaterialsByProduct(ctx, baseID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get base product materials: %w", err)
+		}
+		materialIDs := make([]int64, 0, len(materials))
+		for _, material := range materials {
+			materialID := material.MaterialID
+			if materialID == 0 {
+				materialID = material.ID
+			}
+			materialIDs = append(materialIDs, materialID)
+		}
+		if err := validateMaterialComposition(ctx, ps.materialRepo, id, materialIDs); err != nil {
+			return nil, fmt.Errorf("failed to validate base product composition: %w", err)
+		}
+	}
+
 	p, err := ps.repo.UpdateProduct(ctx, id, updates)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update product: %w", err)

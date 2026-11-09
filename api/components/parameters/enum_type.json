@@ -1,8 +1,0 @@
-{
-    "EnumType": {
-        "name": "enum_type",
-        "in": "query",
-        "required": true,
-        "schema": { "type": "string" }
-    } 
-}

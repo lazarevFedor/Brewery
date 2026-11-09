@@ -81,6 +81,7 @@ func (c *MaterialMapperImpl) FromDBMaterial(source queries.Material) entities.Ma
 	entitiesMaterial.MaterialID = source.MaterialID
 	entitiesMaterial.ProductID = source.ProductID
 	entitiesMaterial.MaterialAmount = source.MaterialAmount
+	entitiesMaterial.Base = source.Base
 	return entitiesMaterial
 }
 func (c *MaterialMapperImpl) FromGetByMaterial(source []queries.GetProductsByMaterialRow) []entities.MaterialProduct {
@@ -119,12 +120,14 @@ func (c *MaterialMapperImpl) MaterialFromMaterialRow(source queries.GetProductsB
 	var entitiesMaterial entities.Material
 	entitiesMaterial.ProductID = source.ID
 	entitiesMaterial.MaterialAmount = source.MaterialAmount
+	entitiesMaterial.Base = source.Base
 	return entitiesMaterial
 }
 func (c *MaterialMapperImpl) MaterialFromProductRow(source queries.GetMaterialsByProductIDRow) entities.Material {
 	var entitiesMaterial entities.Material
 	entitiesMaterial.MaterialID = source.ID
 	entitiesMaterial.MaterialAmount = source.MaterialAmount
+	entitiesMaterial.Base = source.Base
 	return entitiesMaterial
 }
 func (c *MaterialMapperImpl) ProductFromMaterialRow(source queries.GetProductsByMaterialRow) entities.Product {

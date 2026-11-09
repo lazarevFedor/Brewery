@@ -45,6 +45,7 @@ type Material struct {
 	MaterialID     int64
 	ProductID      int64
 	MaterialAmount float32
+	Base           bool
 }
 
 type ParameterValue struct {

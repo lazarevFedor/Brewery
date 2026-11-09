@@ -5,6 +5,7 @@ type Material struct {
 	MaterialID     int64
 	ProductID      int64
 	MaterialAmount float32
+	Base           bool
 }
 
 // MaterialProduct - материал вместе с данными изделия (материал - это тоже изделие).
