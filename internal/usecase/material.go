@@ -48,6 +48,13 @@ func (s *MaterialService) CreateMaterial(ctx context.Context, material entities.
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
+	if material.ProductID <= 0 || material.MaterialID <= 0 {
+		return nil, errors.New("invalid product id or material id")
+	}
+	if err := validateMaterialComposition(ctx, s.repo, material.ProductID, []int64{material.MaterialID}); err != nil {
+		return nil, fmt.Errorf("failed to validate material composition: %w", err)
+	}
+
 	insertedMaterial, err := s.repo.InsertMaterial(ctx, material)
 	if err != nil {
 		return nil, fmt.Errorf("failed to insert material: %w", err)
