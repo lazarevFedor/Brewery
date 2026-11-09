@@ -4,14 +4,17 @@ import (
 	"Brewery/internal/entities"
 	mpr "Brewery/internal/repository/mapper"
 	"Brewery/internal/repository/queries"
+	"Brewery/pkg/logger"
 	"context"
 	"errors"
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"go.uber.org/zap"
 )
 
 var mapper = mpr.ClassMapperImpl{}
+var log, _ = logger.GetLoggerFromCtx(context.TODO())
 
 type Repository struct {
 	Pool  *pgxpool.Pool
@@ -42,7 +45,7 @@ func (repo *Repository) InsertClass(ctx context.Context, class entities.Class) (
 	}
 	insertParams := queries.InsertClassParams{
 		Name:     class.Name,
-		ParentID: &class.ParentID,
+		ParentID: class.ParentID,
 	}
 	dbClass, err := repo.query.InsertClass(ctx, insertParams)
 	if err != nil {
@@ -55,6 +58,8 @@ func (repo *Repository) GetClassByID(ctx context.Context, id int64) (*entities.C
 	if repo.Pool == nil {
 		return nil, errors.New("db pool is empty")
 	}
+	
+	log.Debug(ctx, "class id", zap.Int64("id", id))
 	dbClass, err := repo.query.GetClassByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("GetClassByID: %w", err)
@@ -68,20 +73,20 @@ func (repo *Repository) UpdateClass(ctx context.Context, id int64, updates entit
 	if repo.Pool == nil {
 		return nil, errors.New("db pool is empty")
 	}
-
 	updateParams := queries.UpdateClassParams{ID: id}
 
-	if updates.ParentID == 0 {
-		updateParams.ParentID = nil
+	if updates.ParentID != nil {
+		updateParams.ParentID = updates.ParentID
 	}
-	if updates.Name == "" {
-		updateParams.Name = nil
+	if updates.Name != "" {
+		updateParams.Name = &updates.Name
 	}
 
 	dbClass, err := repo.query.UpdateClass(ctx, updateParams)
 	if err != nil {
 		return nil, fmt.Errorf("UpdateClass: %w", err)
 	}
+
 	class := mapper.FromDBClass(dbClass)
 	return &class, nil
 }

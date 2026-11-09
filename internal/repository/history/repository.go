@@ -1,6 +1,7 @@
 package history
 
 import (
+	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
 	mpr "Brewery/internal/repository/mapper"
 	"Brewery/internal/repository/queries"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -36,6 +38,10 @@ func (repo *Repository) InsertChangeRecord(ctx context.Context, record entities.
 	}
 	dbRecord, err := repo.query.InsertChange(ctx, params)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23503" && pgErr.ConstraintName == "change_history_product_id_fkey" {
+			return nil, apperrors.NotFound(fmt.Sprintf("Product with id %d not found", record.ProductID), err)
+		}
 		return nil, fmt.Errorf("InsertChange: %w", err)
 	}
 	record = repo.mapper.FromDBChangeRecord(dbRecord)
@@ -50,41 +56,44 @@ func (repo *Repository) GetHistoryByProduct(
 	if repo.Pool == nil {
 		return nil, errors.New("db pool is empty")
 	}
-	builder := squirrel.Select("id", "name", "amount", "created_at").
+	builder := squirrel.Select("id", "product_id", "changes", "created_at").
 		From("change_history").
 		PlaceholderFormat(squirrel.Dollar).
-		Where(squirrel.Eq{"product_id": productID})
+		Where(squirrel.Eq{"product_id": productID}).
+		OrderBy("created_at DESC", "id DESC")
 
 	if !start.IsZero() {
 		builder = builder.Where(squirrel.GtOrEq{"created_at": start})
 	}
 	if !end.IsZero() {
-		builder = builder.Where(squirrel.LtOrEq{"created_at": start})
+		builder = builder.Where(squirrel.LtOrEq{"created_at": end})
 	}
 	if limit != 0 {
 		builder = builder.Limit(uint64(limit))
 	}
 	if offset != 0 {
-		builder = builder.Limit(uint64(offset))
+		builder = builder.Offset(uint64(offset))
 	}
 	sql, args, err := builder.ToSql()
 	if err != nil {
 		return nil, err
 	}
 
-	// 2. Выполняем собранный запрос через pgxpool
 	rows, err := repo.Pool.Query(ctx, sql, args...)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var dbHistory []queries.ChangeHistory // Можно переиспользовать структуру от sqlc!
+	var dbHistory []queries.ChangeHistory
 	for rows.Next() {
 		var p queries.ChangeHistory
 		if err := rows.Scan(&p.ID, &p.ProductID, &p.Changes, &p.CreatedAt); err != nil {
 			return nil, err
 		}
 		dbHistory = append(dbHistory, p)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("read product history: %w", err)
 	}
 	return repo.mapper.FromDBChangeHistory(dbHistory), nil
 }

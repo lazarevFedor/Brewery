@@ -24,7 +24,7 @@ type ProductRepository interface {
 
 // NewProductRepository создает новый экземпляр ProductRepository с использованием предоставленного пула соединений к базе данных.
 func NewProductRepository(pool *pgxpool.Pool) ProductRepository {
-	return &product.Repository{Pool: pool}
+	return product.NewRepository(pool)
 }
 
 type ProductService struct {
@@ -98,6 +98,7 @@ func (ps *ProductService) CreateProduct(ctx context.Context, p entities.Product)
 		return nil, errors.New("failed to create product: returned product is nil")
 	}
 
+	createdProduct.ProdClass = p.ProdClass
 	return createdProduct, nil
 }
 
@@ -224,8 +225,6 @@ func (ps *ProductService) GetProductByID(ctx context.Context, id int64) (*entiti
 }
 
 func (ps *ProductService) ValidateUpdates(ctx context.Context, updates map[string]any) error {
-	var baseIDInt int64
-
 	if len(updates) == 0 {
 		return errors.New("no fields to update")
 	}
@@ -249,18 +248,22 @@ func (ps *ProductService) ValidateUpdates(ctx context.Context, updates map[strin
 			}
 		case "base_id":
 			baseID, _ := updates[key]
-			if baseIDInt, ok := toInt64Value(baseID); !ok || baseIDInt == 0 {
+			baseIDInt, ok := toInt64Value(baseID)
+			if !ok || baseIDInt <= 0 {
 				return errors.New("invalid base id")
 			}
 			_, err := ps.repo.GetProductByID(ctx, baseIDInt)
 			if err != nil {
 				return fmt.Errorf("base product with id %d does not exist: %w", baseIDInt, err)
 			}
+			updates[key] = baseIDInt
 		case "amount":
 			amount, _ := updates[key]
-			if _, ok := toFloat64Value(amount); !ok {
+			amountValue, ok := toFloat64Value(amount)
+			if !ok {
 				return errors.New("invalid amount")
 			}
+			updates[key] = float32(amountValue)
 		case "units":
 			units, _ := updates[key]
 			if unitsStr, ok := units.(string); !ok || unitsStr == "" {

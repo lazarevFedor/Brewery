@@ -9,10 +9,10 @@ import (
 )
 
 const (
-	NumericParametersTable = "numeric_parameters"
-	EnumParametersTable    = "enum_parameters"
+	RangeParametersTable = "range_parameters"
+	EnumParametersTable  = "enum_parameters"
 
-	NumericReturningFields = "id, min_val, max_val, field_name, entity_name, inheritable"
+	NumericReturningFields = "id, min_val, max_val, field_name, inheritable, unit"
 	EnumReturningFields    = "id, enum_class_id, inheritable"
 )
 
@@ -24,10 +24,11 @@ func InsertNumericParameter(param *entities.RangeParameter) sq.InsertBuilder {
 		"max_val":     param.MaxValue,
 		"field_name":  param.FieldName,
 		"inheritable": param.Inheritable,
+		"unit":        param.Unit,
 	}
 
 	return psql.
-		Insert(NumericParametersTable).
+		Insert(RangeParametersTable).
 		SetMap(data).
 		Suffix("RETURNING id")
 }
@@ -36,7 +37,7 @@ func InsertNumericParameter(param *entities.RangeParameter) sq.InsertBuilder {
 // существующего числового параметра в базе данных.
 func UpdateNumericParameter(id int64, updates map[string]any) sq.UpdateBuilder {
 	return psql.
-		Update(NumericParametersTable).
+		Update(RangeParametersTable).
 		SetMap(updates).
 		Where(sq.Eq{"id": id}).
 		Suffix("RETURNING " + NumericReturningFields)
@@ -46,7 +47,7 @@ func UpdateNumericParameter(id int64, updates map[string]any) sq.UpdateBuilder {
 // удаления числового параметра из базы данных.
 func DeleteNumericParameter(id int64) sq.DeleteBuilder {
 	return psql.
-		Delete(NumericParametersTable).
+		Delete(RangeParametersTable).
 		Where(sq.Eq{"id": id}).
 		Suffix("RETURNING " + NumericReturningFields)
 }
@@ -112,7 +113,7 @@ func SelectParameterIDsByCategory(categoryID int64, parameterType int) sq.Select
 func SelectNumericParameters(ids []int64) sq.SelectBuilder {
 	query := psql.
 		Select(NumericReturningFields).
-		From(NumericParametersTable)
+		From(RangeParametersTable)
 
 	if len(ids) > 0 {
 		query = query.Where(sq.Eq{"id": ids})

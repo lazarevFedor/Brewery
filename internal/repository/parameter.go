@@ -242,8 +242,8 @@ func (p *ParameterPostgres) ApplyParameters(ctx context.Context, categoryID int6
 // scanNumericParameter сканирует строку из базы данных в структуру RangeParameter и возвращает ее.
 func scanNumericParameter(row pgx.Row) (*entities.RangeParameter, error) {
 	var param entities.RangeParameter
-	err := row.Scan(&param.ID, &param.MinValue,
-		&param.MaxValue, &param.FieldName, &param.Inheritable)
+	err := row.Scan(&param.ID, &param.MinValue, &param.MaxValue,
+		&param.FieldName, &param.Inheritable, &param.Unit)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Scan", err)
 	}

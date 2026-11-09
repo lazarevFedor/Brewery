@@ -15,7 +15,8 @@ func (c *ClassMapperImpl) FromDBClass(source queries.Class) entities.Class {
 	entitiesClass.ID = source.ID
 	entitiesClass.Name = source.Name
 	if source.ParentID != nil {
-		entitiesClass.ParentID = *source.ParentID
+		xint64 := *source.ParentID
+		entitiesClass.ParentID = &xint64
 	}
 	if source.NumericParameterIds != nil {
 		entitiesClass.RangeParamIDs = make([]int64, len(source.NumericParameterIds))
@@ -46,7 +47,8 @@ func (c *ClassMapperImpl) FromInsert(source queries.InsertClassRow) entities.Cla
 	entitiesClass.ID = source.ID
 	entitiesClass.Name = source.Name
 	if source.ParentID != nil {
-		entitiesClass.ParentID = *source.ParentID
+		xint64 := *source.ParentID
+		entitiesClass.ParentID = &xint64
 	}
 	return entitiesClass
 }
@@ -86,7 +88,7 @@ func (c *MaterialMapperImpl) FromGetByMaterial(source []queries.GetProductsByMat
 	if source != nil {
 		entitiesMaterialProductList = make([]entities.MaterialProduct, len(source))
 		for i := 0; i < len(source); i++ {
-			entitiesMaterialProductList[i] = c.queriesGetProductsByMaterialRowToEntitiesMaterialProduct(source[i])
+			entitiesMaterialProductList[i] = c.FromMaterialRow(source[i])
 		}
 	}
 	return entitiesMaterialProductList
@@ -96,18 +98,60 @@ func (c *MaterialMapperImpl) FromGetByProduct(source []queries.GetMaterialsByPro
 	if source != nil {
 		entitiesMaterialProductList = make([]entities.MaterialProduct, len(source))
 		for i := 0; i < len(source); i++ {
-			entitiesMaterialProductList[i] = c.queriesGetMaterialsByProductIDRowToEntitiesMaterialProduct(source[i])
+			entitiesMaterialProductList[i] = c.FromProductRow(source[i])
 		}
 	}
 	return entitiesMaterialProductList
 }
-func (c *MaterialMapperImpl) queriesGetMaterialsByProductIDRowToEntitiesMaterialProduct(source queries.GetMaterialsByProductIDRow) entities.MaterialProduct {
+func (c *MaterialMapperImpl) FromMaterialRow(source queries.GetProductsByMaterialRow) entities.MaterialProduct {
 	var entitiesMaterialProduct entities.MaterialProduct
+	entitiesMaterialProduct.Material = c.MaterialFromMaterialRow(source)
+	entitiesMaterialProduct.Product = c.ProductFromMaterialRow(source)
 	return entitiesMaterialProduct
 }
-func (c *MaterialMapperImpl) queriesGetProductsByMaterialRowToEntitiesMaterialProduct(source queries.GetProductsByMaterialRow) entities.MaterialProduct {
+func (c *MaterialMapperImpl) FromProductRow(source queries.GetMaterialsByProductIDRow) entities.MaterialProduct {
 	var entitiesMaterialProduct entities.MaterialProduct
+	entitiesMaterialProduct.Material = c.MaterialFromProductRow(source)
+	entitiesMaterialProduct.Product = c.ProductFromProductRow(source)
 	return entitiesMaterialProduct
+}
+func (c *MaterialMapperImpl) MaterialFromMaterialRow(source queries.GetProductsByMaterialRow) entities.Material {
+	var entitiesMaterial entities.Material
+	entitiesMaterial.ProductID = source.ID
+	entitiesMaterial.MaterialAmount = source.MaterialAmount
+	return entitiesMaterial
+}
+func (c *MaterialMapperImpl) MaterialFromProductRow(source queries.GetMaterialsByProductIDRow) entities.Material {
+	var entitiesMaterial entities.Material
+	entitiesMaterial.MaterialID = source.ID
+	entitiesMaterial.MaterialAmount = source.MaterialAmount
+	return entitiesMaterial
+}
+func (c *MaterialMapperImpl) ProductFromMaterialRow(source queries.GetProductsByMaterialRow) entities.Product {
+	var entitiesProduct entities.Product
+	entitiesProduct.ID = source.ID
+	entitiesProduct.Name = source.Name
+	entitiesProduct.ProdClass = ClassFromID(source.ClassID)
+	if source.BaseID != nil {
+		entitiesProduct.BaseID = *source.BaseID
+	}
+	if source.Units != nil {
+		entitiesProduct.Unit = *source.Units
+	}
+	return entitiesProduct
+}
+func (c *MaterialMapperImpl) ProductFromProductRow(source queries.GetMaterialsByProductIDRow) entities.Product {
+	var entitiesProduct entities.Product
+	entitiesProduct.ID = source.ID
+	entitiesProduct.Name = source.Name
+	entitiesProduct.ProdClass = ClassFromID(source.ClassID)
+	if source.BaseID != nil {
+		entitiesProduct.BaseID = *source.BaseID
+	}
+	if source.Units != nil {
+		entitiesProduct.Unit = *source.Units
+	}
+	return entitiesProduct
 }
 
 type ProductMapperImpl struct{}
@@ -129,6 +173,7 @@ func (c *ProductMapperImpl) FromDBProduct(source queries.Product) entities.Produ
 	var entitiesProduct entities.Product
 	entitiesProduct.ID = source.ID
 	entitiesProduct.Name = source.Name
+	entitiesProduct.ProdClass = ClassFromID(source.ClassID)
 	if source.BaseID != nil {
 		entitiesProduct.BaseID = *source.BaseID
 	}
@@ -151,6 +196,7 @@ func (c *ProductMapperImpl) FromInsert(source queries.InsertProductRow) entities
 	var entitiesProduct entities.Product
 	entitiesProduct.ID = source.ID
 	entitiesProduct.Name = source.Name
+	entitiesProduct.ProdClass = ClassFromID(source.ClassID)
 	if source.BaseID != nil {
 		entitiesProduct.BaseID = *source.BaseID
 	}

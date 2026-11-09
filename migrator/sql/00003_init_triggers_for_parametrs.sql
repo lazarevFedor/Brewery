@@ -147,9 +147,9 @@ BEGIN
     END IF;
 
     WITH RECURSIVE children AS (
-        SELECT id FROM product_categories WHERE parent_id = ANY(p_parent_ids)
+        SELECT id FROM classes WHERE parent_id = ANY(p_parent_ids)
         UNION ALL
-        SELECT pc.id FROM product_categories pc JOIN children c ON pc.parent_id = c.id
+        SELECT c.id FROM classes c JOIN children ch ON c.parent_id = ch.id
     )
     SELECT coalesce(array_agg(id), '{}') INTO v_ids FROM children;
 
@@ -171,12 +171,12 @@ BEGIN
         RETURN 0;
     END IF;
 
-    UPDATE product_categories pc
+    UPDATE classes c
     SET numeric_parameter_ids = (
         SELECT coalesce(array_agg(DISTINCT x ORDER BY x), '{}')
-        FROM unnest(coalesce(pc.numeric_parameter_ids, '{}') || p_parameter_ids) AS x
+        FROM unnest(coalesce(c.numeric_parameter_ids, '{}') || p_parameter_ids) AS x
     )
-    WHERE pc.id = ANY(p_category_ids);
+    WHERE c.id = ANY(p_category_ids);
 
     GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
     RETURN v_rows_affected;
@@ -197,13 +197,13 @@ BEGIN
         RETURN 0;
     END IF;
 
-    UPDATE product_categories pc
+    UPDATE classes c
     SET numeric_parameter_ids = (
         SELECT coalesce(array_agg(x ORDER BY x), '{}')
-        FROM unnest(coalesce(pc.numeric_parameter_ids, '{}')) AS x
+        FROM unnest(coalesce(c.numeric_parameter_ids, '{}')) AS x
         WHERE NOT (x = ANY(p_parameter_ids))
     )
-    WHERE pc.id = ANY(p_category_ids);
+    WHERE c.id = ANY(p_category_ids);
 
     GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
     RETURN v_rows_affected;
@@ -224,12 +224,12 @@ BEGIN
         RETURN 0;
     END IF;
 
-    UPDATE product_categories pc
+    UPDATE classes c
     SET enum_parameter_ids = (
         SELECT coalesce(array_agg(DISTINCT x ORDER BY x), '{}')
-        FROM unnest(coalesce(pc.enum_parameter_ids, '{}') || p_parameter_ids) AS x
+        FROM unnest(coalesce(c.enum_parameter_ids, '{}') || p_parameter_ids) AS x
     )
-    WHERE pc.id = ANY(p_category_ids);
+    WHERE c.id = ANY(p_category_ids);
 
     GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
     RETURN v_rows_affected;
@@ -250,13 +250,13 @@ BEGIN
         RETURN 0;
     END IF;
 
-    UPDATE product_categories pc
+    UPDATE classes c
     SET enum_parameter_ids = (
         SELECT coalesce(array_agg(x ORDER BY x), '{}')
-        FROM unnest(coalesce(pc.enum_parameter_ids, '{}')) AS x
+        FROM unnest(coalesce(c.enum_parameter_ids, '{}')) AS x
         WHERE NOT (x = ANY(p_parameter_ids))
     )
-    WHERE pc.id = ANY(p_category_ids);
+    WHERE c.id = ANY(p_category_ids);
 
     GET DIAGNOSTICS v_rows_affected = ROW_COUNT;
     RETURN v_rows_affected;
@@ -277,13 +277,13 @@ DECLARE
 BEGIN
     SELECT array_agg(DISTINCT nid)
     INTO v_inheritable_numeric
-    FROM unnest(coalesce((SELECT numeric_parameter_ids FROM product_categories WHERE id = p_parent_id), '{}')) AS nid
-    JOIN numeric_parameters np ON np.id = nid
-    WHERE np.inheritable IS TRUE;
+    FROM unnest(coalesce((SELECT numeric_parameter_ids FROM classes WHERE id = p_parent_id), '{}')) AS nid
+    JOIN range_parameters rp ON rp.id = nid
+    WHERE rp.inheritable IS TRUE;
 
     SELECT array_agg(DISTINCT nid)
     INTO v_inheritable_enum
-    FROM unnest(coalesce((SELECT enum_parameter_ids FROM product_categories WHERE id = p_parent_id), '{}')) AS nid
+    FROM unnest(coalesce((SELECT enum_parameter_ids FROM classes WHERE id = p_parent_id), '{}')) AS nid
     JOIN enum_parameters ep ON ep.id = nid
     WHERE ep.inheritable IS TRUE;
 
@@ -353,7 +353,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION cleanup_numeric_parameter_from_categories()
 RETURNS TRIGGER AS $$
 BEGIN
-    UPDATE product_categories
+    UPDATE classes
     SET numeric_parameter_ids = array_remove(numeric_parameter_ids, OLD.id)
     WHERE numeric_parameter_ids @> ARRAY[OLD.id];
 
@@ -375,7 +375,7 @@ EXECUTE FUNCTION cleanup_numeric_parameter_from_categories();
 CREATE OR REPLACE FUNCTION cleanup_enum_parameter_from_categories()
 RETURNS TRIGGER AS $$
 BEGIN
-    UPDATE product_categories
+    UPDATE classes
     SET enum_parameter_ids = array_remove(enum_parameter_ids, OLD.id)
     WHERE enum_parameter_ids @> ARRAY[OLD.id];
 

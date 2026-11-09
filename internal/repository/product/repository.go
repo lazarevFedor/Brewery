@@ -29,15 +29,36 @@ func (repo *Repository) InsertProduct(ctx context.Context, product entities.Prod
 	if repo.Pool == nil {
 		return nil, errors.New("db pool is empty")
 	}
-	params := queries.InsertProductParams{
-		Name:   product.Name,
-		Amount: &product.Amount,
-		Units:  &product.Unit,
-		BaseID: &product.BaseID,
+	tx, err := repo.Pool.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to begin tx: %w", err)
 	}
-	productRow, err := repo.query.InsertProduct(ctx, params)
+	defer tx.Rollback(ctx)
+	qTx := repo.query.WithTx(tx)
+
+	params := queries.InsertProductParams{
+		Name:    product.Name,
+		Amount:  &product.Amount,
+		Units:   &product.Unit,
+		ClassID: product.ProdClass.ID,
+	}
+	if product.BaseID != 0 {
+		params.BaseID = &product.BaseID
+	}
+	productRow, err := qTx.InsertProduct(ctx, params)
 	if err != nil {
 		return nil, fmt.Errorf("InsertProduct: %w", err)
+	}
+	if product.BaseID != 0 {
+		if err := qTx.CopyBaseMaterials(ctx, queries.CopyBaseMaterialsParams{
+			ProductID: productRow.ID,
+			BaseID:    product.BaseID,
+		}); err != nil {
+			return nil, fmt.Errorf("CopyBaseMaterials: %w", err)
+		}
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("failed to commit product creation: %w", err)
 	}
 	product = repo.mapper.FromInsert(productRow)
 	return &product, nil
@@ -94,8 +115,8 @@ func (repo *Repository) UpdateProduct(ctx context.Context, id int64, updates map
 		}
 	}
 	if val, ok := updates["units"]; ok {
-		if units, ok := val.(float32); ok {
-			params.Amount = &units
+		if units, ok := val.(string); ok {
+			params.Units = &units
 		}
 	}
 	if val, ok := updates["class_id"]; ok {
@@ -103,7 +124,6 @@ func (repo *Repository) UpdateProduct(ctx context.Context, id int64, updates map
 			params.ClassID = &classID
 		}
 	}
-	var baseID int64 = -1
 	if val, ok := updates["base_id"]; ok {
 		if baseID, ok := val.(int64); ok {
 			params.BaseID = &baseID
@@ -116,24 +136,24 @@ func (repo *Repository) UpdateProduct(ctx context.Context, id int64, updates map
 	}
 
 	// При обновлении base_id необходимо поменять все необходимые материалы со старого изделия на новое
-	if baseID != -1 {
+	if params.BaseID != nil {
 		if err := qTx.DeleteProductsMaterials(ctx, id); err != nil {
 			return nil, fmt.Errorf("DeleteProductsMaterials: %w", err)
 		}
-		params := queries.CopyBaseMaterialsParams{
+		copyParams := queries.CopyBaseMaterialsParams{
 			ProductID: id,
-			BaseID:    baseID,
+			BaseID:    *params.BaseID,
 		}
-		err := qTx.CopyBaseMaterials(ctx, params)
+		err := qTx.CopyBaseMaterials(ctx, copyParams)
 		if err != nil {
 			return nil, fmt.Errorf("CopyBaseMaterials: %w", err)
 		}
 	}
 	err = tx.Commit(ctx)
-	if err != nil{
+	if err != nil {
 		return nil, fmt.Errorf("Commot: %w", err)
 	}
-	
+
 	products := repo.mapper.FromUpdate(dbProduct)
 	return &products, nil
 }
@@ -207,8 +227,9 @@ func (repo *Repository) GetFilteredProducts(
 	}
 
 	if classID != nil {
-		builder = builder.Where(squirrel.Eq{"product_id": *classID})
+		builder = builder.Where(squirrel.Eq{"class_id": *classID})
 	}
+	builder = builder.OrderBy("id").Limit(uint64(limit)).Offset(uint64(offset))
 
 	query, args, err := builder.ToSql()
 	if err != nil {
@@ -228,6 +249,9 @@ func (repo *Repository) GetFilteredProducts(
 			return nil, err
 		}
 		filteredProducts = append(filteredProducts, p)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("read filtered products: %w", err)
 	}
 	return repo.mapper.FromDBProducts(filteredProducts), nil
 }

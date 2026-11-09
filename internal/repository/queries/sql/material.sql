@@ -14,10 +14,9 @@ INSERT INTO materials (
 
 -- name: UpdateMaterial :one
 UPDATE materials
-SET 
-    material_id = COALESCE(sqlc.narg(material_id), material_id),
-    product_id = COALESCE(sqlc.narg(product_id), product_id),
-    material_amount = COALESCE(sqlc.narg(material_amount), material_amount)
+SET material_amount = sqlc.arg(material_amount)
+WHERE product_id = sqlc.arg(product_id)
+  AND material_id = sqlc.arg(material_id)
 RETURNING
     material_id,
     product_id,

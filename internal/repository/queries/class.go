@@ -29,7 +29,7 @@ func ClassInsert(class entities.Class) sq.InsertBuilder {
 	data := map[string]any{
 		classNameCol: class.Name,
 	}
-	if class.ParentID != 0 {
+	if class.ParentID != nil {
 		data[classParentIDCol] = class.ParentID
 	}
 

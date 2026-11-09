@@ -19,7 +19,6 @@ require (
 require (
 	github.com/gojuno/minimock/v3 v3.4.7
 	github.com/golang-jwt/jwt/v5 v5.3.1
-	github.com/stretchr/testify v1.11.1
 )
 
 require github.com/rogpeppe/go-internal v1.14.1 // indirect

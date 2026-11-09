@@ -187,10 +187,9 @@ func (q *Queries) InsertMaterial(ctx context.Context, arg InsertMaterialParams) 
 
 const updateMaterial = `-- name: UpdateMaterial :one
 UPDATE materials
-SET 
-    material_id = COALESCE($1, material_id),
-    product_id = COALESCE($2, product_id),
-    material_amount = COALESCE($3, material_amount)
+SET material_amount = $1
+WHERE product_id = $2
+  AND material_id = $3
 RETURNING
     material_id,
     product_id,
@@ -198,13 +197,13 @@ RETURNING
 `
 
 type UpdateMaterialParams struct {
-	MaterialID     *int64
-	ProductID      *int64
-	MaterialAmount *float32
+	MaterialAmount float32
+	ProductID      int64
+	MaterialID     int64
 }
 
 func (q *Queries) UpdateMaterial(ctx context.Context, arg UpdateMaterialParams) (Material, error) {
-	row := q.db.QueryRow(ctx, updateMaterial, arg.MaterialID, arg.ProductID, arg.MaterialAmount)
+	row := q.db.QueryRow(ctx, updateMaterial, arg.MaterialAmount, arg.ProductID, arg.MaterialID)
 	var i Material
 	err := row.Scan(&i.MaterialID, &i.ProductID, &i.MaterialAmount)
 	return i, err

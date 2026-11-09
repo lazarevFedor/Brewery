@@ -55,3 +55,6 @@ check_mod:
 
 gentoken:
 	openssl rand -base64 32
+
+gensql:
+	sqlc generate
