@@ -794,7 +794,7 @@
               "minimum": 0,
               "exclusiveMinimum": true
             },
-            "description": "Количество изделий, на которое считается расход (pQ в CALC_BOM)"
+            "description": "Количество изделий, на которое считается расход"
           }
         ],
         "responses": {
