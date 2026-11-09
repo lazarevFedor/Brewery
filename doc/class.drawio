@@ -1,4 +1,4 @@
-<mxfile host="drawio-plugin" modified="2026-11-08T16:38:05.898Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36" etag="eXMWhmbP4edQONds4RxY" version="22.1.22" type="embed">
+<mxfile host="drawio-plugin" modified="2026-11-09T18:36:41.584Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36" etag="bPPOvBpnVU-QFYkXk0En" version="22.1.22" type="embed">
   <diagram id="entities-uml" name="Entities — UML Class Diagram">
     <mxGraphModel dx="579" dy="662" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2100" pageHeight="1400" math="0" shadow="0">
       <root>
@@ -43,14 +43,14 @@
         <mxCell id="Material" value="Material" style="swimlane;html=0;startSize=44;horizontal=1;rounded=0;collapsible=0;container=1;recursiveResize=0;fillColor=#dbeafe;swimlaneFillColor=#ffffff;strokeColor=#3b82f6;fontColor=#0f172a;fontSize=18;fontStyle=1;align=center;whiteSpace=wrap;" parent="1" vertex="1">
           <mxGeometry x="100" y="650" width="350" height="265" as="geometry" />
         </mxCell>
-        <mxCell id="Material-attributes" value="+ MaterialID: int64&#xa;+ ProductID: int64&#xa;+ MaterialAmount: float32" style="text;html=0;align=left;verticalAlign=top;spacingLeft=14;spacingTop=8;fontFamily=Courier New;fontSize=15;fontColor=#0f172a;whiteSpace=wrap;overflow=hidden;" parent="Material" vertex="1">
-          <mxGeometry y="44" width="350" height="84" as="geometry" />
+        <mxCell id="Material-attributes" value="+ MaterialID: int64&#xa;+ ProductID: int64&#xa;+ MaterialAmount: float32&#xa;+ Base: bool" style="text;html=0;align=left;verticalAlign=top;spacingLeft=14;spacingTop=8;fontFamily=Courier New;fontSize=15;fontColor=#0f172a;whiteSpace=wrap;overflow=hidden;" parent="Material" vertex="1">
+          <mxGeometry y="44" width="350" height="96" as="geometry" />
         </mxCell>
         <mxCell id="Material-method-separator" value="" style="line;strokeColor=#3b82f6;" parent="Material" vertex="1">
-          <mxGeometry y="128" width="350" height="1" as="geometry" />
+          <mxGeometry y="139" width="350" height="1" as="geometry" />
         </mxCell>
         <mxCell id="Material-methods" value="+ Add()&#xa;+ Get()&#xa;+ Update()&#xa;+ Remove()&#xa;+ CalculateNorms()" style="text;html=0;align=left;verticalAlign=top;spacingLeft=14;spacingTop=8;fontFamily=Courier New;fontSize=15;fontColor=#0f172a;whiteSpace=wrap;overflow=hidden;" parent="Material" vertex="1">
-          <mxGeometry y="129" width="350" height="136" as="geometry" />
+          <mxGeometry y="140" width="350" height="125" as="geometry" />
         </mxCell>
         <mxCell id="HistoryRecord" value="HistoryRecord" style="swimlane;html=0;startSize=44;horizontal=1;rounded=0;collapsible=0;container=1;recursiveResize=0;fillColor=#fef3c7;swimlaneFillColor=#ffffff;strokeColor=#d97706;fontColor=#0f172a;fontSize=18;fontStyle=1;align=center;whiteSpace=wrap;" parent="1" vertex="1">
           <mxGeometry x="650" y="650" width="350" height="217" as="geometry" />
