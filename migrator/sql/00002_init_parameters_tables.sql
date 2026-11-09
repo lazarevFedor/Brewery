@@ -8,14 +8,14 @@ CREATE TABLE IF NOT EXISTS enum_parameters (
     field_name TEXT NOT NULL,
     unit TEXT,
     is_active BOOLEAN NOT NULL DEFAULT FALSE,
-    inheritable BOOLEAN NOT NULL
+    inheritable BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE IF NOT EXISTS parameter_values (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     enum_parameter_id BIGINT REFERENCES enum_parameters(id) ON DELETE CASCADE,
     value_raw varchar(256) NOT NULL,
-    position INT
+    position INT,
     CONSTRAINT chk_enum_values_position_positive CHECK (position > 0)
 );
 
@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS products_parameters (
 CREATE TABLE IF NOT EXISTS aggregates (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name TEXT NOT NULL, 
+    description TEXT NOT NULL DEFAULT '',
     numeric_parameter_ids BIGINT[],
     enum_parameter_ids BIGINT[]
 );
@@ -79,8 +80,8 @@ ON products_parameters(product_id);
 
 
 -- +goose Down
+DROP TABLE IF EXISTS products_parameters;
 DROP TABLE IF EXISTS aggregates;
 DROP TABLE IF EXISTS range_parameters;
-DROP TABLE IF EXISTS products_parameters;
 DROP TABLE IF EXISTS parameter_values;
 DROP TABLE IF EXISTS enum_parameters;

@@ -142,7 +142,7 @@ RETURNS BIGINT[] AS $$
 DECLARE
     v_ids BIGINT[];
 BEGIN
-    IF array_length(coalesce(p_parent_ids, '{}'), 1) IS NULL THEN
+    IF coalesce(cardinality(p_parent_ids), 0) = 0 THEN
         RETURN '{}';
     END IF;
 
@@ -153,7 +153,7 @@ BEGIN
     )
     SELECT coalesce(array_agg(id), '{}') INTO v_ids FROM children;
 
-    RETURN v_ids;
+    RETURN coalesce(v_ids, '{}');
 END;
 $$ LANGUAGE plpgsql;
 -- +goose StatementEnd
@@ -167,7 +167,7 @@ CREATE OR REPLACE FUNCTION add_numeric_parameters_to_categories(
 DECLARE
     v_rows_affected INT := 0;
 BEGIN
-    IF array_length(p_parameter_ids, 1) = 0 OR array_length(p_category_ids, 1) = 0 THEN
+    IF coalesce(cardinality(p_parameter_ids), 0) = 0 OR coalesce(cardinality(p_category_ids), 0) = 0 THEN
         RETURN 0;
     END IF;
 
@@ -193,7 +193,7 @@ CREATE OR REPLACE FUNCTION remove_numeric_parameters_from_categories(
 DECLARE
     v_rows_affected INT := 0;
 BEGIN
-    IF array_length(p_parameter_ids, 1) = 0 OR array_length(p_category_ids, 1) = 0 THEN
+    IF coalesce(cardinality(p_parameter_ids), 0) = 0 OR coalesce(cardinality(p_category_ids), 0) = 0 THEN
         RETURN 0;
     END IF;
 
@@ -220,7 +220,7 @@ CREATE OR REPLACE FUNCTION add_enum_parameters_to_categories(
 DECLARE
     v_rows_affected INT := 0;
 BEGIN
-    IF array_length(p_parameter_ids, 1) = 0 OR array_length(p_category_ids, 1) = 0 THEN
+    IF coalesce(cardinality(p_parameter_ids), 0) = 0 OR coalesce(cardinality(p_category_ids), 0) = 0 THEN
         RETURN 0;
     END IF;
 
@@ -246,7 +246,7 @@ CREATE OR REPLACE FUNCTION remove_enum_parameters_from_categories(
 DECLARE
     v_rows_affected INT := 0;
 BEGIN
-    IF array_length(p_parameter_ids, 1) = 0 OR array_length(p_category_ids, 1) = 0 THEN
+    IF coalesce(cardinality(p_parameter_ids), 0) = 0 OR coalesce(cardinality(p_category_ids), 0) = 0 THEN
         RETURN 0;
     END IF;
 
@@ -273,7 +273,7 @@ DECLARE
     v_inheritable_numeric BIGINT[];
     v_inheritable_enum BIGINT[];
     v_descendants BIGINT[];
-    v_rows_affected BIGINT := 0;
+    v_rows_affected INT := 0;
 BEGIN
     SELECT array_agg(DISTINCT nid)
     INTO v_inheritable_numeric
@@ -289,11 +289,11 @@ BEGIN
 
     v_descendants := get_descendants(ARRAY[p_parent_id]);
 
-    IF coalesce(array_length(v_inheritable_numeric, 1), 0) > 0 AND coalesce(array_length(v_descendants, 1), 0) > 0 THEN
+    IF coalesce(cardinality(v_inheritable_numeric), 0) > 0 AND coalesce(cardinality(v_descendants), 0) > 0 THEN
         v_rows_affected := v_rows_affected + add_numeric_parameters_to_categories(v_inheritable_numeric, v_descendants);
     END IF;
 
-    IF coalesce(array_length(v_inheritable_enum, 1), 0) > 0 AND coalesce(array_length(v_descendants, 1), 0) > 0 THEN
+    IF coalesce(cardinality(v_inheritable_enum), 0) > 0 AND coalesce(cardinality(v_descendants), 0) > 0 THEN
         v_rows_affected := v_rows_affected + add_enum_parameters_to_categories(v_inheritable_enum, v_descendants);
     END IF;
 
@@ -309,14 +309,14 @@ CREATE OR REPLACE FUNCTION remove_numeric_parameters_from_descendants(
     p_parent_ids BIGINT[]
 ) RETURNS INT AS $$
 DECLARE
-    v_descendants INT[];
+    v_descendants BIGINT[];
 BEGIN
-    IF array_length(coalesce(p_parameter_ids, '{}'), 1) = 0 OR array_length(coalesce(p_parent_ids, '{}'), 1) = 0 THEN
+    IF coalesce(cardinality(p_parameter_ids), 0) = 0 OR coalesce(cardinality(p_parent_ids), 0) = 0 THEN
         RETURN 0;
     END IF;
 
     v_descendants := get_descendants(p_parent_ids);
-    IF array_length(coalesce(v_descendants, '{}'), 1) = 0 THEN
+    IF coalesce(cardinality(v_descendants), 0) = 0 THEN
         RETURN 0;
     END IF;
 
@@ -332,14 +332,14 @@ CREATE OR REPLACE FUNCTION remove_enum_parameters_from_descendants(
     p_parent_ids BIGINT[]
 ) RETURNS INT AS $$
 DECLARE
-    v_descendants INT[];
+    v_descendants BIGINT[];
 BEGIN
-    IF array_length(coalesce(p_parameter_ids, '{}'), 1) = 0 OR array_length(coalesce(p_parent_ids, '{}'), 1) = 0 THEN
+    IF coalesce(cardinality(p_parameter_ids), 0) = 0 OR coalesce(cardinality(p_parent_ids), 0) = 0 THEN
         RETURN 0;
     END IF;
 
     v_descendants := get_descendants(p_parent_ids);
-    IF array_length(coalesce(v_descendants, '{}'), 1) = 0 THEN
+    IF coalesce(cardinality(v_descendants), 0) = 0 THEN
         RETURN 0;
     END IF;
 

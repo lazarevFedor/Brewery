@@ -13,6 +13,7 @@ import (
 type Aggregate struct {
 	ID                  int64
 	Name                string
+	Description         string
 	NumericParameterIds []int64
 	EnumParameterIds    []int64
 }

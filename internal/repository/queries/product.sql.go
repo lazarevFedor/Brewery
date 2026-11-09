@@ -268,6 +268,7 @@ RETURNING
     name,
     amount,
     units,
+    class_id,
     base_id
 `
 
@@ -280,15 +281,7 @@ type UpdateProductParams struct {
 	ID      int64
 }
 
-type UpdateProductRow struct {
-	ID     int64
-	Name   string
-	Amount *float32
-	Units  *string
-	BaseID *int64
-}
-
-func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (UpdateProductRow, error) {
+func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (Product, error) {
 	row := q.db.QueryRow(ctx, updateProduct,
 		arg.Name,
 		arg.Amount,
@@ -297,12 +290,13 @@ func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (U
 		arg.BaseID,
 		arg.ID,
 	)
-	var i UpdateProductRow
+	var i Product
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.Amount,
 		&i.Units,
+		&i.ClassID,
 		&i.BaseID,
 	)
 	return i, err

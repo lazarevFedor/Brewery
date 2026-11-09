@@ -51,7 +51,7 @@ func DeleteAggregate(id int64) sq.DeleteBuilder {
 	return psql.
 		Delete(aggregatesTable).
 		Where(sq.Eq{"id": id})
-	}
+}
 
 // GetAggregates возвращает запрос для получения всех агрегатов,
 // соответствующих заданному имени, из таблицы aggregates.

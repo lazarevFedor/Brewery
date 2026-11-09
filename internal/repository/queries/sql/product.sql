@@ -68,6 +68,7 @@ RETURNING
     name,
     amount,
     units,
+    class_id,
     base_id;
  
 -- name: DeleteProduct :exec
