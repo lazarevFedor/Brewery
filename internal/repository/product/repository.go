@@ -76,7 +76,10 @@ func (repo *Repository) GetProducts(ctx context.Context, limit, offset int32) ([
 	if err != nil {
 		return nil, fmt.Errorf("InsertProduct: %w", err)
 	}
-	products := repo.mapper.FromDBProducts(dbProducts)
+	products := make([]entities.Product, 0, len(dbProducts))
+	for _, row := range dbProducts {
+		products = append(products, repo.mapper.FromDBFullProduct(queries.GetProductByIDRow(row)))
+	}
 	return products, nil
 }
 
@@ -179,7 +182,10 @@ func (repo *Repository) GetProductsByClass(
 	if err != nil {
 		return nil, fmt.Errorf("InsertProduct: %w", err)
 	}
-	products := repo.mapper.FromDBProducts(dbProduct)
+	products := make([]entities.Product, 0, len(dbProduct))
+	for _, row := range dbProduct {
+		products = append(products, repo.mapper.FromDBFullProduct(queries.GetProductByIDRow(row)))
+	}
 	return products, nil
 }
 
@@ -191,18 +197,23 @@ func (repo *Repository) GetFilteredProducts(
 		return nil, errors.New("db pool is empty")
 	}
 	builder := squirrel.Select(
-		"id",
-		"name",
-		"amount",
-		"units",
-		"class_id",
-		"base_id",
-	).From("products").
+		"p.id",
+		"p.name",
+		"p.amount",
+		"p.units",
+		"p.base_id",
+		"c.id AS class_id",
+		"c.name AS class_name",
+		"c.parent_id AS class_parent_id",
+		"c.numeric_parameter_ids AS class_num_params",
+		"c.enum_parameter_ids AS class_enum_params",
+	).From("products p").
+		Join("classes c ON p.class_id = c.id").
 		PlaceholderFormat(squirrel.Dollar)
 
 	if len(filters) != 0 {
 		for _, filter := range filters {
-			field := filter.FieldName
+			field := "p." + filter.FieldName
 			val := filter.Value
 			var pred any
 
@@ -227,9 +238,9 @@ func (repo *Repository) GetFilteredProducts(
 	}
 
 	if classID != nil {
-		builder = builder.Where(squirrel.Eq{"class_id": *classID})
+		builder = builder.Where(squirrel.Eq{"p.class_id": *classID})
 	}
-	builder = builder.OrderBy("id").Limit(uint64(limit)).Offset(uint64(offset))
+	builder = builder.OrderBy("p.id").Limit(uint64(limit)).Offset(uint64(offset))
 
 	query, args, err := builder.ToSql()
 	if err != nil {
@@ -242,16 +253,19 @@ func (repo *Repository) GetFilteredProducts(
 	}
 	defer rows.Close()
 
-	var filteredProducts []queries.Product
+	var filteredProducts []entities.Product
 	for rows.Next() {
-		var p queries.Product
-		if err := rows.Scan(&p.ID, &p.Name, &p.Amount, &p.Units, &p.ClassID, &p.BaseID); err != nil {
+		var p queries.GetProductByIDRow
+		if err := rows.Scan(
+			&p.ID, &p.Name, &p.Amount, &p.Units, &p.BaseID,
+			&p.ClassID, &p.ClassName, &p.ClassParentID, &p.ClassNumParams, &p.ClassEnumParams,
+		); err != nil {
 			return nil, err
 		}
-		filteredProducts = append(filteredProducts, p)
+		filteredProducts = append(filteredProducts, repo.mapper.FromDBFullProduct(p))
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("read filtered products: %w", err)
 	}
-	return repo.mapper.FromDBProducts(filteredProducts), nil
+	return filteredProducts, nil
 }

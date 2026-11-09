@@ -82,7 +82,7 @@ type MaterialMapper interface {
 	// goverter:ignore Amount Parameters
 	ProductFromProductRow(queries.GetMaterialsByProductIDRow) entities.Product
 
-	// goverter:map ClassID ProdClass | ClassFromID
+	// goverter:map . ProdClass | ClassFromMaterialUsage
 	// goverter:map Units Unit
 	// goverter:ignore Amount Parameters
 	ProductFromMaterialRow(queries.GetProductsByMaterialRow) entities.Product
@@ -109,4 +109,8 @@ type HistoryMapper interface {
 
 func TimeToTime(t time.Time) time.Time {
 	return t
+}
+
+func ClassFromMaterialUsage(row queries.GetProductsByMaterialRow) entities.Class {
+	return entities.Class{ID: row.ClassID, Name: row.ClassName}
 }

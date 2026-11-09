@@ -54,9 +54,11 @@ SELECT
     p.name,
     p.units,
     p.class_id,
-    p.base_id
+    p.base_id,
+    c.name AS class_name
 FROM materials m
 JOIN products p ON p.id = m.product_id
+JOIN classes c ON p.class_id = c.id
 WHERE m.material_id = $1;
 
 

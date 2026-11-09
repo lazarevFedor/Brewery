@@ -121,9 +121,11 @@ SELECT
     p.name,
     p.units,
     p.class_id,
-    p.base_id
+    p.base_id,
+    c.name AS class_name
 FROM materials m
 JOIN products p ON p.id = m.product_id
+JOIN classes c ON p.class_id = c.id
 WHERE m.material_id = $1
 `
 
@@ -135,6 +137,7 @@ type GetProductsByMaterialRow struct {
 	Units          *string
 	ClassID        int64
 	BaseID         *int64
+	ClassName      string
 }
 
 func (q *Queries) GetProductsByMaterial(ctx context.Context, materialID int64) ([]GetProductsByMaterialRow, error) {
@@ -154,6 +157,7 @@ func (q *Queries) GetProductsByMaterial(ctx context.Context, materialID int64) (
 			&i.Units,
 			&i.ClassID,
 			&i.BaseID,
+			&i.ClassName,
 		); err != nil {
 			return nil, err
 		}

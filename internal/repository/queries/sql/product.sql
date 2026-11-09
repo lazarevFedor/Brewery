@@ -39,13 +39,18 @@ WHERE p.id = $1;
 
 -- name: GetProducts :many
 SELECT
-    id,
-    name, 
-    amount, 
-    units,
-    class_id, 
-    base_id
-FROM products
+    p.id,
+    p.name,
+    p.amount,
+    p.units,
+    p.base_id,
+    c.id AS class_id,
+    c.name AS class_name,
+    c.parent_id AS class_parent_id,
+    c.numeric_parameter_ids AS class_num_params,
+    c.enum_parameter_ids AS class_enum_params
+FROM products p
+JOIN classes c ON p.class_id = c.id
 LIMIT $1
 OFFSET $2;
  
@@ -71,11 +76,16 @@ WHERE id = $1;
 
 -- name: GetProductByClassID :many
 SELECT
-    id,
-    name, 
-    amount, 
-    units,
-    class_id, 
-    base_id
-FROM products
-WHERE class_id = $1;
+    p.id,
+    p.name,
+    p.amount,
+    p.units,
+    p.base_id,
+    c.id AS class_id,
+    c.name AS class_name,
+    c.parent_id AS class_parent_id,
+    c.numeric_parameter_ids AS class_num_params,
+    c.enum_parameter_ids AS class_enum_params
+FROM products p
+JOIN classes c ON p.class_id = c.id
+WHERE p.class_id = $1;
