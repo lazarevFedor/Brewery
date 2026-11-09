@@ -678,57 +678,13 @@
         }
       }
     },
-    "/products/{id}/derived": {
-      "get": {
-        "tags": [
-          "Products"
-        ],
-        "summary": "Get products based on product (base_id = id)",
-        "operationId": "listDerivedProducts",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/Id"
-          },
-          {
-            "$ref": "#/components/parameters/Offset"
-          },
-          {
-            "$ref": "#/components/parameters/Limit"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Derived products list",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Product"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/400_bad_request"
-          },
-          "404": {
-            "$ref": "#/components/responses/404_not_found"
-          },
-          "500": {
-            "$ref": "#/components/responses/500_internal_server_error"
-          }
-        }
-      }
-    },
     "/products/{id}/materials": {
       "get": {
         "tags": [
           "Materials"
         ],
         "summary": "Get product's full composition tree (BOM)",
-        "description": "Рекурсивно строит полное дерево состава изделия на всю глубину (FIND_BOM(pIdProd)).",
+        "description": "Рекурсивно строит полное дерево состава изделия на всю глубину.",
         "operationId": "getProductBomTree",
         "parameters": [
           {
@@ -821,7 +777,7 @@
           "Materials"
         ],
         "summary": "Calculate total material consumption norms for product",
-        "description": "Сводные нормы расхода для всего изделия (CALC_BOM) с учётом всей глубины состава. Количества всех вхождений одного материала суммируются и умножаются на quantity, без дополнительного умножения на количества родительских материалов.",
+        "description": "Сводные нормы расхода для всего изделия с учётом всей глубины состава. Количества всех вхождений одного материала суммируются и умножаются на quantity, без дополнительного умножения на количества родительских материалов.",
         "operationId": "calculateMaterialNorms",
         "parameters": [
           {
@@ -875,7 +831,7 @@
         "tags": [
           "Materials"
         ],
-        "summary": "Update material amount in product",
+        "summary": "Update material amount and Base flag in product",
         "operationId": "updateProductMaterial",
         "security": [
           {
@@ -2297,6 +2253,12 @@
             "exclusiveMinimum": true,
             "example": 12.5,
             "description": "Количество материала на одно изделие"
+          },
+          "base": {
+            "type": "boolean",
+            "default": false,
+            "example": false,
+            "description": "Флаг Base материала. Если поле не передано при создании или обновлении, используется false."
           }
         }
       },
@@ -2310,7 +2272,8 @@
             "required": [
               "material_id",
               "product_id",
-              "material_amount"
+              "material_amount",
+              "base"
             ],
             "properties": {
               "material_id": {
@@ -2332,7 +2295,13 @@
               }
             }
           }
-        ]
+        ],
+        "example": {
+          "material_id": 5,
+          "product_id": 1,
+          "material_amount": 12.5,
+          "base": true
+        }
       },
       "MaterialCreate": {
         "allOf": [
@@ -2352,7 +2321,12 @@
               }
             }
           }
-        ]
+        ],
+        "example": {
+          "material_id": 5,
+          "material_amount": 12.5,
+          "base": true
+        }
       },
       "MaterialUpdate": {
         "allOf": [
@@ -2364,14 +2338,20 @@
               "material_amount"
             ]
           }
-        ]
+        ],
+        "description": "Обновление количества материала и флага Base. Если base не передан, он устанавливается в false.",
+        "example": {
+          "material_amount": 15,
+          "base": false
+        }
       },
       "MaterialNorm": {
         "type": "object",
         "required": [
           "material_id",
           "name",
-          "total_amount"
+          "total_amount",
+          "base"
         ],
         "properties": {
           "material_id": {
@@ -2391,7 +2371,19 @@
           "units": {
             "type": "string",
             "example": "kg"
+          },
+          "base": {
+            "type": "boolean",
+            "example": false,
+            "description": "Флаг Base материала."
           }
+        },
+        "example": {
+          "material_id": 5,
+          "name": "Хмель",
+          "total_amount": 37.5,
+          "base": false,
+          "units": "kg"
         }
       },
       "MaterialTreeNode": {
@@ -2400,7 +2392,8 @@
           "material_id",
           "name",
           "material_amount",
-          "materials"
+          "materials",
+          "base"
         ],
         "properties": {
           "material_id": {
@@ -2428,6 +2421,11 @@
               "$ref": "#/components/schemas/MaterialTreeNode"
             },
             "default": []
+          },
+          "base": {
+            "type": "boolean",
+            "example": false,
+            "description": "Флаг Base материала."
           }
         },
         "example": {
@@ -2441,9 +2439,11 @@
               "name": "Солод",
               "material_amount": 2,
               "units": "kg",
-              "materials": []
+              "materials": [],
+              "base": false
             }
-          ]
+          ],
+          "base": true
         }
       },
       "HistoryRecordCreate": {

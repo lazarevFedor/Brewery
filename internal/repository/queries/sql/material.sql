@@ -2,25 +2,30 @@
 INSERT INTO materials (
     material_id,
     product_id,
-    material_amount
+    material_amount,
+    base
 ) VALUES (
     sqlc.arg(material_id),
     sqlc.arg(product_id),
-    sqlc.arg(material_amount)
+    sqlc.arg(material_amount),
+    sqlc.arg(base)
 ) RETURNING
     material_id,
     product_id,
-    material_amount;
+    material_amount,
+    base;
 
 -- name: UpdateMaterial :one
 UPDATE materials
-SET material_amount = sqlc.arg(material_amount)
+SET material_amount = sqlc.arg(material_amount),
+    base = sqlc.arg(base)
 WHERE product_id = sqlc.arg(product_id)
   AND material_id = sqlc.arg(material_id)
 RETURNING
     material_id,
     product_id,
-    material_amount;
+    material_amount,
+    base;
 
 
 -- name: DeleteMaterial :exec
@@ -32,6 +37,7 @@ AND product_id = $2;
 SELECT 
     m.material_id AS id,
     m.material_amount,
+    m.base,
     p.name,
     p.units,
     p.class_id,
@@ -44,6 +50,7 @@ WHERE m.product_id = $1;
 SELECT 
     m.product_id AS id,
     m.material_amount,
+    m.base,
     p.name,
     p.units,
     p.class_id,
@@ -57,11 +64,13 @@ WHERE m.material_id = $1;
 INSERT INTO materials (
     product_id,
     material_id,
-    material_amount
+    material_amount,
+    base
 ) SELECT 
     sqlc.arg(product_id),
     material_id,
-    material_amount
+    material_amount,
+    base
 FROM materials
 WHERE materials.product_id = sqlc.arg(base_id)
 ON CONFLICT (material_id, product_id) DO NOTHING;

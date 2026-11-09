@@ -17,8 +17,8 @@ type MaterialService interface {
 	// CreateMaterial добавляет материал в состав изделия.
 	CreateMaterial(ctx context.Context, material entities.Material) (*entities.Material, error)
 
-	// UpdateMaterial меняет количество материала в составе изделия.
-	UpdateMaterial(ctx context.Context, productID, materialID int64, amount float32) (*entities.Material, error)
+	// UpdateMaterial обновляет материал в составе изделия.
+	UpdateMaterial(ctx context.Context, material entities.Material) (*entities.Material, error)
 
 	// DeleteMaterial убирает материал из состава изделия.
 	DeleteMaterial(ctx context.Context, productID, materialID int64) error
@@ -63,6 +63,7 @@ type materialResponse struct {
 	MaterialID     int64   `json:"material_id"`
 	ProductID      int64   `json:"product_id"`
 	MaterialAmount float32 `json:"material_amount"`
+	Base           bool    `json:"base"`
 }
 
 func newMaterialResponse(m entities.Material) materialResponse {
@@ -70,6 +71,7 @@ func newMaterialResponse(m entities.Material) materialResponse {
 		MaterialID:     m.MaterialID,
 		ProductID:      m.ProductID,
 		MaterialAmount: m.MaterialAmount,
+		Base:           m.Base,
 	}
 }
 
@@ -78,6 +80,7 @@ type materialTreeNodeResponse struct {
 	MaterialID     int64                      `json:"material_id"`
 	Name           string                     `json:"name"`
 	MaterialAmount float32                    `json:"material_amount"`
+	Base           bool                       `json:"base"`
 	Units          string                     `json:"units,omitempty"`
 	Materials      []materialTreeNodeResponse `json:"materials"`
 }
@@ -89,6 +92,7 @@ func newMaterialTreeResponse(items []entities.MaterialProduct) []materialTreeNod
 			MaterialID:     materialIDOf(m),
 			Name:           m.Name,
 			MaterialAmount: m.MaterialAmount,
+			Base:           m.Base,
 			Units:          m.Unit,
 			Materials:      newMaterialTreeResponse(m.Materials),
 		})
@@ -112,6 +116,7 @@ type materialNormResponse struct {
 	MaterialID  int64   `json:"material_id"`
 	Name        string  `json:"name"`
 	TotalAmount float32 `json:"total_amount"`
+	Base        bool    `json:"base"`
 	Units       string  `json:"units,omitempty"`
 }
 
@@ -119,11 +124,13 @@ type materialNormResponse struct {
 type materialCreateRequest struct {
 	MaterialID     int64   `json:"material_id"`
 	MaterialAmount float32 `json:"material_amount"`
+	Base           bool    `json:"base"`
 }
 
 // materialUpdateRequest - тело PATCH /products/{id}/materials/{material_id} (схема MaterialUpdate).
 type materialUpdateRequest struct {
 	MaterialAmount float32 `json:"material_amount"`
+	Base           bool    `json:"base"`
 }
 
 // materialHandlers - реализация MaterialHandlers.
@@ -205,6 +212,7 @@ func (h *materialHandlers) AddProductMaterial(c *gin.Context) {
 		MaterialID:     req.MaterialID,
 		ProductID:      productID,
 		MaterialAmount: req.MaterialAmount,
+		Base:           req.Base,
 	})
 	if err != nil {
 		handleError(c, log, "failed to add material", err)
@@ -243,7 +251,12 @@ func (h *materialHandlers) UpdateProductMaterial(c *gin.Context) {
 		return
 	}
 
-	updated, err := h.uc.UpdateMaterial(c.Request.Context(), productID, materialID, req.MaterialAmount)
+	updated, err := h.uc.UpdateMaterial(c.Request.Context(), entities.Material{
+		ProductID:      productID,
+		MaterialID:     materialID,
+		MaterialAmount: req.MaterialAmount,
+		Base:           req.Base,
+	})
 	if err != nil {
 		handleError(c, log, "failed to update material", err)
 		return
@@ -317,6 +330,7 @@ func (h *materialHandlers) CalculateMaterialNorms(c *gin.Context) {
 			MaterialID:  materialIDOf(n),
 			Name:        n.Name,
 			TotalAmount: n.MaterialAmount,
+			Base:        n.Base,
 			Units:       n.Unit,
 		})
 	}
