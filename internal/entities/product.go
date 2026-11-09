@@ -3,7 +3,7 @@ package entities
 
 // Product представляет собой структуру, описывающую изделие.
 type Product struct {
-	ID         int64           `json:"id" info:"ID записи в базе данных"`
+	ID         int64          `json:"id" info:"ID записи в базе данных"`
 	Name       string         `json:"name" info:"Название изделия"`
 	ProdClass  Class          `json:"class" info:"Информация о классе изделия"`
 	BaseID     int64          `json:"base_id,omitempty" info:"ID базового изделия"`

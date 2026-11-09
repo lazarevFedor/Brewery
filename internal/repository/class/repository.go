@@ -58,7 +58,7 @@ func (repo *Repository) GetClassByID(ctx context.Context, id int64) (*entities.C
 	if repo.Pool == nil {
 		return nil, errors.New("db pool is empty")
 	}
-	
+
 	log.Debug(ctx, "class id", zap.Int64("id", id))
 	dbClass, err := repo.query.GetClassByID(ctx, id)
 	if err != nil {

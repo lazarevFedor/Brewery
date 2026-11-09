@@ -7,16 +7,17 @@ import (
 )
 
 const (
-	enumClassesTable = "enum_classes"
-	enumValuesTable  = "enum_values"
+	enumClassesTable = "enum_parameters"
+	enumValuesTable  = "parameter_values"
 )
 
 // InsertEnumClass возвращает запрос на вставку класса перечисления.
 func InsertEnumClass(enumClass entities.EnumClass) sq.InsertBuilder {
 	data := map[string]any{
-		"enum_type":  enumClass.Type,
-		"field_name": enumClass.FieldName,
-		"is_active":  enumClass.IsActive,
+		"enum_type":   enumClass.Type,
+		"field_name":  enumClass.FieldName,
+		"is_active":   enumClass.IsActive,
+		"inheritable": enumClass.Inheritable,
 	}
 
 	if enumClass.Unit != "" {
@@ -71,9 +72,9 @@ func SelectEnumClassByID(id uint) sq.SelectBuilder {
 // InsertEnumValue возвращает запрос на вставку значения перечисления.
 func InsertEnumValue(enumValue entities.ParameterValueRow) sq.InsertBuilder {
 	data := map[string]any{
-		"enum_class_id": enumValue.EnumClassID,
-		"value_raw":     enumValue.ValueRaw,
-		"position":      enumValue.Position,
+		"enum_parameter_id": enumValue.EnumClassID,
+		"value_raw":         enumValue.ValueRaw,
+		"position":          enumValue.Position,
 	}
 
 	return psql.
@@ -87,13 +88,13 @@ func SelectEnumValues(field string, valueType entities.EnumType) sq.SelectBuilde
 	return psql.
 		Select(
 			"val.id",
-			"enum_class_id",
-			"value_raw",
+			"val.enum_parameter_id",
+			"val.value_raw",
 			"cls.enum_type AS value_type",
-			"position",
+			"val.position",
 		).
 		From(enumValuesTable + " val").
-		Join("enum_classes cls ON val.enum_class_id = cls.id").
+		Join("enum_parameters cls ON val.enum_parameter_id = cls.id").
 		Where(sq.Eq{"cls.field_name": field, "cls.enum_type": valueType}).
 		OrderBy("val.position ASC")
 }
@@ -103,14 +104,14 @@ func SelectEnumValuesByClassID(classID uint) sq.SelectBuilder {
 	return psql.
 		Select(
 			"val.id",
-			"val.enum_class_id",
+			"val.enum_parameter_id",
 			"val.value_raw",
 			"cls.enum_type AS value_type",
 			"val.position",
 		).
 		From(enumValuesTable + " val").
-		Join("enum_classes cls ON val.enum_class_id = cls.id").
-		Where(sq.Eq{"val.enum_class_id": classID}).
+		Join("enum_parameters cls ON val.enum_parameter_id = cls.id").
+		Where(sq.Eq{"val.enum_parameter_id": classID}).
 		OrderBy("val.position ASC")
 }
 

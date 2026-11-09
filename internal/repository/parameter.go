@@ -163,7 +163,7 @@ func (p *ParameterPostgres) GetParameters(
 		}
 	}
 	if ((parameterType == entities.MissingType ||
-		parameterType == entities.EnumParameterType) && classID == 0) || len(numericIDs) > 0 {
+		parameterType == entities.EnumParameterType) && classID == 0) || len(enumIDs) > 0 {
 		query = queries.SelectEnumParameters(enumIDs)
 		sql, args, err := query.ToSql()
 		if err != nil {
@@ -223,7 +223,7 @@ func (p *ParameterPostgres) ApplyParameters(ctx context.Context, categoryID int6
 		rowsAffected += affected
 	}
 
-	inheritQuery := queries.InheritParametersToChildren(int(categoryID))
+	inheritQuery := queries.InheritParametersToChildren(categoryID)
 	sql, args, err := inheritQuery.ToSql()
 	if err != nil {
 		return 0, err
@@ -308,9 +308,9 @@ func (p *ParameterPostgres) toggleInheritance(ctx context.Context, isEnum bool, 
 	}
 	defer rows.Close()
 
-	var categoryIDs []int
+	var categoryIDs []int64
 	for rows.Next() {
-		var categoryID int
+		var categoryID int64
 		if err = rows.Scan(&categoryID); err != nil {
 			return err
 		}
@@ -321,8 +321,8 @@ func (p *ParameterPostgres) toggleInheritance(ctx context.Context, isEnum bool, 
 		return nil
 	}
 
-	seen := make(map[int]struct{})
-	uniq := make([]int, 0, len(categoryIDs))
+	seen := make(map[int64]struct{})
+	uniq := make([]int64, 0, len(categoryIDs))
 	for _, cid := range categoryIDs {
 		if _, ok := seen[cid]; !ok {
 			seen[cid] = struct{}{}
@@ -357,7 +357,7 @@ func (p *ParameterPostgres) toggleInheritance(ctx context.Context, isEnum bool, 
 	}
 
 	if isEnum {
-		removeQuery := queries.RemoveEnumParametersFromDescendants([]int{int(id)}, uniq)
+		removeQuery := queries.RemoveEnumParametersFromDescendants([]int64{id}, uniq)
 		sql, args, err = removeQuery.ToSql()
 		if err != nil {
 			return err
@@ -374,7 +374,7 @@ func (p *ParameterPostgres) toggleInheritance(ctx context.Context, isEnum bool, 
 		return nil
 	}
 
-	removeQuery := queries.RemoveNumericParametersFromDescendants([]int{int(id)}, uniq)
+	removeQuery := queries.RemoveNumericParametersFromDescendants([]int64{id}, uniq)
 	sql, args, err = removeQuery.ToSql()
 	if err != nil {
 		return err

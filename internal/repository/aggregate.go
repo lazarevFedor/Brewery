@@ -88,7 +88,7 @@ func (a *AggregatePostgres) ApplyAggregate(ctx context.Context, categoryID int64
 	}
 	affected := int(cmd.RowsAffected())
 
-	inheritQuery := queries.InheritParametersToChildren(int(categoryID))
+	inheritQuery := queries.InheritParametersToChildren(categoryID)
 	sql, args, err = inheritQuery.ToSql()
 	if err != nil {
 		return 0, err

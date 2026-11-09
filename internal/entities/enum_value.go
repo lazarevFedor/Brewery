@@ -9,9 +9,9 @@ import (
 )
 
 const (
-	EnumValueTypeString  EnumType = "string"
-	EnumValueTypeInt     EnumType = "int"
-	EnumValueTypeFloat   EnumType = "float"
+	EnumValueTypeString EnumType = "string"
+	EnumValueTypeInt    EnumType = "int"
+	EnumValueTypeFloat  EnumType = "float"
 )
 
 type EnumType string

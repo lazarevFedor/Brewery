@@ -135,12 +135,17 @@ func (q *Queries) InsertClass(ctx context.Context, arg InsertClassParams) (Inser
 }
 
 const updateClass = `-- name: UpdateClass :one
-UPDATE classes 
+UPDATE classes
 SET 
-    name = CASE WHEN $1::text IS NOT NULL THEN $1 ELSE name END, 
-    parent_id = CASE WHEN $2::bigint IS NOT NULL THEN $2 ELSE parent_id END
-WHERE id = $3 
-RETURNING id, name, parent_id, numeric_parameter_ids, enum_parameter_ids
+    name = COALESCE($1, name),
+    parent_id = COALESCE($2, parent_id)
+WHERE id = $3
+RETURNING 
+    id, 
+    name, 
+    parent_id,
+    numeric_parameter_ids,
+    enum_parameter_ids
 `
 
 type UpdateClassParams struct {

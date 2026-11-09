@@ -31,7 +31,8 @@ type ClassMapper interface {
 type ProductMapper interface {
 	// goverter:map ClassID ProdClass | ClassFromID
 	FromInsert(queries.InsertProductRow) entities.Product
-	FromUpdate(queries.UpdateProductRow) entities.Product
+	// goverter:map ClassID ProdClass | ClassFromID
+	FromUpdate(queries.Product) entities.Product
 
 	// goverter:map . ProdClass | BuildClass
 	FromDBFullProduct(queries.GetProductByIDRow) entities.Product

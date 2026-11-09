@@ -205,15 +205,6 @@ func (c *ProductMapperImpl) FromInsert(source queries.InsertProductRow) entities
 	}
 	return entitiesProduct
 }
-func (c *ProductMapperImpl) FromUpdate(source queries.UpdateProductRow) entities.Product {
-	var entitiesProduct entities.Product
-	entitiesProduct.ID = source.ID
-	entitiesProduct.Name = source.Name
-	if source.BaseID != nil {
-		entitiesProduct.BaseID = *source.BaseID
-	}
-	if source.Amount != nil {
-		entitiesProduct.Amount = *source.Amount
-	}
-	return entitiesProduct
+func (c *ProductMapperImpl) FromUpdate(source queries.Product) entities.Product {
+	return c.FromDBProduct(source)
 }

@@ -54,7 +54,6 @@ func main() {
 	}
 	defer migrator.Down(pool)
 
-
 	classRepo := classrepo.NewRepository(pool)
 	productRepo := usecase.NewProductRepository(pool)
 	materialRepo := usecase.NewMaterialRepository(pool)

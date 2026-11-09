@@ -74,7 +74,7 @@ func (repo *Repository) GetProducts(ctx context.Context, limit, offset int32) ([
 	}
 	dbProducts, err := repo.query.GetProducts(ctx, params)
 	if err != nil {
-		return nil, fmt.Errorf("InsertProduct: %w", err)
+		return nil, fmt.Errorf("GetProducts: %w", err)
 	}
 	products := repo.mapper.FromDBProducts(dbProducts)
 	return products, nil
@@ -86,7 +86,7 @@ func (repo *Repository) GetProductByID(ctx context.Context, id int64) (*entities
 	}
 	dbProduct, err := repo.query.GetProductByID(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("InsertProduct: %w", err)
+		return nil, fmt.Errorf("GetProductByID: %w", err)
 	}
 	products := repo.mapper.FromDBFullProduct(dbProduct)
 	return &products, nil
@@ -132,7 +132,7 @@ func (repo *Repository) UpdateProduct(ctx context.Context, id int64, updates map
 
 	dbProduct, err := qTx.UpdateProduct(ctx, params)
 	if err != nil {
-		return nil, fmt.Errorf("InsertProduct: %w", err)
+		return nil, fmt.Errorf("UpdateProduct: %w", err)
 	}
 
 	// При обновлении base_id необходимо поменять все необходимые материалы со старого изделия на новое
@@ -151,10 +151,10 @@ func (repo *Repository) UpdateProduct(ctx context.Context, id int64, updates map
 	}
 	err = tx.Commit(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("Commot: %w", err)
+		return nil, fmt.Errorf("Commit: %w", err)
 	}
 
-	products := repo.mapper.FromUpdate(dbProduct)
+	products := repo.mapper.FromDBProduct(dbProduct)
 	return &products, nil
 }
 
@@ -164,7 +164,7 @@ func (repo *Repository) DeleteProduct(ctx context.Context, id int64) error {
 	}
 	err := repo.query.DeleteProduct(ctx, id)
 	if err != nil {
-		return fmt.Errorf("InsertProduct: %w", err)
+		return fmt.Errorf("DeleteProduct: %w", err)
 	}
 	return nil
 }
@@ -177,7 +177,7 @@ func (repo *Repository) GetProductsByClass(
 	}
 	dbProduct, err := repo.query.GetProductByClassID(ctx, classID)
 	if err != nil {
-		return nil, fmt.Errorf("InsertProduct: %w", err)
+		return nil, fmt.Errorf("GetProductsByClass: %w", err)
 	}
 	products := repo.mapper.FromDBProducts(dbProduct)
 	return products, nil
