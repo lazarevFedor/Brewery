@@ -21,32 +21,54 @@ func (q *Queries) DeleteProduct(ctx context.Context, id int64) error {
 
 const getProductByClassID = `-- name: GetProductByClassID :many
 SELECT
-    id,
-    name, 
-    amount, 
-    units,
-    class_id, 
-    base_id
-FROM products
-WHERE class_id = $1
+    p.id,
+    p.name,
+    p.amount,
+    p.units,
+    p.base_id,
+    c.id AS class_id,
+    c.name AS class_name,
+    c.parent_id AS class_parent_id,
+    c.numeric_parameter_ids AS class_num_params,
+    c.enum_parameter_ids AS class_enum_params
+FROM products p
+JOIN classes c ON p.class_id = c.id
+WHERE p.class_id = $1
 `
 
-func (q *Queries) GetProductByClassID(ctx context.Context, classID int64) ([]Product, error) {
+type GetProductByClassIDRow struct {
+	ID              int64
+	Name            string
+	Amount          *float32
+	Units           *string
+	BaseID          *int64
+	ClassID         int64
+	ClassName       string
+	ClassParentID   *int64
+	ClassNumParams  []int64
+	ClassEnumParams []int64
+}
+
+func (q *Queries) GetProductByClassID(ctx context.Context, classID int64) ([]GetProductByClassIDRow, error) {
 	rows, err := q.db.Query(ctx, getProductByClassID, classID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Product
+	var items []GetProductByClassIDRow
 	for rows.Next() {
-		var i Product
+		var i GetProductByClassIDRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
 			&i.Amount,
 			&i.Units,
-			&i.ClassID,
 			&i.BaseID,
+			&i.ClassID,
+			&i.ClassName,
+			&i.ClassParentID,
+			&i.ClassNumParams,
+			&i.ClassEnumParams,
 		); err != nil {
 			return nil, err
 		}
@@ -108,13 +130,18 @@ func (q *Queries) GetProductByID(ctx context.Context, id int64) (GetProductByIDR
 
 const getProducts = `-- name: GetProducts :many
 SELECT
-    id,
-    name, 
-    amount, 
-    units,
-    class_id, 
-    base_id
-FROM products
+    p.id,
+    p.name,
+    p.amount,
+    p.units,
+    p.base_id,
+    c.id AS class_id,
+    c.name AS class_name,
+    c.parent_id AS class_parent_id,
+    c.numeric_parameter_ids AS class_num_params,
+    c.enum_parameter_ids AS class_enum_params
+FROM products p
+JOIN classes c ON p.class_id = c.id
 LIMIT $1
 OFFSET $2
 `
@@ -124,22 +151,39 @@ type GetProductsParams struct {
 	Offset int32
 }
 
-func (q *Queries) GetProducts(ctx context.Context, arg GetProductsParams) ([]Product, error) {
+type GetProductsRow struct {
+	ID              int64
+	Name            string
+	Amount          *float32
+	Units           *string
+	BaseID          *int64
+	ClassID         int64
+	ClassName       string
+	ClassParentID   *int64
+	ClassNumParams  []int64
+	ClassEnumParams []int64
+}
+
+func (q *Queries) GetProducts(ctx context.Context, arg GetProductsParams) ([]GetProductsRow, error) {
 	rows, err := q.db.Query(ctx, getProducts, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Product
+	var items []GetProductsRow
 	for rows.Next() {
-		var i Product
+		var i GetProductsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
 			&i.Amount,
 			&i.Units,
-			&i.ClassID,
 			&i.BaseID,
+			&i.ClassID,
+			&i.ClassName,
+			&i.ClassParentID,
+			&i.ClassNumParams,
+			&i.ClassEnumParams,
 		); err != nil {
 			return nil, err
 		}

@@ -13,11 +13,13 @@ const copyBaseMaterials = `-- name: CopyBaseMaterials :exec
 INSERT INTO materials (
     product_id,
     material_id,
-    material_amount
+    material_amount,
+    base
 ) SELECT 
     $1,
     material_id,
-    material_amount
+    material_amount,
+    base
 FROM materials
 WHERE materials.product_id = $2
 ON CONFLICT (material_id, product_id) DO NOTHING
@@ -63,6 +65,7 @@ const getMaterialsByProductID = `-- name: GetMaterialsByProductID :many
 SELECT 
     m.material_id AS id,
     m.material_amount,
+    m.base,
     p.name,
     p.units,
     p.class_id,
@@ -75,6 +78,7 @@ WHERE m.product_id = $1
 type GetMaterialsByProductIDRow struct {
 	ID             int64
 	MaterialAmount float32
+	Base           bool
 	Name           string
 	Units          *string
 	ClassID        int64
@@ -93,6 +97,7 @@ func (q *Queries) GetMaterialsByProductID(ctx context.Context, productID int64) 
 		if err := rows.Scan(
 			&i.ID,
 			&i.MaterialAmount,
+			&i.Base,
 			&i.Name,
 			&i.Units,
 			&i.ClassID,
@@ -112,22 +117,27 @@ const getProductsByMaterial = `-- name: GetProductsByMaterial :many
 SELECT 
     m.product_id AS id,
     m.material_amount,
+    m.base,
     p.name,
     p.units,
     p.class_id,
-    p.base_id
+    p.base_id,
+    c.name AS class_name
 FROM materials m
 JOIN products p ON p.id = m.product_id
+JOIN classes c ON p.class_id = c.id
 WHERE m.material_id = $1
 `
 
 type GetProductsByMaterialRow struct {
 	ID             int64
 	MaterialAmount float32
+	Base           bool
 	Name           string
 	Units          *string
 	ClassID        int64
 	BaseID         *int64
+	ClassName      string
 }
 
 func (q *Queries) GetProductsByMaterial(ctx context.Context, materialID int64) ([]GetProductsByMaterialRow, error) {
@@ -142,10 +152,12 @@ func (q *Queries) GetProductsByMaterial(ctx context.Context, materialID int64) (
 		if err := rows.Scan(
 			&i.ID,
 			&i.MaterialAmount,
+			&i.Base,
 			&i.Name,
 			&i.Units,
 			&i.ClassID,
 			&i.BaseID,
+			&i.ClassName,
 		); err != nil {
 			return nil, err
 		}
@@ -161,50 +173,77 @@ const insertMaterial = `-- name: InsertMaterial :one
 INSERT INTO materials (
     material_id,
     product_id,
-    material_amount
+    material_amount,
+    base
 ) VALUES (
     $1,
     $2,
-    $3
+    $3,
+    $4
 ) RETURNING
     material_id,
     product_id,
-    material_amount
+    material_amount,
+    base
 `
 
 type InsertMaterialParams struct {
 	MaterialID     int64
 	ProductID      int64
 	MaterialAmount float32
+	Base           bool
 }
 
 func (q *Queries) InsertMaterial(ctx context.Context, arg InsertMaterialParams) (Material, error) {
-	row := q.db.QueryRow(ctx, insertMaterial, arg.MaterialID, arg.ProductID, arg.MaterialAmount)
+	row := q.db.QueryRow(ctx, insertMaterial,
+		arg.MaterialID,
+		arg.ProductID,
+		arg.MaterialAmount,
+		arg.Base,
+	)
 	var i Material
-	err := row.Scan(&i.MaterialID, &i.ProductID, &i.MaterialAmount)
+	err := row.Scan(
+		&i.MaterialID,
+		&i.ProductID,
+		&i.MaterialAmount,
+		&i.Base,
+	)
 	return i, err
 }
 
 const updateMaterial = `-- name: UpdateMaterial :one
 UPDATE materials
-SET material_amount = $1
-WHERE product_id = $2
-  AND material_id = $3
+SET material_amount = $1,
+    base = $2
+WHERE product_id = $3
+  AND material_id = $4
 RETURNING
     material_id,
     product_id,
-    material_amount
+    material_amount,
+    base
 `
 
 type UpdateMaterialParams struct {
 	MaterialAmount float32
+	Base           bool
 	ProductID      int64
 	MaterialID     int64
 }
 
 func (q *Queries) UpdateMaterial(ctx context.Context, arg UpdateMaterialParams) (Material, error) {
-	row := q.db.QueryRow(ctx, updateMaterial, arg.MaterialAmount, arg.ProductID, arg.MaterialID)
+	row := q.db.QueryRow(ctx, updateMaterial,
+		arg.MaterialAmount,
+		arg.Base,
+		arg.ProductID,
+		arg.MaterialID,
+	)
 	var i Material
-	err := row.Scan(&i.MaterialID, &i.ProductID, &i.MaterialAmount)
+	err := row.Scan(
+		&i.MaterialID,
+		&i.ProductID,
+		&i.MaterialAmount,
+		&i.Base,
+	)
 	return i, err
 }
