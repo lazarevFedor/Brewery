@@ -19,15 +19,6 @@ filldb:
 cleandb:
 	go run scripts/clean/db_cleaner.go
 
-genjson:
-	easyjson -all internal/entities/beer.go
-	easyjson -all internal/entities/category.go
-	easyjson -all internal/entities/review.go
-	easyjson -all internal/entities/enum_class.go
-	easyjson -all internal/entities/enum_value.go
-	easyjson -all internal/entities/aggregate.go
-	easyjson -all internal/entities/parameter.go
-
 genmock:
 	go generate ./internal/http/handlers/mocks
 
@@ -61,3 +52,9 @@ check_mod:
 		git commit --amend --no-edit; \
 		echo "Зависимости обновлены и добавлены в коммит!"; \
 	fi
+
+gentoken:
+	openssl rand -base64 32
+
+gensql:
+	sqlc generate

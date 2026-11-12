@@ -6,8 +6,9 @@ import (
 	"Brewery/internal/http/handlers"
 	"Brewery/internal/http/middleware"
 	"Brewery/internal/http/routers"
-	"Brewery/internal/repository"
+	classrepo "Brewery/internal/repository/class"
 	"Brewery/internal/usecase"
+	"Brewery/migrator"
 	"Brewery/pkg/logger"
 	"Brewery/pkg/postgres"
 	"context"
@@ -48,15 +49,25 @@ func main() {
 		panic(fmt.Errorf("failed to create postgres pool: %w", err))
 	}
 
-	beerRepo := repository.NewBeerRepository(pool)
-	ctgRepo := repository.NewCategoryRepository(pool)
-	enumRepo := repository.NewEnumRepository(pool)
-	parameterRepo := repository.NewParameterRepository(pool)
-	aggregateRepo := repository.NewAggregateRepository(pool)
+	if err = migrator.Up(pool); err != nil {
+		panic(fmt.Errorf("failed to migrate: %w", err))
+	}
+	defer migrator.Down(pool)
 
-	beerService := usecase.NewBeerService(beerRepo, ctgRepo, enumRepo, parameterRepo)
+	classRepo := classrepo.NewRepository(pool)
+	productRepo := usecase.NewProductRepository(pool)
+	materialRepo := usecase.NewMaterialRepository(pool)
+	historyRepo := usecase.NewHistoryRecordRepository(pool)
+	enumRepo := usecase.NewEnumRepository(pool)
+	parameterRepo := usecase.NewParameterRepository(pool)
+	aggregateRepo := usecase.NewAggregateRepository(pool)
+
+	classService := usecase.NewClassService(classRepo)
+	productService := usecase.NewProductService(productRepo, enumRepo, parameterRepo, classRepo, materialRepo)
+	materialService := usecase.NewMaterialService(materialRepo, productRepo)
+	historyService := usecase.NewHistoryService(historyRepo)
 	enumService := usecase.NewEnumService(enumRepo)
-	parameterService := usecase.NewParametersService(parameterRepo)
+	parameterService := usecase.NewParametersService(parameterRepo, enumRepo)
 	aggregateService := usecase.NewAggregateService(aggregateRepo)
 
 	engine := gin.New()
@@ -87,15 +98,17 @@ func main() {
 	defer router.Close()
 
 	h := handlers.Handlers{
-		CategoryHandler:   handlers.NewCategoriesHandlers(beerService),
-		BeersHandler:      handlers.NewBeersHandlers(beerService),
-		ReviewHandler:     handlers.NewReviewsHandlers(beerService),
+		ClassHandler:      handlers.NewClassHandlers(classService),
+		ProductHandler:    handlers.NewProductHandlers(productService, nil),
+		MaterialHandler:   handlers.NewMaterialHandlers(materialService),
+		HistoryHandler:    handlers.NewHistoryHandlers(historyService),
 		EnumHandler:       handlers.NewEnumHandlers(enumService),
 		ParametersHandler: handlers.NewParametersHandlers(parameterService),
 		AggregatesHandler: handlers.NewAggregateHandlers(aggregateService),
+		AuthHandler:       handlers.NewAuthHandlers(),
 	}
 
-	routers.RegisterRoutes(router.Engine, h)
+	routers.RegisterRouters(router.Engine, h)
 
 	log.Info(ctx, fmt.Sprintf("server listening on port %s", cfg.Port))
 

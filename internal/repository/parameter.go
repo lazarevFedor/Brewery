@@ -15,41 +15,9 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// ParameterRepository определяет интерфейс для работы с параметрами, включая числовые и перечисляемые параметры.
-type ParameterRepository interface {
-	// InsertNumericParameter добавляет новый числовой параметр в базу данных и возвращает его.
-	InsertNumericParameter(ctx context.Context, param *entities.NumericParameter) (*entities.NumericParameter, error)
-
-	// UpdateNumericParameter обновляет существующий числовой параметр в базе данных и возвращает его.
-	UpdateNumericParameter(ctx context.Context, id uint, updates map[string]any) (*entities.NumericParameter, error)
-
-	// DeleteNumericParameter удаляет числовой параметр из базы данных и возвращает его.
-	DeleteNumericParameter(ctx context.Context, id uint) (*entities.NumericParameter, error)
-
-	// InsertEnumParameter добавляет новый перечисляемый параметр в базу данных и возвращает его.
-	InsertEnumParameter(ctx context.Context, param *entities.EnumParameter) (*entities.EnumParameter, error)
-
-	// UpdateEnumParameter обновляет существующий перечисляемый параметр в базе данных и возвращает его.
-	UpdateEnumParameter(ctx context.Context, id uint, updates map[string]any) (*entities.EnumParameter, error)
-
-	// DeleteEnumParameter удаляет перечисляемый параметр из базы данных и возвращает его.
-	DeleteEnumParameter(ctx context.Context, id uint) (*entities.EnumParameter, error)
-
-	// GetParameters извлекает все числовые и перечисляемые параметры из базы данных и возвращает их.
-	GetParameters(ctx context.Context, categoryID uint, parameterType int) ([]entities.NumericParameter, []entities.EnumParameter, error)
-
-	// ApplyParameters применяет числовые и перечисляемые параметры к категории и возвращает результат применения.
-	ApplyParameters(ctx context.Context, categoryID uint, numericParameters, enumParameters []int) (int, error)
-}
-
 // ParameterPostgres реализует интерфейс ParameterRepository для работы с параметрами в базе данных PostgreSQL, используя пул соединений pgxpool.
 type ParameterPostgres struct {
 	Pool *pgxpool.Pool
-}
-
-// NewParameterRepository создает новый экземпляр ParameterRepository с предоставленным пулом соединений к базе данных.
-func NewParameterRepository(pool *pgxpool.Pool) ParameterRepository {
-	return &ParameterPostgres{Pool: pool}
 }
 
 // NewParameterPostgres создает новый экземпляр ParameterPostgres с предоставленным пулом соединений к базе данных.
@@ -57,15 +25,15 @@ func NewParameterPostgres(pool *pgxpool.Pool) *ParameterPostgres {
 	return &ParameterPostgres{Pool: pool}
 }
 
-// InsertNumericParameter добавляет новый числовой параметр в базу данных и возвращает его.
-func (p *ParameterPostgres) InsertNumericParameter(ctx context.Context, param *entities.NumericParameter) (*entities.NumericParameter, error) {
+// InsertRangeParameter добавляет новый числовой параметр в базу данных и возвращает его.
+func (p *ParameterPostgres) InsertRangeParameter(ctx context.Context, param *entities.RangeParameter) (*entities.RangeParameter, error) {
 	query := queries.InsertNumericParameter(param)
 	sql, args, err := query.ToSql()
 	if err != nil {
 		return nil, err
 	}
 
-	var id uint
+	var id int64
 	err = p.Pool.QueryRow(ctx, sql, args...).Scan(&id)
 	if err != nil {
 		return nil, err
@@ -75,8 +43,8 @@ func (p *ParameterPostgres) InsertNumericParameter(ctx context.Context, param *e
 	return param, nil
 }
 
-// UpdateNumericParameter обновляет существующий числовой параметр в базе данных и возвращает его.
-func (p *ParameterPostgres) UpdateNumericParameter(ctx context.Context, id uint, updates map[string]any) (*entities.NumericParameter, error) {
+// UpdateRangeParameter обновляет существующий числовой параметр в базе данных и возвращает его.
+func (p *ParameterPostgres) UpdateRangeParameter(ctx context.Context, id int64, updates map[string]any) (*entities.RangeParameter, error) {
 	if len(updates) == 0 {
 		return nil, errors.New("no updates provided")
 	}
@@ -92,7 +60,7 @@ func (p *ParameterPostgres) UpdateNumericParameter(ctx context.Context, id uint,
 		return nil, err
 	}
 
-	var param *entities.NumericParameter
+	var param *entities.RangeParameter
 	param, err = scanNumericParameter(p.Pool.QueryRow(ctx, sql, args...))
 	if err != nil {
 		return nil, err
@@ -105,8 +73,8 @@ func (p *ParameterPostgres) UpdateNumericParameter(ctx context.Context, id uint,
 	return param, nil
 }
 
-// DeleteNumericParameter удаляет числовой параметр из базы данных и возвращает его.
-func (p *ParameterPostgres) DeleteNumericParameter(ctx context.Context, id uint) (*entities.NumericParameter, error) {
+// DeleteRangeParameter удаляет числовой параметр из базы данных и возвращает его.
+func (p *ParameterPostgres) DeleteRangeParameter(ctx context.Context, id int64) (*entities.RangeParameter, error) {
 	param, err := p.fetchNumericParameterByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -126,89 +94,20 @@ func (p *ParameterPostgres) DeleteNumericParameter(ctx context.Context, id uint)
 	return param, nil
 }
 
-// InsertEnumParameter добавляет новый перечисляемый параметр в базу данных и возвращает его.
-func (p *ParameterPostgres) InsertEnumParameter(ctx context.Context, param *entities.EnumParameter) (*entities.EnumParameter, error) {
-	query := queries.InsertEnumParameter(param)
-	sql, args, err := query.ToSql()
-	if err != nil {
-		return nil, err
-	}
-
-	var id uint
-	err = p.Pool.QueryRow(ctx, sql, args...).Scan(&id)
-	if err != nil {
-		return nil, err
-	}
-
-	param.ID = id
-	return param, nil
-}
-
-// UpdateEnumParameter обновляет существующий перечисляемый параметр в базе данных и возвращает его.
-func (p *ParameterPostgres) UpdateEnumParameter(ctx context.Context, id uint, updates map[string]any) (*entities.EnumParameter, error) {
-	if len(updates) == 0 {
-		return nil, errors.New("no updates provided")
-	}
-
-	oldParam, err := p.fetchEnumParameterByID(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	query := queries.UpdateEnumParameter(id, updates)
-	sql, args, err := query.ToSql()
-	if err != nil {
-		return nil, err
-	}
-
-	var param *entities.EnumParameter
-	param, err = scanEnumParameter(p.Pool.QueryRow(ctx, sql, args...))
-	if err != nil {
-		return nil, err
-	}
-
-	if err = p.toggleInheritance(ctx, true, id, oldParam.Inheritable, param.Inheritable); err != nil {
-		return nil, err
-	}
-
-	return param, nil
-}
-
-// DeleteEnumParameter удаляет перечисляемый параметр из базы данных и возвращает его.
-func (p *ParameterPostgres) DeleteEnumParameter(ctx context.Context, id uint) (*entities.EnumParameter, error) {
-	param, err := p.fetchEnumParameterByID(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	deleteQuery := queries.DeleteEnumParameter(id)
-	sql, args, err := deleteQuery.ToSql()
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = p.Pool.Exec(ctx, sql, args...)
-	if err != nil {
-		return nil, err
-	}
-
-	return param, nil
-}
-
 // GetParameters извлекает все числовые и перечисляемые параметры из базы данных и возвращает их.
 //
 //nolint:funlen
 func (p *ParameterPostgres) GetParameters(
 	ctx context.Context,
-	categoryID uint,
+	classID int64,
 	parameterType int,
 ) (
-	[]entities.NumericParameter,
+	[]entities.RangeParameter,
 	[]entities.EnumParameter,
 	error,
 ) {
-	var numericIDs []uint
-	var enumIDs []uint
+	var numericIDs []int64
+	var enumIDs []int64
 	var query sq.SelectBuilder
 
 	log, ok := logger.GetLoggerFromCtx(ctx)
@@ -216,8 +115,8 @@ func (p *ParameterPostgres) GetParameters(
 		return nil, nil, nil
 	}
 
-	if categoryID != 0 {
-		query := queries.SelectParameterIDsByCategory(categoryID, parameterType)
+	if classID != 0 {
+		query := queries.SelectParameterIDsByCategory(classID, parameterType)
 		sql, args, err := query.ToSql()
 		if err != nil {
 			return nil, nil, err
@@ -226,7 +125,7 @@ func (p *ParameterPostgres) GetParameters(
 		switch parameterType {
 		case entities.MissingType:
 			err = p.Pool.QueryRow(ctx, sql, args...).Scan(&numericIDs, &enumIDs)
-		case entities.NumericParameterType:
+		case entities.RangeParameterType:
 			err = p.Pool.QueryRow(ctx, sql, args...).Scan(&numericIDs)
 		case entities.EnumParameterType:
 			err = p.Pool.QueryRow(ctx, sql, args...).Scan(&enumIDs)
@@ -236,11 +135,11 @@ func (p *ParameterPostgres) GetParameters(
 		}
 	}
 
-	var numericParams []entities.NumericParameter
+	var numericParams []entities.RangeParameter
 	var enumParams []entities.EnumParameter
 
 	if ((parameterType == entities.MissingType ||
-		parameterType == entities.NumericParameterType) && categoryID == 0) || len(numericIDs) > 0 {
+		parameterType == entities.RangeParameterType) && classID == 0) || len(numericIDs) > 0 {
 		log.Debug(ctx, "enum")
 		query = queries.SelectNumericParameters(numericIDs)
 		sql, args, err := query.ToSql()
@@ -255,7 +154,7 @@ func (p *ParameterPostgres) GetParameters(
 		defer rows.Close()
 
 		for rows.Next() {
-			var param *entities.NumericParameter
+			var param *entities.RangeParameter
 			param, err = scanNumericParameter(rows)
 			if err != nil {
 				return nil, nil, err
@@ -264,7 +163,7 @@ func (p *ParameterPostgres) GetParameters(
 		}
 	}
 	if ((parameterType == entities.MissingType ||
-		parameterType == entities.EnumParameterType) && categoryID == 0) || len(numericIDs) > 0 {
+		parameterType == entities.EnumParameterType) && classID == 0) || len(enumIDs) > 0 {
 		query = queries.SelectEnumParameters(enumIDs)
 		sql, args, err := query.ToSql()
 		if err != nil {
@@ -291,11 +190,11 @@ func (p *ParameterPostgres) GetParameters(
 }
 
 // ApplyParameters применяет числовые и перечисляемые параметры к категории и возвращает результат применения.
-func (p *ParameterPostgres) ApplyParameters(ctx context.Context, categoryID uint, numericParameters, enumParameters []int) (int, error) {
+func (p *ParameterPostgres) ApplyParameters(ctx context.Context, categoryID int64, numericParameters, enumParameters []int64) (int, error) {
 	rowsAffected := 0
 
 	if len(numericParameters) > 0 {
-		addQuery := queries.AddNumericParametersToCategories(numericParameters, []int{int(categoryID)})
+		addQuery := queries.AddNumericParametersToCategories(numericParameters, []int64{categoryID})
 		sql, args, err := addQuery.ToSql()
 		if err != nil {
 			return 0, err
@@ -310,7 +209,7 @@ func (p *ParameterPostgres) ApplyParameters(ctx context.Context, categoryID uint
 	}
 
 	if len(enumParameters) > 0 {
-		addQuery := queries.AddEnumParametersToCategories(enumParameters, []int{int(categoryID)})
+		addQuery := queries.AddEnumParametersToCategories(enumParameters, []int64{categoryID})
 		sql, args, err := addQuery.ToSql()
 		if err != nil {
 			return 0, err
@@ -324,7 +223,7 @@ func (p *ParameterPostgres) ApplyParameters(ctx context.Context, categoryID uint
 		rowsAffected += affected
 	}
 
-	inheritQuery := queries.InheritParametersToChildren(int(categoryID))
+	inheritQuery := queries.InheritParametersToChildren(categoryID)
 	sql, args, err := inheritQuery.ToSql()
 	if err != nil {
 		return 0, err
@@ -340,12 +239,11 @@ func (p *ParameterPostgres) ApplyParameters(ctx context.Context, categoryID uint
 	return rowsAffected, nil
 }
 
-// scanNumericParameter сканирует строку из базы данных в структуру NumericParameter и возвращает ее.
-func scanNumericParameter(row pgx.Row) (*entities.NumericParameter, error) {
-	var param entities.NumericParameter
-	err := row.Scan(&param.ID, &param.MinValue,
-		&param.MaxValue, &param.FieldName,
-		&param.EntityName, &param.Inheritable)
+// scanNumericParameter сканирует строку из базы данных в структуру RangeParameter и возвращает ее.
+func scanNumericParameter(row pgx.Row) (*entities.RangeParameter, error) {
+	var param entities.RangeParameter
+	err := row.Scan(&param.ID, &param.MinValue, &param.MaxValue,
+		&param.FieldName, &param.Inheritable, &param.Unit)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Scan", err)
 	}
@@ -364,9 +262,9 @@ func scanEnumParameter(row pgx.Row) (*entities.EnumParameter, error) {
 	return &param, nil
 }
 
-// fetchNumericParameterByID получает NumericParameter по id
-func (p *ParameterPostgres) fetchNumericParameterByID(ctx context.Context, id uint) (*entities.NumericParameter, error) {
-	selectQuery := queries.SelectNumericParameters([]uint{id})
+// fetchNumericParameterByID получает RangeParameter по id
+func (p *ParameterPostgres) fetchNumericParameterByID(ctx context.Context, id int64) (*entities.RangeParameter, error) {
+	selectQuery := queries.SelectNumericParameters([]int64{id})
 	sql, args, err := selectQuery.ToSql()
 	if err != nil {
 		return nil, err
@@ -375,8 +273,8 @@ func (p *ParameterPostgres) fetchNumericParameterByID(ctx context.Context, id ui
 }
 
 // fetchEnumParameterByID получает EnumParameter по id
-func (p *ParameterPostgres) fetchEnumParameterByID(ctx context.Context, id uint) (*entities.EnumParameter, error) {
-	selectQuery := queries.SelectEnumParameters([]uint{id})
+func (p *ParameterPostgres) fetchEnumParameterByID(ctx context.Context, id int64) (*entities.EnumParameter, error) {
+	selectQuery := queries.SelectEnumParameters([]int64{id})
 	sql, args, err := selectQuery.ToSql()
 	if err != nil {
 		return nil, err
@@ -387,7 +285,7 @@ func (p *ParameterPostgres) fetchEnumParameterByID(ctx context.Context, id uint)
 // toggleInheritance реализует обработку изменения флага наследования у параметра
 //
 //nolint:funlen
-func (p *ParameterPostgres) toggleInheritance(ctx context.Context, isEnum bool, id uint, oldValue, newValue bool) error {
+func (p *ParameterPostgres) toggleInheritance(ctx context.Context, isEnum bool, id int64, oldValue, newValue bool) error {
 	if oldValue == newValue {
 		return nil
 	}
@@ -410,9 +308,9 @@ func (p *ParameterPostgres) toggleInheritance(ctx context.Context, isEnum bool, 
 	}
 	defer rows.Close()
 
-	var categoryIDs []int
+	var categoryIDs []int64
 	for rows.Next() {
-		var categoryID int
+		var categoryID int64
 		if err = rows.Scan(&categoryID); err != nil {
 			return err
 		}
@@ -423,8 +321,8 @@ func (p *ParameterPostgres) toggleInheritance(ctx context.Context, isEnum bool, 
 		return nil
 	}
 
-	seen := make(map[int]struct{})
-	uniq := make([]int, 0, len(categoryIDs))
+	seen := make(map[int64]struct{})
+	uniq := make([]int64, 0, len(categoryIDs))
 	for _, cid := range categoryIDs {
 		if _, ok := seen[cid]; !ok {
 			seen[cid] = struct{}{}
@@ -459,7 +357,7 @@ func (p *ParameterPostgres) toggleInheritance(ctx context.Context, isEnum bool, 
 	}
 
 	if isEnum {
-		removeQuery := queries.RemoveEnumParametersFromDescendants([]int{int(id)}, uniq)
+		removeQuery := queries.RemoveEnumParametersFromDescendants([]int64{id}, uniq)
 		sql, args, err = removeQuery.ToSql()
 		if err != nil {
 			return err
@@ -476,7 +374,7 @@ func (p *ParameterPostgres) toggleInheritance(ctx context.Context, isEnum bool, 
 		return nil
 	}
 
-	removeQuery := queries.RemoveNumericParametersFromDescendants([]int{int(id)}, uniq)
+	removeQuery := queries.RemoveNumericParametersFromDescendants([]int64{id}, uniq)
 	sql, args, err = removeQuery.ToSql()
 	if err != nil {
 		return err
@@ -491,4 +389,44 @@ func (p *ParameterPostgres) toggleInheritance(ctx context.Context, isEnum bool, 
 	}
 
 	return nil
+}
+
+func (s *ParameterPostgres) ExcludeParameters(ctx context.Context, id int64, rangeParameters, enumParameters []int64) (int, error) {
+	tx, err := s.Pool.Begin(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("Begin: %w", err)
+	}
+
+	defer tx.Rollback(ctx)
+
+	qTx := queries.New(s.Pool).WithTx(tx)
+	affected := 0
+
+	if len(enumParameters) != 0 {
+		params := queries.ExcludeEnumParametersParams{
+			ProductID:        &id,
+			EnumParameterIds: enumParameters,
+		}
+		if err := qTx.ExcludeEnumParameters(ctx, params); err != nil {
+			return 0, fmt.Errorf("ExcludeEnumParameters: %w", err)
+		}
+		affected += len(enumParameters)
+	}
+
+	if len(rangeParameters) != 0 {
+		params := queries.ExcludeRangeParametersParams{
+			ProductID:         &id,
+			RangeParameterIds: rangeParameters,
+		}
+		if err := qTx.ExcludeRangeParameters(ctx, params); err != nil {
+			return 0, fmt.Errorf("ExcludeRangeParameters: %w", err)
+		}
+		affected += len(rangeParameters)
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return 0, fmt.Errorf("Commit: %w", err)
+	}
+
+	return affected, nil
 }

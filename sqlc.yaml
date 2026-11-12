@@ -1,0 +1,40 @@
+version: "2"
+sql:
+  - schema: "migrator/sql"
+    queries: "internal/repository/queries/sql" 
+    engine: "postgresql"
+    gen:
+      go:
+        package: "queries"
+        out: "internal/repository/queries"
+        sql_package: "pgx/v5"
+        overrides:
+          - db_type: pg_catalog.int8
+            nullable: true
+            go_type:
+              type: int64
+              pointer: true
+          - db_type: text
+            nullable: true
+            go_type:
+              type: string
+              pointer: true
+
+          # Для опциональных колонок (NULL)
+          - db_type: pg_catalog.numeric
+            nullable: true
+            go_type:
+              type: float32
+              pointer: true
+
+          - db_type: pg_catalog.numeric
+            nullable: false
+            go_type:
+              type: float32
+              pointer: false
+
+          - db_type: timestamptz
+            nullable: true
+            go_type:
+              import: "time"
+              type: "Time"

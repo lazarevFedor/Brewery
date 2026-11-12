@@ -1,3 +1,4 @@
+// Package usecase содержит основные операции с сущностями
 package usecase
 
 import (
@@ -6,36 +7,58 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type AggregateService interface {
-	CreateAggregate(ctx context.Context, aggregate *entities.Aggregate) (*entities.Aggregate, error)
+// AggregateRepository определяет интерфейс для работы с агрегатами в базе данных.
+type AggregateRepository interface {
+	// InsertAggregate вставляет новый агрегат в базу данных и возвращает его с присвоенным ID.
+	InsertAggregate(ctx context.Context, aggregate *entities.Aggregate) (*entities.Aggregate, error)
+
+	// GetAggregates извлекает все агрегаты, соответствующие заданному имени, если оно задано, из базы данных.
 	GetAggregates(ctx context.Context, name string) ([]entities.Aggregate, error)
-	UpdateAggregate(ctx context.Context, id uint, updates map[string]any) (*entities.Aggregate, error)
-	DeleteAggregate(ctx context.Context, id uint) (*entities.Aggregate, error)
-	ApplyAggregateToCategory(ctx context.Context, categoryID, aggregateID uint) (int, error)
+
+	// ApplyAggregate применяет агрегат к классу и возвращает результат применения.
+	ApplyAggregate(ctx context.Context, classID, id int64) (int, error)
+
+	// UpdateAggregate обновляет существующий агрегат с заданным ID и возвращает обновленный агрегат.
+	UpdateAggregate(ctx context.Context, id int64, updates map[string]any) (*entities.Aggregate, error)
+
+	// DeleteAggregate удаляет агрегат с заданным ID из базы данных и возвращает удаленный агрегат.
+	DeleteAggregate(ctx context.Context, id int64) (*entities.Aggregate, error)
 }
 
-type aggregateService struct {
-	aggregateRepo repository.AggregateRepository
+// NewAggregateRepository создает новый экземпляр AggregateRepository с использованием предоставленного пула соединений к базе данных.
+func NewAggregateRepository(pool *pgxpool.Pool) AggregateRepository {
+	return &repository.AggregatePostgres{Pool: pool}
 }
 
-func NewAggregateService(aggregateRepo repository.AggregateRepository) AggregateService {
-	return &aggregateService{
-		aggregateRepo: aggregateRepo,
-	}
+// AggregateService реализует интерфейс AggregateService.
+type AggregateService struct {
+	AggregateRepo AggregateRepository
 }
 
-func (s *aggregateService) CreateAggregate(ctx context.Context, aggregate *entities.Aggregate) (*entities.Aggregate, error) {
+// NewAggregateService creates aggregate service.
+func NewAggregateService(repo AggregateRepository) *AggregateService {
+	return &AggregateService{AggregateRepo: repo}
+}
+
+// CreateAggregate создает новый агрегат.
+func (s *AggregateService) CreateAggregate(ctx context.Context, aggregate *entities.Aggregate) (*entities.Aggregate, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
+	}
+
+	if aggregate == nil {
+		return nil, errors.New("aggregate is nil")
 	}
 
 	if aggregate.Name == "" {
 		return nil, errors.New("aggregate name is required")
 	}
 
-	created, err := s.aggregateRepo.InsertAggregate(ctx, aggregate)
+	created, err := s.AggregateRepo.InsertAggregate(ctx, aggregate)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create aggregate: %w", err)
 	}
@@ -43,12 +66,13 @@ func (s *aggregateService) CreateAggregate(ctx context.Context, aggregate *entit
 	return created, nil
 }
 
-func (s *aggregateService) GetAggregates(ctx context.Context, name string) ([]entities.Aggregate, error) {
+// GetAggregates получает список агрегатов, фильтруя по имени.
+func (s *AggregateService) GetAggregates(ctx context.Context, name string) ([]entities.Aggregate, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	aggregates, err := s.aggregateRepo.GetAggregates(ctx, name)
+	aggregates, err := s.AggregateRepo.GetAggregates(ctx, name)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get aggregates: %w", err)
 	}
@@ -56,16 +80,21 @@ func (s *aggregateService) GetAggregates(ctx context.Context, name string) ([]en
 	return aggregates, nil
 }
 
-func (s *aggregateService) UpdateAggregate(ctx context.Context, id uint, updates map[string]any) (*entities.Aggregate, error) {
+// UpdateAggregate обновляет существующий агрегат по его ID.
+func (s *AggregateService) UpdateAggregate(ctx context.Context, id int64, updates map[string]any) (*entities.Aggregate, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
+	}
+
+	if id == 0 {
+		return nil, errors.New("invalid aggregate ID")
 	}
 
 	if len(updates) == 0 {
 		return nil, errors.New("no updates provided")
 	}
 
-	updated, err := s.aggregateRepo.UpdateAggregate(ctx, id, updates)
+	updated, err := s.AggregateRepo.UpdateAggregate(ctx, id, updates)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update aggregate: %w", err)
 	}
@@ -73,12 +102,17 @@ func (s *aggregateService) UpdateAggregate(ctx context.Context, id uint, updates
 	return updated, nil
 }
 
-func (s *aggregateService) DeleteAggregate(ctx context.Context, id uint) (*entities.Aggregate, error) {
+// DeleteAggregate удаляет агрегат по его ID.
+func (s *AggregateService) DeleteAggregate(ctx context.Context, id int64) (*entities.Aggregate, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	deleted, err := s.aggregateRepo.DeleteAggregate(ctx, id)
+	if id == 0 {
+		return nil, errors.New("invalid aggregate ID")
+	}
+
+	deleted, err := s.AggregateRepo.DeleteAggregate(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete aggregate: %w", err)
 	}
@@ -86,14 +120,19 @@ func (s *aggregateService) DeleteAggregate(ctx context.Context, id uint) (*entit
 	return deleted, nil
 }
 
-func (s *aggregateService) ApplyAggregateToCategory(ctx context.Context, categoryID, aggregateID uint) (int, error) {
+// ApplyAggregateToClass применяет агрегат к классу, возвращая количество добавленных связей.
+func (s *AggregateService) ApplyAggregateToClass(ctx context.Context, classID, aggregateID int64) (int, error) {
 	if err := ctx.Err(); err != nil {
 		return 0, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	added, err := s.aggregateRepo.ApplyAggregate(ctx, categoryID, aggregateID)
+	if classID == 0 || aggregateID == 0 {
+		return 0, errors.New("invalid class ID or aggregate ID")
+	}
+
+	added, err := s.AggregateRepo.ApplyAggregate(ctx, classID, aggregateID)
 	if err != nil {
-		return 0, fmt.Errorf("failed to apply aggregate to category: %w", err)
+		return 0, fmt.Errorf("failed to apply aggregate to class: %w", err)
 	}
 
 	return added, nil

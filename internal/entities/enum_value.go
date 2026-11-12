@@ -9,16 +9,15 @@ import (
 )
 
 const (
-	EnumValueTypeString  EnumType = "string"
-	EnumValueTypeInt     EnumType = "int"
-	EnumValueTypeFloat   EnumType = "float"
-	EnumValueTypePicture EnumType = "picture"
+	EnumValueTypeString EnumType = "string"
+	EnumValueTypeInt    EnumType = "int"
+	EnumValueTypeFloat  EnumType = "float"
 )
 
 type EnumType string
 
 //easyjson:skip
-type EnumValueRow struct {
+type ParameterValueRow struct {
 	ID          int
 	EnumClassID int
 	ValueRaw    string
@@ -37,7 +36,7 @@ type EnumValue struct {
 //easyjson:json
 type EnumValues []EnumValue
 
-func (e *EnumValue) ToRow() (*EnumValueRow, error) {
+func (e *EnumValue) ToRow() (*ParameterValueRow, error) {
 	if e == nil {
 		return nil, errors.New("enum value is nil")
 	}
@@ -47,7 +46,7 @@ func (e *EnumValue) ToRow() (*EnumValueRow, error) {
 		return nil, fmt.Errorf("convert enum value to raw: %w", err)
 	}
 
-	return &EnumValueRow{
+	return &ParameterValueRow{
 		ID:          e.ID,
 		EnumClassID: e.EnumClassID,
 		ValueRaw:    valueStr,
@@ -56,7 +55,7 @@ func (e *EnumValue) ToRow() (*EnumValueRow, error) {
 	}, nil
 }
 
-func (e *EnumValueRow) FromRow() (*EnumValue, error) {
+func (e *ParameterValueRow) FromRow() (*EnumValue, error) {
 	if e == nil {
 		return nil, errors.New("enum value row is nil")
 	}
@@ -77,7 +76,7 @@ func (e *EnumValueRow) FromRow() (*EnumValue, error) {
 
 func enumValueToRaw(valueType EnumType, value any) (string, error) {
 	switch valueType {
-	case EnumValueTypeString, EnumValueTypePicture:
+	case EnumValueTypeString:
 		str, ok := value.(string)
 		if !ok {
 			return "", fmt.Errorf("invalid enum value type %s: expected string, got %T", valueType, value)
@@ -171,7 +170,7 @@ func enumValueToRaw(valueType EnumType, value any) (string, error) {
 
 func enumValueFromRaw(valueType EnumType, valueRaw string) (any, error) {
 	switch valueType {
-	case EnumValueTypeString, EnumValueTypePicture:
+	case EnumValueTypeString:
 		return valueRaw, nil
 	case EnumValueTypeInt:
 		value, err := strconv.Atoi(valueRaw)

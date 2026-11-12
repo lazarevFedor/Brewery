@@ -1,0 +1,3121 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Product Catalog API",
+    "version": "1.0.0",
+    "description": "API for managing classes, products, reviews, enums, class parameters and parameter's aggregates"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080/api"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Авторизация для действий Админа"
+    },
+    {
+      "name": "Classes",
+      "description": "Все операции, связанные с классами изделий"
+    },
+    {
+      "name": "ClassParams",
+      "description": "Операции связанные с параметрами классов"
+    },
+    {
+      "name": "Aggregates",
+      "description": "Операции связанные с агрегатами параметров классов"
+    },
+    {
+      "name": "Products",
+      "description": "Операции, связанные с изделиями"
+    },
+    {
+      "name": "Materials",
+      "description": "Операции, связанные с составом изделия (материалами)"
+    },
+    {
+      "name": "History",
+      "description": "Операции, связанные с историей изменений изделий"
+    },
+    {
+      "name": "EnumsClass",
+      "description": "Операции, связанные с классами перечислений "
+    },
+    {
+      "name": "EnumsValue",
+      "description": "Операции связанные с перечислениями"
+    }
+  ],
+  "paths": {
+    "/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "login admin",
+        "operationId": "AuthAdmin",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Auth"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "token": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/403_unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/classes": {
+      "get": {
+        "tags": [
+          "Classes"
+        ],
+        "summary": "Get all classes",
+        "operationId": "ListClasses",
+        "responses": {
+          "200": {
+            "description": "Classes list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Class"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Classes"
+        ],
+        "summary": "Create class",
+        "operationId": "CreateClass",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClassCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "class created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Class"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/classes/{id}": {
+      "get": {
+        "tags": [
+          "Classes"
+        ],
+        "summary": "Get class by ID",
+        "operationId": "GetClass",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "class",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Class"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Classes"
+        ],
+        "summary": "Update class",
+        "operationId": "updateClass",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClassUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated class",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Class"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Classes"
+        ],
+        "summary": "Delete class",
+        "operationId": "DeleteClass",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successfully deleted"
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/classes/parent/{id}": {
+      "get": {
+        "tags": [
+          "Classes"
+        ],
+        "summary": "Get parent class",
+        "operationId": "GetClassParent",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Parent class",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Class"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/classes/children/{id}": {
+      "get": {
+        "tags": [
+          "Classes"
+        ],
+        "summary": "Get class's children",
+        "operationId": "ListClassChildren",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Children classes list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Class"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/products": {
+      "get": {
+        "tags": [
+          "Products"
+        ],
+        "summary": "Get all products",
+        "operationId": "listProducts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Offset"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Products list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Product"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Products"
+        ],
+        "summary": "Create product",
+        "operationId": "createProduct",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Product created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Product"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/products/{id}": {
+      "get": {
+        "tags": [
+          "Products"
+        ],
+        "summary": "Get product by ID",
+        "operationId": "getProduct",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Product"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Products"
+        ],
+        "summary": "Update product",
+        "operationId": "updateProduct",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Product"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Products"
+        ],
+        "summary": "Delete product",
+        "operationId": "deleteProduct",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successfully deleted"
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/classes/products/{class_id}": {
+      "get": {
+        "tags": [
+          "Products"
+        ],
+        "summary": "Get products by class",
+        "operationId": "listProductsByClass",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/classId"
+          },
+          {
+            "$ref": "#/components/parameters/Offset"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Products list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Product"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/products/search": {
+      "get": {
+        "tags": [
+          "Products"
+        ],
+        "summary": "Filter products by exact parameter values",
+        "operationId": "searchProducts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/productFilter"
+          },
+          {
+            "$ref": "#/components/parameters/Offset"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Products list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Product"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/classes/{id}/products/search": {
+      "get": {
+        "tags": [
+          "Products"
+        ],
+        "summary": "Search products in class by parameter ranges",
+        "operationId": "searchProductsByClass",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          },
+          {
+            "$ref": "#/components/parameters/ClassProductFilter"
+          },
+          {
+            "$ref": "#/components/parameters/Offset"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Products list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Product"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/products/{id}/materials": {
+      "get": {
+        "tags": [
+          "Materials"
+        ],
+        "summary": "Get product's full composition tree (BOM)",
+        "description": "Рекурсивно строит полное дерево состава изделия на всю глубину.",
+        "operationId": "getProductBomTree",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Composition tree: top-level materials with nested materials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MaterialTreeNode"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Materials"
+        ],
+        "summary": "Add material to product",
+        "operationId": "addProductMaterial",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaterialCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Material added",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Material"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/422_validation_error"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/products/{id}/materials/norms": {
+      "get": {
+        "tags": [
+          "Materials"
+        ],
+        "summary": "Calculate total material consumption norms for product",
+        "description": "Сводные нормы расхода для всего изделия с учётом всей глубины состава. Количества всех вхождений одного материала суммируются и умножаются на quantity, без дополнительного умножения на количества родительских материалов.",
+        "operationId": "calculateMaterialNorms",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          },
+          {
+            "name": "quantity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "float",
+              "default": 1,
+              "minimum": 0,
+              "exclusiveMinimum": true
+            },
+            "description": "Количество изделий, на которое считается расход"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Total material norms",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MaterialNorm"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "422": {
+            "$ref": "#/components/responses/422_validation_error"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/products/{id}/materials/{material_id}": {
+      "patch": {
+        "tags": [
+          "Materials"
+        ],
+        "summary": "Update material amount and Base flag in product",
+        "operationId": "updateProductMaterial",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          },
+          {
+            "$ref": "#/components/parameters/materialId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaterialUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated material",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Material"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Materials"
+        ],
+        "summary": "Remove material from product",
+        "operationId": "deleteProductMaterial",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          },
+          {
+            "$ref": "#/components/parameters/materialId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successfully deleted"
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/materials/{material_id}/products": {
+      "get": {
+        "tags": [
+          "Materials"
+        ],
+        "summary": "Get products that use material (where-used)",
+        "operationId": "listProductsByMaterial",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/materialId"
+          },
+          {
+            "$ref": "#/components/parameters/Offset"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Products list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Product"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/products/{id}/history": {
+      "post": {
+        "tags": [
+          "History"
+        ],
+        "summary": "Register change in product specification",
+        "operationId": "registerProductChange",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HistoryRecordCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Change registered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HistoryRecord"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "History"
+        ],
+        "summary": "Get product's change history",
+        "operationId": "listProductHistory",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          },
+          {
+            "$ref": "#/components/parameters/DateFrom"
+          },
+          {
+            "$ref": "#/components/parameters/DateTo"
+          },
+          {
+            "$ref": "#/components/parameters/Offset"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "History records list, newest first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HistoryRecord"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/history/{id}": {
+      "get": {
+        "tags": [
+          "History"
+        ],
+        "summary": "Get history record by ID",
+        "operationId": "getHistoryRecord",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "History record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HistoryRecord"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/enums": {
+      "post": {
+        "tags": [
+          "EnumsClass"
+        ],
+        "summary": "Create enum class",
+        "operationId": "createEnumClass",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnumClassCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Enum class created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnumClass"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "EnumsClass"
+        ],
+        "summary": "Get enum classes",
+        "operationId": "listEnumClasses",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/FieldName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Enum class list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EnumClass"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/enums/{id}": {
+      "patch": {
+        "tags": [
+          "EnumsClass"
+        ],
+        "summary": "Update enum class",
+        "operationId": "updateEnumClass",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnumClassUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated enum class",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnumClass"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "EnumsClass"
+        ],
+        "summary": "Delete enum class",
+        "operationId": "deleteEnumClass",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successfully deleted"
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/enums/value": {
+      "post": {
+        "tags": [
+          "EnumsValue"
+        ],
+        "summary": "Create enum's value",
+        "operationId": "createEnumValue",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnumValueCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Enum value created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnumValue"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "EnumsValue"
+        ],
+        "summary": "Get enum's values",
+        "operationId": "listEnumValues",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/EnumType"
+          },
+          {
+            "$ref": "#/components/parameters/FieldName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Enum values list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EnumValue"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/enums/value/{id}": {
+      "delete": {
+        "tags": [
+          "EnumsValue"
+        ],
+        "summary": "Delete enum's value",
+        "operationId": "deleteEnumValue",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successfully deleted"
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "EnumsValue"
+        ],
+        "summary": "Update enum's value",
+        "operationId": "updateEnumValue",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnumValueBase"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated enum value",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnumValue"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/classes/parameters/range": {
+      "post": {
+        "tags": [
+          "ClassParams"
+        ],
+        "summary": "Create range parameter",
+        "operationId": "createRangeParameter",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RangeParameterCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Range parameter created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RangeParameter"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/classes/parameters": {
+      "get": {
+        "tags": [
+          "ClassParams"
+        ],
+        "summary": "Get all parameters with optional filtering by class and type",
+        "operationId": "ListClassParameters",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/classIdFilter"
+          },
+          {
+            "$ref": "#/components/parameters/ParamType"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "range",
+                "enum"
+              ]
+            },
+            "description": "Filter parameters by type. If omitted, returns both range and enum parameters."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Filtered list of parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "oneOf": [
+                      {
+                        "$ref": "#/components/schemas/RangeParameter"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/classes/parameters/apply/{class_id}": {
+      "patch": {
+        "tags": [
+          "ClassParams"
+        ],
+        "summary": "Apply parameters to class",
+        "operationId": "ApplyParametersToClass",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/classId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClassParamsApply"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Parameters applied successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "params_added": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/classes/parameters/exclude/{class_id}": {
+      "patch": {
+        "tags": [
+          "ClassParams"
+        ],
+        "summary": "Exclude parameters from class",
+        "operationId": "ExcludeParametersFromClass",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/classId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClassParamsExclude"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Parameters excluded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "params_excluded": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/classes/parameters/{id}": {
+      "patch": {
+        "tags": [
+          "ClassParams"
+        ],
+        "summary": "Update parameter",
+        "operationId": "UpdateClassParameter",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/RangeParameterUpdate"
+                  }
+                ]
+              },
+              "examples": {
+                "range": {
+                  "$ref": "#/components/examples/RangeParameterUpdate"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Parameter updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/RangeParameter"
+                    }
+                  ]
+                },
+                "examples": {
+                  "range": {
+                    "$ref": "#/components/examples/RangeParameter"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "422": {
+            "$ref": "#/components/responses/422_validation_error"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ClassParams"
+        ],
+        "summary": "Delete parameter",
+        "operationId": "DeleteClassParameter",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Parameter deleted"
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/aggregates": {
+      "post": {
+        "tags": [
+          "Aggregates"
+        ],
+        "summary": "Create parameter aggregate",
+        "operationId": "createParameterAggregate",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParameterAggregateCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Parameter aggregate created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParameterAggregate"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Aggregates"
+        ],
+        "summary": "Get all parameter aggregates",
+        "operationId": "listParameterAggregates",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AggregateName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of aggregates",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ParameterAggregate"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/aggregates/apply/{class_id}": {
+      "patch": {
+        "tags": [
+          "Aggregates"
+        ],
+        "summary": "Apply parameter aggregate to class",
+        "operationId": "applyParameterAggregate",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/classId"
+          },
+          {
+            "$ref": "#/components/parameters/AggregateId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Aggregate applied successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "params_added": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/aggregates/{id}": {
+      "patch": {
+        "tags": [
+          "Aggregates"
+        ],
+        "summary": "Update parameter aggregate",
+        "operationId": "updateParameterAggregate",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParameterAggregateUpdate"
+              },
+              "examples": {
+                "update-name-description": {
+                  "summary": "Update name and description",
+                  "value": {
+                    "name": "Lager Profile v2",
+                    "description": "Updated standard parameters for Lager"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Parameter aggregate updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParameterAggregate"
+                },
+                "examples": {
+                  "updated": {
+                    "summary": "Updated aggregate",
+                    "value": {
+                      "id": 1,
+                      "name": "Lager Profile v2",
+                      "description": "Updated standard parameters for Lager",
+                      "range_param_ids": [
+                        10
+                      ],
+                      "enum_param_ids": [
+                        11
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Aggregates"
+        ],
+        "summary": "Delete parameter aggregate",
+        "operationId": "deleteParameterAggregate",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Parameter aggregate deleted"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Auth": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "example": {
+          "username": "admin",
+          "password": "admin"
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": [
+          "error",
+          "message"
+        ],
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "VALIDATION_ERROR"
+          },
+          "message": {
+            "type": "string",
+            "example": "Invalid request"
+          }
+        }
+      },
+      "ClassBase": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "Class": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ClassBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "parent_id"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "parent_id": {
+                "type": "integer",
+                "nullable": true
+              },
+              "range_param_ids": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "default": []
+              },
+              "enum_param_ids": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "default": []
+              }
+            }
+          }
+        ]
+      },
+      "ClassCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ClassBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "name",
+              "parent_id"
+            ],
+            "properties": {
+              "parent_id": {
+                "type": "integer",
+                "nullable": true
+              }
+            }
+          }
+        ]
+      },
+      "ClassUpdate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ClassBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "parent_id": {
+                "type": "integer",
+                "nullable": true
+              },
+              "range_param_ids": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "default": []
+              },
+              "enum_param_ids": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "default": []
+              }
+            }
+          }
+        ]
+      },
+      "ProductBase": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "Product": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ProductBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "class_id",
+              "base_id"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "class": {
+                "$ref": "#/components/schemas/ClassBase"
+              },
+              "parameters": {
+                "type": "object",
+                "additionalProperties": {
+                  "oneOf": [
+                    {"type":  "string"},
+                    {"type":  "number"}
+                  ]
+                }
+              },
+              "class_id": {
+                "type": "integer"
+              },
+              "base_id": {
+                "type": "integer",
+                "nullable": true,
+                "description": "ID базового изделия, на основе которого создано текущее"
+              },
+              "amount": {
+                "type": "integer"
+              },
+              "units": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "ProductCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ProductBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "name",
+              "class"
+            ],
+            "properties": {
+              "class": {
+                "$ref": "#/components/schemas/ClassBase"
+              },
+              "base_id": {
+                "type": "integer",
+                "nullable": true,
+                "description": "ID базового изделия, на основе которого создано текущее"
+              },
+              "amount": {
+                "type": "integer"
+              },
+              "units": {
+                "type": "string"
+              }
+            },
+            "example": {
+              "name": "Балтика 0",
+              "class": {
+                "name": "Светлое"
+              },
+              "base_id": null,
+              "amount": 100,
+              "units": "L"
+            }
+          }
+        ]
+      },
+      "ProductUpdate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ProductBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "class_id": {
+                "type": "integer"
+              },
+              "base_id": {
+                "type": "integer",
+                "nullable": true,
+                "description": "ID базового изделия, на основе которого создано текущее"
+              },
+              "amount": {
+                "type": "integer"
+              },
+              "units": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "MaterialBase": {
+        "type": "object",
+        "properties": {
+          "material_amount": {
+            "type": "number",
+            "format": "double",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "example": 12.5,
+            "description": "Количество материала на одно изделие"
+          },
+          "base": {
+            "type": "boolean",
+            "default": false,
+            "example": false,
+            "description": "Флаг Base материала. Если поле не передано при создании или обновлении, используется false."
+          }
+        }
+      },
+      "Material": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/MaterialBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "material_id",
+              "product_id",
+              "material_amount",
+              "base"
+            ],
+            "properties": {
+              "material_id": {
+                "type": "integer",
+                "example": 5,
+                "description": "ID изделия, используемого как материал"
+              },
+              "product_id": {
+                "type": "integer",
+                "example": 1,
+                "description": "ID изделия, в состав которого входит материал"
+              },
+              "material": {
+                "$ref": "#/components/schemas/ProductBase"
+              },
+              "units": {
+                "type": "string",
+                "example": "kg"
+              }
+            }
+          }
+        ],
+        "example": {
+          "material_id": 5,
+          "product_id": 1,
+          "material_amount": 12.5,
+          "base": true
+        }
+      },
+      "MaterialCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/MaterialBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "material_id",
+              "material_amount"
+            ],
+            "properties": {
+              "material_id": {
+                "type": "integer",
+                "example": 5
+              }
+            }
+          }
+        ],
+        "example": {
+          "material_id": 5,
+          "material_amount": 12.5,
+          "base": true
+        }
+      },
+      "MaterialUpdate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/MaterialBase"
+          },
+          {
+            "required": [
+              "material_amount"
+            ]
+          }
+        ],
+        "description": "Обновление количества материала и флага Base. Если base не передан, он устанавливается в false.",
+        "example": {
+          "material_amount": 15,
+          "base": false
+        }
+      },
+      "MaterialNorm": {
+        "type": "object",
+        "required": [
+          "material_id",
+          "name",
+          "total_amount",
+          "base"
+        ],
+        "properties": {
+          "material_id": {
+            "type": "integer",
+            "example": 5
+          },
+          "name": {
+            "type": "string",
+            "example": "Хмель"
+          },
+          "total_amount": {
+            "type": "number",
+            "format": "double",
+            "example": 37.5,
+            "description": "Сколько всего материала требуется для изготовления изделия"
+          },
+          "units": {
+            "type": "string",
+            "example": "kg"
+          },
+          "base": {
+            "type": "boolean",
+            "example": false,
+            "description": "Флаг Base материала."
+          }
+        },
+        "example": {
+          "material_id": 5,
+          "name": "Хмель",
+          "total_amount": 37.5,
+          "base": false,
+          "units": "kg"
+        }
+      },
+      "MaterialTreeNode": {
+        "type": "object",
+        "required": [
+          "material_id",
+          "name",
+          "material_amount",
+          "materials",
+          "base"
+        ],
+        "properties": {
+          "material_id": {
+            "type": "integer",
+            "example": 5
+          },
+          "name": {
+            "type": "string",
+            "example": "Сусло"
+          },
+          "material_amount": {
+            "type": "number",
+            "format": "double",
+            "example": 12.5,
+            "description": "Количество материала на одну единицу родителя"
+          },
+          "units": {
+            "type": "string",
+            "example": "L"
+          },
+          "materials": {
+            "type": "array",
+            "description": "Состав этого материала (пустой, если материал не составной)",
+            "items": {
+              "$ref": "#/components/schemas/MaterialTreeNode"
+            },
+            "default": []
+          },
+          "base": {
+            "type": "boolean",
+            "example": false,
+            "description": "Флаг Base материала."
+          }
+        },
+        "example": {
+          "material_id": 5,
+          "name": "Сусло",
+          "material_amount": 12.5,
+          "units": "L",
+          "materials": [
+            {
+              "material_id": 7,
+              "name": "Солод",
+              "material_amount": 2,
+              "units": "kg",
+              "materials": [],
+              "base": false
+            }
+          ],
+          "base": true
+        }
+      },
+      "HistoryRecordCreate": {
+        "type": "object",
+        "required": [
+          "changes"
+        ],
+        "properties": {
+          "changes": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Текстовое описание изменения спецификации",
+            "example": "Норма хмеля увеличена с 12.5 до 15 кг"
+          }
+        }
+      },
+      "HistoryRecord": {
+        "type": "object",
+        "required": [
+          "id",
+          "product_id",
+          "changes",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "product_id": {
+            "type": "integer",
+            "example": 1
+          },
+          "changes": {
+            "type": "string",
+            "description": "Текстовое описание изменения спецификации",
+            "example": "Норма хмеля увеличена с 12.5 до 15 кг"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-10-28T12:00:00Z"
+          }
+        }
+      },
+      "EnumClassBase": {
+        "type": "object",
+        "required": [
+          "field_name"
+        ],
+        "properties": {
+          "field_name": {
+            "type": "string"
+          }
+        }
+      },
+      "EnumClass": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumClassBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "enum_type",
+              "field_name",
+              "is_active",
+              "inheritable"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "enum_type": {
+                "type": "string"
+              },
+              "unit": {
+                "type": "string"
+              },
+              "is_active": {
+                "type": "boolean"
+              },
+              "inheritable": {
+                "type": "boolean"
+              }
+            }
+          }
+        ]
+      },
+      "EnumClassCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumClassBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "enum_type",
+              "field_name",
+              "is_active",
+              "inheritable"
+            ],
+            "properties": {
+              "enum_type": {
+                "type": "string"
+              },
+              "unit": {
+                "type": "string"
+              },
+              "is_active": {
+                "type": "boolean"
+              },
+              "inheritable": {
+                "type": "boolean"
+              }
+            }
+          }
+        ]
+      },
+      "EnumClassUpdate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumClassCreate"
+          }
+        ]
+      },
+      "EnumValueBase": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "position": {
+            "type": "integer"
+          }
+        }
+      },
+      "EnumValue": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumValueBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "enum_type",
+              "class_id",
+              "value",
+              "position"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "enum_type": {
+                "type": "string"
+              },
+              "class_id": {
+                "type": "integer"
+              }
+            }
+          }
+        ]
+      },
+      "EnumValueCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumValueBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "class_id",
+              "enum_type",
+              "value",
+              "position"
+            ],
+            "properties": {
+              "enum_type": {
+                "type": "string"
+              },
+              "class_id": {
+                "type": "integer"
+              }
+            }
+          }
+        ]
+      },
+      "RangeParameterBase": {
+        "type": "object",
+        "properties": {
+          "field_name": {
+            "type": "string",
+            "example": "amount"
+          },
+          "min_val": {
+            "type": "integer",
+            "example": 150
+          },
+          "max_val": {
+            "type": "integer",
+            "example": 300
+          },
+          "inheritable": {
+            "type": "boolean",
+            "example": false
+          },
+          "unit": {
+            "type": "string",
+            "example": "L"
+          }
+        }
+      },
+      "RangeParameterCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/RangeParameterBase"
+          },
+          {
+            "required": [
+              "field_name",
+              "min_val",
+              "max_val",
+              "inheritable"
+            ]
+          }
+        ]
+      },
+      "RangeParameter": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/RangeParameterBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "field_name",
+              "min_val",
+              "max_val",
+              "inheritable"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer",
+                "example": 10
+              }
+            }
+          }
+        ]
+      },
+      "ClassParamsApply": {
+        "type": "object",
+        "properties": {
+          "range_param_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "List of range parameter ids to apply"
+          },
+          "enum_param_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "List of enum parameter ids to apply"
+          }
+        }
+      },
+      "ClassParamsExclude": {
+        "type": "object",
+        "properties": {
+          "range_param_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "List of range parameter ids to exclude"
+          },
+          "enum_param_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "List of enum parameter ids to exclude"
+          }
+        }
+      },
+      "RangeParameterUpdate": {
+        "type": "object",
+        "properties": {
+          "min_val": {
+            "type": "integer"
+          },
+          "max_val": {
+            "type": "integer"
+          },
+          "inheritable": {
+            "type": "boolean"
+          },
+          "unit": {
+            "type": "string"
+          }
+        }
+      },
+      "ParameterAggregateBase": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "range_param_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "default": []
+          },
+          "enum_param_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "default": []
+          }
+        }
+      },
+      "ParameterAggregate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ParameterAggregateBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "name"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              }
+            }
+          }
+        ]
+      },
+      "ParameterAggregateCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ParameterAggregateBase"
+          },
+          {
+            "required": [
+              "name"
+            ]
+          }
+        ]
+      },
+      "ParameterAggregateUpdate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ParameterAggregateBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "responses": {
+      "403_unauthorized": {
+        "description": "Unauthorized",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": "Unauthorized",
+              "message": "Unauthorized"
+            }
+          }
+        }
+      },
+      "500_internal_server_error": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": "INTERNAL_SERVER_ERROR",
+              "message": "Unexpected error occurred"
+            }
+          }
+        }
+      },
+      "400_bad_request": {
+        "description": "Invalid request data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": "VALIDATION_ERROR",
+              "message": "Invalid id"
+            }
+          }
+        }
+      },
+      "409_conflict": {
+        "description": "Conflict",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": "CONFLICT",
+              "message": "resource duplicate"
+            }
+          }
+        }
+      },
+      "404_not_found": {
+        "description": "Not Found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": "NOT_FOUND",
+              "message": "Resource with id=1 not found"
+            }
+          }
+        }
+      },
+      "422_validation_error": {
+        "description": "Validation error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": "VALIDATION_ERROR",
+              "message": "Invalid parameter payload"
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "Id": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "integer"
+        }
+      },
+      "Offset": {
+        "name": "offset",
+        "in": "query",
+        "schema": {
+          "type": "integer",
+          "default": 0,
+          "minimum": 0
+        }
+      },
+      "Limit": {
+        "name": "limit",
+        "in": "query",
+        "schema": {
+          "type": "integer",
+          "default": 10,
+          "minimum": 1,
+          "maximum": 100
+        }
+      },
+      "productId": {
+        "name": "product_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "integer"
+        }
+      },
+      "materialId": {
+        "name": "material_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "integer"
+        },
+        "description": "ID изделия, используемого как материал"
+      },
+      "DateFrom": {
+        "name": "from",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "description": "Начало периода (включительно)"
+      },
+      "DateTo": {
+        "name": "to",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "description": "Конец периода (включительно)"
+      },
+      "classId": {
+        "name": "class_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "integer"
+        }
+      },
+      "productFilter": {
+        "name": "filter",
+        "in": "query",
+        "required": false,
+        "description": "Repeated filter in the form field:op:value. Use eq for exact product filtering.",
+        "schema": {
+          "type": "string"
+        },
+        "examples": {
+          "exact_value": {
+            "summary": "Exact parameter value",
+            "value": "amount:eq:100"
+          }
+        }
+      },
+      "ClassProductFilter": {
+        "name": "filter",
+        "in": "query",
+        "required": false,
+        "description": "Repeated filter in the form field:op:value. Use gte/lte/in to filter class products by range ranges or allowed enum values.",
+        "schema": {
+          "type": "string"
+        },
+        "examples": {
+          "range_range": {
+            "summary": "Range range filter",
+            "value": "amount:gte:100"
+          },
+          "enum_values": {
+            "summary": "Enum allowed values filter",
+            "value": "city:in:Москва,Самара"
+          }
+        }
+      },
+      "FieldName": {
+        "name": "field_name",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "EnumType": {
+        "name": "enum_type",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "classIdFilter": {
+        "name": "class_id",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "integer"
+        },
+        "description": "Optional class filter"
+      },
+      "ParamType": {
+        "name": "type",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "range",
+            "enum"
+          ]
+        },
+        "examples": {
+          "range": {
+            "summary": "Range type",
+            "value": "range"
+          },
+          "enum": {
+            "summary": "Enum type",
+            "value": "enum"
+          }
+        }
+      },
+      "AggregateName": {
+        "name": "name",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Optional exact aggregate name filter"
+      },
+      "AggregateId": {
+        "name": "aggregate_id",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "integer",
+          "example": 1
+        }
+      }
+    },
+    "examples": {
+      "RangeParameterUpdate": {
+        "value": {
+          "min_val": 150,
+          "max_val": 300,
+          "inheritable": false
+        }
+      },
+      "EnumParameterUpdate": {
+        "value": {
+          "enum_class_id": 2,
+          "inheritable": false
+        }
+      },
+      "RangeParameter": {
+        "value": {
+          "id": 10,
+          "field_name": "amount",
+          "min_val": 150,
+          "max_val": 300,
+          "inheritable": false
+        }
+      },
+      "EnumParameter": {
+        "value": {
+          "id": 11,
+          "enum_class_id": 2,
+          "inheritable": false
+        }
+      }
+    }
+  }
+}

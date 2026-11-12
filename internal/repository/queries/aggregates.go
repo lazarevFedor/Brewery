@@ -31,7 +31,7 @@ func InsertAggregate(aggregate *entities.Aggregate) sq.InsertBuilder {
 
 // UpdateAggregate возвращает запрос для обновления агрегата в таблице aggregates по его ID
 // с использованием предоставленных обновлений и возвращает обновленный агрегат.
-func UpdateAggregate(id uint, updates map[string]any) sq.UpdateBuilder {
+func UpdateAggregate(id int64, updates map[string]any) sq.UpdateBuilder {
 	if updates == nil {
 		return psql.Update(aggregatesTable).
 			SetMap(updates).
@@ -39,40 +39,18 @@ func UpdateAggregate(id uint, updates map[string]any) sq.UpdateBuilder {
 			Suffix("RETURNING " + aggregateReturningFields)
 	}
 
-	data := make(map[string]any, len(updates))
-	for k, v := range updates {
-		switch k {
-		case "numeric_parameter_ids", "enum_parameter_ids":
-			switch t := v.(type) {
-			case []int:
-				data[k] = pq.Array(t)
-			case []uint:
-				tmp := make([]int, len(t))
-				for i, val := range t {
-					tmp[i] = int(val)
-				}
-				data[k] = pq.Array(tmp)
-			default:
-				data[k] = v
-			}
-		default:
-			data[k] = v
-		}
-	}
-
 	return psql.Update(aggregatesTable).
-		SetMap(data).
+		SetMap(updates).
 		Where(sq.Eq{"id": id}).
 		Suffix("RETURNING " + aggregateReturningFields)
 }
 
 // DeleteAggregate возвращает запрос для удаления агрегата
 // из таблицы aggregates по его ID и возвращает удаленный агрегат.
-func DeleteAggregate(id uint) sq.DeleteBuilder {
+func DeleteAggregate(id int64) sq.DeleteBuilder {
 	return psql.
 		Delete(aggregatesTable).
-		Where(sq.Eq{"id": id}).
-		Suffix("RETURNING " + aggregateReturningFields)
+		Where(sq.Eq{"id": id})
 }
 
 // GetAggregates возвращает запрос для получения всех агрегатов,
@@ -89,14 +67,14 @@ func GetAggregates(name string) sq.SelectBuilder {
 	return query
 }
 
-// ApplyAggregate возвращает запрос для применения агрегата к категории,
+// ApplyAggregate возвращает запрос для применения агрегата к классу,
 // обновляя поля numeric_parameter_ids и enum_parameter_ids в таблице product_categories
 // на значения из агрегата, соответствующего заданному ID.
-func ApplyAggregate(categoryID uint, id uint) sq.UpdateBuilder {
+func ApplyAggregate(classID int64, id int64) sq.UpdateBuilder {
 	return psql.
-		Update(tableCategories).
+		Update(tableClasses).
 		Set("numeric_parameter_ids", sq.Expr("a.numeric_parameter_ids")).
 		Set("enum_parameter_ids", sq.Expr("a.enum_parameter_ids")).
 		From(aggregatesTable + " a").
-		Where(sq.Eq{tableCategories + ".id": categoryID, "a.id": id})
+		Where(sq.Eq{"classes.id": classID, "a.id": id})
 }
