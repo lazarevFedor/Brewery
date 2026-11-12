@@ -28,21 +28,21 @@ type EnumParameter struct {
 //easyjson:json
 type EnumParameters []EnumParameter
 
-type Operation string
+type FilterOperation string
 
 const (
-	OpEqual        Operation = "="
-	OpGreater      Operation = ">"
-	OpGreaterEqual Operation = ">="
-	OpLess         Operation = "<"
-	OpLessEqual    Operation = "<="
-	OpNotEqual     Operation = "!="
+	OpEqual        FilterOperation = "="
+	OpGreater      FilterOperation = ">"
+	OpGreaterEqual FilterOperation = ">="
+	OpLess         FilterOperation = "<"
+	OpLessEqual    FilterOperation = "<="
+	OpNotEqual     FilterOperation = "!="
 )
 
 type FilterParameter struct {
-	FieldName string    `json:"field_name,omitempty" info:"Имя поля сущности"`
-	Operation Operation `json:"operation,omitempty" info:"Операция сравнения (eq, gt, ge, lt, le, ne)"`
-	Value     float32   `json:"value,omitempty" info:"Значение для сравнения"`
+	FieldName string          `json:"field_name,omitempty" info:"Имя поля сущности"`
+	Operation FilterOperation `json:"operation,omitempty" info:"Операция сравнения (eq, gt, ge, lt, le, ne)"`
+	Value     float32         `json:"value,omitempty" info:"Значение для сравнения"`
 }
 
 const (

@@ -10,4 +10,6 @@ type Handlers struct {
 	ParametersHandler ParametersHandlers
 	AggregatesHandler AggregateHandlers
 	AuthHandler       AuthHandlers
+	EquipmentHandler  EquipmentHandlers
+	OperationHandler  OperationHandlers
 }

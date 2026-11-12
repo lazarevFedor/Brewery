@@ -24,6 +24,8 @@ func RegisterRouters(e *gin.Engine, h handlers.Handlers) {
 	registerEnumRouters(admin, h)
 	registerParameterRouters(api, admin, h)
 	registerAggregateRouters(admin, h)
+	registerEquipmentRouters(api, admin, h)
+	registerOperationRouters(api, admin, h)
 
 	e.GET("/metrics", gin.WrapH(promhttp.Handler()))
 }
@@ -100,3 +102,29 @@ func registerAggregateRouters(admin *gin.RouterGroup, h handlers.Handlers) {
 	admin.PATCH("/aggregates/:id", h.AggregatesHandler.UpdateAggregate)
 	admin.DELETE("/aggregates/:id", h.AggregatesHandler.DeleteAggregate)
 }
+
+func registerEquipmentRouters(api, admin *gin.RouterGroup, h handlers.Handlers) {
+	if h.EquipmentHandler == nil {
+		return
+	}
+	api.GET("/equipment", h.EquipmentHandler.ListEquipment)
+	api.GET("/equipment/:id", h.EquipmentHandler.GetEquipment)
+
+	admin.POST("/equipment", h.EquipmentHandler.CreateEquipment)
+	admin.PATCH("/equipment/:id", h.EquipmentHandler.UpdateEquipment)
+	admin.DELETE("/equipment/:id", h.EquipmentHandler.DeleteEquipment)
+}
+
+func registerOperationRouters(api, admin *gin.RouterGroup, h handlers.Handlers) {
+	if h.OperationHandler == nil {
+		return
+	}
+	api.GET("/operations", h.OperationHandler.ListOperations)
+	api.GET("/operations/:id", h.OperationHandler.GetOperation)
+	api.GET("/products/:id/operations", h.OperationHandler.GetProductTechCard)
+
+	admin.POST("/operations", h.OperationHandler.CreateOperation)
+	admin.PATCH("/operations/:id", h.OperationHandler.UpdateOperation)
+	admin.DELETE("/operations/:id", h.OperationHandler.DeleteOperation)
+}
+
