@@ -1,0 +1,52 @@
+{
+  "get": {
+    "tags": [
+      "Operations"
+    ],
+    "summary": "Get product tech card (routing card)",
+    "description": "Возвращает технологическую карту продукта по его ID: цепочку операций, суммарные человеко-часы и нормы расходов всех базовых материалов (аналогично GET /products/{id}/materials/norms).",
+    "operationId": "getProductTechCard",
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/Id"
+      },
+      {
+        "name": "quantity",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "number",
+          "format": "float",
+          "default": 1,
+          "minimum": 0,
+          "exclusiveMinimum": true
+        },
+        "description": "Количество изделий, на которое рассчитывается техкарта"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Технологическая карта продукта",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ProductTechCard"
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "422": {
+        "$ref": "#/components/responses/422_validation_error"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  }
+}

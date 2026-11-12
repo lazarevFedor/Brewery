@@ -1,0 +1,55 @@
+{
+  "get": {
+    "tags": [
+      "Materials"
+    ],
+    "summary": "Calculate total material consumption norms for product",
+    "description": "Сводные нормы расхода для всего изделия с учётом всей глубины состава. Количества всех вхождений одного материала суммируются и умножаются на quantity, без дополнительного умножения на количества родительских материалов.",
+    "operationId": "calculateMaterialNorms",
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/Id"
+      },
+      {
+        "name": "quantity",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "number",
+          "format": "float",
+          "default": 1,
+          "minimum": 0,
+          "exclusiveMinimum": true
+        },
+        "description": "Количество изделий, на которое считается расход"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Total material norms",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/MaterialNorm"
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "422": {
+        "$ref": "#/components/responses/422_validation_error"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  }
+}

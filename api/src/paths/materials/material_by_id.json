@@ -1,0 +1,87 @@
+{
+  "patch": {
+    "tags": [
+      "Materials"
+    ],
+    "summary": "Update material amount and Base flag in product",
+    "operationId": "updateProductMaterial",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/Id"
+      },
+      {
+        "$ref": "#/components/parameters/materialId"
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/MaterialUpdate"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Updated material",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Material"
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  },
+  "delete": {
+    "tags": [
+      "Materials"
+    ],
+    "summary": "Remove material from product",
+    "operationId": "deleteProductMaterial",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/Id"
+      },
+      {
+        "$ref": "#/components/parameters/materialId"
+      }
+    ],
+    "responses": {
+      "204": {
+        "description": "Successfully deleted"
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  }
+}

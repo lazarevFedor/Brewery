@@ -1,0 +1,28 @@
+{
+  "allOf": [
+    {
+      "$ref": "#/components/schemas/EnumValueBase"
+    },
+    {
+      "type": "object",
+      "required": [
+        "id",
+        "enum_type",
+        "class_id",
+        "value",
+        "position"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "enum_type": {
+          "type": "string"
+        },
+        "class_id": {
+          "type": "integer"
+        }
+      }
+    }
+  ]
+}

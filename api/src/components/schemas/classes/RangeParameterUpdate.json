@@ -1,0 +1,17 @@
+{
+  "type": "object",
+  "properties": {
+    "min_val": {
+      "type": "integer"
+    },
+    "max_val": {
+      "type": "integer"
+    },
+    "inheritable": {
+      "type": "boolean"
+    },
+    "unit": {
+      "type": "string"
+    }
+  }
+}

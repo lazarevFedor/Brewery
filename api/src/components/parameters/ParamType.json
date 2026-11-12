@@ -1,0 +1,22 @@
+{
+  "name": "type",
+  "in": "query",
+  "required": false,
+  "schema": {
+    "type": "string",
+    "enum": [
+      "range",
+      "enum"
+    ]
+  },
+  "examples": {
+    "range": {
+      "summary": "Range type",
+      "value": "range"
+    },
+    "enum": {
+      "summary": "Enum type",
+      "value": "enum"
+    }
+  }
+}

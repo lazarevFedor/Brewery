@@ -1,0 +1,23 @@
+{
+  "allOf": [
+    {
+      "$ref": "#/components/schemas/RangeParameterBase"
+    },
+    {
+      "type": "object",
+      "required": [
+        "id",
+        "field_name",
+        "min_val",
+        "max_val",
+        "inheritable"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "example": 10
+        }
+      }
+    }
+  ]
+}

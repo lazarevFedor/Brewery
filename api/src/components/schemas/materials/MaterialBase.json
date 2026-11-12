@@ -1,0 +1,19 @@
+{
+  "type": "object",
+  "properties": {
+    "material_amount": {
+      "type": "number",
+      "format": "double",
+      "minimum": 0,
+      "exclusiveMinimum": true,
+      "example": 12.5,
+      "description": "Количество материала на одно изделие"
+    },
+    "base": {
+      "type": "boolean",
+      "default": false,
+      "example": false,
+      "description": "Флаг Base материала. Если поле не передано при создании или обновлении, используется false."
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "type": "object",
+  "properties": {
+    "field_name": {
+      "type": "string",
+      "example": "amount"
+    },
+    "min_val": {
+      "type": "integer",
+      "example": 150
+    },
+    "max_val": {
+      "type": "integer",
+      "example": 300
+    },
+    "inheritable": {
+      "type": "boolean",
+      "example": false
+    },
+    "unit": {
+      "type": "string",
+      "example": "L"
+    }
+  }
+}

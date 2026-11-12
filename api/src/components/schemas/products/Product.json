@@ -1,0 +1,57 @@
+{
+  "allOf": [
+    {
+      "$ref": "#/components/schemas/ProductBase"
+    },
+    {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "class_id",
+        "base_id"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "class": {
+          "$ref": "#/components/schemas/ClassBase"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          }
+        },
+        "class_id": {
+          "type": "integer"
+        },
+        "base_id": {
+          "type": "integer",
+          "nullable": true,
+          "description": "ID базового изделия, на основе которого создано текущее"
+        },
+        "amount": {
+          "type": "integer"
+        },
+        "units": {
+          "type": "string"
+        },
+        "is_final_product": {
+          "type": "boolean",
+          "default": false,
+          "description": "Флаг, указывающий, является ли продукт конечным готовым изделием (true), либо сырьем/полуфабрикатом в переходном состоянии (false)",
+          "example": true
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "name": "class_id",
+  "in": "query",
+  "required": false,
+  "schema": {
+    "type": "integer"
+  },
+  "description": "Optional class filter"
+}

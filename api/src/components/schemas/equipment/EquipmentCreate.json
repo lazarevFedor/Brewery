@@ -1,0 +1,16 @@
+{
+  "type": "object",
+  "required": [
+    "name"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Название оборудования или прибора",
+      "example": "Сусловарочный котел ВК-500"
+    }
+  },
+  "example": {
+    "name": "Сусловарочный котел ВК-500"
+  }
+}

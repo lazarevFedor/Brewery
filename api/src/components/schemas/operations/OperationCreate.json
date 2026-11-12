@@ -1,0 +1,75 @@
+{
+  "allOf": [
+    {
+      "$ref": "#/components/schemas/OperationBase"
+    },
+    {
+      "type": "object",
+      "required": [
+        "name",
+        "description",
+        "profession_id",
+        "equipment_id"
+      ],
+      "properties": {
+        "input_product_id": {
+          "type": "integer",
+          "description": "ID существующего входного продукта (указывается либо input_product_id, либо input_product)",
+          "example": 1
+        },
+        "input_product": {
+          "description": "ID существующего входного продукта либо полная схема для его создания (если такого промежуточного состояния еще нет в базе)",
+          "oneOf": [
+            {
+              "type": "integer",
+              "description": "ID существующего продукта",
+              "example": 1
+            },
+            {
+              "$ref": "#/components/schemas/ProductCreate"
+            }
+          ]
+        },
+        "output_product_id": {
+          "type": "integer",
+          "description": "ID существующего выходного продукта (указывается либо output_product_id, либо output_product)",
+          "example": 2
+        },
+        "output_product": {
+          "description": "ID существующего выходного продукта либо полная схема для его создания (если такого промежуточного состояния еще нет в базе)",
+          "oneOf": [
+            {
+              "type": "integer",
+              "description": "ID существующего продукта",
+              "example": 2
+            },
+            {
+              "$ref": "#/components/schemas/ProductCreate"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "example": {
+    "name": "Варка сусла с охмелением",
+    "description": "Варка сусла при температуре 100°C с добавлением хмеля",
+    "profession_id": 1,
+    "equipment_id": 1,
+    "input_product_id": 10,
+    "output_product": {
+      "name": "Охмеленное сусло (промежуточное состояние)",
+      "class": {
+        "name": "Сусло"
+      },
+      "amount": 500,
+      "units": "L",
+      "is_final_product": false
+    },
+    "labor_cost": 2.5,
+    "parameters": {
+      "duration_minutes": 90,
+      "temperature_celsius": 100
+    }
+  }
+}

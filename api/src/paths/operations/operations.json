@@ -1,0 +1,101 @@
+{
+  "get": {
+    "tags": [
+      "Operations"
+    ],
+    "summary": "Get all operations",
+    "description": "Возвращает список всех технологических операций с поддержкой пагинации и фильтрации по продуктам",
+    "operationId": "listOperations",
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/Offset"
+      },
+      {
+        "$ref": "#/components/parameters/Limit"
+      },
+      {
+        "name": "input_product_id",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "integer"
+        },
+        "description": "Фильтр по входному продукту"
+      },
+      {
+        "name": "output_product_id",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "integer"
+        },
+        "description": "Фильтр по выходному продукту"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Список операций",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/Operation"
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  },
+  "post": {
+    "tags": [
+      "Operations"
+    ],
+    "summary": "Create operation",
+    "description": "Создает новую технологическую операцию перевода одного продукта в другой",
+    "operationId": "createOperation",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/OperationCreate"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Операция успешно создана",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Operation"
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "409": {
+        "$ref": "#/components/responses/409_conflict"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  }
+}

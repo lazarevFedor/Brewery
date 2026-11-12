@@ -1,0 +1,99 @@
+{
+  "type": "object",
+  "description": "Схема обновления технологической операции (все поля опциональны)",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Название операции",
+      "example": "Варка сусла"
+    },
+    "description": {
+      "type": "string",
+      "description": "Описание технологической операции",
+      "example": "Варка охмеленного сусла при температуре 102°C"
+    },
+    "profession_id": {
+      "type": "integer",
+      "description": "Идентификатор профессии работника",
+      "example": 2
+    },
+    "equipment_id": {
+      "type": "integer",
+      "description": "Идентификатор оборудования",
+      "example": 3
+    },
+    "input_product_id": {
+      "type": "integer",
+      "description": "ID входного продукта",
+      "example": 1
+    },
+    "input_product": {
+      "description": "ID существующего продукта либо полная схема для его создания",
+      "oneOf": [
+        {
+          "type": "integer",
+          "example": 1
+        },
+        {
+          "$ref": "#/components/schemas/ProductCreate"
+        }
+      ]
+    },
+    "output_product_id": {
+      "type": "integer",
+      "description": "ID выходного продукта",
+      "example": 2
+    },
+    "output_product": {
+      "description": "ID существующего продукта либо полная схема для его создания",
+      "oneOf": [
+        {
+          "type": "integer",
+          "example": 2
+        },
+        {
+          "$ref": "#/components/schemas/ProductCreate"
+        }
+      ]
+    },
+    "labor_cost": {
+      "type": "number",
+      "description": "Трудозатратность операции (человеко-часы)",
+      "example": 3.0
+    },
+    "parameters": {
+      "type": "object",
+      "description": "Технологические параметры операции",
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "boolean"
+          }
+        ]
+      },
+      "example": {
+        "duration_minutes": 100,
+        "temperature_celsius": 102
+      }
+    }
+  },
+  "example": {
+    "name": "Варка сусла (модифицированная)",
+    "description": "Варка охмеленного сусла при температуре 102°C",
+    "profession_id": 2,
+    "equipment_id": 3,
+    "input_product_id": 1,
+    "output_product_id": 2,
+    "labor_cost": 3.0,
+    "parameters": {
+      "duration_minutes": 100,
+      "temperature_celsius": 102
+    }
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "get": {
+    "tags": [
+      "Classes"
+    ],
+    "summary": "Get all classes",
+    "operationId": "ListClasses",
+    "responses": {
+      "200": {
+        "description": "Classes list",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/Class"
+              }
+            }
+          }
+        }
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  },
+  "post": {
+    "tags": [
+      "Classes"
+    ],
+    "summary": "Create class",
+    "operationId": "CreateClass",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/ClassCreate"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "class created",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Class"
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "409": {
+        "$ref": "#/components/responses/409_conflict"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  }
+}

@@ -1,0 +1,394 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Product Catalog API",
+    "version": "1.0.0",
+    "description": "API for managing classes, products, reviews, enums, class parameters and parameter's aggregates"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080/api"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Авторизация для действий Админа"
+    },
+    {
+      "name": "Classes",
+      "description": "Все операции, связанные с классами изделий"
+    },
+    {
+      "name": "ClassParams",
+      "description": "Операции связанные с параметрами классов"
+    },
+    {
+      "name": "Aggregates",
+      "description": "Операции связанные с агрегатами параметров классов"
+    },
+    {
+      "name": "Products",
+      "description": "Операции, связанные с изделиями"
+    },
+    {
+      "name": "Materials",
+      "description": "Операции, связанные с составом изделия (материалами)"
+    },
+    {
+      "name": "History",
+      "description": "Операции, связанные с историей изменений изделий"
+    },
+    {
+      "name": "EnumsClass",
+      "description": "Операции, связанные с классами перечислений "
+    },
+    {
+      "name": "EnumsValue",
+      "description": "Операции связанные с перечислениями"
+    },
+    {
+      "name": "Operations",
+      "description": "Операции преобразования одного изделия в другое (технологические операции)"
+    },
+    {
+      "name": "Equipment",
+      "description": "Операции, связанные с оборудованием и приборами"
+    }
+  ],
+  "paths": {
+    "/login": {
+      "$ref": "./paths/auth/login.json"
+    },
+    "/classes": {
+      "$ref": "./paths/classes/classes.json"
+    },
+    "/classes/{id}": {
+      "$ref": "./paths/classes/class_by_id.json"
+    },
+    "/classes/parent/{id}": {
+      "$ref": "./paths/classes/parent.json"
+    },
+    "/classes/children/{id}": {
+      "$ref": "./paths/classes/children.json"
+    },
+    "/classes/parameters": {
+      "$ref": "./paths/classes/parameters/parameters.json"
+    },
+    "/classes/parameters/range": {
+      "$ref": "./paths/classes/parameters/range.json"
+    },
+    "/classes/parameters/{id}": {
+      "$ref": "./paths/classes/parameters/parameter_by_id.json"
+    },
+    "/classes/parameters/apply/{class_id}": {
+      "$ref": "./paths/classes/parameters/apply.json"
+    },
+    "/classes/parameters/exclude/{class_id}": {
+      "$ref": "./paths/classes/parameters/exclude.json"
+    },
+    "/aggregates": {
+      "$ref": "./paths/aggregates/aggregates.json"
+    },
+    "/aggregates/{id}": {
+      "$ref": "./paths/aggregates/aggregate_by_id.json"
+    },
+    "/aggregates/apply/{class_id}": {
+      "$ref": "./paths/aggregates/apply.json"
+    },
+    "/products": {
+      "$ref": "./paths/products/products.json"
+    },
+    "/products/{id}": {
+      "$ref": "./paths/products/product_by_id.json"
+    },
+    "/products/search": {
+      "$ref": "./paths/products/search.json"
+    },
+    "/classes/products/{class_id}": {
+      "$ref": "./paths/products/by_class.json"
+    },
+    "/classes/{id}/products/search": {
+      "$ref": "./paths/products/search_by_class.json"
+    },
+    "/products/{id}/materials": {
+      "$ref": "./paths/materials/materials.json"
+    },
+    "/products/{id}/materials/norms": {
+      "$ref": "./paths/materials/norms.json"
+    },
+    "/products/{id}/materials/{material_id}": {
+      "$ref": "./paths/materials/material_by_id.json"
+    },
+    "/materials/{material_id}/products": {
+      "$ref": "./paths/materials/products_by_material.json"
+    },
+    "/products/{id}/history": {
+      "$ref": "./paths/history/product_history.json"
+    },
+    "/history/{id}": {
+      "$ref": "./paths/history/history_by_id.json"
+    },
+    "/enums": {
+      "$ref": "./paths/enums/enums.json"
+    },
+    "/enums/{id}": {
+      "$ref": "./paths/enums/enum_by_id.json"
+    },
+    "/enums/value": {
+      "$ref": "./paths/enums/values.json"
+    },
+    "/enums/value/{id}": {
+      "$ref": "./paths/enums/value_by_id.json"
+    },
+    "/operations": {
+      "$ref": "./paths/operations/operations.json"
+    },
+    "/operations/{id}": {
+      "$ref": "./paths/operations/operation_by_id.json"
+    },
+    "/equipment": {
+      "$ref": "./paths/equipment/equipment.json"
+    },
+    "/equipment/{id}": {
+      "$ref": "./paths/equipment/equipment_by_id.json"
+    },
+    "/products/{id}/operations": {
+      "$ref": "./paths/operations/product_tech_card.json"
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "$ref": "./components/securitySchemes/bearerAuth.json"
+      }
+    },
+    "schemas": {
+      "Auth": {
+        "$ref": "./components/schemas/auth/Auth.json"
+      },
+      "ErrorResponse": {
+        "$ref": "./components/schemas/common/ErrorResponse.json"
+      },
+      "ClassBase": {
+        "$ref": "./components/schemas/classes/ClassBase.json"
+      },
+      "Class": {
+        "$ref": "./components/schemas/classes/Class.json"
+      },
+      "ClassCreate": {
+        "$ref": "./components/schemas/classes/ClassCreate.json"
+      },
+      "ClassUpdate": {
+        "$ref": "./components/schemas/classes/ClassUpdate.json"
+      },
+      "RangeParameterBase": {
+        "$ref": "./components/schemas/classes/RangeParameterBase.json"
+      },
+      "RangeParameterCreate": {
+        "$ref": "./components/schemas/classes/RangeParameterCreate.json"
+      },
+      "RangeParameter": {
+        "$ref": "./components/schemas/classes/RangeParameter.json"
+      },
+      "RangeParameterUpdate": {
+        "$ref": "./components/schemas/classes/RangeParameterUpdate.json"
+      },
+      "ClassParamsApply": {
+        "$ref": "./components/schemas/classes/ClassParamsApply.json"
+      },
+      "ClassParamsExclude": {
+        "$ref": "./components/schemas/classes/ClassParamsExclude.json"
+      },
+      "ParameterAggregateBase": {
+        "$ref": "./components/schemas/aggregates/ParameterAggregateBase.json"
+      },
+      "ParameterAggregate": {
+        "$ref": "./components/schemas/aggregates/ParameterAggregate.json"
+      },
+      "ParameterAggregateCreate": {
+        "$ref": "./components/schemas/aggregates/ParameterAggregateCreate.json"
+      },
+      "ParameterAggregateUpdate": {
+        "$ref": "./components/schemas/aggregates/ParameterAggregateUpdate.json"
+      },
+      "ProductBase": {
+        "$ref": "./components/schemas/products/ProductBase.json"
+      },
+      "Product": {
+        "$ref": "./components/schemas/products/Product.json"
+      },
+      "ProductCreate": {
+        "$ref": "./components/schemas/products/ProductCreate.json"
+      },
+      "ProductUpdate": {
+        "$ref": "./components/schemas/products/ProductUpdate.json"
+      },
+      "MaterialBase": {
+        "$ref": "./components/schemas/materials/MaterialBase.json"
+      },
+      "Material": {
+        "$ref": "./components/schemas/materials/Material.json"
+      },
+      "MaterialCreate": {
+        "$ref": "./components/schemas/materials/MaterialCreate.json"
+      },
+      "MaterialUpdate": {
+        "$ref": "./components/schemas/materials/MaterialUpdate.json"
+      },
+      "MaterialNorm": {
+        "$ref": "./components/schemas/materials/MaterialNorm.json"
+      },
+      "MaterialTreeNode": {
+        "$ref": "./components/schemas/materials/MaterialTreeNode.json"
+      },
+      "HistoryRecord": {
+        "$ref": "./components/schemas/history/HistoryRecord.json"
+      },
+      "HistoryRecordCreate": {
+        "$ref": "./components/schemas/history/HistoryRecordCreate.json"
+      },
+      "EnumClassBase": {
+        "$ref": "./components/schemas/enums/EnumClassBase.json"
+      },
+      "EnumClass": {
+        "$ref": "./components/schemas/enums/EnumClass.json"
+      },
+      "EnumClassCreate": {
+        "$ref": "./components/schemas/enums/EnumClassCreate.json"
+      },
+      "EnumClassUpdate": {
+        "$ref": "./components/schemas/enums/EnumClassUpdate.json"
+      },
+      "EnumValueBase": {
+        "$ref": "./components/schemas/enums/EnumValueBase.json"
+      },
+      "EnumValue": {
+        "$ref": "./components/schemas/enums/EnumValue.json"
+      },
+      "EnumValueCreate": {
+        "$ref": "./components/schemas/enums/EnumValueCreate.json"
+      },
+      "OperationBase": {
+        "$ref": "./components/schemas/operations/OperationBase.json"
+      },
+      "OperationCreate": {
+        "$ref": "./components/schemas/operations/OperationCreate.json"
+      },
+      "Operation": {
+        "$ref": "./components/schemas/operations/Operation.json"
+      },
+      "OperationUpdate": {
+        "$ref": "./components/schemas/operations/OperationUpdate.json"
+      },
+      "EquipmentBase": {
+        "$ref": "./components/schemas/equipment/EquipmentBase.json"
+      },
+      "EquipmentCreate": {
+        "$ref": "./components/schemas/equipment/EquipmentCreate.json"
+      },
+      "EquipmentUpdate": {
+        "$ref": "./components/schemas/equipment/EquipmentUpdate.json"
+      },
+      "Equipment": {
+        "$ref": "./components/schemas/equipment/Equipment.json"
+      },
+      "EquipmentShort": {
+        "$ref": "./components/schemas/equipment/EquipmentShort.json"
+      },
+      "Profession": {
+        "$ref": "./components/schemas/professions/Profession.json"
+      },
+      "ProductShort": {
+        "$ref": "./components/schemas/products/ProductShort.json"
+      },
+      "ProductTechCard": {
+        "$ref": "./components/schemas/operations/ProductTechCard.json"
+      }
+    },
+    "responses": {
+      "403_unauthorized": {
+        "$ref": "./components/responses/403_unauthorized.json"
+      },
+      "500_internal_server_error": {
+        "$ref": "./components/responses/500_internal_server_error.json"
+      },
+      "400_bad_request": {
+        "$ref": "./components/responses/400_bad_request.json"
+      },
+      "409_conflict": {
+        "$ref": "./components/responses/409_conflict.json"
+      },
+      "404_not_found": {
+        "$ref": "./components/responses/404_not_found.json"
+      },
+      "422_validation_error": {
+        "$ref": "./components/responses/422_validation_error.json"
+      }
+    },
+    "parameters": {
+      "Id": {
+        "$ref": "./components/parameters/Id.json"
+      },
+      "Offset": {
+        "$ref": "./components/parameters/Offset.json"
+      },
+      "Limit": {
+        "$ref": "./components/parameters/Limit.json"
+      },
+      "productId": {
+        "$ref": "./components/parameters/productId.json"
+      },
+      "materialId": {
+        "$ref": "./components/parameters/materialId.json"
+      },
+      "DateFrom": {
+        "$ref": "./components/parameters/DateFrom.json"
+      },
+      "DateTo": {
+        "$ref": "./components/parameters/DateTo.json"
+      },
+      "classId": {
+        "$ref": "./components/parameters/classId.json"
+      },
+      "productFilter": {
+        "$ref": "./components/parameters/productFilter.json"
+      },
+      "ClassProductFilter": {
+        "$ref": "./components/parameters/ClassProductFilter.json"
+      },
+      "FieldName": {
+        "$ref": "./components/parameters/FieldName.json"
+      },
+      "EnumType": {
+        "$ref": "./components/parameters/EnumType.json"
+      },
+      "classIdFilter": {
+        "$ref": "./components/parameters/classIdFilter.json"
+      },
+      "ParamType": {
+        "$ref": "./components/parameters/ParamType.json"
+      },
+      "AggregateName": {
+        "$ref": "./components/parameters/AggregateName.json"
+      },
+      "AggregateId": {
+        "$ref": "./components/parameters/AggregateId.json"
+      }
+    },
+    "examples": {
+      "RangeParameterUpdate": {
+        "$ref": "./components/examples/RangeParameterUpdate.json"
+      },
+      "EnumParameterUpdate": {
+        "$ref": "./components/examples/EnumParameterUpdate.json"
+      },
+      "RangeParameter": {
+        "$ref": "./components/examples/RangeParameter.json"
+      },
+      "EnumParameter": {
+        "$ref": "./components/examples/EnumParameter.json"
+      }
+    }
+  }
+}

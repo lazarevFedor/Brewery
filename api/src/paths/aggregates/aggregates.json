@@ -1,0 +1,80 @@
+{
+  "post": {
+    "tags": [
+      "Aggregates"
+    ],
+    "summary": "Create parameter aggregate",
+    "operationId": "createParameterAggregate",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/ParameterAggregateCreate"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Parameter aggregate created",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ParameterAggregate"
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "409": {
+        "$ref": "#/components/responses/409_conflict"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  },
+  "get": {
+    "tags": [
+      "Aggregates"
+    ],
+    "summary": "Get all parameter aggregates",
+    "operationId": "listParameterAggregates",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/AggregateName"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "List of aggregates",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ParameterAggregate"
+              }
+            }
+          }
+        }
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  }
+}
