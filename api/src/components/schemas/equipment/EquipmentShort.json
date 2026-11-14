@@ -1,19 +1,19 @@
 {
   "type": "object",
   "required": [
-    "id",
-    "name"
+    "name",
+    "work_center"
   ],
   "properties": {
-    "id": {
-      "type": "integer",
-      "description": "Идентификатор оборудования",
-      "example": 1
-    },
     "name": {
       "type": "string",
       "description": "Название оборудования",
       "example": "Сусловарочный котел ВК-500"
+    },
+    "work_center": {
+      "type": "string",
+      "description": "Название рабочего цеха",
+      "example": "Холодный цех"
     }
   }
 }

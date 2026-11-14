@@ -16,10 +16,8 @@
       "description": "Идентификатор профессии работника, имеющего права для выполнения операции",
       "example": 1
     },
-    "equipment_id": {
-      "type": "integer",
-      "description": "Идентификатор оборудования, на котором выполняется операция",
-      "example": 1
+    "equipment": {
+      "$ref": "#/components/schemas/Equipment"
     },
     "input_product_id": {
       "type": "integer",

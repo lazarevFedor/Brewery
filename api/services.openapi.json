@@ -2813,6 +2813,11 @@
             "type": "boolean",
             "description": "Флаг, указывающий, является ли изделие конечным готовым продуктом (true), а не базовым материалом или полуфабрикатом в переходном состоянии (false)",
             "example": true
+          },
+          "Is_purchased": {
+            "type": "boolean",
+            "description": "Флаг, указывающий, является ли изделие конечным готовым продуктом (true), а не базовым материалом или полуфабрикатом в переходном состоянии (false)",
+            "example": true
           }
         }
       },
@@ -3359,10 +3364,8 @@
             "description": "Идентификатор профессии работника, имеющего права для выполнения операции",
             "example": 1
           },
-          "equipment_id": {
-            "type": "integer",
-            "description": "Идентификатор оборудования, на котором выполняется операция",
-            "example": 1
+          "equipment": {
+            "$ref": "#/components/schemas/Equipment"
           },
           "input_product_id": {
             "type": "integer",
@@ -3701,51 +3704,57 @@
             "type": "string",
             "description": "Название оборудования или прибора",
             "example": "Сусловарочный котел ВК-500 (модернизированный)"
+          },
+          "work_center": {
+            "type": "string",
+            "description": "Название рабочего цеха",
+            "example": "Холодный цех"
           }
         },
         "example": {
-          "name": "Сусловарочный котел ВК-500 (модернизированный)"
+          "name": "Сусловарочный котел ВК-500 (модернизированный)",
+          "work_center": "Холодный цех"
         }
       },
       "Equipment": {
         "type": "object",
         "required": [
-          "id",
-          "name"
+          "name",
+          "work_center"
         ],
         "properties": {
-          "id": {
-            "type": "integer",
-            "description": "Уникальный идентификатор оборудования",
-            "example": 1
-          },
           "name": {
             "type": "string",
             "description": "Название оборудования или прибора",
             "example": "Сусловарочный котел ВК-500"
+          },
+          "work_center": {
+            "type": "string",
+            "description": "Название рабочего цеха",
+            "example": "Холодный цех"
           }
         },
         "example": {
-          "id": 1,
-          "name": "Сусловарочный котел ВК-500"
+          "name": "Сусловарочный котел ВК-500",
+          "work_center": "Холодный цех"
         }
       },
       "EquipmentShort": {
         "type": "object",
         "required": [
-          "id",
-          "name"
+          "name",
+          "work_center"
         ],
         "properties": {
-          "id": {
-            "type": "integer",
-            "description": "Идентификатор оборудования",
-            "example": 1
-          },
           "name": {
             "type": "string",
             "description": "Название оборудования",
             "example": "Сусловарочный котел ВК-500"
+          },
+          "work_center": {
+            "type": "string",
+            "description": "Название рабочего цеха",
+            "example": "Холодный цех"
           }
         }
       },
