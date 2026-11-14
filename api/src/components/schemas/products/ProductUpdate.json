@@ -1,0 +1,31 @@
+{
+  "allOf": [
+    {
+      "$ref": "#/components/schemas/ProductBase"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "class_id": {
+          "type": "integer"
+        },
+        "base_id": {
+          "type": "integer",
+          "nullable": true,
+          "description": "ID базового изделия, на основе которого создано текущее"
+        },
+        "amount": {
+          "type": "integer"
+        },
+        "units": {
+          "type": "string"
+        },
+        "is_final_product": {
+          "type": "boolean",
+          "description": "Флаг, указывающий, является ли продукт конечным готовым изделием",
+          "example": true
+        }
+      }
+    }
+  ]
+}

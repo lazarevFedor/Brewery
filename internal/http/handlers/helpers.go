@@ -37,7 +37,7 @@ var fieldNameRe = regexp.MustCompile(`^[a-z_][a-z0-9_]*$`)
 
 // filterOperations сопоставляет операции из query-параметра с операциями сущности.
 // Поддерживаются оба варианта записи: gte/lte (как в swagger) и ge/le.
-var filterOperations = map[string]entities.Operation{
+var filterOperations = map[string]entities.FilterOperation{
 	"eq":  entities.OpEqual,
 	"ne":  entities.OpNotEqual,
 	"gt":  entities.OpGreater,
@@ -96,7 +96,7 @@ func parseFilter(filter string) (entities.FilterParameter, error) {
 }
 
 // getFilters разбирает все параметры filter из query. allowedOps ограничивает допустимые операции, nil - все.
-func getFilters(c *gin.Context, allowedOps []entities.Operation) ([]entities.FilterParameter, error) {
+func getFilters(c *gin.Context, allowedOps []entities.FilterOperation) ([]entities.FilterParameter, error) {
 	rawFilters := c.QueryArray("filter")
 	filters := make([]entities.FilterParameter, 0, len(rawFilters))
 

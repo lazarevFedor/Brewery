@@ -1,0 +1,86 @@
+{
+  "post": {
+    "tags": [
+      "EnumsClass"
+    ],
+    "summary": "Create enum class",
+    "operationId": "createEnumClass",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/EnumClassCreate"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Enum class created",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/EnumClass"
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "409": {
+        "$ref": "#/components/responses/409_conflict"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  },
+  "get": {
+    "tags": [
+      "EnumsClass"
+    ],
+    "summary": "Get enum classes",
+    "operationId": "listEnumClasses",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/FieldName"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Enum class list",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/EnumClass"
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  }
+}

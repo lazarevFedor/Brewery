@@ -1,0 +1,19 @@
+{
+  "type": "object",
+  "properties": {
+    "range_param_ids": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      },
+      "description": "List of range parameter ids to apply"
+    },
+    "enum_param_ids": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      },
+      "description": "List of enum parameter ids to apply"
+    }
+  }
+}

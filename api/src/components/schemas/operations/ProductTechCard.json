@@ -1,0 +1,110 @@
+{
+  "type": "object",
+  "required": [
+    "product_id",
+    "total_labor_cost",
+    "operations",
+    "material_norms"
+  ],
+  "properties": {
+    "product_id": {
+      "type": "integer",
+      "description": "ID целевого продукта",
+      "example": 1
+    },
+    "product": {
+      "$ref": "#/components/schemas/ProductShort"
+    },
+    "total_labor_cost": {
+      "type": "number",
+      "description": "Суммарная трудозатратность всех операций в человеко-часах",
+      "example": 8.5
+    },
+    "operations": {
+      "type": "array",
+      "description": "Список всех технологических операций для производства продукта",
+      "items": {
+        "$ref": "#/components/schemas/Operation"
+      }
+    },
+    "material_norms": {
+      "type": "array",
+      "description": "Сводные нормы расхода базовых материалов для изготовления продукта (как в GET /products/{id}/materials/norms)",
+      "items": {
+        "$ref": "#/components/schemas/MaterialNorm"
+      }
+    }
+  },
+  "example": {
+    "product_id": 1,
+    "product": {
+      "id": 1,
+      "name": "Балтика 0"
+    },
+    "total_labor_cost": 8.5,
+    "operations": [
+      {
+        "id": 1,
+        "name": "Затирание солода",
+        "description": "Затирание дробленого солода с водой при контролируемых температурных паузах",
+        "profession_id": 1,
+        "equipment": {
+          "id": 2,
+          "name": "Заторно-сусловарочный аппарат"
+        },
+        "input_product": {
+          "id": 10,
+          "name": "Дробленый солод"
+        },
+        "output_product": {
+          "id": 11,
+          "name": "Заторная масса"
+        },
+        "labor_cost": 3.0,
+        "parameters": {
+          "duration_minutes": 120,
+          "temperature_celsius": 65
+        }
+      },
+      {
+        "id": 2,
+        "name": "Варка сусла с охмелением",
+        "description": "Варка охмеленного сусла при температуре 100°C",
+        "profession_id": 1,
+        "equipment": {
+          "id": 1,
+          "name": "Сусловарочный котел ВК-500"
+        },
+        "input_product": {
+          "id": 11,
+          "name": "Заторная масса"
+        },
+        "output_product": {
+          "id": 1,
+          "name": "Балтика 0"
+        },
+        "labor_cost": 5.5,
+        "parameters": {
+          "duration_minutes": 90,
+          "temperature_celsius": 100
+        }
+      }
+    ],
+    "material_norms": [
+      {
+        "material_id": 5,
+        "name": "Солод светлый ячменный",
+        "total_amount": 50.0,
+        "units": "kg",
+        "base": true
+      },
+      {
+        "material_id": 6,
+        "name": "Хмель гранулированный",
+        "total_amount": 1.2,
+        "units": "kg",
+        "base": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "description",
+    "profession_id",
+    "equipment",
+    "input_product",
+    "output_product"
+  ],
+  "properties": {
+    "id": {
+      "type": "integer",
+      "description": "Уникальный идентификатор операции",
+      "example": 1
+    },
+    "name": {
+      "type": "string",
+      "description": "Название операции",
+      "example": "Варка сусла"
+    },
+    "description": {
+      "type": "string",
+      "description": "Описание технологической операции",
+      "example": "Варка охмеленного сусла при температуре 100°C"
+    },
+    "profession_id": {
+      "type": "integer",
+      "description": "Идентификатор профессии работника, имеющего права для выполнения операции",
+      "example": 1
+    },
+    "equipment": {
+      "$ref": "#/components/schemas/EquipmentShort"
+    },
+    "input_product": {
+      "$ref": "#/components/schemas/ProductShort"
+    },
+    "output_product": {
+      "$ref": "#/components/schemas/ProductShort"
+    },
+    "labor_cost": {
+      "type": "number",
+      "description": "Трудозатратность операции (человеко-часы)",
+      "example": 2.5
+    },
+    "parameters": {
+      "type": "object",
+      "description": "Технологические параметры операции (температура, время и т.д.)",
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "boolean"
+          }
+        ]
+      },
+      "example": {
+        "duration_minutes": 90,
+        "temperature_celsius": 100
+      }
+    }
+  },
+  "example": {
+    "id": 1,
+    "name": "Варка сусла",
+    "description": "Варка охмеленного сусла при температуре 100°C",
+    "profession_id": 1,
+    "equipment": {
+      "id": 1,
+      "name": "Сусловарочный котел ВК-500"
+    },
+    "input_product": {
+      "id": 1,
+      "name": "Солодовое сусло"
+    },
+    "output_product": {
+      "id": 2,
+      "name": "Охмеленное сусло"
+    },
+    "labor_cost": 2.5,
+    "parameters": {
+      "duration_minutes": 90,
+      "temperature_celsius": 100
+    }
+  }
+}

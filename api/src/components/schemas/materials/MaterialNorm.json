@@ -1,0 +1,41 @@
+{
+  "type": "object",
+  "required": [
+    "material_id",
+    "name",
+    "total_amount",
+    "base"
+  ],
+  "properties": {
+    "material_id": {
+      "type": "integer",
+      "example": 5
+    },
+    "name": {
+      "type": "string",
+      "example": "Хмель"
+    },
+    "total_amount": {
+      "type": "number",
+      "format": "double",
+      "example": 37.5,
+      "description": "Сколько всего материала требуется для изготовления изделия"
+    },
+    "units": {
+      "type": "string",
+      "example": "kg"
+    },
+    "base": {
+      "type": "boolean",
+      "example": false,
+      "description": "Флаг Base материала."
+    }
+  },
+  "example": {
+    "material_id": 5,
+    "name": "Хмель",
+    "total_amount": 37.5,
+    "base": false,
+    "units": "kg"
+  }
+}

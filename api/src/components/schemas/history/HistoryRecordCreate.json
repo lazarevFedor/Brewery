@@ -1,0 +1,14 @@
+{
+  "type": "object",
+  "required": [
+    "changes"
+  ],
+  "properties": {
+    "changes": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Текстовое описание изменения спецификации",
+      "example": "Норма хмеля увеличена с 12.5 до 15 кг"
+    }
+  }
+}

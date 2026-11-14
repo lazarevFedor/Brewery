@@ -1,0 +1,48 @@
+{
+  "post": {
+    "tags": [
+      "ClassParams"
+    ],
+    "summary": "Create range parameter",
+    "operationId": "createRangeParameter",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/RangeParameterCreate"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Range parameter created",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/RangeParameter"
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "409": {
+        "$ref": "#/components/responses/409_conflict"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  }
+}

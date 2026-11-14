@@ -1,0 +1,19 @@
+{
+  "allOf": [
+    {
+      "$ref": "#/components/schemas/ParameterAggregateBase"
+    },
+    {
+      "type": "object",
+      "required": [
+        "id",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer"
+        }
+      }
+    }
+  ]
+}

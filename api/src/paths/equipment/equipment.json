@@ -1,0 +1,83 @@
+{
+  "get": {
+    "tags": [
+      "Equipment"
+    ],
+    "summary": "Get all equipment",
+    "description": "Возвращает список оборудования и приборов с поддержкой пагинации",
+    "operationId": "listEquipment",
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/Offset"
+      },
+      {
+        "$ref": "#/components/parameters/Limit"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Список оборудования",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/Equipment"
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  },
+  "post": {
+    "tags": [
+      "Equipment"
+    ],
+    "summary": "Create equipment",
+    "description": "Добавляет новую единицу оборудования / прибор",
+    "operationId": "createEquipment",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/EquipmentCreate"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Оборудование успешно создано",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Equipment"
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "409": {
+        "$ref": "#/components/responses/409_conflict"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  }
+}

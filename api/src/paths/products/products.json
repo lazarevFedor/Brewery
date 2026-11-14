@@ -1,0 +1,90 @@
+{
+  "get": {
+    "tags": [
+      "Products"
+    ],
+    "summary": "Get all products",
+    "operationId": "listProducts",
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/Offset"
+      },
+      {
+        "$ref": "#/components/parameters/Limit"
+      },
+      {
+        "name": "is_final_product",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "boolean"
+        },
+        "description": "Фильтр по признаку конечного готового продукта (true — готовые продукты, false — полуфабрикаты и сырье)"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Products list",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/Product"
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  },
+  "post": {
+    "tags": [
+      "Products"
+    ],
+    "summary": "Create product",
+    "operationId": "createProduct",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/ProductCreate"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Product created",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Product"
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "409": {
+        "$ref": "#/components/responses/409_conflict"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  }
+}

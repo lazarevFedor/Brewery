@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "required": [
+    "id",
+    "name"
+  ],
+  "properties": {
+    "id": {
+      "type": "integer",
+      "description": "Уникальный идентификатор оборудования",
+      "example": 1
+    },
+    "name": {
+      "type": "string",
+      "description": "Название оборудования или прибора",
+      "example": "Сусловарочный котел ВК-500"
+    }
+  },
+  "example": {
+    "id": 1,
+    "name": "Сусловарочный котел ВК-500"
+  }
+}

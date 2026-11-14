@@ -1,0 +1,93 @@
+{
+  "get": {
+    "tags": [
+      "Materials"
+    ],
+    "summary": "Get product's full composition tree (BOM)",
+    "description": "Рекурсивно строит полное дерево состава изделия на всю глубину.",
+    "operationId": "getProductBomTree",
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/Id"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Composition tree: top-level materials with nested materials",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/MaterialTreeNode"
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  },
+  "post": {
+    "tags": [
+      "Materials"
+    ],
+    "summary": "Add material to product",
+    "operationId": "addProductMaterial",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/Id"
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/MaterialCreate"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Material added",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Material"
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "409": {
+        "$ref": "#/components/responses/409_conflict"
+      },
+      "422": {
+        "$ref": "#/components/responses/422_validation_error"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  }
+}

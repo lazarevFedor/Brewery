@@ -1,0 +1,117 @@
+{
+  "get": {
+    "tags": [
+      "Equipment"
+    ],
+    "summary": "Get equipment by ID",
+    "description": "Возвращает информацию об оборудовании по идентификатору",
+    "operationId": "getEquipment",
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/Id"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Информация об оборудовании",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Equipment"
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  },
+  "patch": {
+    "tags": [
+      "Equipment"
+    ],
+    "summary": "Update equipment",
+    "description": "Обновляет параметры единицы оборудования",
+    "operationId": "updateEquipment",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/Id"
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/EquipmentUpdate"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Обновленное оборудование",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Equipment"
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  },
+  "delete": {
+    "tags": [
+      "Equipment"
+    ],
+    "summary": "Delete equipment",
+    "description": "Удаляет единицу оборудования по идентификатору",
+    "operationId": "deleteEquipment",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/Id"
+      }
+    ],
+    "responses": {
+      "204": {
+        "description": "Оборудование успешно удалено"
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  }
+}
