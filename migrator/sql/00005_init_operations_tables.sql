@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS operations (
     work_center_name TEXT NOT NULL,
     step_number INT NOT NULL,
     profession_id BIGINT NOT NULL REFERENCES classes (id) ON DELETE RESTRICT,
-    input_product_id BIGINT NOT NULL,
+    input_product_id BIGINT NOT NULL REFERENCES products (id) ON DELETE CASCADE,
     output_product_id BIGINT NOT NULL REFERENCES products (id) ON DELETE CASCADE,
     CONSTRAINT fk_operations_work_center
         FOREIGN KEY (equipment_name, work_center_name)
