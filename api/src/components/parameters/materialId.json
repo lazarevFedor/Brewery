@@ -1,0 +1,9 @@
+{
+  "name": "material_id",
+  "in": "path",
+  "required": true,
+  "schema": {
+    "type": "integer"
+  },
+  "description": "ID изделия, используемого как материал"
+}

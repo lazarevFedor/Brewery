@@ -1,0 +1,35 @@
+{
+  "get": {
+    "tags": [
+      "History"
+    ],
+    "summary": "Get history record by ID",
+    "operationId": "getHistoryRecord",
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/Id"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "History record",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/HistoryRecord"
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  }
+}

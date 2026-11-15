@@ -1,0 +1,44 @@
+{
+  "get": {
+    "tags": [
+      "Materials"
+    ],
+    "summary": "Get products that use material (where-used)",
+    "operationId": "listProductsByMaterial",
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/materialId"
+      },
+      {
+        "$ref": "#/components/parameters/Offset"
+      },
+      {
+        "$ref": "#/components/parameters/Limit"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Products list",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/Product"
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  }
+}

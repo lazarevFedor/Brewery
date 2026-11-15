@@ -1,0 +1,58 @@
+{
+  "patch": {
+    "tags": [
+      "ClassParams"
+    ],
+    "summary": "Exclude parameters from class",
+    "operationId": "ExcludeParametersFromClass",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/classId"
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/ClassParamsExclude"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Parameters excluded successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string"
+                },
+                "params_excluded": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  }
+}

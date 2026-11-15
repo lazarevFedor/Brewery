@@ -1,0 +1,57 @@
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Название операции",
+      "example": "Варка сусла"
+    },
+    "description": {
+      "type": "string",
+      "description": "Описание технологической операции",
+      "example": "Варка охмеленного сусла при температуре 100°C"
+    },
+    "profession_id": {
+      "type": "integer",
+      "description": "Идентификатор профессии работника, имеющего права для выполнения операции",
+      "example": 1
+    },
+    "equipment": {
+      "$ref": "#/components/schemas/Equipment"
+    },
+    "materials": {
+      "$ref": "#/components/schemas/Material"
+    },
+    "step_number": {
+      "type": "integer",
+      "description": "Номер операции в последовательности техкарты",
+      "example": 1
+    },
+    "labor_cost": {
+      "type": "number",
+      "description": "Трудозатратность операции (человеко-часы)",
+      "example": 2.5
+    },
+    "parameters": {
+      "type": "object",
+      "description": "Технологические параметры операции (например, температура, длительность и др.)",
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "boolean"
+          }
+        ]
+      },
+      "example": {
+        "duration_minutes": 90,
+        "temperature_celsius": 100
+      }
+    }
+  }
+}

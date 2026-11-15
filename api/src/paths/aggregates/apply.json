@@ -1,0 +1,48 @@
+{
+  "patch": {
+    "tags": [
+      "Aggregates"
+    ],
+    "summary": "Apply parameter aggregate to class",
+    "operationId": "applyParameterAggregate",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/classId"
+      },
+      {
+        "$ref": "#/components/parameters/AggregateId"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Aggregate applied successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "params_added": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  }
+}

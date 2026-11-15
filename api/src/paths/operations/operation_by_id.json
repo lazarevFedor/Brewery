@@ -1,0 +1,117 @@
+{
+  "get": {
+    "tags": [
+      "Operations"
+    ],
+    "summary": "Get operation by ID",
+    "description": "Возвращает детальную информацию о технологической операции по ее идентификатору",
+    "operationId": "getOperation",
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/Id"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Информация об операции",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Operation"
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  },
+  "patch": {
+    "tags": [
+      "Operations"
+    ],
+    "summary": "Update operation",
+    "description": "Обновляет поля технологической операции",
+    "operationId": "updateOperation",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/Id"
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/OperationUpdate"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Обновленная операция",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Operation"
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  },
+  "delete": {
+    "tags": [
+      "Operations"
+    ],
+    "summary": "Delete operation",
+    "description": "Удаляет технологическую операцию",
+    "operationId": "deleteOperation",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/Id"
+      }
+    ],
+    "responses": {
+      "204": {
+        "description": "Операция успешно удалена"
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "allOf": [
+    {
+      "$ref": "#/components/schemas/MaterialBase"
+    },
+    {
+      "type": "object",
+      "required": [
+        "material_id",
+        "product_id",
+        "material_amount",
+        "base"
+      ],
+      "properties": {
+        "material_id": {
+          "type": "integer",
+          "example": 5,
+          "description": "ID изделия, используемого как материал"
+        },
+        "product_id": {
+          "type": "integer",
+          "example": 1,
+          "description": "ID изделия, в состав которого входит материал"
+        },
+        "material": {
+          "$ref": "#/components/schemas/ProductBase"
+        },
+        "units": {
+          "type": "string",
+          "example": "kg"
+        }
+      }
+    }
+  ],
+  "example": {
+    "material_id": 5,
+    "product_id": 1,
+    "material_amount": 12.5,
+    "base": true
+  }
+}

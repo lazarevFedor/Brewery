@@ -1,0 +1,9 @@
+{
+  "name": "name",
+  "in": "query",
+  "required": false,
+  "schema": {
+    "type": "string"
+  },
+  "description": "Optional exact aggregate name filter"
+}

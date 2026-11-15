@@ -1,0 +1,34 @@
+{
+  "allOf": [
+    {
+      "$ref": "#/components/schemas/EnumClassBase"
+    },
+    {
+      "type": "object",
+      "required": [
+        "id",
+        "enum_type",
+        "field_name",
+        "is_active",
+        "inheritable"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "enum_type": {
+          "type": "string"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "is_active": {
+          "type": "boolean"
+        },
+        "inheritable": {
+          "type": "boolean"
+        }
+      }
+    }
+  ]
+}

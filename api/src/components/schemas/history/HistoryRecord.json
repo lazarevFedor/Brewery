@@ -1,0 +1,29 @@
+{
+  "type": "object",
+  "required": [
+    "id",
+    "product_id",
+    "changes",
+    "created_at"
+  ],
+  "properties": {
+    "id": {
+      "type": "integer",
+      "example": 1
+    },
+    "product_id": {
+      "type": "integer",
+      "example": 1
+    },
+    "changes": {
+      "type": "string",
+      "description": "Текстовое описание изменения спецификации",
+      "example": "Норма хмеля увеличена с 12.5 до 15 кг"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "example": "2026-10-28T12:00:00Z"
+    }
+  }
+}

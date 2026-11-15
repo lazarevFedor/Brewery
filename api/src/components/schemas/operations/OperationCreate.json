@@ -1,0 +1,71 @@
+{
+  "allOf": [
+    {
+      "$ref": "#/components/schemas/OperationBase"
+    },
+    {
+      "type": "object",
+      "required": [
+        "name",
+        "profession_id",
+        "equipment",
+        "materials"
+      ],
+      "properties": {
+        "equipment": {
+          "$ref": "#/components/schemas/Equipment"
+        },
+        "materials": {
+          "type": "object",
+          "description": "Связка входного материала и выходного продукта с расходом",
+          "required": [
+            "material_id",
+            "product_id"
+          ],
+          "properties": {
+            "material_id": {
+              "type": "integer",
+              "description": "ID изделия, используемого как сырье/материал (входной продукт)",
+              "example": 10
+            },
+            "product_id": {
+              "type": "integer",
+              "description": "ID целевого изделия/продукта (выходной продукт)",
+              "example": 11
+            },
+            "material_amount": {
+              "type": "number",
+              "description": "Количество расходуемого материала на единицу продукта",
+              "example": 100
+            },
+            "base": {
+              "type": "boolean",
+              "description": "Флаг базового материала",
+              "example": false
+            }
+          }
+        }
+      }
+    }
+  ],
+  "example": {
+    "name": "Варка сусла с охмелением",
+    "description": "Варка сусла при температуре 100°C с добавлением хмеля",
+    "profession_id": 1,
+    "equipment": {
+      "name": "Сусловарочный котел ВК-500",
+      "work_center": "Холодный цех"
+    },
+    "materials": {
+      "material_id": 10,
+      "product_id": 11,
+      "material_amount": 100,
+      "base": false
+    },
+    "labor_cost": 2.5,
+    "parameters": {
+      "duration_minutes": 90,
+      "temperature_celsius": 100
+    }
+  }
+}

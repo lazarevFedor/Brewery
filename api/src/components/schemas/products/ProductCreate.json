@@ -1,0 +1,46 @@
+{
+  "allOf": [
+    {
+      "$ref": "#/components/schemas/ProductBase"
+    },
+    {
+      "type": "object",
+      "required": [
+        "name",
+        "class"
+      ],
+      "properties": {
+        "class": {
+          "$ref": "#/components/schemas/ClassBase"
+        },
+        "base_id": {
+          "type": "integer",
+          "nullable": true,
+          "description": "ID базового изделия, на основе которого создано текущее"
+        },
+        "amount": {
+          "type": "integer"
+        },
+        "units": {
+          "type": "string"
+        },
+        "is_final_product": {
+          "type": "boolean",
+          "default": false,
+          "description": "Флаг, указывающий, является ли создаваемый продукт конечным готовым изделием",
+          "example": true
+        }
+      },
+      "example": {
+        "name": "Балтика 0",
+        "class": {
+          "name": "Светлое"
+        },
+        "base_id": null,
+        "amount": 100,
+        "units": "L",
+        "is_final_product": true
+      }
+    }
+  ]
+}

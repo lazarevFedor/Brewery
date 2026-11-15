@@ -1,0 +1,58 @@
+{
+  "get": {
+    "tags": [
+      "ClassParams"
+    ],
+    "summary": "Get all parameters with optional filtering by class and type",
+    "operationId": "ListClassParameters",
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/classIdFilter"
+      },
+      {
+        "$ref": "#/components/parameters/ParamType"
+      },
+      {
+        "name": "type",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "range",
+            "enum"
+          ]
+        },
+        "description": "Filter parameters by type. If omitted, returns both range and enum parameters."
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Filtered list of parameters",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/RangeParameter"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  }
+}
