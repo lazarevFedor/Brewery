@@ -8,14 +8,12 @@
       "required": [
         "name",
         "profession_id",
-        "equipment_id",
+        "equipment",
         "materials"
       ],
       "properties": {
-        "equipment_id": {
-          "type": "integer",
-          "description": "ID оборудования для выполнения операции",
-          "example": 1
+        "equipment": {
+          "$ref": "#/components/schemas/Equipment"
         },
         "materials": {
           "type": "object",
@@ -54,7 +52,10 @@
     "name": "Варка сусла с охмелением",
     "description": "Варка сусла при температуре 100°C с добавлением хмеля",
     "profession_id": 1,
-    "equipment_id": 1,
+    "equipment": {
+      "name": "Сусловарочный котел ВК-500",
+      "work_center": "Холодный цех"
+    },
     "materials": {
       "material_id": 10,
       "product_id": 11,

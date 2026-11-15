@@ -48,25 +48,27 @@ type EquipmentHandlers interface {
 
 // equipmentResponse - представление оборудования в API.
 type equipmentResponse struct {
-	ID   int64  `json:"id"`
-	Name string `json:"name"`
+	Name       string `json:"name"`
+	WorkCenter string `json:"work_center"`
 }
 
 // equipmentCreateRequest - тело запроса на создание оборудования.
 type equipmentCreateRequest struct {
-	Name string `json:"name"`
+	Name       string `json:"name"`
+	WorkCenter string `json:"work_center"`
 }
 
 func (r equipmentCreateRequest) toEntity() entities.Equipment {
 	return entities.Equipment{
-		Name: r.Name,
+		Name:       r.Name,
+		WorkCenter: r.WorkCenter,
 	}
 }
 
 func newEquipmentResponse(eq entities.Equipment) equipmentResponse {
 	return equipmentResponse{
-		ID:   eq.ID,
-		Name: eq.Name,
+		Name:       eq.Name,
+		WorkCenter: eq.WorkCenter,
 	}
 }
 
@@ -121,8 +123,8 @@ func (h *equipmentHandlers) CreateEquipment(c *gin.Context) {
 		return
 	}
 
-	if req.Name == "" {
-		badRequest(c, log, apperrors.CodeInvalidParameters, errors.New("name is required"))
+	if req.Name == "" || req.WorkCenter == "" {
+		badRequest(c, log, apperrors.CodeInvalidParameters, errors.New("name and work_center are required"))
 		return
 	}
 

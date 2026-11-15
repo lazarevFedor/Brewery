@@ -5,6 +5,11 @@
       "type": "string",
       "description": "Название оборудования или прибора",
       "example": "Сусловарочный котел ВК-500"
+    },
+    "work_center": {
+      "type": "string",
+      "description": "Название рабочего цеха",
+      "example": "Холодный цех"
     }
   }
 }

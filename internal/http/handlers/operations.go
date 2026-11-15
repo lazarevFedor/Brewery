@@ -62,8 +62,14 @@ type productShortResponse struct {
 
 // equipmentShortResponse - краткое представление оборудования.
 type equipmentShortResponse struct {
-	ID   int64  `json:"id"`
-	Name string `json:"name"`
+	Name       string `json:"name"`
+	WorkCenter string `json:"work_center"`
+}
+
+// equipmentRequest - представление оборудования в запросе операции.
+type equipmentRequest struct {
+	Name       string `json:"name"`
+	WorkCenter string `json:"work_center"`
 }
 
 // operationResponse - представление операции в API.
@@ -101,7 +107,7 @@ type operationCreateRequest struct {
 	Name         string                   `json:"name"`
 	Description  string                   `json:"description,omitempty"`
 	ProfessionID int64                    `json:"profession_id"`
-	EquipmentID  int64                    `json:"equipment_id"`
+	Equipment    equipmentRequest         `json:"equipment"`
 	StepNumber   int32                    `json:"step_number,omitempty"`
 	LaborCost    float64                  `json:"labor_cost"`
 	Parameters   map[string]any           `json:"parameters,omitempty"`
@@ -112,13 +118,14 @@ func newOperationResponse(op entities.Operation) operationResponse {
 	resp := operationResponse{
 		ID:           op.ID,
 		Name:         op.Name,
+		Description:  op.Description,
 		ProfessionID: op.ProfessionID,
 		StepNumber:   op.StepNumber,
 		LaborCost:    op.LaborCost,
 		Parameters:   op.Parameters,
 		Equipment: equipmentShortResponse{
-			ID:   op.Equipment.ID,
-			Name: op.Equipment.Name,
+			Name:       op.Equipment.Name,
+			WorkCenter: op.Equipment.WorkCenter,
 		},
 		Materials: materialResponse{
 			MaterialID:     op.Materials.MaterialID,
@@ -229,8 +236,8 @@ func (h *operationHandlers) CreateOperation(c *gin.Context) {
 		return
 	}
 
-	if req.Name == "" || req.ProfessionID <= 0 || req.EquipmentID <= 0 {
-		badRequest(c, log, apperrors.CodeInvalidParameters, errors.New("name, profession_id and equipment_id are required"))
+	if req.Name == "" || req.ProfessionID <= 0 || req.Equipment.Name == "" || req.Equipment.WorkCenter == "" {
+		badRequest(c, log, apperrors.CodeInvalidParameters, errors.New("name, profession_id and equipment (name, work_center) are required"))
 		return
 	}
 
@@ -241,12 +248,14 @@ func (h *operationHandlers) CreateOperation(c *gin.Context) {
 
 	opEntity := entities.Operation{
 		Name:         req.Name,
+		Description:  req.Description,
 		ProfessionID: req.ProfessionID,
 		StepNumber:   req.StepNumber,
 		LaborCost:    req.LaborCost,
 		Parameters:   req.Parameters,
 		Equipment: entities.Equipment{
-			ID: req.EquipmentID,
+			Name:       req.Equipment.Name,
+			WorkCenter: req.Equipment.WorkCenter,
 		},
 		Materials: entities.MaterialProduct{
 			Material: entities.Material{

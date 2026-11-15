@@ -3413,14 +3413,12 @@
             "required": [
               "name",
               "profession_id",
-              "equipment_id",
+              "equipment",
               "materials"
             ],
             "properties": {
-              "equipment_id": {
-                "type": "integer",
-                "description": "ID оборудования для выполнения операции",
-                "example": 1
+              "equipment": {
+                "$ref": "#/components/schemas/Equipment"
               },
               "materials": {
                 "type": "object",
@@ -3459,7 +3457,10 @@
           "name": "Варка сусла с охмелением",
           "description": "Варка сусла при температуре 100°C с добавлением хмеля",
           "profession_id": 1,
-          "equipment_id": 1,
+          "equipment": {
+            "name": "Сусловарочный котел ВК-500",
+            "work_center": "Холодный цех"
+          },
           "materials": {
             "material_id": 10,
             "product_id": 11,
@@ -3547,8 +3548,8 @@
           "description": "Варка охмеленного сусла при температуре 100°C",
           "profession_id": 1,
           "equipment": {
-            "id": 1,
-            "name": "Сусловарочный котел ВК-500"
+            "name": "Сусловарочный котел ВК-500",
+            "work_center": "Холодный цех"
           },
           "materials": {
             "material_id": 1,
@@ -3583,10 +3584,8 @@
             "description": "Идентификатор профессии работника",
             "example": 2
           },
-          "equipment_id": {
-            "type": "integer",
-            "description": "Идентификатор оборудования",
-            "example": 3
+          "equipment": {
+            "$ref": "#/components/schemas/EquipmentUpdate"
           },
           "step_number": {
             "type": "integer",
@@ -3650,7 +3649,10 @@
           "name": "Варка сусла (модифицированная)",
           "description": "Варка охмеленного сусла при температуре 102°C",
           "profession_id": 2,
-          "equipment_id": 3,
+          "equipment": {
+            "name": "Сусловарочный котел ВК-500 (модернизированный)",
+            "work_center": "Холодный цех"
+          },
           "materials": {
             "material_id": 1,
             "product_id": 2,
@@ -3671,23 +3673,35 @@
             "type": "string",
             "description": "Название оборудования или прибора",
             "example": "Сусловарочный котел ВК-500"
+          },
+          "work_center": {
+            "type": "string",
+            "description": "Название рабочего цеха",
+            "example": "Холодный цех"
           }
         }
       },
       "EquipmentCreate": {
         "type": "object",
         "required": [
-          "name"
+          "name",
+          "work_center"
         ],
         "properties": {
           "name": {
             "type": "string",
             "description": "Название оборудования или прибора",
             "example": "Сусловарочный котел ВК-500"
+          },
+          "work_center": {
+            "type": "string",
+            "description": "Название рабочего цеха",
+            "example": "Холодный цех"
           }
         },
         "example": {
-          "name": "Сусловарочный котел ВК-500"
+          "name": "Сусловарочный котел ВК-500",
+          "work_center": "Холодный цех"
         }
       },
       "EquipmentUpdate": {
@@ -3850,8 +3864,8 @@
               "description": "Затирание дробленого солода с водой при контролируемых температурных паузах",
               "profession_id": 1,
               "equipment": {
-                "id": 2,
-                "name": "Заторно-сусловарочный аппарат"
+                "name": "Заторно-сусловарочный аппарат",
+                "work_center": "Варочный цех"
               },
               "materials": {
                 "material_id": 10,
@@ -3872,8 +3886,8 @@
               "description": "Варка охмеленного сусла при температуре 100°C",
               "profession_id": 1,
               "equipment": {
-                "id": 1,
-                "name": "Сусловарочный котел ВК-500"
+                "name": "Сусловарочный котел ВК-500",
+                "work_center": "Варочный цех"
               },
               "materials": {
                 "material_id": 11,
