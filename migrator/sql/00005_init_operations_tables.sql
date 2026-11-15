@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS operations (
     work_center_name TEXT NOT NULL,
     step_number INT NOT NULL,
     labor_cost NUMERIC(10, 3) NOT NULL DEFAULT 0,
-    profession_id BIGINT NOT NULL REFERENCES classes (id) ON DELETE RESTRICT,
+    profession_id BIGINT NOT NULL REFERENCES materials (material_id) ON DELETE RESTRICT,
     input_product_id BIGINT NOT NULL REFERENCES products (id) ON DELETE RESTRICT,
     output_product_id BIGINT NOT NULL REFERENCES products (id) ON DELETE RESTRICT,
     CONSTRAINT fk_operations_work_center
