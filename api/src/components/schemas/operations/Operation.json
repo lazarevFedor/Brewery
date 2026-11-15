@@ -3,11 +3,9 @@
   "required": [
     "id",
     "name",
-    "description",
     "profession_id",
     "equipment",
-    "input_product",
-    "output_product"
+    "materials"
   ],
   "properties": {
     "id": {
@@ -33,11 +31,13 @@
     "equipment": {
       "$ref": "#/components/schemas/EquipmentShort"
     },
-    "input_product": {
-      "$ref": "#/components/schemas/ProductShort"
+    "materials": {
+      "$ref": "#/components/schemas/Material"
     },
-    "output_product": {
-      "$ref": "#/components/schemas/ProductShort"
+    "step_number": {
+      "type": "integer",
+      "description": "Номер операции в последовательности техкарты",
+      "example": 1
     },
     "labor_cost": {
       "type": "number",
@@ -75,13 +75,12 @@
       "id": 1,
       "name": "Сусловарочный котел ВК-500"
     },
-    "input_product": {
-      "id": 1,
-      "name": "Солодовое сусло"
-    },
-    "output_product": {
-      "id": 2,
-      "name": "Охмеленное сусло"
+    "materials": {
+      "material_id": 1,
+      "product_id": 2,
+      "material_amount": 100,
+      "base": false,
+      "units": "L"
     },
     "labor_cost": 2.5,
     "parameters": {

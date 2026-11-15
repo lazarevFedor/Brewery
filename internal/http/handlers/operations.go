@@ -4,7 +4,6 @@ import (
 	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
 	"context"
-	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
@@ -14,18 +13,17 @@ import (
 
 // OperationService определяет интерфейс сервисного слоя для работы с технологическими операциями.
 type OperationService interface {
-	// CreateOperation создает операцию. Если передан новый входной/выходной продукт (inputProduct/outputProduct != nil),
-	// сервис автоматически создает его в базе данных.
-	CreateOperation(ctx context.Context, op entities.Operation, inputProduct, outputProduct *entities.Product) (*entities.Operation, error)
+	// CreateOperation создает операцию.
+	CreateOperation(ctx context.Context, op entities.Operation) (*entities.Operation, error)
 
-	// GetOperations возвращает список операций с учетом пагинации и опциональной фильтрации по продуктам.
-	GetOperations(ctx context.Context, limit, offset int32, inputProductID, outputProductID *int64) ([]entities.Operation, error)
+	// GetOperations возвращает список операций с учетом пагинации и опциональной фильтрации по материалу и продукту.
+	GetOperations(ctx context.Context, limit, offset int32, materialID, productID *int64) ([]entities.Operation, error)
 
-	// GetOperationByID возвращает операцию по ID с заполненными связями (оборудование, продукты).
+	// GetOperationByID возвращает операцию по ID с заполненными связями (оборудование, материалы).
 	GetOperationByID(ctx context.Context, id int64) (*entities.Operation, error)
 
 	// UpdateOperation обновляет операцию.
-	UpdateOperation(ctx context.Context, id int64, updates map[string]any, inputProduct, outputProduct *entities.Product) (*entities.Operation, error)
+	UpdateOperation(ctx context.Context, id int64, updates map[string]any) (*entities.Operation, error)
 
 	// DeleteOperation удаляет операцию по идентификатору.
 	DeleteOperation(ctx context.Context, id int64) error
@@ -70,15 +68,15 @@ type equipmentShortResponse struct {
 
 // operationResponse - представление операции в API.
 type operationResponse struct {
-	ID            int64                  `json:"id"`
-	Name          string                 `json:"name"`
-	Description   string                 `json:"description"`
-	ProfessionID  int64                  `json:"profession_id"`
-	Equipment     equipmentShortResponse `json:"equipment"`
-	InputProduct  productShortResponse   `json:"input_product"`
-	OutputProduct productShortResponse   `json:"output_product"`
-	LaborCost     float64                `json:"labor_cost"`
-	Parameters    map[string]any         `json:"parameters,omitempty"`
+	ID           int64                  `json:"id"`
+	Name         string                 `json:"name"`
+	Description  string                 `json:"description,omitempty"`
+	ProfessionID int64                  `json:"profession_id"`
+	StepNumber   int32                  `json:"step_number,omitempty"`
+	LaborCost    float64                `json:"labor_cost"`
+	Parameters   map[string]any         `json:"parameters,omitempty"`
+	Equipment    equipmentShortResponse `json:"equipment"`
+	Materials    materialResponse       `json:"materials"`
 }
 
 // productTechCardResponse - технологическая карта продукта.
@@ -90,78 +88,44 @@ type productTechCardResponse struct {
 	MaterialNorms  []materialNormResponse `json:"material_norms"`
 }
 
-// operationCreateRequest - тело запроса на создание операции.
-type operationCreateRequest struct {
-	Name            string          `json:"name"`
-	Description     string          `json:"description"`
-	ProfessionID    int64           `json:"profession_id"`
-	EquipmentID     int64           `json:"equipment_id"`
-	InputProductID  *int64          `json:"input_product_id"`
-	InputProduct    json.RawMessage `json:"input_product"`
-	OutputProductID *int64          `json:"output_product_id"`
-	OutputProduct   json.RawMessage `json:"output_product"`
-	LaborCost       float64         `json:"labor_cost"`
-	Parameters      map[string]any  `json:"parameters"`
+// operationMaterialRequest - данные материала в запросе на создание операции.
+type operationMaterialRequest struct {
+	MaterialID     int64   `json:"material_id"`
+	ProductID      int64   `json:"product_id"`
+	MaterialAmount float32 `json:"material_amount"`
+	Base           bool    `json:"base"`
 }
 
-func parseProductOrID(raw json.RawMessage, directID *int64) (int64, *entities.Product, error) {
-	if directID != nil && *directID > 0 {
-		return *directID, nil, nil
-	}
-
-	if len(raw) == 0 {
-		return 0, nil, errors.New("product is required")
-	}
-
-	// Если передан числовой ID в поле product
-	var numID int64
-	if err := json.Unmarshal(raw, &numID); err == nil && numID > 0 {
-		return numID, nil, nil
-	}
-
-	// Иначе пробуем распарсить схему ProductCreate для создания нового продукта
-	var pReq productCreateRequest
-	if err := json.Unmarshal(raw, &pReq); err != nil {
-		return 0, nil, errors.New("invalid product data")
-	}
-
-	if pReq.Name == "" {
-		return 0, nil, errors.New("product name is required")
-	}
-
-	entity := pReq.toEntity()
-	return 0, &entity, nil
+// operationCreateRequest - тело запроса на создание операции.
+type operationCreateRequest struct {
+	Name         string                   `json:"name"`
+	Description  string                   `json:"description,omitempty"`
+	ProfessionID int64                    `json:"profession_id"`
+	EquipmentID  int64                    `json:"equipment_id"`
+	StepNumber   int32                    `json:"step_number,omitempty"`
+	LaborCost    float64                  `json:"labor_cost"`
+	Parameters   map[string]any           `json:"parameters,omitempty"`
+	Materials    operationMaterialRequest `json:"materials"`
 }
 
 func newOperationResponse(op entities.Operation) operationResponse {
 	resp := operationResponse{
 		ID:           op.ID,
 		Name:         op.Name,
-		Description:  op.Description,
 		ProfessionID: op.ProfessionID,
+		StepNumber:   op.StepNumber,
 		LaborCost:    op.LaborCost,
 		Parameters:   op.Parameters,
 		Equipment: equipmentShortResponse{
-			ID: op.EquipmentID,
+			ID:   op.Equipment.ID,
+			Name: op.Equipment.Name,
 		},
-		InputProduct: productShortResponse{
-			ID: op.InputProductID,
+		Materials: materialResponse{
+			MaterialID:     op.Materials.MaterialID,
+			ProductID:      op.Materials.ProductID,
+			MaterialAmount: op.Materials.MaterialAmount,
+			Base:           op.Materials.Base,
 		},
-		OutputProduct: productShortResponse{
-			ID: op.OutputProductID,
-		},
-	}
-
-	if op.Equipment != nil {
-		resp.Equipment.Name = op.Equipment.Name
-	}
-	if op.InputProduct != nil {
-		resp.InputProduct.Name = op.InputProduct.Name
-		resp.InputProduct.IsFinalProduct = op.InputProduct.IsFinalProduct
-	}
-	if op.OutputProduct != nil {
-		resp.OutputProduct.Name = op.OutputProduct.Name
-		resp.OutputProduct.IsFinalProduct = op.OutputProduct.IsFinalProduct
 	}
 
 	return resp
@@ -199,14 +163,6 @@ func newProductTechCardResponse(tc entities.ProductTechCard) productTechCardResp
 		MaterialNorms:  norms,
 	}
 
-	if tc.Product != nil {
-		resp.Product = &productShortResponse{
-			ID:             tc.Product.ID,
-			Name:           tc.Product.Name,
-			IsFinalProduct: tc.Product.IsFinalProduct,
-		}
-	}
-
 	return resp
 }
 
@@ -232,27 +188,27 @@ func (h *operationHandlers) ListOperations(c *gin.Context) {
 		return
 	}
 
-	var inputIDPtr *int64
-	if raw := c.Query("input_product_id"); raw != "" {
+	var materialIDPtr *int64
+	if raw := c.Query("material_id"); raw != "" {
 		if id, parseErr := strconv.ParseInt(raw, 10, 64); parseErr == nil && id > 0 {
-			inputIDPtr = &id
+			materialIDPtr = &id
 		} else {
-			badRequest(c, log, apperrors.CodeInvalidParameters, errors.New("invalid input_product_id"))
+			badRequest(c, log, apperrors.CodeInvalidParameters, errors.New("invalid material_id"))
 			return
 		}
 	}
 
-	var outputIDPtr *int64
-	if raw := c.Query("output_product_id"); raw != "" {
+	var productIDPtr *int64
+	if raw := c.Query("product_id"); raw != "" {
 		if id, parseErr := strconv.ParseInt(raw, 10, 64); parseErr == nil && id > 0 {
-			outputIDPtr = &id
+			productIDPtr = &id
 		} else {
-			badRequest(c, log, apperrors.CodeInvalidParameters, errors.New("invalid output_product_id"))
+			badRequest(c, log, apperrors.CodeInvalidParameters, errors.New("invalid product_id"))
 			return
 		}
 	}
 
-	ops, err := h.uc.GetOperations(c.Request.Context(), limit, offset, inputIDPtr, outputIDPtr)
+	ops, err := h.uc.GetOperations(c.Request.Context(), limit, offset, materialIDPtr, productIDPtr)
 	if err != nil {
 		handleError(c, log, "failed to list operations", err)
 		return
@@ -273,35 +229,36 @@ func (h *operationHandlers) CreateOperation(c *gin.Context) {
 		return
 	}
 
-	if req.Name == "" || req.Description == "" || req.ProfessionID <= 0 || req.EquipmentID <= 0 {
-		badRequest(c, log, apperrors.CodeInvalidParameters, errors.New("name, description, profession_id and equipment_id are required"))
+	if req.Name == "" || req.ProfessionID <= 0 || req.EquipmentID <= 0 {
+		badRequest(c, log, apperrors.CodeInvalidParameters, errors.New("name, profession_id and equipment_id are required"))
 		return
 	}
 
-	inputID, inputToCreate, err := parseProductOrID(req.InputProduct, req.InputProductID)
-	if err != nil {
-		badRequest(c, log, apperrors.CodeInvalidParameters, errors.New("invalid input product: "+err.Error()))
-		return
-	}
-
-	outputID, outputToCreate, err := parseProductOrID(req.OutputProduct, req.OutputProductID)
-	if err != nil {
-		badRequest(c, log, apperrors.CodeInvalidParameters, errors.New("invalid output product: "+err.Error()))
+	if req.Materials.MaterialID <= 0 || req.Materials.ProductID <= 0 {
+		badRequest(c, log, apperrors.CodeInvalidParameters, errors.New("materials.material_id and materials.product_id are required"))
 		return
 	}
 
 	opEntity := entities.Operation{
-		Name:            req.Name,
-		Description:     req.Description,
-		ProfessionID:    req.ProfessionID,
-		EquipmentID:     req.EquipmentID,
-		InputProductID:  inputID,
-		OutputProductID: outputID,
-		LaborCost:       req.LaborCost,
-		Parameters:      req.Parameters,
+		Name:         req.Name,
+		ProfessionID: req.ProfessionID,
+		StepNumber:   req.StepNumber,
+		LaborCost:    req.LaborCost,
+		Parameters:   req.Parameters,
+		Equipment: entities.Equipment{
+			ID: req.EquipmentID,
+		},
+		Materials: entities.MaterialProduct{
+			Material: entities.Material{
+				MaterialID:     req.Materials.MaterialID,
+				ProductID:      req.Materials.ProductID,
+				MaterialAmount: req.Materials.MaterialAmount,
+				Base:           req.Materials.Base,
+			},
+		},
 	}
 
-	created, err := h.uc.CreateOperation(c.Request.Context(), opEntity, inputToCreate, outputToCreate)
+	created, err := h.uc.CreateOperation(c.Request.Context(), opEntity)
 	if err != nil {
 		handleError(c, log, "failed to create operation", err)
 		return
@@ -350,41 +307,7 @@ func (h *operationHandlers) UpdateOperation(c *gin.Context) {
 		return
 	}
 
-	var inputToCreate *entities.Product
-	if raw, exists := updates["input_product"]; exists {
-		if rawMap, isMap := raw.(map[string]any); isMap {
-			rawJSON, _ := json.Marshal(rawMap)
-			_, p, parseErr := parseProductOrID(rawJSON, nil)
-			if parseErr != nil {
-				badRequest(c, log, apperrors.CodeInvalidParameters, errors.New("invalid input_product: "+parseErr.Error()))
-				return
-			}
-			inputToCreate = p
-			delete(updates, "input_product")
-		} else if num, isNum := raw.(float64); isNum {
-			updates["input_product_id"] = int64(num)
-			delete(updates, "input_product")
-		}
-	}
-
-	var outputToCreate *entities.Product
-	if raw, exists := updates["output_product"]; exists {
-		if rawMap, isMap := raw.(map[string]any); isMap {
-			rawJSON, _ := json.Marshal(rawMap)
-			_, p, parseErr := parseProductOrID(rawJSON, nil)
-			if parseErr != nil {
-				badRequest(c, log, apperrors.CodeInvalidParameters, errors.New("invalid output_product: "+parseErr.Error()))
-				return
-			}
-			outputToCreate = p
-			delete(updates, "output_product")
-		} else if num, isNum := raw.(float64); isNum {
-			updates["output_product_id"] = int64(num)
-			delete(updates, "output_product")
-		}
-	}
-
-	updated, err := h.uc.UpdateOperation(c.Request.Context(), id, updates, inputToCreate, outputToCreate)
+	updated, err := h.uc.UpdateOperation(c.Request.Context(), id, updates)
 	if err != nil {
 		handleError(c, log, "failed to update operation", err)
 		return

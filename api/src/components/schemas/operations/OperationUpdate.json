@@ -22,39 +22,36 @@
       "description": "Идентификатор оборудования",
       "example": 3
     },
-    "input_product_id": {
+    "step_number": {
       "type": "integer",
-      "description": "ID входного продукта",
+      "description": "Номер операции в последовательности техкарты",
       "example": 1
     },
-    "input_product": {
-      "description": "ID существующего продукта либо полная схема для его создания",
-      "oneOf": [
-        {
+    "materials": {
+      "type": "object",
+      "description": "Данные расхода сырья/материала (входной и выходной продукт)",
+      "properties": {
+        "material_id": {
           "type": "integer",
+          "description": "ID входного продукта (сырья)",
           "example": 1
         },
-        {
-          "$ref": "#/components/schemas/ProductCreate"
-        }
-      ]
-    },
-    "output_product_id": {
-      "type": "integer",
-      "description": "ID выходного продукта",
-      "example": 2
-    },
-    "output_product": {
-      "description": "ID существующего продукта либо полная схема для его создания",
-      "oneOf": [
-        {
+        "product_id": {
           "type": "integer",
+          "description": "ID выходного продукта",
           "example": 2
         },
-        {
-          "$ref": "#/components/schemas/ProductCreate"
+        "material_amount": {
+          "type": "number",
+          "description": "Количество расходуемого материала",
+          "example": 100
+        },
+        "base": {
+          "type": "boolean",
+          "description": "Флаг базового материала",
+          "example": false
         }
-      ]
+      }
     },
     "labor_cost": {
       "type": "number",
@@ -88,8 +85,12 @@
     "description": "Варка охмеленного сусла при температуре 102°C",
     "profession_id": 2,
     "equipment_id": 3,
-    "input_product_id": 1,
-    "output_product_id": 2,
+    "materials": {
+      "material_id": 1,
+      "product_id": 2,
+      "material_amount": 100,
+      "base": false
+    },
     "labor_cost": 3.0,
     "parameters": {
       "duration_minutes": 100,

@@ -19,15 +19,13 @@
     "equipment": {
       "$ref": "#/components/schemas/Equipment"
     },
-    "input_product_id": {
-      "type": "integer",
-      "description": "ID входного продукта (исходное сырье или полуфабрикат)",
-      "example": 1
+    "materials": {
+      "$ref": "#/components/schemas/Material"
     },
-    "output_product_id": {
+    "step_number": {
       "type": "integer",
-      "description": "ID выходного продукта (результирующий продукт или полуфабрикат)",
-      "example": 2
+      "description": "Номер операции в последовательности техкарты",
+      "example": 1
     },
     "labor_cost": {
       "type": "number",

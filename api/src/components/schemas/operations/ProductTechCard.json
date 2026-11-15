@@ -52,13 +52,12 @@
           "id": 2,
           "name": "Заторно-сусловарочный аппарат"
         },
-        "input_product": {
-          "id": 10,
-          "name": "Дробленый солод"
-        },
-        "output_product": {
-          "id": 11,
-          "name": "Заторная масса"
+        "materials": {
+          "material_id": 10,
+          "product_id": 11,
+          "material_amount": 50,
+          "base": false,
+          "units": "kg"
         },
         "labor_cost": 3.0,
         "parameters": {
@@ -75,13 +74,12 @@
           "id": 1,
           "name": "Сусловарочный котел ВК-500"
         },
-        "input_product": {
-          "id": 11,
-          "name": "Заторная масса"
-        },
-        "output_product": {
-          "id": 1,
-          "name": "Балтика 0"
+        "materials": {
+          "material_id": 11,
+          "product_id": 1,
+          "material_amount": 100,
+          "base": false,
+          "units": "L"
         },
         "labor_cost": 5.5,
         "parameters": {

@@ -7,46 +7,45 @@
       "type": "object",
       "required": [
         "name",
-        "description",
         "profession_id",
-        "equipment_id"
+        "equipment_id",
+        "materials"
       ],
       "properties": {
-        "input_product_id": {
+        "equipment_id": {
           "type": "integer",
-          "description": "ID существующего входного продукта (указывается либо input_product_id, либо input_product)",
+          "description": "ID оборудования для выполнения операции",
           "example": 1
         },
-        "input_product": {
-          "description": "ID существующего входного продукта либо полная схема для его создания (если такого промежуточного состояния еще нет в базе)",
-          "oneOf": [
-            {
+        "materials": {
+          "type": "object",
+          "description": "Связка входного материала и выходного продукта с расходом",
+          "required": [
+            "material_id",
+            "product_id"
+          ],
+          "properties": {
+            "material_id": {
               "type": "integer",
-              "description": "ID существующего продукта",
-              "example": 1
+              "description": "ID изделия, используемого как сырье/материал (входной продукт)",
+              "example": 10
             },
-            {
-              "$ref": "#/components/schemas/ProductCreate"
-            }
-          ]
-        },
-        "output_product_id": {
-          "type": "integer",
-          "description": "ID существующего выходного продукта (указывается либо output_product_id, либо output_product)",
-          "example": 2
-        },
-        "output_product": {
-          "description": "ID существующего выходного продукта либо полная схема для его создания (если такого промежуточного состояния еще нет в базе)",
-          "oneOf": [
-            {
+            "product_id": {
               "type": "integer",
-              "description": "ID существующего продукта",
-              "example": 2
+              "description": "ID целевого изделия/продукта (выходной продукт)",
+              "example": 11
             },
-            {
-              "$ref": "#/components/schemas/ProductCreate"
+            "material_amount": {
+              "type": "number",
+              "description": "Количество расходуемого материала на единицу продукта",
+              "example": 100
+            },
+            "base": {
+              "type": "boolean",
+              "description": "Флаг базового материала",
+              "example": false
             }
-          ]
+          }
         }
       }
     }
@@ -56,15 +55,11 @@
     "description": "Варка сусла при температуре 100°C с добавлением хмеля",
     "profession_id": 1,
     "equipment_id": 1,
-    "input_product_id": 10,
-    "output_product": {
-      "name": "Охмеленное сусло (промежуточное состояние)",
-      "class": {
-        "name": "Сусло"
-      },
-      "amount": 500,
-      "units": "L",
-      "is_final_product": false
+    "materials": {
+      "material_id": 10,
+      "product_id": 11,
+      "material_amount": 100,
+      "base": false
     },
     "labor_cost": 2.5,
     "parameters": {

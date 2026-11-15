@@ -2005,7 +2005,7 @@
           "Operations"
         ],
         "summary": "Get all operations",
-        "description": "Возвращает список всех технологических операций с поддержкой пагинации и фильтрации по продуктам",
+        "description": "Возвращает список всех технологических операций с поддержкой пагинации и фильтрации по материалу и продукту",
         "operationId": "listOperations",
         "parameters": [
           {
@@ -2015,22 +2015,22 @@
             "$ref": "#/components/parameters/Limit"
           },
           {
-            "name": "input_product_id",
+            "name": "material_id",
             "in": "query",
             "required": false,
             "schema": {
               "type": "integer"
             },
-            "description": "Фильтр по входному продукту"
+            "description": "Фильтр по ID используемого материала (входного продукта)"
           },
           {
-            "name": "output_product_id",
+            "name": "product_id",
             "in": "query",
             "required": false,
             "schema": {
               "type": "integer"
             },
-            "description": "Фильтр по выходному продукту"
+            "description": "Фильтр по ID целевого продукта (выходного продукта)"
           }
         ],
         "responses": {
@@ -2060,7 +2060,7 @@
           "Operations"
         ],
         "summary": "Create operation",
-        "description": "Создает новую технологическую операцию перевода одного продукта в другой",
+        "description": "Создает новую технологическую операцию с расходом материала",
         "operationId": "createOperation",
         "security": [
           {
@@ -3367,15 +3367,13 @@
           "equipment": {
             "$ref": "#/components/schemas/Equipment"
           },
-          "input_product_id": {
-            "type": "integer",
-            "description": "ID входного продукта (исходное сырье или полуфабрикат)",
-            "example": 1
+          "materials": {
+            "$ref": "#/components/schemas/Material"
           },
-          "output_product_id": {
+          "step_number": {
             "type": "integer",
-            "description": "ID выходного продукта (результирующий продукт или полуфабрикат)",
-            "example": 2
+            "description": "Номер операции в последовательности техкарты",
+            "example": 1
           },
           "labor_cost": {
             "type": "number",
@@ -3414,46 +3412,45 @@
             "type": "object",
             "required": [
               "name",
-              "description",
               "profession_id",
-              "equipment_id"
+              "equipment_id",
+              "materials"
             ],
             "properties": {
-              "input_product_id": {
+              "equipment_id": {
                 "type": "integer",
-                "description": "ID существующего входного продукта (указывается либо input_product_id, либо input_product)",
+                "description": "ID оборудования для выполнения операции",
                 "example": 1
               },
-              "input_product": {
-                "description": "ID существующего входного продукта либо полная схема для его создания (если такого промежуточного состояния еще нет в базе)",
-                "oneOf": [
-                  {
+              "materials": {
+                "type": "object",
+                "description": "Связка входного материала и выходного продукта с расходом",
+                "required": [
+                  "material_id",
+                  "product_id"
+                ],
+                "properties": {
+                  "material_id": {
                     "type": "integer",
-                    "description": "ID существующего продукта",
-                    "example": 1
+                    "description": "ID изделия, используемого как сырье/материал (входной продукт)",
+                    "example": 10
                   },
-                  {
-                    "$ref": "#/components/schemas/ProductCreate"
-                  }
-                ]
-              },
-              "output_product_id": {
-                "type": "integer",
-                "description": "ID существующего выходного продукта (указывается либо output_product_id, либо output_product)",
-                "example": 2
-              },
-              "output_product": {
-                "description": "ID существующего выходного продукта либо полная схема для его создания (если такого промежуточного состояния еще нет в базе)",
-                "oneOf": [
-                  {
+                  "product_id": {
                     "type": "integer",
-                    "description": "ID существующего продукта",
-                    "example": 2
+                    "description": "ID целевого изделия/продукта (выходной продукт)",
+                    "example": 11
                   },
-                  {
-                    "$ref": "#/components/schemas/ProductCreate"
+                  "material_amount": {
+                    "type": "number",
+                    "description": "Количество расходуемого материала на единицу продукта",
+                    "example": 100
+                  },
+                  "base": {
+                    "type": "boolean",
+                    "description": "Флаг базового материала",
+                    "example": false
                   }
-                ]
+                }
               }
             }
           }
@@ -3463,15 +3460,11 @@
           "description": "Варка сусла при температуре 100°C с добавлением хмеля",
           "profession_id": 1,
           "equipment_id": 1,
-          "input_product_id": 10,
-          "output_product": {
-            "name": "Охмеленное сусло (промежуточное состояние)",
-            "class": {
-              "name": "Сусло"
-            },
-            "amount": 500,
-            "units": "L",
-            "is_final_product": false
+          "materials": {
+            "material_id": 10,
+            "product_id": 11,
+            "material_amount": 100,
+            "base": false
           },
           "labor_cost": 2.5,
           "parameters": {
@@ -3485,11 +3478,9 @@
         "required": [
           "id",
           "name",
-          "description",
           "profession_id",
           "equipment",
-          "input_product",
-          "output_product"
+          "materials"
         ],
         "properties": {
           "id": {
@@ -3515,11 +3506,13 @@
           "equipment": {
             "$ref": "#/components/schemas/EquipmentShort"
           },
-          "input_product": {
-            "$ref": "#/components/schemas/ProductShort"
+          "materials": {
+            "$ref": "#/components/schemas/Material"
           },
-          "output_product": {
-            "$ref": "#/components/schemas/ProductShort"
+          "step_number": {
+            "type": "integer",
+            "description": "Номер операции в последовательности техкарты",
+            "example": 1
           },
           "labor_cost": {
             "type": "number",
@@ -3557,13 +3550,12 @@
             "id": 1,
             "name": "Сусловарочный котел ВК-500"
           },
-          "input_product": {
-            "id": 1,
-            "name": "Солодовое сусло"
-          },
-          "output_product": {
-            "id": 2,
-            "name": "Охмеленное сусло"
+          "materials": {
+            "material_id": 1,
+            "product_id": 2,
+            "material_amount": 100,
+            "base": false,
+            "units": "L"
           },
           "labor_cost": 2.5,
           "parameters": {
@@ -3596,39 +3588,36 @@
             "description": "Идентификатор оборудования",
             "example": 3
           },
-          "input_product_id": {
+          "step_number": {
             "type": "integer",
-            "description": "ID входного продукта",
+            "description": "Номер операции в последовательности техкарты",
             "example": 1
           },
-          "input_product": {
-            "description": "ID существующего продукта либо полная схема для его создания",
-            "oneOf": [
-              {
+          "materials": {
+            "type": "object",
+            "description": "Данные расхода сырья/материала (входной и выходной продукт)",
+            "properties": {
+              "material_id": {
                 "type": "integer",
+                "description": "ID входного продукта (сырья)",
                 "example": 1
               },
-              {
-                "$ref": "#/components/schemas/ProductCreate"
-              }
-            ]
-          },
-          "output_product_id": {
-            "type": "integer",
-            "description": "ID выходного продукта",
-            "example": 2
-          },
-          "output_product": {
-            "description": "ID существующего продукта либо полная схема для его создания",
-            "oneOf": [
-              {
+              "product_id": {
                 "type": "integer",
+                "description": "ID выходного продукта",
                 "example": 2
               },
-              {
-                "$ref": "#/components/schemas/ProductCreate"
+              "material_amount": {
+                "type": "number",
+                "description": "Количество расходуемого материала",
+                "example": 100
+              },
+              "base": {
+                "type": "boolean",
+                "description": "Флаг базового материала",
+                "example": false
               }
-            ]
+            }
           },
           "labor_cost": {
             "type": "number",
@@ -3662,8 +3651,12 @@
           "description": "Варка охмеленного сусла при температуре 102°C",
           "profession_id": 2,
           "equipment_id": 3,
-          "input_product_id": 1,
-          "output_product_id": 2,
+          "materials": {
+            "material_id": 1,
+            "product_id": 2,
+            "material_amount": 100,
+            "base": false
+          },
           "labor_cost": 3.0,
           "parameters": {
             "duration_minutes": 100,
@@ -3860,13 +3853,12 @@
                 "id": 2,
                 "name": "Заторно-сусловарочный аппарат"
               },
-              "input_product": {
-                "id": 10,
-                "name": "Дробленый солод"
-              },
-              "output_product": {
-                "id": 11,
-                "name": "Заторная масса"
+              "materials": {
+                "material_id": 10,
+                "product_id": 11,
+                "material_amount": 50,
+                "base": false,
+                "units": "kg"
               },
               "labor_cost": 3.0,
               "parameters": {
@@ -3883,13 +3875,12 @@
                 "id": 1,
                 "name": "Сусловарочный котел ВК-500"
               },
-              "input_product": {
-                "id": 11,
-                "name": "Заторная масса"
-              },
-              "output_product": {
-                "id": 1,
-                "name": "Балтика 0"
+              "materials": {
+                "material_id": 11,
+                "product_id": 1,
+                "material_amount": 100,
+                "base": false,
+                "units": "L"
               },
               "labor_cost": 5.5,
               "parameters": {
