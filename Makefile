@@ -23,7 +23,7 @@ genmock:
 	go generate ./internal/http/handlers/mocks
 
 genapi:
-	redocly bundle api/services.swagger.json --output api/gened.swagger.json
+	python3 scripts/bundle_api.py --input api/src/openapi.json --output api/services.openapi.json
 
 lint:
 	golangci-lint run

@@ -11,4 +11,6 @@ type Handlers struct {
 	RangeParametersHandler RangeParametersHandlers
 	AggregatesHandler      AggregateHandlers
 	AuthHandler            AuthHandlers
+	EquipmentHandler       EquipmentHandlers
+	OperationHandler       OperationHandlers
 }

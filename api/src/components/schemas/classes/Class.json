@@ -1,0 +1,38 @@
+{
+  "allOf": [
+    {
+      "$ref": "#/components/schemas/ClassBase"
+    },
+    {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "parent_id"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "parent_id": {
+          "type": "integer",
+          "nullable": true
+        },
+        "range_param_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "default": []
+        },
+        "enum_param_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "default": []
+        }
+      }
+    }
+  ]
+}

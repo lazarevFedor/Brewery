@@ -1,0 +1,98 @@
+{
+  "post": {
+    "tags": [
+      "History"
+    ],
+    "summary": "Register change in product specification",
+    "operationId": "registerProductChange",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/Id"
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/HistoryRecordCreate"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Change registered",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/HistoryRecord"
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  },
+  "get": {
+    "tags": [
+      "History"
+    ],
+    "summary": "Get product's change history",
+    "operationId": "listProductHistory",
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/Id"
+      },
+      {
+        "$ref": "#/components/parameters/DateFrom"
+      },
+      {
+        "$ref": "#/components/parameters/DateTo"
+      },
+      {
+        "$ref": "#/components/parameters/Offset"
+      },
+      {
+        "$ref": "#/components/parameters/Limit"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "History records list, newest first",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/HistoryRecord"
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  }
+}

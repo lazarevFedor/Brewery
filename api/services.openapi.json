@@ -46,6 +46,14 @@
     {
       "name": "EnumsValue",
       "description": "Операции связанные с перечислениями"
+    },
+    {
+      "name": "Operations",
+      "description": "Операции преобразования одного изделия в другое (технологические операции)"
+    },
+    {
+      "name": "Equipment",
+      "description": "Операции, связанные с оборудованием и приборами"
     }
   ],
   "paths": {
@@ -351,6 +359,285 @@
         }
       }
     },
+    "/classes/parameters": {
+      "get": {
+        "tags": [
+          "Classes"
+        ],
+        "summary": "Get all parameters with optional filtering by class and type",
+        "operationId": "ListClassParameters",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/classIdFilter"
+          },
+          {
+            "$ref": "#/components/parameters/ParamType"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Filtered list of parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "oneOf": [
+                      {
+                        "$ref": "#/components/schemas/RangeParameter"
+                      },
+                      {
+                        "$ref": "#/components/schemas/EnumParameter"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/aggregates": {
+      "post": {
+        "tags": [
+          "Aggregates"
+        ],
+        "summary": "Create parameter aggregate",
+        "operationId": "createParameterAggregate",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParameterAggregateCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Parameter aggregate created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParameterAggregate"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Aggregates"
+        ],
+        "summary": "Get all parameter aggregates",
+        "operationId": "listParameterAggregates",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AggregateName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of aggregates",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ParameterAggregate"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/aggregates/{id}": {
+      "patch": {
+        "tags": [
+          "Aggregates"
+        ],
+        "summary": "Update parameter aggregate",
+        "operationId": "updateParameterAggregate",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParameterAggregateUpdate"
+              },
+              "examples": {
+                "update-name-description": {
+                  "summary": "Update name and description",
+                  "value": {
+                    "name": "Lager Profile v2",
+                    "description": "Updated standard parameters for Lager"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Parameter aggregate updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParameterAggregate"
+                },
+                "examples": {
+                  "updated": {
+                    "summary": "Updated aggregate",
+                    "value": {
+                      "id": 1,
+                      "name": "Lager Profile v2",
+                      "description": "Updated standard parameters for Lager",
+                      "range_param_ids": [
+                        10
+                      ],
+                      "enum_param_ids": [
+                        11
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Aggregates"
+        ],
+        "summary": "Delete parameter aggregate",
+        "operationId": "deleteParameterAggregate",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Parameter aggregate deleted"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/aggregates/apply/{class_id}": {
+      "patch": {
+        "tags": [
+          "Aggregates"
+        ],
+        "summary": "Apply parameter aggregate to class",
+        "operationId": "applyParameterAggregate",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/classId"
+          },
+          {
+            "$ref": "#/components/parameters/AggregateId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Aggregate applied successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "params_added": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
     "/products": {
       "get": {
         "tags": [
@@ -364,6 +651,15 @@
           },
           {
             "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "name": "is_final_product",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Фильтр по признаку конечного готового продукта (true — готовые продукты, false — полуфабрикаты и сырье)"
           }
         ],
         "responses": {
@@ -546,6 +842,47 @@
         }
       }
     },
+    "/products/search": {
+      "get": {
+        "tags": [
+          "Products"
+        ],
+        "summary": "Filter products by exact parameter values",
+        "operationId": "searchProducts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/productFilter"
+          },
+          {
+            "$ref": "#/components/parameters/Offset"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Products list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Product"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
     "/classes/products/{class_id}": {
       "get": {
         "tags": [
@@ -583,47 +920,6 @@
           },
           "404": {
             "$ref": "#/components/responses/404_not_found"
-          },
-          "500": {
-            "$ref": "#/components/responses/500_internal_server_error"
-          }
-        }
-      }
-    },
-    "/products/search": {
-      "get": {
-        "tags": [
-          "Products"
-        ],
-        "summary": "Filter products by exact parameter values",
-        "operationId": "searchProducts",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/productFilter"
-          },
-          {
-            "$ref": "#/components/parameters/Offset"
-          },
-          {
-            "$ref": "#/components/parameters/Limit"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Products list",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Product"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/400_bad_request"
           },
           "500": {
             "$ref": "#/components/responses/500_internal_server_error"
@@ -1427,6 +1723,476 @@
         }
       }
     },
+    "/operations": {
+      "get": {
+        "tags": [
+          "Operations"
+        ],
+        "summary": "Get all operations",
+        "description": "Возвращает список всех технологических операций с поддержкой пагинации и фильтрации по материалу и продукту",
+        "operationId": "listOperations",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Offset"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "name": "material_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Фильтр по ID используемого материала (входного продукта)"
+          },
+          {
+            "name": "product_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Фильтр по ID целевого продукта (выходного продукта)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Список операций",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Operation"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Operations"
+        ],
+        "summary": "Create operation",
+        "description": "Создает новую технологическую операцию с расходом материала",
+        "operationId": "createOperation",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperationCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Операция успешно создана",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operation"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/operations/{id}": {
+      "get": {
+        "tags": [
+          "Operations"
+        ],
+        "summary": "Get operation by ID",
+        "description": "Возвращает детальную информацию о технологической операции по ее идентификатору",
+        "operationId": "getOperation",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Информация об операции",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operation"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Operations"
+        ],
+        "summary": "Update operation",
+        "description": "Обновляет поля технологической операции",
+        "operationId": "updateOperation",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperationUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Обновленная операция",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operation"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Operations"
+        ],
+        "summary": "Delete operation",
+        "description": "Удаляет технологическую операцию",
+        "operationId": "deleteOperation",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Операция успешно удалена"
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/equipment": {
+      "get": {
+        "tags": [
+          "Equipment"
+        ],
+        "summary": "Get all equipment",
+        "description": "Возвращает список оборудования и приборов с поддержкой пагинации",
+        "operationId": "listEquipment",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Offset"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Список оборудования",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Equipment"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Equipment"
+        ],
+        "summary": "Create equipment",
+        "description": "Добавляет новую единицу оборудования / прибор",
+        "operationId": "createEquipment",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EquipmentCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Оборудование успешно создано",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Equipment"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/equipment/{id}": {
+      "get": {
+        "tags": [
+          "Equipment"
+        ],
+        "summary": "Get equipment by ID",
+        "description": "Возвращает информацию об оборудовании по идентификатору",
+        "operationId": "getEquipment",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Информация об оборудовании",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Equipment"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Equipment"
+        ],
+        "summary": "Update equipment",
+        "description": "Обновляет параметры единицы оборудования",
+        "operationId": "updateEquipment",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EquipmentUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Обновленное оборудование",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Equipment"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Equipment"
+        ],
+        "summary": "Delete equipment",
+        "description": "Удаляет единицу оборудования по идентификатору",
+        "operationId": "deleteEquipment",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Оборудование успешно удалено"
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/products/{id}/operations": {
+      "get": {
+        "tags": [
+          "Operations"
+        ],
+        "summary": "Get product tech card (routing card)",
+        "description": "Возвращает технологическую карту продукта по его ID: цепочку операций, суммарные человеко-часы и нормы расходов всех базовых материалов (аналогично GET /products/{id}/materials/norms).",
+        "operationId": "getProductTechCard",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          },
+          {
+            "name": "quantity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "float",
+              "default": 1,
+              "minimum": 0,
+              "exclusiveMinimum": true
+            },
+            "description": "Количество изделий, на которое рассчитывается техкарта"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Технологическая карта продукта",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductTechCard"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "422": {
+            "$ref": "#/components/responses/422_validation_error"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
     "/range": {
       "post": {
         "tags": [
@@ -1521,67 +2287,6 @@
                 }
               }
             }
-          },
-          "500": {
-            "$ref": "#/components/responses/500_internal_server_error"
-          }
-        }
-      }
-    },
-    "/classes/parameters": {
-      "get": {
-        "tags": [
-          "Classes"
-        ],
-        "summary": "Get all parameters with optional filtering by class and type",
-        "operationId": "ListClassParameters",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/classIdFilter"
-          },
-          {
-            "$ref": "#/components/parameters/ParamType"
-          },
-          {
-            "name": "type",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "range",
-                "enum"
-              ]
-            },
-            "description": "Filter parameters by type. If omitted, returns both range and enum parameters."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Filtered list of parameters",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "oneOf": [
-                      {
-                        "$ref": "#/components/schemas/RangeParameter"
-                      },
-                      {
-                        "$ref": "#/components/schemas/EnumParameter"
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/400_bad_request"
-          },
-          "404": {
-            "$ref": "#/components/responses/404_not_found"
           },
           "500": {
             "$ref": "#/components/responses/500_internal_server_error"
@@ -1806,237 +2511,6 @@
           }
         }
       }
-    },
-    "/aggregates": {
-      "post": {
-        "tags": [
-          "Aggregates"
-        ],
-        "summary": "Create parameter aggregate",
-        "operationId": "createParameterAggregate",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ParameterAggregateCreate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Parameter aggregate created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ParameterAggregate"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/400_bad_request"
-          },
-          "409": {
-            "$ref": "#/components/responses/409_conflict"
-          },
-          "500": {
-            "$ref": "#/components/responses/500_internal_server_error"
-          }
-        }
-      },
-      "get": {
-        "tags": [
-          "Aggregates"
-        ],
-        "summary": "Get all parameter aggregates",
-        "operationId": "listParameterAggregates",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/AggregateName"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of aggregates",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ParameterAggregate"
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "$ref": "#/components/responses/500_internal_server_error"
-          }
-        }
-      }
-    },
-    "/aggregates/apply/{class_id}": {
-      "patch": {
-        "tags": [
-          "Aggregates"
-        ],
-        "summary": "Apply parameter aggregate to class",
-        "operationId": "applyParameterAggregate",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/classId"
-          },
-          {
-            "$ref": "#/components/parameters/AggregateId"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Aggregate applied successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "params_added": {
-                      "type": "integer"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/400_bad_request"
-          },
-          "404": {
-            "$ref": "#/components/responses/404_not_found"
-          },
-          "500": {
-            "$ref": "#/components/responses/500_internal_server_error"
-          }
-        }
-      }
-    },
-    "/aggregates/{id}": {
-      "patch": {
-        "tags": [
-          "Aggregates"
-        ],
-        "summary": "Update parameter aggregate",
-        "operationId": "updateParameterAggregate",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/Id"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ParameterAggregateUpdate"
-              },
-              "examples": {
-                "update-name-description": {
-                  "summary": "Update name and description",
-                  "value": {
-                    "name": "Lager Profile v2",
-                    "description": "Updated standard parameters for Lager"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Parameter aggregate updated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ParameterAggregate"
-                },
-                "examples": {
-                  "updated": {
-                    "summary": "Updated aggregate",
-                    "value": {
-                      "id": 1,
-                      "name": "Lager Profile v2",
-                      "description": "Updated standard parameters for Lager",
-                      "range_param_ids": [
-                        10
-                      ],
-                      "enum_param_ids": [
-                        11
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/400_bad_request"
-          },
-          "404": {
-            "$ref": "#/components/responses/404_not_found"
-          },
-          "500": {
-            "$ref": "#/components/responses/500_internal_server_error"
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Aggregates"
-        ],
-        "summary": "Delete parameter aggregate",
-        "operationId": "deleteParameterAggregate",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/Id"
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Parameter aggregate deleted"
-          },
-          "404": {
-            "$ref": "#/components/responses/404_not_found"
-          },
-          "500": {
-            "$ref": "#/components/responses/500_internal_server_error"
-          }
-        }
-      }
     }
   },
   "components": {
@@ -2179,11 +2653,214 @@
           }
         ]
       },
-      "ProductBase": {
+      "RangeParameterBase": {
+        "type": "object",
+        "properties": {
+          "field_name": {
+            "type": "string",
+            "example": "amount"
+          },
+          "min_val": {
+            "type": "integer",
+            "example": 150
+          },
+          "max_val": {
+            "type": "integer",
+            "example": 300
+          },
+          "inheritable": {
+            "type": "boolean",
+            "example": false
+          },
+          "unit": {
+            "type": "string",
+            "example": "L"
+          }
+        }
+      },
+      "RangeParameterCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/RangeParameterBase"
+          },
+          {
+            "required": [
+              "field_name",
+              "min_val",
+              "max_val",
+              "inheritable"
+            ]
+          }
+        ]
+      },
+      "RangeParameter": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/RangeParameterBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "field_name",
+              "min_val",
+              "max_val",
+              "inheritable"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer",
+                "example": 10
+              }
+            }
+          }
+        ]
+      },
+      "RangeParameterUpdate": {
+        "type": "object",
+        "properties": {
+          "min_val": {
+            "type": "integer"
+          },
+          "max_val": {
+            "type": "integer"
+          },
+          "inheritable": {
+            "type": "boolean"
+          },
+          "unit": {
+            "type": "string"
+          }
+        }
+      },
+      "ClassParamsApply": {
+        "type": "object",
+        "properties": {
+          "range_param_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "List of range parameter ids to apply"
+          },
+          "enum_param_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "List of enum parameter ids to apply"
+          }
+        }
+      },
+      "ClassParamsExclude": {
+        "type": "object",
+        "properties": {
+          "range_param_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "List of range parameter ids to exclude"
+          },
+          "enum_param_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "List of enum parameter ids to exclude"
+          }
+        }
+      },
+      "ParameterAggregateBase": {
         "type": "object",
         "properties": {
           "name": {
             "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "range_param_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "default": []
+          },
+          "enum_param_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "default": []
+          }
+        }
+      },
+      "ParameterAggregate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ParameterAggregateBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "name"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              }
+            }
+          }
+        ]
+      },
+      "ParameterAggregateCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ParameterAggregateBase"
+          },
+          {
+            "required": [
+              "name"
+            ]
+          }
+        ]
+      },
+      "ParameterAggregateUpdate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ParameterAggregateBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "ProductBase": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Название продукта"
+          },
+          "is_final_product": {
+            "type": "boolean",
+            "description": "Флаг, указывающий, является ли изделие конечным готовым продуктом (true), а не базовым материалом или полуфабрикатом в переходном состоянии (false)",
+            "example": true
+          },
+          "Is_purchased": {
+            "type": "boolean",
+            "description": "Флаг, указывающий, является ли изделие конечным готовым продуктом (true), а не базовым материалом или полуфабрикатом в переходном состоянии (false)",
+            "example": true
           }
         }
       },
@@ -2235,6 +2912,12 @@
               },
               "units": {
                 "type": "string"
+              },
+              "is_final_product": {
+                "type": "boolean",
+                "default": false,
+                "description": "Флаг, указывающий, является ли продукт конечным готовым изделием (true), либо сырьем/полуфабрикатом в переходном состоянии (false)",
+                "example": true
               }
             }
           }
@@ -2265,6 +2948,12 @@
               "units": {
                 "type": "string"
               },
+              "is_final_product": {
+                "type": "boolean",
+                "default": false,
+                "description": "Флаг, указывающий, является ли создаваемый продукт конечным готовым изделием",
+                "example": true
+              },
               "parameters": {
                 "type": "object",
                 "description": "Values keyed by field_name. Parameters must be allowed for the product class. Enum values must belong to the parameter; numeric values must fit its range and NUMERIC(8, 3).",
@@ -2292,6 +2981,7 @@
               "base_id": null,
               "amount": 100,
               "units": "L",
+              "is_final_product": true,
               "parameters": {
                 "volume": 12.5,
                 "city": "Москва"
@@ -2333,6 +3023,11 @@
               },
               "units": {
                 "type": "string"
+              },
+              "is_final_product": {
+                "type": "boolean",
+                "description": "Флаг, указывающий, является ли продукт конечным готовым изделием",
+                "example": true
               },
               "parameters": {
                 "type": "object",
@@ -2558,20 +3253,6 @@
           "base": true
         }
       },
-      "HistoryRecordCreate": {
-        "type": "object",
-        "required": [
-          "changes"
-        ],
-        "properties": {
-          "changes": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Текстовое описание изменения спецификации",
-            "example": "Норма хмеля увеличена с 12.5 до 15 кг"
-          }
-        }
-      },
       "HistoryRecord": {
         "type": "object",
         "required": [
@@ -2599,6 +3280,658 @@
             "format": "date-time",
             "example": "2026-10-28T12:00:00Z"
           }
+        }
+      },
+      "HistoryRecordCreate": {
+        "type": "object",
+        "required": [
+          "changes"
+        ],
+        "properties": {
+          "changes": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Текстовое описание изменения спецификации",
+            "example": "Норма хмеля увеличена с 12.5 до 15 кг"
+          }
+        }
+      },
+      "EnumValueBase": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "position": {
+            "type": "integer"
+          }
+        }
+      },
+      "EnumValue": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumValueBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "enum_type",
+              "parameter_id",
+              "value",
+              "position"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "enum_type": {
+                "type": "string"
+              },
+              "parameter_id": {
+                "type": "integer"
+              }
+            }
+          }
+        ]
+      },
+      "EnumValueCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumValueBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "parameter_id",
+              "enum_type",
+              "value",
+              "position"
+            ],
+            "properties": {
+              "enum_type": {
+                "type": "string"
+              },
+              "parameter_id": {
+                "type": "integer"
+              }
+            }
+          }
+        ]
+      },
+      "OperationBase": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Название операции",
+            "example": "Варка сусла"
+          },
+          "description": {
+            "type": "string",
+            "description": "Описание технологической операции",
+            "example": "Варка охмеленного сусла при температуре 100°C"
+          },
+          "profession_id": {
+            "type": "integer",
+            "description": "Идентификатор профессии работника, имеющего права для выполнения операции",
+            "example": 1
+          },
+          "equipment": {
+            "$ref": "#/components/schemas/Equipment"
+          },
+          "materials": {
+            "$ref": "#/components/schemas/Material"
+          },
+          "step_number": {
+            "type": "integer",
+            "description": "Номер операции в последовательности техкарты",
+            "example": 1
+          },
+          "labor_cost": {
+            "type": "number",
+            "description": "Трудозатратность операции (человеко-часы)",
+            "example": 2.5
+          },
+          "parameters": {
+            "type": "object",
+            "description": "Технологические параметры операции (например, температура, длительность и др.)",
+            "additionalProperties": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            },
+            "example": {
+              "duration_minutes": 90,
+              "temperature_celsius": 100
+            }
+          }
+        }
+      },
+      "OperationCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OperationBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "name",
+              "profession_id",
+              "equipment",
+              "materials"
+            ],
+            "properties": {
+              "equipment": {
+                "$ref": "#/components/schemas/Equipment"
+              },
+              "materials": {
+                "type": "object",
+                "description": "Связка входного материала и выходного продукта с расходом",
+                "required": [
+                  "material_id",
+                  "product_id"
+                ],
+                "properties": {
+                  "material_id": {
+                    "type": "integer",
+                    "description": "ID изделия, используемого как сырье/материал (входной продукт)",
+                    "example": 10
+                  },
+                  "product_id": {
+                    "type": "integer",
+                    "description": "ID целевого изделия/продукта (выходной продукт)",
+                    "example": 11
+                  },
+                  "material_amount": {
+                    "type": "number",
+                    "description": "Количество расходуемого материала на единицу продукта",
+                    "example": 100
+                  },
+                  "base": {
+                    "type": "boolean",
+                    "description": "Флаг базового материала",
+                    "example": false
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "example": {
+          "name": "Варка сусла с охмелением",
+          "description": "Варка сусла при температуре 100°C с добавлением хмеля",
+          "profession_id": 1,
+          "equipment": {
+            "name": "Сусловарочный котел ВК-500",
+            "work_center": "Холодный цех"
+          },
+          "materials": {
+            "material_id": 10,
+            "product_id": 11,
+            "material_amount": 100,
+            "base": false
+          },
+          "labor_cost": 2.5,
+          "parameters": {
+            "duration_minutes": 90,
+            "temperature_celsius": 100
+          }
+        }
+      },
+      "Operation": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "profession_id",
+          "equipment",
+          "materials"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Уникальный идентификатор операции",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "description": "Название операции",
+            "example": "Варка сусла"
+          },
+          "description": {
+            "type": "string",
+            "description": "Описание технологической операции",
+            "example": "Варка охмеленного сусла при температуре 100°C"
+          },
+          "profession_id": {
+            "type": "integer",
+            "description": "Идентификатор профессии работника, имеющего права для выполнения операции",
+            "example": 1
+          },
+          "equipment": {
+            "$ref": "#/components/schemas/EquipmentShort"
+          },
+          "materials": {
+            "$ref": "#/components/schemas/Material"
+          },
+          "step_number": {
+            "type": "integer",
+            "description": "Номер операции в последовательности техкарты",
+            "example": 1
+          },
+          "labor_cost": {
+            "type": "number",
+            "description": "Трудозатратность операции (человеко-часы)",
+            "example": 2.5
+          },
+          "parameters": {
+            "type": "object",
+            "description": "Технологические параметры операции (температура, время и т.д.)",
+            "additionalProperties": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            },
+            "example": {
+              "duration_minutes": 90,
+              "temperature_celsius": 100
+            }
+          }
+        },
+        "example": {
+          "id": 1,
+          "name": "Варка сусла",
+          "description": "Варка охмеленного сусла при температуре 100°C",
+          "profession_id": 1,
+          "equipment": {
+            "name": "Сусловарочный котел ВК-500",
+            "work_center": "Холодный цех"
+          },
+          "materials": {
+            "material_id": 1,
+            "product_id": 2,
+            "material_amount": 100,
+            "base": false,
+            "units": "L"
+          },
+          "labor_cost": 2.5,
+          "parameters": {
+            "duration_minutes": 90,
+            "temperature_celsius": 100
+          }
+        }
+      },
+      "OperationUpdate": {
+        "type": "object",
+        "description": "Схема обновления технологической операции (все поля опциональны)",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Название операции",
+            "example": "Варка сусла"
+          },
+          "description": {
+            "type": "string",
+            "description": "Описание технологической операции",
+            "example": "Варка охмеленного сусла при температуре 102°C"
+          },
+          "profession_id": {
+            "type": "integer",
+            "description": "Идентификатор профессии работника",
+            "example": 2
+          },
+          "equipment": {
+            "$ref": "#/components/schemas/EquipmentUpdate"
+          },
+          "step_number": {
+            "type": "integer",
+            "description": "Номер операции в последовательности техкарты",
+            "example": 1
+          },
+          "materials": {
+            "type": "object",
+            "description": "Данные расхода сырья/материала (входной и выходной продукт)",
+            "properties": {
+              "material_id": {
+                "type": "integer",
+                "description": "ID входного продукта (сырья)",
+                "example": 1
+              },
+              "product_id": {
+                "type": "integer",
+                "description": "ID выходного продукта",
+                "example": 2
+              },
+              "material_amount": {
+                "type": "number",
+                "description": "Количество расходуемого материала",
+                "example": 100
+              },
+              "base": {
+                "type": "boolean",
+                "description": "Флаг базового материала",
+                "example": false
+              }
+            }
+          },
+          "labor_cost": {
+            "type": "number",
+            "description": "Трудозатратность операции (человеко-часы)",
+            "example": 3.0
+          },
+          "parameters": {
+            "type": "object",
+            "description": "Технологические параметры операции",
+            "additionalProperties": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            },
+            "example": {
+              "duration_minutes": 100,
+              "temperature_celsius": 102
+            }
+          }
+        },
+        "example": {
+          "name": "Варка сусла (модифицированная)",
+          "description": "Варка охмеленного сусла при температуре 102°C",
+          "profession_id": 2,
+          "equipment": {
+            "name": "Сусловарочный котел ВК-500 (модернизированный)",
+            "work_center": "Холодный цех"
+          },
+          "materials": {
+            "material_id": 1,
+            "product_id": 2,
+            "material_amount": 100,
+            "base": false
+          },
+          "labor_cost": 3.0,
+          "parameters": {
+            "duration_minutes": 100,
+            "temperature_celsius": 102
+          }
+        }
+      },
+      "EquipmentBase": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Название оборудования или прибора",
+            "example": "Сусловарочный котел ВК-500"
+          },
+          "work_center": {
+            "type": "string",
+            "description": "Название рабочего цеха",
+            "example": "Холодный цех"
+          }
+        }
+      },
+      "EquipmentCreate": {
+        "type": "object",
+        "required": [
+          "name",
+          "work_center"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Название оборудования или прибора",
+            "example": "Сусловарочный котел ВК-500"
+          },
+          "work_center": {
+            "type": "string",
+            "description": "Название рабочего цеха",
+            "example": "Холодный цех"
+          }
+        },
+        "example": {
+          "name": "Сусловарочный котел ВК-500",
+          "work_center": "Холодный цех"
+        }
+      },
+      "EquipmentUpdate": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Название оборудования или прибора",
+            "example": "Сусловарочный котел ВК-500 (модернизированный)"
+          },
+          "work_center": {
+            "type": "string",
+            "description": "Название рабочего цеха",
+            "example": "Холодный цех"
+          }
+        },
+        "example": {
+          "name": "Сусловарочный котел ВК-500 (модернизированный)",
+          "work_center": "Холодный цех"
+        }
+      },
+      "Equipment": {
+        "type": "object",
+        "required": [
+          "name",
+          "work_center"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Название оборудования или прибора",
+            "example": "Сусловарочный котел ВК-500"
+          },
+          "work_center": {
+            "type": "string",
+            "description": "Название рабочего цеха",
+            "example": "Холодный цех"
+          }
+        },
+        "example": {
+          "name": "Сусловарочный котел ВК-500",
+          "work_center": "Холодный цех"
+        }
+      },
+      "EquipmentShort": {
+        "type": "object",
+        "required": [
+          "name",
+          "work_center"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Название оборудования",
+            "example": "Сусловарочный котел ВК-500"
+          },
+          "work_center": {
+            "type": "string",
+            "description": "Название рабочего цеха",
+            "example": "Холодный цех"
+          }
+        }
+      },
+      "Profession": {
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Идентификатор профессии / должности",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "description": "Название должности / квалификации",
+            "example": "Оператор варочного цеха"
+          },
+          "description": {
+            "type": "string",
+            "description": "Описание обязанностей и требований",
+            "example": "Ведение процесса затирания и варки охмеленного сусла"
+          }
+        }
+      },
+      "ProductShort": {
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Идентификатор продукта",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "description": "Название продукта",
+            "example": "Солодовое сусло"
+          },
+          "is_final_product": {
+            "type": "boolean",
+            "description": "Флаг конечного готового продукта",
+            "example": false
+          }
+        }
+      },
+      "ProductTechCard": {
+        "type": "object",
+        "required": [
+          "product_id",
+          "total_labor_cost",
+          "operations",
+          "material_norms"
+        ],
+        "properties": {
+          "product_id": {
+            "type": "integer",
+            "description": "ID целевого продукта",
+            "example": 1
+          },
+          "product": {
+            "$ref": "#/components/schemas/ProductShort"
+          },
+          "total_labor_cost": {
+            "type": "number",
+            "description": "Суммарная трудозатратность всех операций в человеко-часах",
+            "example": 8.5
+          },
+          "operations": {
+            "type": "array",
+            "description": "Список всех технологических операций для производства продукта",
+            "items": {
+              "$ref": "#/components/schemas/Operation"
+            }
+          },
+          "material_norms": {
+            "type": "array",
+            "description": "Сводные нормы расхода базовых материалов для изготовления продукта (как в GET /products/{id}/materials/norms)",
+            "items": {
+              "$ref": "#/components/schemas/MaterialNorm"
+            }
+          }
+        },
+        "example": {
+          "product_id": 1,
+          "product": {
+            "id": 1,
+            "name": "Балтика 0"
+          },
+          "total_labor_cost": 8.5,
+          "operations": [
+            {
+              "id": 1,
+              "name": "Затирание солода",
+              "description": "Затирание дробленого солода с водой при контролируемых температурных паузах",
+              "profession_id": 1,
+              "equipment": {
+                "name": "Заторно-сусловарочный аппарат",
+                "work_center": "Варочный цех"
+              },
+              "materials": {
+                "material_id": 10,
+                "product_id": 11,
+                "material_amount": 50,
+                "base": false,
+                "units": "kg"
+              },
+              "labor_cost": 3.0,
+              "parameters": {
+                "duration_minutes": 120,
+                "temperature_celsius": 65
+              }
+            },
+            {
+              "id": 2,
+              "name": "Варка сусла с охмелением",
+              "description": "Варка охмеленного сусла при температуре 100°C",
+              "profession_id": 1,
+              "equipment": {
+                "name": "Сусловарочный котел ВК-500",
+                "work_center": "Варочный цех"
+              },
+              "materials": {
+                "material_id": 11,
+                "product_id": 1,
+                "material_amount": 100,
+                "base": false,
+                "units": "L"
+              },
+              "labor_cost": 5.5,
+              "parameters": {
+                "duration_minutes": 90,
+                "temperature_celsius": 100
+              }
+            }
+          ],
+          "material_norms": [
+            {
+              "material_id": 5,
+              "name": "Солод светлый ячменный",
+              "total_amount": 50.0,
+              "units": "kg",
+              "base": true
+            },
+            {
+              "material_id": 6,
+              "name": "Хмель гранулированный",
+              "total_amount": 1.2,
+              "units": "kg",
+              "base": true
+            }
+          ]
         }
       },
       "EnumParameterBase": {
@@ -2680,261 +4013,6 @@
         "allOf": [
           {
             "$ref": "#/components/schemas/EnumParameterCreate"
-          }
-        ]
-      },
-      "EnumValueBase": {
-        "type": "object",
-        "properties": {
-          "value": {
-            "type": "string"
-          },
-          "position": {
-            "type": "integer"
-          }
-        }
-      },
-      "EnumValue": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/EnumValueBase"
-          },
-          {
-            "type": "object",
-            "required": [
-              "id",
-              "enum_type",
-              "parameter_id",
-              "value",
-              "position"
-            ],
-            "properties": {
-              "id": {
-                "type": "integer"
-              },
-              "enum_type": {
-                "type": "string"
-              },
-              "parameter_id": {
-                "type": "integer"
-              }
-            }
-          }
-        ]
-      },
-      "EnumValueCreate": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/EnumValueBase"
-          },
-          {
-            "type": "object",
-            "required": [
-              "parameter_id",
-              "enum_type",
-              "value",
-              "position"
-            ],
-            "properties": {
-              "enum_type": {
-                "type": "string"
-              },
-              "parameter_id": {
-                "type": "integer"
-              }
-            }
-          }
-        ]
-      },
-      "RangeParameterBase": {
-        "type": "object",
-        "properties": {
-          "field_name": {
-            "type": "string",
-            "example": "amount"
-          },
-          "min_val": {
-            "type": "integer",
-            "example": 150
-          },
-          "max_val": {
-            "type": "integer",
-            "example": 300
-          },
-          "inheritable": {
-            "type": "boolean",
-            "example": false
-          },
-          "unit": {
-            "type": "string",
-            "example": "L"
-          }
-        }
-      },
-      "RangeParameterCreate": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/RangeParameterBase"
-          },
-          {
-            "required": [
-              "field_name",
-              "min_val",
-              "max_val",
-              "inheritable"
-            ]
-          }
-        ]
-      },
-      "RangeParameter": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/RangeParameterBase"
-          },
-          {
-            "type": "object",
-            "required": [
-              "id",
-              "field_name",
-              "min_val",
-              "max_val",
-              "inheritable"
-            ],
-            "properties": {
-              "id": {
-                "type": "integer",
-                "example": 10
-              }
-            }
-          }
-        ]
-      },
-      "ClassParamsApply": {
-        "type": "object",
-        "properties": {
-          "range_param_ids": {
-            "type": "array",
-            "items": {
-              "type": "integer"
-            },
-            "description": "List of range parameter ids to apply"
-          },
-          "enum_param_ids": {
-            "type": "array",
-            "items": {
-              "type": "integer"
-            },
-            "description": "List of enum parameter ids to apply"
-          }
-        }
-      },
-      "ClassParamsExclude": {
-        "type": "object",
-        "properties": {
-          "range_param_ids": {
-            "type": "array",
-            "items": {
-              "type": "integer"
-            },
-            "description": "List of range parameter ids to exclude"
-          },
-          "enum_param_ids": {
-            "type": "array",
-            "items": {
-              "type": "integer"
-            },
-            "description": "List of enum parameter ids to exclude"
-          }
-        }
-      },
-      "RangeParameterUpdate": {
-        "type": "object",
-        "properties": {
-          "min_val": {
-            "type": "integer"
-          },
-          "max_val": {
-            "type": "integer"
-          },
-          "inheritable": {
-            "type": "boolean"
-          },
-          "unit": {
-            "type": "string"
-          }
-        }
-      },
-      "ParameterAggregateBase": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "range_param_ids": {
-            "type": "array",
-            "items": {
-              "type": "integer"
-            },
-            "default": []
-          },
-          "enum_param_ids": {
-            "type": "array",
-            "items": {
-              "type": "integer"
-            },
-            "default": []
-          }
-        }
-      },
-      "ParameterAggregate": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ParameterAggregateBase"
-          },
-          {
-            "type": "object",
-            "required": [
-              "id",
-              "name"
-            ],
-            "properties": {
-              "id": {
-                "type": "integer"
-              }
-            }
-          }
-        ]
-      },
-      "ParameterAggregateCreate": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ParameterAggregateBase"
-          },
-          {
-            "required": [
-              "name"
-            ]
-          }
-        ]
-      },
-      "ParameterAggregateUpdate": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ParameterAggregateBase"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "name": {
-                "type": "string"
-              },
-              "description": {
-                "type": "string"
-              }
-            }
           }
         ]
       }
@@ -3212,6 +4290,25 @@
           "field_name": "amount",
           "min_val": 150,
           "max_val": 300,
+          "inheritable": false
+        }
+      },
+      "EnumParameter": {
+        "value": {
+          "id": 11,
+          "enum_type": "string",
+          "field_name": "city",
+          "unit": "",
+          "is_active": true,
+          "inheritable": false
+        }
+      },
+      "EnumParameterUpdate": {
+        "value": {
+          "enum_type": "string",
+          "field_name": "city",
+          "unit": "",
+          "is_active": true,
           "inheritable": false
         }
       }

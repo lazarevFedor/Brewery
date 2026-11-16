@@ -332,7 +332,7 @@ func (h *productHandlers) SearchProducts(c *gin.Context) {
 		return
 	}
 
-	filters, err := getFilters(c, []entities.Operation{entities.OpEqual})
+	filters, err := getFilters(c, []entities.FilterOperation{entities.OpEqual})
 	if err != nil {
 		badRequest(c, log, apperrors.CodeInvalidParameters, err)
 		return

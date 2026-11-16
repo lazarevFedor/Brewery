@@ -71,7 +71,7 @@ func productFilter(filter entities.FilterParameter) (sq.Sqlizer, error) {
 	return matches, nil
 }
 
-func compareParameter(column string, operation entities.Operation, values []any) sq.Sqlizer {
+func compareParameter(column string, operation entities.FilterOperation, values []any) sq.Sqlizer {
 	if len(values) == 0 {
 		return sq.Expr("FALSE")
 	}

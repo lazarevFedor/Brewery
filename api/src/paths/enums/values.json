@@ -1,0 +1,89 @@
+{
+  "post": {
+    "tags": [
+      "EnumsValue"
+    ],
+    "summary": "Create enum's value",
+    "operationId": "createEnumValue",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/EnumValueCreate"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Enum value created",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/EnumValue"
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "409": {
+        "$ref": "#/components/responses/409_conflict"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  },
+  "get": {
+    "tags": [
+      "EnumsValue"
+    ],
+    "summary": "Get enum's values",
+    "operationId": "listEnumValues",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/EnumType"
+      },
+      {
+        "$ref": "#/components/parameters/FieldName"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Enum values list",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/EnumValue"
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  }
+}

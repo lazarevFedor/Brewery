@@ -1,0 +1,101 @@
+{
+  "type": "object",
+  "description": "Схема обновления технологической операции (все поля опциональны)",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Название операции",
+      "example": "Варка сусла"
+    },
+    "description": {
+      "type": "string",
+      "description": "Описание технологической операции",
+      "example": "Варка охмеленного сусла при температуре 102°C"
+    },
+    "profession_id": {
+      "type": "integer",
+      "description": "Идентификатор профессии работника",
+      "example": 2
+    },
+    "equipment": {
+      "$ref": "#/components/schemas/EquipmentUpdate"
+    },
+    "step_number": {
+      "type": "integer",
+      "description": "Номер операции в последовательности техкарты",
+      "example": 1
+    },
+    "materials": {
+      "type": "object",
+      "description": "Данные расхода сырья/материала (входной и выходной продукт)",
+      "properties": {
+        "material_id": {
+          "type": "integer",
+          "description": "ID входного продукта (сырья)",
+          "example": 1
+        },
+        "product_id": {
+          "type": "integer",
+          "description": "ID выходного продукта",
+          "example": 2
+        },
+        "material_amount": {
+          "type": "number",
+          "description": "Количество расходуемого материала",
+          "example": 100
+        },
+        "base": {
+          "type": "boolean",
+          "description": "Флаг базового материала",
+          "example": false
+        }
+      }
+    },
+    "labor_cost": {
+      "type": "number",
+      "description": "Трудозатратность операции (человеко-часы)",
+      "example": 3.0
+    },
+    "parameters": {
+      "type": "object",
+      "description": "Технологические параметры операции",
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "boolean"
+          }
+        ]
+      },
+      "example": {
+        "duration_minutes": 100,
+        "temperature_celsius": 102
+      }
+    }
+  },
+  "example": {
+    "name": "Варка сусла (модифицированная)",
+    "description": "Варка охмеленного сусла при температуре 102°C",
+    "profession_id": 2,
+    "equipment": {
+      "name": "Сусловарочный котел ВК-500 (модернизированный)",
+      "work_center": "Холодный цех"
+    },
+    "materials": {
+      "material_id": 1,
+      "product_id": 2,
+      "material_amount": 100,
+      "base": false
+    },
+    "labor_cost": 3.0,
+    "parameters": {
+      "duration_minutes": 100,
+      "temperature_celsius": 102
+    }
+  }
+}

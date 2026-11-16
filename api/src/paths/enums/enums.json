@@ -1,0 +1,86 @@
+{
+  "post": {
+    "tags": [
+      "EnumParameters"
+    ],
+    "summary": "Create enum parameter",
+    "operationId": "createEnumParameter",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/EnumParameterCreate"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Enum parameter created",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/EnumParameter"
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "409": {
+        "$ref": "#/components/responses/409_conflict"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  },
+  "get": {
+    "tags": [
+      "EnumParameters"
+    ],
+    "summary": "Get enum parameters",
+    "operationId": "listEnumParameters",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/FieldName"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Enum parameter list",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/EnumParameter"
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  }
+}

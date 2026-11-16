@@ -1,0 +1,17 @@
+{
+  "allOf": [
+    {
+      "$ref": "#/components/schemas/MaterialBase"
+    },
+    {
+      "required": [
+        "material_amount"
+      ]
+    }
+  ],
+  "description": "Обновление количества материала и флага Base. Если base не передан, он устанавливается в false.",
+  "example": {
+    "material_amount": 15,
+    "base": false
+  }
+}
