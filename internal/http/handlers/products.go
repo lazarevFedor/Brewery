@@ -64,7 +64,7 @@ type productResponse struct {
 	Class      classBase      `json:"class"`
 	ClassID    int64          `json:"class_id"`
 	BaseID     *int64         `json:"base_id"`
-	Parameters map[string]any `json:"parameters,omitempty"`
+	Parameters map[string]any `json:"parameters"`
 	Amount     float32        `json:"amount,omitempty"`
 	Units      string         `json:"units,omitempty"`
 }
@@ -114,6 +114,10 @@ func newProductResponse(p entities.Product) productResponse {
 		Parameters: p.Parameters,
 		Amount:     p.Amount,
 		Units:      p.Unit,
+	}
+
+	if resp.Parameters == nil {
+		resp.Parameters = make(map[string]any)
 	}
 
 	if p.BaseID != 0 {

@@ -20,12 +20,13 @@ const (
 	OpLess         Operation = "<"
 	OpLessEqual    Operation = "<="
 	OpNotEqual     Operation = "!="
+	OpIn           Operation = "IN"
 )
 
 type FilterParameter struct {
 	FieldName string    `json:"field_name,omitempty" info:"Имя поля сущности"`
 	Operation Operation `json:"operation,omitempty" info:"Операция сравнения (eq, gt, ge, lt, le, ne)"`
-	Value     float32   `json:"value,omitempty" info:"Значение для сравнения"`
+	Value     any       `json:"value,omitempty" info:"Значение для сравнения"`
 }
 
 const (

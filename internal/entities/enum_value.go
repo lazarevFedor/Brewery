@@ -180,7 +180,7 @@ func enumValueFromRaw(valueType EnumType, valueRaw string) (any, error) {
 
 		return value, nil
 	case EnumValueTypeFloat:
-		value, err := strconv.ParseFloat(valueRaw, 32)
+		value, err := strconv.ParseFloat(valueRaw, 64)
 		if err != nil {
 			return nil, fmt.Errorf("parse float value %s: %w", valueRaw, err)
 		}

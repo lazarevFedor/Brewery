@@ -48,11 +48,11 @@ func main() {
 	if err != nil {
 		panic(fmt.Errorf("failed to create postgres pool: %w", err))
 	}
+	defer pool.Close()
 
 	if err = migrator.Up(pool); err != nil {
 		panic(fmt.Errorf("failed to migrate: %w", err))
 	}
-	defer migrator.Down(pool)
 
 	classRepo := classrepo.NewRepository(pool)
 	productRepo := usecase.NewProductRepository(pool)
@@ -65,7 +65,7 @@ func main() {
 	aggregateRepo := usecase.NewAggregateRepository(pool)
 
 	classService := usecase.NewClassService(classRepo, classParametersRepo)
-	productService := usecase.NewProductService(productRepo, enumParametersRepo, enumValuesRepo, classParametersRepo, classRepo, materialRepo)
+	productService := usecase.NewProductService(productRepo, enumValuesRepo, classParametersRepo, classRepo, materialRepo)
 	materialService := usecase.NewMaterialService(materialRepo, productRepo)
 	historyService := usecase.NewHistoryService(historyRepo)
 	enumParametersService := usecase.NewEnumParametersService(enumParametersRepo)

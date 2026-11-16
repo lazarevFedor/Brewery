@@ -2198,7 +2198,8 @@
               "id",
               "name",
               "class_id",
-              "base_id"
+              "base_id",
+              "parameters"
             ],
             "properties": {
               "id": {
@@ -2209,10 +2210,15 @@
               },
               "parameters": {
                 "type": "object",
+                "description": "Values keyed by field_name. Parameters must be allowed for the product class. Enum values must belong to the parameter; numeric values must fit its range and NUMERIC(8, 3).",
                 "additionalProperties": {
                   "oneOf": [
-                    {"type":  "string"},
-                    {"type":  "number"}
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    }
                   ]
                 }
               },
@@ -2242,8 +2248,7 @@
           {
             "type": "object",
             "required": [
-              "name",
-              "class"
+              "name"
             ],
             "properties": {
               "class": {
@@ -2259,6 +2264,24 @@
               },
               "units": {
                 "type": "string"
+              },
+              "parameters": {
+                "type": "object",
+                "description": "Values keyed by field_name. Parameters must be allowed for the product class. Enum values must belong to the parameter; numeric values must fit its range and NUMERIC(8, 3).",
+                "additionalProperties": {
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                }
+              },
+              "class_id": {
+                "type": "integer",
+                "minimum": 1
               }
             },
             "example": {
@@ -2268,8 +2291,24 @@
               },
               "base_id": null,
               "amount": 100,
-              "units": "L"
-            }
+              "units": "L",
+              "parameters": {
+                "volume": 12.5,
+                "city": "Москва"
+              }
+            },
+            "anyOf": [
+              {
+                "required": [
+                  "class_id"
+                ]
+              },
+              {
+                "required": [
+                  "class"
+                ]
+              }
+            ]
           }
         ]
       },
@@ -2294,8 +2333,25 @@
               },
               "units": {
                 "type": "string"
+              },
+              "parameters": {
+                "type": "object",
+                "description": "Updates only the supplied parameter fields; null removes an individual value. An empty object leaves parameters unchanged.",
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    {
+                      "type": "number",
+                      "nullable": true
+                    }
+                  ]
+                }
               }
-            }
+            },
+            "description": "Changing class_id revalidates retained parameters against the new class; remove incompatible fields with null in the same request."
           }
         ]
       },
@@ -3046,7 +3102,7 @@
         "name": "filter",
         "in": "query",
         "required": false,
-        "description": "Repeated filter in the form field:op:value. Use eq for exact product filtering.",
+        "description": "Repeated filter in the form field:op:value. Use eq for exact product filtering by saved numeric or enum values. A class parameter takes precedence over a standard product field with the same name.",
         "schema": {
           "type": "string"
         },
@@ -3061,7 +3117,7 @@
         "name": "filter",
         "in": "query",
         "required": false,
-        "description": "Repeated filter in the form field:op:value. Use gte/lte/in to filter class products by range ranges or allowed enum values.",
+        "description": "Repeated filter in the form field:op:value. Use gte/lte for saved numeric values and in for a comma-separated list of saved enum values. A class parameter takes precedence over a standard product field with the same name.",
         "schema": {
           "type": "string"
         },

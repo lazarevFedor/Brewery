@@ -51,6 +51,7 @@ SELECT
     c.enum_parameter_ids AS class_enum_params
 FROM products p
 JOIN classes c ON p.class_id = c.id
+ORDER BY p.id
 LIMIT $1
 OFFSET $2;
  
@@ -89,4 +90,6 @@ SELECT
     c.enum_parameter_ids AS class_enum_params
 FROM products p
 JOIN classes c ON p.class_id = c.id
-WHERE p.class_id = $1;
+WHERE p.class_id = sqlc.arg(class_id)
+ORDER BY p.id
+LIMIT sqlc.arg(limit_count) OFFSET sqlc.arg(offset_count);

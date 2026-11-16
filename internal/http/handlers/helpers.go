@@ -8,7 +8,6 @@ import (
 	"errors"
 	"net/http"
 	"os"
-	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -32,9 +31,6 @@ const (
 	filterParamArgsNum = 3
 )
 
-// fieldNameRe ограничивает имя поля в фильтре, чтобы в запрос к БД не попало произвольное выражение.
-var fieldNameRe = regexp.MustCompile(`^[a-z_][a-z0-9_]*$`)
-
 // filterOperations сопоставляет операции из query-параметра с операциями сущности.
 // Поддерживаются оба варианта записи: gte/lte (как в swagger) и ge/le.
 var filterOperations = map[string]entities.Operation{
@@ -46,6 +42,7 @@ var filterOperations = map[string]entities.Operation{
 	"lt":  entities.OpLess,
 	"le":  entities.OpLessEqual,
 	"lte": entities.OpLessEqual,
+	"in":  entities.OpIn,
 }
 
 // writeError отправляет ошибку в формате ErrorResponse из swagger.
@@ -68,13 +65,13 @@ func getLogger(c *gin.Context) (*logger.Logger, bool) {
 
 // parseFilter разбирает параметр фильтрации вида field:op:value.
 func parseFilter(filter string) (entities.FilterParameter, error) {
-	parts := strings.Split(filter, ":")
+	parts := strings.SplitN(filter, ":", filterParamArgsNum)
 	if len(parts) != filterParamArgsNum {
 		return entities.FilterParameter{}, errors.New("filter must be in the form field:op:value")
 	}
 
 	field, rawOp, rawVal := parts[0], parts[1], parts[2]
-	if !fieldNameRe.MatchString(field) {
+	if field == "" {
 		return entities.FilterParameter{}, errors.New("invalid filter field")
 	}
 
@@ -83,15 +80,10 @@ func parseFilter(filter string) (entities.FilterParameter, error) {
 		return entities.FilterParameter{}, errors.New("unsupported filter operation")
 	}
 
-	val, err := strconv.ParseFloat(rawVal, 32)
-	if err != nil {
-		return entities.FilterParameter{}, errors.New("filter value must be a number")
-	}
-
 	return entities.FilterParameter{
 		FieldName: field,
 		Operation: op,
-		Value:     float32(val),
+		Value:     rawVal,
 	}, nil
 }
 
