@@ -21,8 +21,9 @@ func RegisterRouters(e *gin.Engine, h handlers.Handlers) {
 	registerProductRouters(api, admin, h)
 	registerMaterialRouters(api, admin, h)
 	registerHistoryRouters(api, admin, h)
-	registerEnumRouters(admin, h)
-	registerParameterRouters(api, admin, h)
+	registerEnumParameterRouters(admin, h)
+	registerEnumValueRouters(admin, h)
+	registerRangeParameterRouters(admin, h)
 	registerAggregateRouters(admin, h)
 
 	e.GET("/metrics", gin.WrapH(promhttp.Handler()))
@@ -37,6 +38,10 @@ func registerClassRouters(api, admin *gin.RouterGroup, h handlers.Handlers) {
 	admin.POST("/classes", h.ClassHandler.CreateClass)
 	admin.PATCH("/classes/:id", h.ClassHandler.UpdateClass)
 	admin.DELETE("/classes/:id", h.ClassHandler.DeleteClass)
+
+	api.GET("/classes/parameters", h.ClassHandler.ListParameters)
+	admin.PATCH("/classes/parameters/apply/:id", h.ClassHandler.ApplyParametersToClass)
+	admin.PATCH("/classes/parameters/exclude/:id", h.ClassHandler.ExcludeParametersFromClass)
 }
 
 func registerProductRouters(api, admin *gin.RouterGroup, h handlers.Handlers) {
@@ -69,27 +74,27 @@ func registerHistoryRouters(api, admin *gin.RouterGroup, h handlers.Handlers) {
 	admin.POST("/products/:id/history", h.HistoryHandler.RegisterProductChange)
 }
 
-// registerEnumRouters - по swagger все запросы перечислений требуют авторизации, включая GET.
-func registerEnumRouters(admin *gin.RouterGroup, h handlers.Handlers) {
-	admin.POST("/enums", h.EnumHandler.CreateEnum)
-	admin.GET("/enums", h.EnumHandler.GetEnum)
-	admin.PATCH("/enums/:id", h.EnumHandler.UpdateEnum)
-	admin.DELETE("/enums/:id", h.EnumHandler.DeleteEnum)
-
-	admin.POST("/enums/value", h.EnumHandler.CreateValue)
-	admin.GET("/enums/value", h.EnumHandler.GetValue)
-	admin.PATCH("/enums/value/:id", h.EnumHandler.UpdateValue)
-	admin.DELETE("/enums/value/:id", h.EnumHandler.DeleteValue)
+// registerEnumParameterRouters регистрирует операции EnumParameters; все требуют авторизации.
+func registerEnumParameterRouters(admin *gin.RouterGroup, h handlers.Handlers) {
+	admin.POST("/enums", h.EnumParametersHandler.CreateEnumParameter)
+	admin.GET("/enums", h.EnumParametersHandler.ListEnumParameters)
+	admin.PATCH("/enums/:id", h.EnumParametersHandler.UpdateEnumParameter)
+	admin.DELETE("/enums/:id", h.EnumParametersHandler.DeleteEnumParameter)
 }
 
-func registerParameterRouters(api, admin *gin.RouterGroup, h handlers.Handlers) {
-	api.GET("/classes/parameters", h.ParametersHandler.ListParameters)
+// registerEnumValueRouters регистрирует операции EnumsValue; все требуют авторизации.
+func registerEnumValueRouters(admin *gin.RouterGroup, h handlers.Handlers) {
+	admin.POST("/enums/value", h.EnumValuesHandler.CreateEnumValue)
+	admin.GET("/enums/value", h.EnumValuesHandler.ListEnumValues)
+	admin.PATCH("/enums/value/:id", h.EnumValuesHandler.UpdateEnumValue)
+	admin.DELETE("/enums/value/:id", h.EnumValuesHandler.DeleteEnumValue)
+}
 
-	admin.POST("/classes/parameters/range", h.ParametersHandler.CreateRangeParameter)
-	admin.PATCH("/classes/parameters/apply/:class_id", h.ParametersHandler.ApplyParametersToClass)
-	admin.PATCH("/classes/parameters/exclude/:class_id", h.ParametersHandler.ExcludeParametersFromClass)
-	admin.PATCH("/classes/parameters/:id", h.ParametersHandler.UpdateParameter)
-	admin.DELETE("/classes/parameters/:id", h.ParametersHandler.DeleteParameter)
+func registerRangeParameterRouters(admin *gin.RouterGroup, h handlers.Handlers) {
+	admin.POST("/range", h.RangeParametersHandler.CreateRangeParameter)
+	admin.GET("/range", h.RangeParametersHandler.ListRangeParameters)
+	admin.PATCH("/range/:id", h.RangeParametersHandler.UpdateRangeParameter)
+	admin.DELETE("/range/:id", h.RangeParametersHandler.DeleteRangeParameter)
 }
 
 // registerAggregateRouters - по swagger все запросы агрегатов требуют авторизации, включая GET.

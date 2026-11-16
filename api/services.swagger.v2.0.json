@@ -20,8 +20,8 @@
       "description": "Все операции, связанные с классами изделий"
     },
     {
-      "name": "ClassParams",
-      "description": "Операции связанные с параметрами классов"
+      "name": "RangeParameters",
+      "description": "Операции, связанные с числовыми параметрами"
     },
     {
       "name": "Aggregates",
@@ -40,8 +40,8 @@
       "description": "Операции, связанные с историей изменений изделий"
     },
     {
-      "name": "EnumsClass",
-      "description": "Операции, связанные с классами перечислений "
+      "name": "EnumParameters",
+      "description": "Операции, связанные с перечисляемыми параметрами"
     },
     {
       "name": "EnumsValue",
@@ -1093,10 +1093,10 @@
     "/enums": {
       "post": {
         "tags": [
-          "EnumsClass"
+          "EnumParameters"
         ],
-        "summary": "Create enum class",
-        "operationId": "createEnumClass",
+        "summary": "Create enum parameter",
+        "operationId": "createEnumParameter",
         "security": [
           {
             "bearerAuth": []
@@ -1107,18 +1107,18 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/EnumClassCreate"
+                "$ref": "#/components/schemas/EnumParameterCreate"
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Enum class created",
+            "description": "Enum parameter created",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EnumClass"
+                  "$ref": "#/components/schemas/EnumParameter"
                 }
               }
             }
@@ -1136,10 +1136,10 @@
       },
       "get": {
         "tags": [
-          "EnumsClass"
+          "EnumParameters"
         ],
-        "summary": "Get enum classes",
-        "operationId": "listEnumClasses",
+        "summary": "Get enum parameters",
+        "operationId": "listEnumParameters",
         "security": [
           {
             "bearerAuth": []
@@ -1152,13 +1152,13 @@
         ],
         "responses": {
           "200": {
-            "description": "Enum class list",
+            "description": "Enum parameter list",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/EnumClass"
+                    "$ref": "#/components/schemas/EnumParameter"
                   }
                 }
               }
@@ -1179,10 +1179,10 @@
     "/enums/{id}": {
       "patch": {
         "tags": [
-          "EnumsClass"
+          "EnumParameters"
         ],
-        "summary": "Update enum class",
-        "operationId": "updateEnumClass",
+        "summary": "Update enum parameter",
+        "operationId": "updateEnumParameter",
         "security": [
           {
             "bearerAuth": []
@@ -1198,18 +1198,18 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/EnumClassUpdate"
+                "$ref": "#/components/schemas/EnumParameterUpdate"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Updated enum class",
+            "description": "Updated enum parameter",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EnumClass"
+                  "$ref": "#/components/schemas/EnumParameter"
                 }
               }
             }
@@ -1227,10 +1227,10 @@
       },
       "delete": {
         "tags": [
-          "EnumsClass"
+          "EnumParameters"
         ],
-        "summary": "Delete enum class",
-        "operationId": "deleteEnumClass",
+        "summary": "Delete enum parameter",
+        "operationId": "deleteEnumParameter",
         "security": [
           {
             "bearerAuth": []
@@ -1427,10 +1427,10 @@
         }
       }
     },
-    "/classes/parameters/range": {
+    "/range": {
       "post": {
         "tags": [
-          "ClassParams"
+          "RangeParameters"
         ],
         "summary": "Create range parameter",
         "operationId": "createRangeParameter",
@@ -1473,12 +1473,65 @@
             "$ref": "#/components/responses/500_internal_server_error"
           }
         }
+      },
+      "get": {
+        "tags": [
+          "RangeParameters"
+        ],
+        "summary": "Get range parameters",
+        "description": "Returns all range parameters. When field_name is provided, returns only exact matches. Returns an empty array if no parameters match.",
+        "operationId": "listRangeParameters",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "field_name",
+            "in": "query",
+            "required": false,
+            "description": "Optional exact field name filter",
+            "schema": {
+              "type": "string"
+            },
+            "example": "amount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Range parameter list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RangeParameter"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
       }
     },
     "/classes/parameters": {
       "get": {
         "tags": [
-          "ClassParams"
+          "Classes"
         ],
         "summary": "Get all parameters with optional filtering by class and type",
         "operationId": "ListClassParameters",
@@ -1514,6 +1567,9 @@
                     "oneOf": [
                       {
                         "$ref": "#/components/schemas/RangeParameter"
+                      },
+                      {
+                        "$ref": "#/components/schemas/EnumParameter"
                       }
                     ]
                   }
@@ -1533,10 +1589,10 @@
         }
       }
     },
-    "/classes/parameters/apply/{class_id}": {
+    "/classes/parameters/apply/{id}": {
       "patch": {
         "tags": [
-          "ClassParams"
+          "Classes"
         ],
         "summary": "Apply parameters to class",
         "operationId": "ApplyParametersToClass",
@@ -1547,7 +1603,7 @@
         ],
         "parameters": [
           {
-            "$ref": "#/components/parameters/classId"
+            "$ref": "#/components/parameters/Id"
           }
         ],
         "requestBody": {
@@ -1591,10 +1647,10 @@
         }
       }
     },
-    "/classes/parameters/exclude/{class_id}": {
+    "/classes/parameters/exclude/{id}": {
       "patch": {
         "tags": [
-          "ClassParams"
+          "Classes"
         ],
         "summary": "Exclude parameters from class",
         "operationId": "ExcludeParametersFromClass",
@@ -1605,7 +1661,7 @@
         ],
         "parameters": [
           {
-            "$ref": "#/components/parameters/classId"
+            "$ref": "#/components/parameters/Id"
           }
         ],
         "requestBody": {
@@ -1649,13 +1705,13 @@
         }
       }
     },
-    "/classes/parameters/{id}": {
+    "/range/{id}": {
       "patch": {
         "tags": [
-          "ClassParams"
+          "RangeParameters"
         ],
-        "summary": "Update parameter",
-        "operationId": "UpdateClassParameter",
+        "summary": "Update range parameter",
+        "operationId": "updateRangeParameter",
         "security": [
           {
             "bearerAuth": []
@@ -1687,7 +1743,7 @@
         },
         "responses": {
           "200": {
-            "description": "Parameter updated",
+            "description": "Range parameter updated",
             "content": {
               "application/json": {
                 "schema": {
@@ -1721,10 +1777,10 @@
       },
       "delete": {
         "tags": [
-          "ClassParams"
+          "RangeParameters"
         ],
-        "summary": "Delete parameter",
-        "operationId": "DeleteClassParameter",
+        "summary": "Delete range parameter",
+        "operationId": "deleteRangeParameter",
         "security": [
           {
             "bearerAuth": []
@@ -1737,7 +1793,7 @@
         ],
         "responses": {
           "204": {
-            "description": "Parameter deleted"
+            "description": "Range parameter deleted"
           },
           "400": {
             "$ref": "#/components/responses/400_bad_request"
@@ -2489,7 +2545,7 @@
           }
         }
       },
-      "EnumClassBase": {
+      "EnumParameterBase": {
         "type": "object",
         "required": [
           "field_name"
@@ -2500,10 +2556,10 @@
           }
         }
       },
-      "EnumClass": {
+      "EnumParameter": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/EnumClassBase"
+            "$ref": "#/components/schemas/EnumParameterBase"
           },
           {
             "type": "object",
@@ -2534,10 +2590,10 @@
           }
         ]
       },
-      "EnumClassCreate": {
+      "EnumParameterCreate": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/EnumClassBase"
+            "$ref": "#/components/schemas/EnumParameterBase"
           },
           {
             "type": "object",
@@ -2564,10 +2620,10 @@
           }
         ]
       },
-      "EnumClassUpdate": {
+      "EnumParameterUpdate": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/EnumClassCreate"
+            "$ref": "#/components/schemas/EnumParameterCreate"
           }
         ]
       },
@@ -2592,7 +2648,7 @@
             "required": [
               "id",
               "enum_type",
-              "class_id",
+              "parameter_id",
               "value",
               "position"
             ],
@@ -2603,7 +2659,7 @@
               "enum_type": {
                 "type": "string"
               },
-              "class_id": {
+              "parameter_id": {
                 "type": "integer"
               }
             }
@@ -2618,7 +2674,7 @@
           {
             "type": "object",
             "required": [
-              "class_id",
+              "parameter_id",
               "enum_type",
               "value",
               "position"
@@ -2627,7 +2683,7 @@
               "enum_type": {
                 "type": "string"
               },
-              "class_id": {
+              "parameter_id": {
                 "type": "integer"
               }
             }
@@ -3094,25 +3150,12 @@
           "inheritable": false
         }
       },
-      "EnumParameterUpdate": {
-        "value": {
-          "enum_class_id": 2,
-          "inheritable": false
-        }
-      },
       "RangeParameter": {
         "value": {
           "id": 10,
           "field_name": "amount",
           "min_val": 150,
           "max_val": 300,
-          "inheritable": false
-        }
-      },
-      "EnumParameter": {
-        "value": {
-          "id": 11,
-          "enum_class_id": 2,
           "inheritable": false
         }
       }

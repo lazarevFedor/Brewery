@@ -28,27 +28,30 @@ func NewProductRepository(pool *pgxpool.Pool) ProductRepository {
 }
 
 type ProductService struct {
-	repo         ProductRepository
-	enumRepo     EnumRepository
-	paramRepo    ParameterRepository
-	classRepo    ClassRepository
-	materialRepo MaterialRepository
+	repo                ProductRepository
+	enumParametersRepo  EnumParametersRepository
+	enumValuesRepo      EnumValuesRepository
+	classParametersRepo ClassParametersRepository
+	classRepo           ClassRepository
+	materialRepo        MaterialRepository
 }
 
 // NewProductService creates product service with all dependencies.
 func NewProductService(
 	repo ProductRepository,
-	enumRepo EnumRepository,
-	paramRepo ParameterRepository,
+	enumParametersRepo EnumParametersRepository,
+	enumValuesRepo EnumValuesRepository,
+	classParametersRepo ClassParametersRepository,
 	classRepo ClassRepository,
 	materialRepo MaterialRepository,
 ) *ProductService {
 	return &ProductService{
-		repo:         repo,
-		enumRepo:     enumRepo,
-		paramRepo:    paramRepo,
-		classRepo:    classRepo,
-		materialRepo: materialRepo,
+		repo:                repo,
+		enumParametersRepo:  enumParametersRepo,
+		enumValuesRepo:      enumValuesRepo,
+		classParametersRepo: classParametersRepo,
+		classRepo:           classRepo,
+		materialRepo:        materialRepo,
 	}
 }
 
@@ -62,11 +65,14 @@ func (ps *ProductService) ensureRepo() error {
 	if ps.classRepo == nil {
 		return errors.New("class repository is nil")
 	}
-	if ps.paramRepo == nil {
-		return errors.New("parameter repository is nil")
+	if ps.classParametersRepo == nil {
+		return errors.New("class parameters repository is nil")
 	}
-	if ps.enumRepo == nil {
-		return errors.New("enum repository is nil")
+	if ps.enumParametersRepo == nil {
+		return errors.New("enum parameters repository is nil")
+	}
+	if ps.enumValuesRepo == nil {
+		return errors.New("enum values repository is nil")
 	}
 	return nil
 }
@@ -433,24 +439,24 @@ func normalizeEnumValue(value any) any {
 
 func (ps *ProductService) ValidateProductWithParameters(ctx context.Context, product entities.Product) error {
 	for _, id := range product.ProdClass.EnumParamIDs {
-		enumValues, err := ps.enumRepo.GetEnumValuesByClassID(ctx, uint(id))
+		enumValues, err := ps.enumValuesRepo.GetEnumValuesByParameterID(ctx, uint(id))
 		if err != nil {
-			return fmt.Errorf("failed to get enum values for class ID %d: %w", id, err)
+			return fmt.Errorf("failed to get enum values for parameter ID %d: %w", id, err)
 		}
 
 		if len(enumValues) == 0 {
 			continue
 		}
 
-		enumClass, err := ps.enumRepo.GetEnumClassByID(ctx, uint(id))
+		enumParameter, err := ps.enumParametersRepo.GetEnumParameterByID(ctx, uint(id))
 		if err != nil {
-			return fmt.Errorf("failed to get enum class for ID %d: %w", id, err)
+			return fmt.Errorf("failed to get enum parameter for ID %d: %w", id, err)
 		}
-		if enumClass == nil {
-			return fmt.Errorf("enum class for ID %d not found", id)
+		if enumParameter == nil {
+			return fmt.Errorf("enum parameter for ID %d not found", id)
 		}
 
-		parameterValue, exists := product.Parameters[enumClass.FieldName]
+		parameterValue, exists := product.Parameters[enumParameter.FieldName]
 		if !exists {
 			continue
 		}
@@ -460,12 +466,12 @@ func (ps *ProductService) ValidateProductWithParameters(ctx context.Context, pro
 			return fmt.Errorf(
 				"invalid value %v for parameter %q",
 				normalizedValue,
-				enumClass.FieldName,
+				enumParameter.FieldName,
 			)
 		}
 	}
 
-	rangeParameters, _, err := ps.paramRepo.GetParameters(ctx, product.ProdClass.ID, entities.RangeParameterType)
+	rangeParameters, _, err := ps.classParametersRepo.GetParameters(ctx, product.ProdClass.ID, entities.RangeParameterType)
 	if err != nil {
 		return fmt.Errorf("failed to get range parameters for class ID %d: %w", product.ProdClass.ID, err)
 	}

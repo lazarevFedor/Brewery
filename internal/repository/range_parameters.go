@@ -1,0 +1,133 @@
+package repository
+
+import (
+	"Brewery/internal/entities"
+	"Brewery/internal/repository/queries"
+	"context"
+	"errors"
+	"fmt"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+// RangeParametersPostgres хранит числовые параметры в PostgreSQL.
+type RangeParametersPostgres struct {
+	Pool *pgxpool.Pool
+}
+
+// NewRangeParametersPostgres создает репозиторий числовых параметров.
+func NewRangeParametersPostgres(pool *pgxpool.Pool) *RangeParametersPostgres {
+	return &RangeParametersPostgres{Pool: pool}
+}
+
+// InsertRangeParameter добавляет числовой параметр и возвращает его с присвоенным ID.
+func (p *RangeParametersPostgres) InsertRangeParameter(ctx context.Context, param *entities.RangeParameter) (*entities.RangeParameter, error) {
+	if p.Pool == nil {
+		return nil, errors.New("pool is nil")
+	}
+	if param == nil {
+		return nil, errors.New("parameter is nil")
+	}
+
+	sql, args, err := queries.InsertRangeParameter(param).ToSql()
+	if err != nil {
+		return nil, err
+	}
+	if err := p.Pool.QueryRow(ctx, sql, args...).Scan(&param.ID); err != nil {
+		return nil, err
+	}
+	return param, nil
+}
+
+// GetRangeParameters возвращает числовые параметры с необязательным точным фильтром field_name.
+func (p *RangeParametersPostgres) GetRangeParameters(ctx context.Context, fieldName string) ([]entities.RangeParameter, error) {
+	if p.Pool == nil {
+		return nil, errors.New("pool is nil")
+	}
+
+	sql, args, err := queries.SelectRangeParametersByField(fieldName).ToSql()
+	if err != nil {
+		return nil, err
+	}
+	rows, err := p.Pool.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	parameters := make([]entities.RangeParameter, 0)
+	for rows.Next() {
+		parameter, err := scanRangeParameter(rows)
+		if err != nil {
+			return nil, err
+		}
+		parameters = append(parameters, *parameter)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return parameters, nil
+}
+
+// UpdateRangeParameter обновляет параметр и его наследование в одной транзакции.
+func (p *RangeParametersPostgres) UpdateRangeParameter(ctx context.Context, id int64, updates map[string]any) (*entities.RangeParameter, error) {
+	if p.Pool == nil {
+		return nil, errors.New("pool is nil")
+	}
+	if len(updates) == 0 {
+		return nil, errors.New("no updates provided")
+	}
+
+	tx, err := p.Pool.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+
+	sql, args, err := queries.SelectRangeParameters([]int64{id}).Suffix("FOR UPDATE").ToSql()
+	if err != nil {
+		return nil, err
+	}
+	oldParam, err := scanRangeParameter(tx.QueryRow(ctx, sql, args...))
+	if err != nil {
+		return nil, err
+	}
+
+	sql, args, err = queries.UpdateRangeParameter(id, updates).ToSql()
+	if err != nil {
+		return nil, err
+	}
+	param, err := scanRangeParameter(tx.QueryRow(ctx, sql, args...))
+	if err != nil {
+		return nil, err
+	}
+	if err := toggleParameterInheritance(ctx, tx, false, id, oldParam.Inheritable, param.Inheritable); err != nil {
+		return nil, err
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+	return param, nil
+}
+
+// DeleteRangeParameter удаляет числовой параметр и возвращает удаленную запись.
+func (p *RangeParametersPostgres) DeleteRangeParameter(ctx context.Context, id int64) (*entities.RangeParameter, error) {
+	if p.Pool == nil {
+		return nil, errors.New("pool is nil")
+	}
+
+	sql, args, err := queries.DeleteRangeParameter(id).ToSql()
+	if err != nil {
+		return nil, err
+	}
+	return scanRangeParameter(p.Pool.QueryRow(ctx, sql, args...))
+}
+
+func scanRangeParameter(row pgx.Row) (*entities.RangeParameter, error) {
+	var param entities.RangeParameter
+	if err := row.Scan(&param.ID, &param.MinValue, &param.MaxValue, &param.FieldName, &param.Inheritable, &param.Unit); err != nil {
+		return nil, fmt.Errorf("scan range parameter: %w", err)
+	}
+	return &param, nil
+}

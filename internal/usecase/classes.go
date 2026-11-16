@@ -28,12 +28,13 @@ type ClassRepository interface {
 }
 
 type ClassService struct {
-	repo ClassRepository
+	repo           ClassRepository
+	parametersRepo ClassParametersRepository
 }
 
-// NewClassService creates class service.
-func NewClassService(repo ClassRepository) *ClassService {
-	return &ClassService{repo: repo}
+// NewClassService создает сервис классов изделий и их параметров.
+func NewClassService(repo ClassRepository, parametersRepo ClassParametersRepository) *ClassService {
+	return &ClassService{repo: repo, parametersRepo: parametersRepo}
 }
 
 func (c *ClassService) ensureRepo() error {
