@@ -108,11 +108,11 @@ func registerEquipmentRouters(api, admin *gin.RouterGroup, h handlers.Handlers) 
 		return
 	}
 	api.GET("/equipment", h.EquipmentHandler.ListEquipment)
-	api.GET("/equipment/:id", h.EquipmentHandler.GetEquipment)
+	api.GET("/equipment/:name", h.EquipmentHandler.GetEquipment)
 
 	admin.POST("/equipment", h.EquipmentHandler.CreateEquipment)
-	admin.PATCH("/equipment/:id", h.EquipmentHandler.UpdateEquipment)
-	admin.DELETE("/equipment/:id", h.EquipmentHandler.DeleteEquipment)
+	admin.PATCH("/equipment/:name", h.EquipmentHandler.UpdateEquipment)
+	admin.DELETE("/equipment/:name", h.EquipmentHandler.DeleteEquipment)
 }
 
 func registerOperationRouters(api, admin *gin.RouterGroup, h handlers.Handlers) {

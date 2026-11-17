@@ -2300,17 +2300,17 @@
         }
       }
     },
-    "/equipment/{id}": {
+    "/equipment/{name}": {
       "get": {
         "tags": [
           "Equipment"
         ],
-        "summary": "Get equipment by ID",
-        "description": "Возвращает информацию об оборудовании по идентификатору",
+        "summary": "Get equipment by name",
+        "description": "Возвращает информацию об оборудовании по названию",
         "operationId": "getEquipment",
         "parameters": [
           {
-            "$ref": "#/components/parameters/Id"
+            "$ref": "#/components/parameters/EquipmentName"
           }
         ],
         "responses": {
@@ -2349,7 +2349,7 @@
         ],
         "parameters": [
           {
-            "$ref": "#/components/parameters/Id"
+            "$ref": "#/components/parameters/EquipmentName"
           }
         ],
         "requestBody": {
@@ -2389,7 +2389,7 @@
           "Equipment"
         ],
         "summary": "Delete equipment",
-        "description": "Удаляет единицу оборудования по идентификатору",
+        "description": "Удаляет единицу оборудования по названию",
         "operationId": "deleteEquipment",
         "security": [
           {
@@ -2398,7 +2398,7 @@
         ],
         "parameters": [
           {
-            "$ref": "#/components/parameters/Id"
+            "$ref": "#/components/parameters/EquipmentName"
           }
         ],
         "responses": {
@@ -4179,6 +4179,15 @@
           "type": "integer",
           "example": 1
         }
+      },
+      "EquipmentName": {
+        "name": "name",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Название оборудования"
       }
     },
     "examples": {
