@@ -138,8 +138,8 @@
     "/equipment": {
       "$ref": "./paths/equipment/equipment.json"
     },
-    "/equipment/{id}": {
-      "$ref": "./paths/equipment/equipment_by_id.json"
+    "/equipment/{name}": {
+      "$ref": "./paths/equipment/equipment_by_name.json"
     },
     "/products/{id}/operations": {
       "$ref": "./paths/operations/product_tech_card.json"
@@ -374,6 +374,9 @@
       },
       "AggregateId": {
         "$ref": "./components/parameters/AggregateId.json"
+      },
+      "EquipmentName": {
+        "$ref": "./components/parameters/EquipmentName.json"
       }
     },
     "examples": {

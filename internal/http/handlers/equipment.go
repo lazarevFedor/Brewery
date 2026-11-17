@@ -18,14 +18,14 @@ type EquipmentService interface {
 	// GetEquipment возвращает список оборудования с учетом пагинации.
 	GetEquipment(ctx context.Context, limit, offset int32) ([]entities.Equipment, error)
 
-	// GetEquipmentByID возвращает оборудование по идентификатору.
-	GetEquipmentByID(ctx context.Context, id int64) (*entities.Equipment, error)
+	// GetEquipmentByName возвращает оборудование по названию.
+	GetEquipmentByName(ctx context.Context, name string) (*entities.Equipment, error)
 
-	// UpdateEquipment обновляет поля оборудования.
-	UpdateEquipment(ctx context.Context, id int64, updates map[string]any) (*entities.Equipment, error)
+	// UpdateEquipment обновляет поля оборудования по названию.
+	UpdateEquipment(ctx context.Context, name string, updates map[string]any) (*entities.Equipment, error)
 
-	// DeleteEquipment удаляет оборудование по идентификатору.
-	DeleteEquipment(ctx context.Context, id int64) error
+	// DeleteEquipment удаляет оборудование по названию.
+	DeleteEquipment(ctx context.Context, name string) error
 }
 
 // EquipmentHandlers определяет HTTP-обработчики для оборудования.
@@ -36,13 +36,13 @@ type EquipmentHandlers interface {
 	// CreateEquipment обрабатывает POST /equipment.
 	CreateEquipment(c *gin.Context)
 
-	// GetEquipment обрабатывает GET /equipment/{id}.
+	// GetEquipment обрабатывает GET /equipment/{name}.
 	GetEquipment(c *gin.Context)
 
-	// UpdateEquipment обрабатывает PATCH /equipment/{id}.
+	// UpdateEquipment обрабатывает PATCH /equipment/{name}.
 	UpdateEquipment(c *gin.Context)
 
-	// DeleteEquipment обрабатывает DELETE /equipment/{id}.
+	// DeleteEquipment обрабатывает DELETE /equipment/{name}.
 	DeleteEquipment(c *gin.Context)
 }
 
@@ -137,20 +137,20 @@ func (h *equipmentHandlers) CreateEquipment(c *gin.Context) {
 	c.JSON(http.StatusCreated, newEquipmentResponse(*created))
 }
 
-// GetEquipment обрабатывает GET /equipment/{id}.
+// GetEquipment обрабатывает GET /equipment/{name}.
 func (h *equipmentHandlers) GetEquipment(c *gin.Context) {
 	log, ok := getLogger(c)
 	if !ok {
 		return
 	}
 
-	id, err := getIDParam(c, "id")
-	if err != nil {
-		badRequest(c, log, apperrors.CodeInvalidParameters, err)
+	name := c.Param("name")
+	if name == "" {
+		badRequest(c, log, apperrors.CodeInvalidParameters, errors.New("name is required"))
 		return
 	}
 
-	eq, err := h.uc.GetEquipmentByID(c.Request.Context(), id)
+	eq, err := h.uc.GetEquipmentByName(c.Request.Context(), name)
 	if err != nil {
 		handleError(c, log, "failed to get equipment", err)
 		return
@@ -159,16 +159,16 @@ func (h *equipmentHandlers) GetEquipment(c *gin.Context) {
 	c.JSON(http.StatusOK, newEquipmentResponse(*eq))
 }
 
-// UpdateEquipment обрабатывает PATCH /equipment/{id}.
+// UpdateEquipment обрабатывает PATCH /equipment/{name}.
 func (h *equipmentHandlers) UpdateEquipment(c *gin.Context) {
 	log, ok := getLogger(c)
 	if !ok {
 		return
 	}
 
-	id, err := getIDParam(c, "id")
-	if err != nil {
-		badRequest(c, log, apperrors.CodeInvalidParameters, err)
+	name := c.Param("name")
+	if name == "" {
+		badRequest(c, log, apperrors.CodeInvalidParameters, errors.New("name is required"))
 		return
 	}
 
@@ -177,7 +177,7 @@ func (h *equipmentHandlers) UpdateEquipment(c *gin.Context) {
 		return
 	}
 
-	updated, err := h.uc.UpdateEquipment(c.Request.Context(), id, updates)
+	updated, err := h.uc.UpdateEquipment(c.Request.Context(), name, updates)
 	if err != nil {
 		handleError(c, log, "failed to update equipment", err)
 		return
@@ -186,20 +186,20 @@ func (h *equipmentHandlers) UpdateEquipment(c *gin.Context) {
 	c.JSON(http.StatusOK, newEquipmentResponse(*updated))
 }
 
-// DeleteEquipment обрабатывает DELETE /equipment/{id}.
+// DeleteEquipment обрабатывает DELETE /equipment/{name}.
 func (h *equipmentHandlers) DeleteEquipment(c *gin.Context) {
 	log, ok := getLogger(c)
 	if !ok {
 		return
 	}
 
-	id, err := getIDParam(c, "id")
-	if err != nil {
-		badRequest(c, log, apperrors.CodeInvalidParameters, err)
+	name := c.Param("name")
+	if name == "" {
+		badRequest(c, log, apperrors.CodeInvalidParameters, errors.New("name is required"))
 		return
 	}
 
-	if err := h.uc.DeleteEquipment(c.Request.Context(), id); err != nil {
+	if err := h.uc.DeleteEquipment(c.Request.Context(), name); err != nil {
 		handleError(c, log, "failed to delete equipment", err)
 		return
 	}
