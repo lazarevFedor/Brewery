@@ -17,8 +17,8 @@ type Operation struct {
 
 // ProductTechCard описывает технологическую карту изделия.
 type ProductTechCard struct {
-	ProductID      int64             `json:"product_id"`
-	TotalLaborCost float64           `json:"total_labor_cost"`
-	Operations     []Operation       `json:"operations"`
-	MaterialNorms  []MaterialProduct `json:"material_norms"`
+	ProductID     int64             `json:"product_id"`
+	TotalCost     float64           `json:"total_cost"`
+	Operations    []Operation       `json:"operations"`
+	MaterialNorms []MaterialProduct `json:"material_norms"`
 }

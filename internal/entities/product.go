@@ -7,6 +7,7 @@ type Product struct {
 	Name           string         `json:"name" info:"Название изделия"`
 	ProdClass      Class          `json:"class" info:"Информация о классе изделия"`
 	BaseID         int64          `json:"base_id,omitempty" info:"ID базового изделия"`
+	Price          int32          `json:"price" info:"цена njdfhf"`
 	Parameters     map[string]any `json:"parameters,omitempty" info:"Список параметров изделия"`
 	Unit           string         `json:"unit,omitempty" info:"Единица измерений"`
 	Amount         float32        `json:"amount,omitempty" info:"Количество изделия"`

@@ -165,7 +165,7 @@ func newProductTechCardResponse(tc entities.ProductTechCard) productTechCardResp
 
 	resp := productTechCardResponse{
 		ProductID:      tc.ProductID,
-		TotalLaborCost: tc.TotalLaborCost,
+		TotalLaborCost: tc.TotalCost,
 		Operations:     ops,
 		MaterialNorms:  norms,
 	}

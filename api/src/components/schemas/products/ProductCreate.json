@@ -6,7 +6,9 @@
     {
       "type": "object",
       "required": [
-        "name"
+        "name",
+        "class",
+        "price"
       ],
       "properties": {
         "class": {
@@ -21,6 +23,9 @@
           "type": "integer"
         },
         "units": {
+          "type": "string"
+        },
+        "price": {
           "type": "string"
         },
         "is_final_product": {

@@ -19,6 +19,9 @@
       "type": "boolean",
       "description": "Флаг конечного готового продукта",
       "example": false
+    },
+    "price": {
+          "type": "integer"
     }
   }
 }
