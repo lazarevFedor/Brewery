@@ -34,5 +34,12 @@
         }
       }
     }
-  ]
+  ],
+  "example": {
+    "id": 1,
+    "name": "Пиво",
+    "parent_id": null,
+    "range_param_ids": [1, 2],
+    "enum_param_ids": [3]
+  }
 }

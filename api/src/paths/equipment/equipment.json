@@ -4,7 +4,7 @@
       "Equipment"
     ],
     "summary": "Get all equipment",
-    "description": "Возвращает список оборудования и приборов с поддержкой пагинации",
+    "description": "Возвращает список оборудования и приборов с поддержкой пагинации и фильтрации по названию и рабочему цеху",
     "operationId": "listEquipment",
     "parameters": [
       {
@@ -12,6 +12,24 @@
       },
       {
         "$ref": "#/components/parameters/Limit"
+      },
+      {
+        "name": "name",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Фильтр по названию оборудования"
+      },
+      {
+        "name": "work_center",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Фильтр по рабочему цеху"
       }
     ],
     "responses": {

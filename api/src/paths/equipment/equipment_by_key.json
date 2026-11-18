@@ -3,12 +3,15 @@
     "tags": [
       "Equipment"
     ],
-    "summary": "Get equipment by name",
-    "description": "Возвращает информацию об оборудовании по названию",
+    "summary": "Get equipment by key",
+    "description": "Возвращает информацию об оборудовании по его составному первичному ключу (name, work_center)",
     "operationId": "getEquipment",
     "parameters": [
       {
         "$ref": "#/components/parameters/EquipmentName"
+      },
+      {
+        "$ref": "#/components/parameters/WorkCenter"
       }
     ],
     "responses": {
@@ -38,7 +41,7 @@
       "Equipment"
     ],
     "summary": "Update equipment",
-    "description": "Обновляет параметры единицы оборудования",
+    "description": "Обновляет параметры единицы оборудования по ее составному первичному ключу (name, work_center)",
     "operationId": "updateEquipment",
     "security": [
       {
@@ -48,6 +51,9 @@
     "parameters": [
       {
         "$ref": "#/components/parameters/EquipmentName"
+      },
+      {
+        "$ref": "#/components/parameters/WorkCenter"
       }
     ],
     "requestBody": {
@@ -87,7 +93,7 @@
       "Equipment"
     ],
     "summary": "Delete equipment",
-    "description": "Удаляет единицу оборудования по названию",
+    "description": "Удаляет единицу оборудования по ее составному первичному ключу (name, work_center)",
     "operationId": "deleteEquipment",
     "security": [
       {
@@ -97,6 +103,9 @@
     "parameters": [
       {
         "$ref": "#/components/parameters/EquipmentName"
+      },
+      {
+        "$ref": "#/components/parameters/WorkCenter"
       }
     ],
     "responses": {

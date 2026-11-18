@@ -21,6 +21,12 @@
       "example": 37.5,
       "description": "Сколько всего материала требуется для изготовления изделия"
     },
+    "total_cost": {
+      "type": "number",
+      "format": "double",
+      "example": 37.5,
+      "description": "Цена всех материалов"
+    },
     "units": {
       "type": "string",
       "example": "kg"
@@ -35,6 +41,7 @@
     "material_id": 5,
     "name": "Хмель",
     "total_amount": 37.5,
+    "total_cost": 37.5,
     "base": false,
     "units": "kg"
   }

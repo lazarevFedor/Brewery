@@ -26,5 +26,11 @@
         }
       }
     }
-  ]
+  ],
+  "example": {
+    "name": "Светлое пиво",
+    "parent_id": 1,
+    "range_param_ids": [1, 2],
+    "enum_param_ids": [3]
+  }
 }

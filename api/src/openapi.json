@@ -150,8 +150,8 @@
     "/equipment": {
       "$ref": "./paths/equipment/equipment.json"
     },
-    "/equipment/{name}": {
-      "$ref": "./paths/equipment/equipment_by_name.json"
+    "/equipment/{name}/{work_center}": {
+      "$ref": "./paths/equipment/equipment_by_key.json"
     },
     "/products/{id}/operations": {
       "$ref": "./paths/operations/product_tech_card.json"
@@ -377,6 +377,9 @@
       },
       "EquipmentName": {
         "$ref": "./components/parameters/EquipmentName.json"
+      },
+      "WorkCenter": {
+        "$ref": "./components/parameters/WorkCenter.json"
       }
     },
     "examples": {

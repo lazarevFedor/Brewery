@@ -87,11 +87,11 @@ type operationResponse struct {
 
 // productTechCardResponse - технологическая карта продукта.
 type productTechCardResponse struct {
-	ProductID      int64                  `json:"product_id"`
-	Product        *productShortResponse  `json:"product,omitempty"`
-	TotalLaborCost float64                `json:"total_labor_cost"`
-	Operations     []operationResponse    `json:"operations"`
-	MaterialNorms  []materialNormResponse `json:"material_norms"`
+	ProductID     int64                  `json:"product_id"`
+	Product       *productShortResponse  `json:"product,omitempty"`
+	TotalCost     float64                `json:"total_cost"`
+	Operations    []operationResponse    `json:"operations"`
+	MaterialNorms []materialNormResponse `json:"material_norms"`
 }
 
 // operationMaterialRequest - данные материала в запросе на создание операции.
@@ -164,10 +164,10 @@ func newProductTechCardResponse(tc entities.ProductTechCard) productTechCardResp
 	}
 
 	resp := productTechCardResponse{
-		ProductID:      tc.ProductID,
-		TotalLaborCost: tc.TotalCost,
-		Operations:     ops,
-		MaterialNorms:  norms,
+		ProductID:     tc.ProductID,
+		TotalCost:     tc.TotalCost,
+		Operations:    ops,
+		MaterialNorms: norms,
 	}
 
 	return resp

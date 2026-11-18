@@ -36,6 +36,13 @@
     "material_id": 5,
     "product_id": 1,
     "material_amount": 12.5,
-    "base": true
+    "base": true,
+    "units": "kg",
+    "material": {
+      "name": "Ячменный солод",
+      "price": 100,
+      "is_purchased": true,
+      "is_final_product": false
+    }
   }
 }

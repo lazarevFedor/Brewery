@@ -64,6 +64,7 @@ type productResponse struct {
 	Class      classBase      `json:"class"`
 	ClassID    int64          `json:"class_id"`
 	BaseID     *int64         `json:"base_id"`
+	Price      int32          `json:"price,omitempty"`
 	Parameters map[string]any `json:"parameters,omitempty"`
 	Amount     float32        `json:"amount,omitempty"`
 	Units      string         `json:"units,omitempty"`
@@ -80,6 +81,7 @@ type productCreateRequest struct {
 	Class      *classBase     `json:"class"`
 	ClassID    int64          `json:"class_id"`
 	BaseID     *int64         `json:"base_id"`
+	Price      int32          `json:"price"`
 	Parameters map[string]any `json:"parameters"`
 	Amount     float32        `json:"amount"`
 	Units      string         `json:"units"`
@@ -89,6 +91,7 @@ func (r productCreateRequest) toEntity() entities.Product {
 	product := entities.Product{
 		Name:       r.Name,
 		ProdClass:  entities.Class{ID: r.ClassID},
+		Price:      r.Price,
 		Parameters: r.Parameters,
 		Amount:     r.Amount,
 		Unit:       r.Units,
@@ -111,6 +114,7 @@ func newProductResponse(p entities.Product) productResponse {
 		Name:       p.Name,
 		Class:      classBase{Name: p.ProdClass.Name},
 		ClassID:    p.ProdClass.ID,
+		Price:      p.Price,
 		Parameters: p.Parameters,
 		Amount:     p.Amount,
 		Units:      p.Unit,

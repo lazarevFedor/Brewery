@@ -2223,7 +2223,7 @@
           "Equipment"
         ],
         "summary": "Get all equipment",
-        "description": "Возвращает список оборудования и приборов с поддержкой пагинации",
+        "description": "Возвращает список оборудования и приборов с поддержкой пагинации и фильтрации по названию и рабочему цеху",
         "operationId": "listEquipment",
         "parameters": [
           {
@@ -2231,6 +2231,24 @@
           },
           {
             "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Фильтр по названию оборудования"
+          },
+          {
+            "name": "work_center",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Фильтр по рабочему цеху"
           }
         ],
         "responses": {
@@ -2300,17 +2318,20 @@
         }
       }
     },
-    "/equipment/{name}": {
+    "/equipment/{name}/{work_center}": {
       "get": {
         "tags": [
           "Equipment"
         ],
-        "summary": "Get equipment by name",
-        "description": "Возвращает информацию об оборудовании по названию",
+        "summary": "Get equipment by key",
+        "description": "Возвращает информацию об оборудовании по его составному первичному ключу (name, work_center)",
         "operationId": "getEquipment",
         "parameters": [
           {
             "$ref": "#/components/parameters/EquipmentName"
+          },
+          {
+            "$ref": "#/components/parameters/WorkCenter"
           }
         ],
         "responses": {
@@ -2340,7 +2361,7 @@
           "Equipment"
         ],
         "summary": "Update equipment",
-        "description": "Обновляет параметры единицы оборудования",
+        "description": "Обновляет параметры единицы оборудования по ее составному первичному ключу (name, work_center)",
         "operationId": "updateEquipment",
         "security": [
           {
@@ -2350,6 +2371,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/EquipmentName"
+          },
+          {
+            "$ref": "#/components/parameters/WorkCenter"
           }
         ],
         "requestBody": {
@@ -2389,7 +2413,7 @@
           "Equipment"
         ],
         "summary": "Delete equipment",
-        "description": "Удаляет единицу оборудования по названию",
+        "description": "Удаляет единицу оборудования по ее составному первичному ключу (name, work_center)",
         "operationId": "deleteEquipment",
         "security": [
           {
@@ -2399,6 +2423,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/EquipmentName"
+          },
+          {
+            "$ref": "#/components/parameters/WorkCenter"
           }
         ],
         "responses": {
@@ -2558,7 +2585,19 @@
               }
             }
           }
-        ]
+        ],
+        "example": {
+          "id": 1,
+          "name": "Пиво",
+          "parent_id": null,
+          "range_param_ids": [
+            1,
+            2
+          ],
+          "enum_param_ids": [
+            3
+          ]
+        }
       },
       "ClassCreate": {
         "allOf": [
@@ -2578,7 +2617,11 @@
               }
             }
           }
-        ]
+        ],
+        "example": {
+          "name": "Пиво",
+          "parent_id": null
+        }
       },
       "ClassUpdate": {
         "allOf": [
@@ -2608,7 +2651,18 @@
               }
             }
           }
-        ]
+        ],
+        "example": {
+          "name": "Светлое пиво",
+          "parent_id": 1,
+          "range_param_ids": [
+            1,
+            2
+          ],
+          "enum_param_ids": [
+            3
+          ]
+        }
       },
       "RangeParameterBase": {
         "type": "object",
@@ -2814,13 +2868,15 @@
             "description": "Флаг, указывающий, является ли изделие конечным готовым продуктом (true), а не базовым материалом или полуфабрикатом в переходном состоянии (false)",
             "example": true
           },
-          "Is_purchased": {
+          "is_purchased": {
             "type": "boolean",
-            "description": "Флаг, указывающий, является ли изделие конечным готовым продуктом (true), а не базовым материалом или полуфабрикатом в переходном состоянии (false)",
-            "example": true
+            "description": "Флаг покупного изделия",
+            "example": false
           },
           "price": {
-            "type": "integer"
+            "type": "integer",
+            "description": "Цена изделия",
+            "example": 100
           }
         }
       },
@@ -2877,6 +2933,24 @@
                 "description": "Флаг, указывающий, является ли продукт конечным готовым изделием (true), либо сырьем/полуфабрикатом в переходном состоянии (false)",
                 "example": true
               }
+            },
+            "example": {
+              "id": 1,
+              "name": "Балтика 0",
+              "class": {
+                "name": "Светлое"
+              },
+              "class_id": 1,
+              "base_id": null,
+              "price": 100,
+              "is_purchased": false,
+              "is_final_product": true,
+              "amount": 100,
+              "units": "L",
+              "parameters": {
+                "alcohol": 0.5,
+                "density": 11.0
+              }
             }
           }
         ]
@@ -2909,7 +2983,9 @@
                 "type": "string"
               },
               "price": {
-                "type": "string"
+                "type": "integer",
+                "description": "Цена изделия",
+                "example": 100
               },
               "is_final_product": {
                 "type": "boolean",
@@ -2926,6 +3002,8 @@
               "base_id": null,
               "amount": 100,
               "units": "L",
+              "price": 100,
+              "is_purchased": false,
               "is_final_product": true
             }
           }
@@ -2958,6 +3036,16 @@
                 "description": "Флаг, указывающий, является ли продукт конечным готовым изделием",
                 "example": true
               }
+            },
+            "example": {
+              "name": "Балтика 0 Экстра",
+              "price": 120,
+              "is_purchased": false,
+              "is_final_product": true,
+              "class_id": 1,
+              "base_id": null,
+              "amount": 100,
+              "units": "L"
             }
           }
         ]
@@ -3019,7 +3107,14 @@
           "material_id": 5,
           "product_id": 1,
           "material_amount": 12.5,
-          "base": true
+          "base": true,
+          "units": "kg",
+          "material": {
+            "name": "Ячменный солод",
+            "price": 100,
+            "is_purchased": true,
+            "is_final_product": false
+          }
         }
       },
       "MaterialCreate": {
@@ -3107,6 +3202,7 @@
           "material_id": 5,
           "name": "Хмель",
           "total_amount": 37.5,
+          "total_cost": 37.5,
           "base": false,
           "units": "kg"
         }
@@ -3390,7 +3486,7 @@
           },
           "labor_cost": {
             "type": "number",
-            "description": "Трудозатратность операции (сумма )",
+            "description": "Трудозатратность операции (человеко-часы)",
             "example": 2.5
           },
           "parameters": {
@@ -3470,6 +3566,7 @@
           "name": "Варка сусла с охмелением",
           "description": "Варка сусла при температуре 100°C с добавлением хмеля",
           "profession_id": 1,
+          "step_number": 1,
           "equipment": {
             "name": "Сусловарочный котел ВК-500",
             "work_center": "Холодный цех"
@@ -3560,6 +3657,7 @@
           "name": "Варка сусла",
           "description": "Варка охмеленного сусла при температуре 100°C",
           "profession_id": 1,
+          "step_number": 1,
           "equipment": {
             "name": "Сусловарочный котел ВК-500",
             "work_center": "Холодный цех"
@@ -3662,6 +3760,7 @@
           "name": "Варка сусла (модифицированная)",
           "description": "Варка охмеленного сусла при температуре 102°C",
           "profession_id": 2,
+          "step_number": 1,
           "equipment": {
             "name": "Сусловарочный котел ВК-500 (модернизированный)",
             "work_center": "Холодный цех"
@@ -3795,11 +3894,22 @@
             "description": "Название должности / квалификации",
             "example": "Оператор варочного цеха"
           },
+          "hour_salary": {
+            "type": "number",
+            "description": "часовая ставка",
+            "example": 100.0
+          },
           "description": {
             "type": "string",
             "description": "Описание обязанностей и требований",
             "example": "Ведение процесса затирания и варки охмеленного сусла"
           }
+        },
+        "example": {
+          "id": 1,
+          "name": "Оператор варочного цеха",
+          "hour_salary": 100.0,
+          "description": "Ведение процесса затирания и варки охмеленного сусла"
         }
       },
       "ProductShort": {
@@ -3825,15 +3935,23 @@
             "example": false
           },
           "price": {
-            "type": "integer"
+            "type": "integer",
+            "description": "Цена изделия",
+            "example": 100
           }
+        },
+        "example": {
+          "id": 1,
+          "name": "Солодовое сусло",
+          "is_final_product": false,
+          "price": 100
         }
       },
       "ProductTechCard": {
         "type": "object",
         "required": [
           "product_id",
-          "total_labor_cost",
+          "total_cost",
           "operations",
           "material_norms"
         ],
@@ -3846,10 +3964,10 @@
           "product": {
             "$ref": "#/components/schemas/ProductShort"
           },
-          "total_labor_cost": {
+          "total_cost": {
             "type": "number",
-            "description": "Суммарная трудозатратность всех операций в человеко-часах",
-            "example": 8.5
+            "description": "Суммарная трудозатратность всех операций в деньгах",
+            "example": 1000
           },
           "operations": {
             "type": "array",
@@ -3872,13 +3990,14 @@
             "id": 1,
             "name": "Балтика 0"
           },
-          "total_labor_cost": 8.5,
+          "total_cost": 1000.0,
           "operations": [
             {
               "id": 1,
               "name": "Затирание солода",
               "description": "Затирание дробленого солода с водой при контролируемых температурных паузах",
               "profession_id": 1,
+              "step_number": 1,
               "equipment": {
                 "name": "Заторно-сусловарочный аппарат",
                 "work_center": "Варочный цех"
@@ -3901,6 +4020,7 @@
               "name": "Варка сусла с охмелением",
               "description": "Варка охмеленного сусла при температуре 100°C",
               "profession_id": 1,
+              "step_number": 2,
               "equipment": {
                 "name": "Сусловарочный котел ВК-500",
                 "work_center": "Варочный цех"
@@ -3924,6 +4044,7 @@
               "material_id": 5,
               "name": "Солод светлый ячменный",
               "total_amount": 50.0,
+              "total_cost": 2500.0,
               "units": "kg",
               "base": true
             },
@@ -3931,6 +4052,7 @@
               "material_id": 6,
               "name": "Хмель гранулированный",
               "total_amount": 1.2,
+              "total_cost": 60.0,
               "units": "kg",
               "base": true
             }
@@ -4204,6 +4326,15 @@
           "type": "string"
         },
         "description": "Название оборудования"
+      },
+      "WorkCenter": {
+        "name": "work_center",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Название рабочего цеха"
       }
     },
     "examples": {
