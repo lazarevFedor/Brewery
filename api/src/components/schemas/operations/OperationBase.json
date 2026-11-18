@@ -11,6 +11,13 @@
       "description": "Описание технологической операции",
       "example": "Варка охмеленного сусла при температуре 100°C"
     },
+    "operation_class_id": {
+      "type": "integer",
+      "format": "int64",
+      "minimum": 1,
+      "description": "ID класса технологической операции",
+      "example": 3
+    },
     "profession_id": {
       "type": "integer",
       "description": "Идентификатор профессии работника, имеющего права для выполнения операции",
@@ -24,6 +31,8 @@
     },
     "step_number": {
       "type": "integer",
+      "format": "int32",
+      "minimum": 1,
       "description": "Номер операции в последовательности техкарты",
       "example": 1
     },

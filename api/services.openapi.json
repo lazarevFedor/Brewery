@@ -1903,6 +1903,9 @@
           "404": {
             "$ref": "#/components/responses/404_not_found"
           },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
           "500": {
             "$ref": "#/components/responses/500_internal_server_error"
           }
@@ -3482,6 +3485,13 @@
             "description": "Описание технологической операции",
             "example": "Варка охмеленного сусла при температуре 100°C"
           },
+          "operation_class_id": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1,
+            "description": "ID класса технологической операции",
+            "example": 3
+          },
           "profession_id": {
             "type": "integer",
             "description": "Идентификатор профессии работника, имеющего права для выполнения операции",
@@ -3495,6 +3505,8 @@
           },
           "step_number": {
             "type": "integer",
+            "format": "int32",
+            "minimum": 1,
             "description": "Номер операции в последовательности техкарты",
             "example": 1
           },
@@ -3535,8 +3547,10 @@
             "type": "object",
             "required": [
               "name",
+              "operation_class_id",
               "profession_id",
               "equipment",
+              "step_number",
               "materials"
             ],
             "properties": {
@@ -3579,6 +3593,7 @@
         "example": {
           "name": "Варка сусла с охмелением",
           "description": "Варка сусла при температуре 100°C с добавлением хмеля",
+          "operation_class_id": 3,
           "profession_id": 1,
           "step_number": 1,
           "equipment": {
@@ -3603,6 +3618,7 @@
         "required": [
           "id",
           "name",
+          "operation_class_id",
           "profession_id",
           "equipment",
           "materials"
@@ -3623,6 +3639,13 @@
             "description": "Описание технологической операции",
             "example": "Варка охмеленного сусла при температуре 100°C"
           },
+          "operation_class_id": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1,
+            "description": "ID класса технологической операции",
+            "example": 3
+          },
           "profession_id": {
             "type": "integer",
             "description": "Идентификатор профессии работника, имеющего права для выполнения операции",
@@ -3636,6 +3659,8 @@
           },
           "step_number": {
             "type": "integer",
+            "format": "int32",
+            "minimum": 1,
             "description": "Номер операции в последовательности техкарты",
             "example": 1
           },
@@ -3670,6 +3695,7 @@
           "id": 1,
           "name": "Варка сусла",
           "description": "Варка охмеленного сусла при температуре 100°C",
+          "operation_class_id": 3,
           "profession_id": 1,
           "step_number": 1,
           "equipment": {
@@ -3704,6 +3730,13 @@
             "description": "Описание технологической операции",
             "example": "Варка охмеленного сусла при температуре 102°C"
           },
+          "operation_class_id": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1,
+            "description": "ID класса технологической операции",
+            "example": 3
+          },
           "profession_id": {
             "type": "integer",
             "description": "Идентификатор профессии работника",
@@ -3714,6 +3747,8 @@
           },
           "step_number": {
             "type": "integer",
+            "format": "int32",
+            "minimum": 1,
             "description": "Номер операции в последовательности техкарты",
             "example": 1
           },
@@ -3750,7 +3785,7 @@
           },
           "parameters": {
             "type": "object",
-            "description": "Технологические параметры операции",
+            "description": "Новый набор технологических параметров. Пустой объект удаляет все значения",
             "additionalProperties": {
               "oneOf": [
                 {
@@ -3773,6 +3808,7 @@
         "example": {
           "name": "Варка сусла (модифицированная)",
           "description": "Варка охмеленного сусла при температуре 102°C",
+          "operation_class_id": 3,
           "profession_id": 2,
           "step_number": 1,
           "equipment": {
@@ -4010,6 +4046,7 @@
               "id": 1,
               "name": "Затирание солода",
               "description": "Затирание дробленого солода с водой при контролируемых температурных паузах",
+              "operation_class_id": 3,
               "profession_id": 1,
               "step_number": 1,
               "equipment": {
@@ -4033,6 +4070,7 @@
               "id": 2,
               "name": "Варка сусла с охмелением",
               "description": "Варка охмеленного сусла при температуре 100°C",
+              "operation_class_id": 3,
               "profession_id": 1,
               "step_number": 2,
               "equipment": {

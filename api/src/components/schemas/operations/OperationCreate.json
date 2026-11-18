@@ -7,8 +7,10 @@
       "type": "object",
       "required": [
         "name",
+        "operation_class_id",
         "profession_id",
         "equipment",
+        "step_number",
         "materials"
       ],
       "properties": {
@@ -51,6 +53,7 @@
   "example": {
     "name": "Варка сусла с охмелением",
     "description": "Варка сусла при температуре 100°C с добавлением хмеля",
+    "operation_class_id": 3,
     "profession_id": 1,
     "step_number": 1,
     "equipment": {

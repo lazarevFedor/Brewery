@@ -47,6 +47,7 @@
         "id": 1,
         "name": "Затирание солода",
         "description": "Затирание дробленого солода с водой при контролируемых температурных паузах",
+        "operation_class_id": 3,
         "profession_id": 1,
         "step_number": 1,
         "equipment": {
@@ -70,6 +71,7 @@
         "id": 2,
         "name": "Варка сусла с охмелением",
         "description": "Варка охмеленного сусла при температуре 100°C",
+        "operation_class_id": 3,
         "profession_id": 1,
         "step_number": 2,
         "equipment": {
