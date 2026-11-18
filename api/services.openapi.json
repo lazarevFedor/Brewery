@@ -2818,6 +2818,9 @@
             "type": "boolean",
             "description": "Флаг, указывающий, является ли изделие конечным готовым продуктом (true), а не базовым материалом или полуфабрикатом в переходном состоянии (false)",
             "example": true
+          },
+          "price": {
+            "type": "integer"
           }
         }
       },
@@ -2887,7 +2890,8 @@
             "type": "object",
             "required": [
               "name",
-              "class"
+              "class",
+              "price"
             ],
             "properties": {
               "class": {
@@ -2902,6 +2906,9 @@
                 "type": "integer"
               },
               "units": {
+                "type": "string"
+              },
+              "price": {
                 "type": "string"
               },
               "is_final_product": {
@@ -3079,6 +3086,12 @@
             "format": "double",
             "example": 37.5,
             "description": "Сколько всего материала требуется для изготовления изделия"
+          },
+          "total_cost": {
+            "type": "number",
+            "format": "double",
+            "example": 37.5,
+            "description": "Цена всех материалов"
           },
           "units": {
             "type": "string",
@@ -3377,7 +3390,7 @@
           },
           "labor_cost": {
             "type": "number",
-            "description": "Трудозатратность операции (человеко-часы)",
+            "description": "Трудозатратность операции (сумма )",
             "example": 2.5
           },
           "parameters": {
@@ -3810,6 +3823,9 @@
             "type": "boolean",
             "description": "Флаг конечного готового продукта",
             "example": false
+          },
+          "price": {
+            "type": "integer"
           }
         }
       },

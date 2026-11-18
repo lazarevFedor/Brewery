@@ -7,7 +7,8 @@
       "type": "object",
       "required": [
         "name",
-        "class"
+        "class",
+        "price"
       ],
       "properties": {
         "class": {
@@ -22,6 +23,9 @@
           "type": "integer"
         },
         "units": {
+          "type": "string"
+        },
+        "price": {
           "type": "string"
         },
         "is_final_product": {
