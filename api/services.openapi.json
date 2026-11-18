@@ -20,8 +20,8 @@
       "description": "Все операции, связанные с классами изделий"
     },
     {
-      "name": "ClassParams",
-      "description": "Операции связанные с параметрами классов"
+      "name": "RangeParameters",
+      "description": "Операции, связанные с числовыми параметрами"
     },
     {
       "name": "Aggregates",
@@ -40,8 +40,8 @@
       "description": "Операции, связанные с историей изменений изделий"
     },
     {
-      "name": "EnumsClass",
-      "description": "Операции, связанные с классами перечислений "
+      "name": "EnumParameters",
+      "description": "Операции, связанные с перечисляемыми параметрами"
     },
     {
       "name": "EnumsValue",
@@ -362,7 +362,7 @@
     "/classes/parameters": {
       "get": {
         "tags": [
-          "ClassParams"
+          "Classes"
         ],
         "summary": "Get all parameters with optional filtering by class and type",
         "operationId": "ListClassParameters",
@@ -372,19 +372,6 @@
           },
           {
             "$ref": "#/components/parameters/ParamType"
-          },
-          {
-            "name": "type",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "range",
-                "enum"
-              ]
-            },
-            "description": "Filter parameters by type. If omitted, returns both range and enum parameters."
           }
         ],
         "responses": {
@@ -398,274 +385,11 @@
                     "oneOf": [
                       {
                         "$ref": "#/components/schemas/RangeParameter"
+                      },
+                      {
+                        "$ref": "#/components/schemas/EnumParameter"
                       }
                     ]
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/400_bad_request"
-          },
-          "404": {
-            "$ref": "#/components/responses/404_not_found"
-          },
-          "500": {
-            "$ref": "#/components/responses/500_internal_server_error"
-          }
-        }
-      }
-    },
-    "/classes/parameters/range": {
-      "post": {
-        "tags": [
-          "ClassParams"
-        ],
-        "summary": "Create range parameter",
-        "operationId": "createRangeParameter",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RangeParameterCreate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Range parameter created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RangeParameter"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/400_bad_request"
-          },
-          "404": {
-            "$ref": "#/components/responses/404_not_found"
-          },
-          "409": {
-            "$ref": "#/components/responses/409_conflict"
-          },
-          "500": {
-            "$ref": "#/components/responses/500_internal_server_error"
-          }
-        }
-      }
-    },
-    "/classes/parameters/{id}": {
-      "patch": {
-        "tags": [
-          "ClassParams"
-        ],
-        "summary": "Update parameter",
-        "operationId": "UpdateClassParameter",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/Id"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "oneOf": [
-                  {
-                    "$ref": "#/components/schemas/RangeParameterUpdate"
-                  }
-                ]
-              },
-              "examples": {
-                "range": {
-                  "$ref": "#/components/examples/RangeParameterUpdate"
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Parameter updated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "oneOf": [
-                    {
-                      "$ref": "#/components/schemas/RangeParameter"
-                    }
-                  ]
-                },
-                "examples": {
-                  "range": {
-                    "$ref": "#/components/examples/RangeParameter"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/400_bad_request"
-          },
-          "404": {
-            "$ref": "#/components/responses/404_not_found"
-          },
-          "422": {
-            "$ref": "#/components/responses/422_validation_error"
-          },
-          "500": {
-            "$ref": "#/components/responses/500_internal_server_error"
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "ClassParams"
-        ],
-        "summary": "Delete parameter",
-        "operationId": "DeleteClassParameter",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/Id"
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Parameter deleted"
-          },
-          "400": {
-            "$ref": "#/components/responses/400_bad_request"
-          },
-          "404": {
-            "$ref": "#/components/responses/404_not_found"
-          },
-          "500": {
-            "$ref": "#/components/responses/500_internal_server_error"
-          }
-        }
-      }
-    },
-    "/classes/parameters/apply/{class_id}": {
-      "patch": {
-        "tags": [
-          "ClassParams"
-        ],
-        "summary": "Apply parameters to class",
-        "operationId": "ApplyParametersToClass",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/classId"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ClassParamsApply"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Parameters applied successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    },
-                    "params_added": {
-                      "type": "integer"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/400_bad_request"
-          },
-          "404": {
-            "$ref": "#/components/responses/404_not_found"
-          },
-          "500": {
-            "$ref": "#/components/responses/500_internal_server_error"
-          }
-        }
-      }
-    },
-    "/classes/parameters/exclude/{class_id}": {
-      "patch": {
-        "tags": [
-          "ClassParams"
-        ],
-        "summary": "Exclude parameters from class",
-        "operationId": "ExcludeParametersFromClass",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/classId"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ClassParamsExclude"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Parameters excluded successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    },
-                    "params_excluded": {
-                      "type": "integer"
-                    }
                   }
                 }
               }
@@ -1665,10 +1389,10 @@
     "/enums": {
       "post": {
         "tags": [
-          "EnumsClass"
+          "EnumParameters"
         ],
-        "summary": "Create enum class",
-        "operationId": "createEnumClass",
+        "summary": "Create enum parameter",
+        "operationId": "createEnumParameter",
         "security": [
           {
             "bearerAuth": []
@@ -1679,18 +1403,18 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/EnumClassCreate"
+                "$ref": "#/components/schemas/EnumParameterCreate"
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Enum class created",
+            "description": "Enum parameter created",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EnumClass"
+                  "$ref": "#/components/schemas/EnumParameter"
                 }
               }
             }
@@ -1708,10 +1432,10 @@
       },
       "get": {
         "tags": [
-          "EnumsClass"
+          "EnumParameters"
         ],
-        "summary": "Get enum classes",
-        "operationId": "listEnumClasses",
+        "summary": "Get enum parameters",
+        "operationId": "listEnumParameters",
         "security": [
           {
             "bearerAuth": []
@@ -1724,13 +1448,13 @@
         ],
         "responses": {
           "200": {
-            "description": "Enum class list",
+            "description": "Enum parameter list",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/EnumClass"
+                    "$ref": "#/components/schemas/EnumParameter"
                   }
                 }
               }
@@ -1751,10 +1475,10 @@
     "/enums/{id}": {
       "patch": {
         "tags": [
-          "EnumsClass"
+          "EnumParameters"
         ],
-        "summary": "Update enum class",
-        "operationId": "updateEnumClass",
+        "summary": "Update enum parameter",
+        "operationId": "updateEnumParameter",
         "security": [
           {
             "bearerAuth": []
@@ -1770,18 +1494,18 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/EnumClassUpdate"
+                "$ref": "#/components/schemas/EnumParameterUpdate"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Updated enum class",
+            "description": "Updated enum parameter",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EnumClass"
+                  "$ref": "#/components/schemas/EnumParameter"
                 }
               }
             }
@@ -1799,10 +1523,10 @@
       },
       "delete": {
         "tags": [
-          "EnumsClass"
+          "EnumParameters"
         ],
-        "summary": "Delete enum class",
-        "operationId": "deleteEnumClass",
+        "summary": "Delete enum parameter",
+        "operationId": "deleteEnumParameter",
         "security": [
           {
             "bearerAuth": []
@@ -2468,6 +2192,325 @@
           }
         }
       }
+    },
+    "/range": {
+      "post": {
+        "tags": [
+          "RangeParameters"
+        ],
+        "summary": "Create range parameter",
+        "operationId": "createRangeParameter",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RangeParameterCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Range parameter created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RangeParameter"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "RangeParameters"
+        ],
+        "summary": "Get range parameters",
+        "description": "Returns all range parameters. When field_name is provided, returns only exact matches. Returns an empty array if no parameters match.",
+        "operationId": "listRangeParameters",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "field_name",
+            "in": "query",
+            "required": false,
+            "description": "Optional exact field name filter",
+            "schema": {
+              "type": "string"
+            },
+            "example": "amount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Range parameter list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RangeParameter"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/classes/parameters/apply/{id}": {
+      "patch": {
+        "tags": [
+          "Classes"
+        ],
+        "summary": "Apply parameters to class",
+        "operationId": "ApplyParametersToClass",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClassParamsApply"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Parameters applied successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "params_added": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/classes/parameters/exclude/{id}": {
+      "patch": {
+        "tags": [
+          "Classes"
+        ],
+        "summary": "Exclude parameters from class",
+        "operationId": "ExcludeParametersFromClass",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClassParamsExclude"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Parameters excluded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "params_excluded": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
+    },
+    "/range/{id}": {
+      "patch": {
+        "tags": [
+          "RangeParameters"
+        ],
+        "summary": "Update range parameter",
+        "operationId": "updateRangeParameter",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/RangeParameterUpdate"
+                  }
+                ]
+              },
+              "examples": {
+                "range": {
+                  "$ref": "#/components/examples/RangeParameterUpdate"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Range parameter updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/RangeParameter"
+                    }
+                  ]
+                },
+                "examples": {
+                  "range": {
+                    "$ref": "#/components/examples/RangeParameter"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "422": {
+            "$ref": "#/components/responses/422_validation_error"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "RangeParameters"
+        ],
+        "summary": "Delete range parameter",
+        "operationId": "deleteRangeParameter",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Range parameter deleted"
+          },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
+          "404": {
+            "$ref": "#/components/responses/404_not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/500_internal_server_error"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2835,7 +2878,8 @@
               "id",
               "name",
               "class_id",
-              "base_id"
+              "base_id",
+              "parameters"
             ],
             "properties": {
               "id": {
@@ -2846,6 +2890,7 @@
               },
               "parameters": {
                 "type": "object",
+                "description": "Values keyed by field_name. Parameters must be allowed for the product class. Enum values must belong to the parameter; numeric values must fit its range and NUMERIC(8, 3).",
                 "additionalProperties": {
                   "oneOf": [
                     {
@@ -2916,6 +2961,24 @@
                 "default": false,
                 "description": "Флаг, указывающий, является ли создаваемый продукт конечным готовым изделием",
                 "example": true
+              },
+              "parameters": {
+                "type": "object",
+                "description": "Values keyed by field_name. Parameters must be allowed for the product class. Enum values must belong to the parameter; numeric values must fit its range and NUMERIC(8, 3).",
+                "additionalProperties": {
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                }
+              },
+              "class_id": {
+                "type": "integer",
+                "minimum": 1
               }
             },
             "example": {
@@ -2926,8 +2989,24 @@
               "base_id": null,
               "amount": 100,
               "units": "L",
-              "is_final_product": true
-            }
+              "is_final_product": true,
+              "parameters": {
+                "volume": 12.5,
+                "city": "Москва"
+              }
+            },
+            "anyOf": [
+              {
+                "required": [
+                  "class_id"
+                ]
+              },
+              {
+                "required": [
+                  "class"
+                ]
+              }
+            ]
           }
         ]
       },
@@ -2957,8 +3036,25 @@
                 "type": "boolean",
                 "description": "Флаг, указывающий, является ли продукт конечным готовым изделием",
                 "example": true
+              },
+              "parameters": {
+                "type": "object",
+                "description": "Updates only the supplied parameter fields; null removes an individual value. An empty object leaves parameters unchanged.",
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    {
+                      "type": "number",
+                      "nullable": true
+                    }
+                  ]
+                }
               }
-            }
+            },
+            "description": "Changing class_id revalidates retained parameters against the new class; remove incompatible fields with null in the same request."
           }
         ]
       },
@@ -3087,12 +3183,6 @@
             "example": 37.5,
             "description": "Сколько всего материала требуется для изготовления изделия"
           },
-          "total_cost": {
-            "type": "number",
-            "format": "double",
-            "example": 37.5,
-            "description": "Цена всех материалов"
-          },
           "units": {
             "type": "string",
             "example": "kg"
@@ -3214,88 +3304,6 @@
           }
         }
       },
-      "EnumClassBase": {
-        "type": "object",
-        "required": [
-          "field_name"
-        ],
-        "properties": {
-          "field_name": {
-            "type": "string"
-          }
-        }
-      },
-      "EnumClass": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/EnumClassBase"
-          },
-          {
-            "type": "object",
-            "required": [
-              "id",
-              "enum_type",
-              "field_name",
-              "is_active",
-              "inheritable"
-            ],
-            "properties": {
-              "id": {
-                "type": "integer"
-              },
-              "enum_type": {
-                "type": "string"
-              },
-              "unit": {
-                "type": "string"
-              },
-              "is_active": {
-                "type": "boolean"
-              },
-              "inheritable": {
-                "type": "boolean"
-              }
-            }
-          }
-        ]
-      },
-      "EnumClassCreate": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/EnumClassBase"
-          },
-          {
-            "type": "object",
-            "required": [
-              "enum_type",
-              "field_name",
-              "is_active",
-              "inheritable"
-            ],
-            "properties": {
-              "enum_type": {
-                "type": "string"
-              },
-              "unit": {
-                "type": "string"
-              },
-              "is_active": {
-                "type": "boolean"
-              },
-              "inheritable": {
-                "type": "boolean"
-              }
-            }
-          }
-        ]
-      },
-      "EnumClassUpdate": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/EnumClassCreate"
-          }
-        ]
-      },
       "EnumValueBase": {
         "type": "object",
         "properties": {
@@ -3317,7 +3325,7 @@
             "required": [
               "id",
               "enum_type",
-              "class_id",
+              "parameter_id",
               "value",
               "position"
             ],
@@ -3328,7 +3336,7 @@
               "enum_type": {
                 "type": "string"
               },
-              "class_id": {
+              "parameter_id": {
                 "type": "integer"
               }
             }
@@ -3343,7 +3351,7 @@
           {
             "type": "object",
             "required": [
-              "class_id",
+              "parameter_id",
               "enum_type",
               "value",
               "position"
@@ -3352,7 +3360,7 @@
               "enum_type": {
                 "type": "string"
               },
-              "class_id": {
+              "parameter_id": {
                 "type": "integer"
               }
             }
@@ -3390,7 +3398,7 @@
           },
           "labor_cost": {
             "type": "number",
-            "description": "Трудозатратность операции (сумма )",
+            "description": "Трудозатратность операции (человеко-часы)",
             "example": 2.5
           },
           "parameters": {
@@ -3936,6 +3944,80 @@
             }
           ]
         }
+      },
+      "EnumParameterBase": {
+        "type": "object",
+        "required": [
+          "field_name"
+        ],
+        "properties": {
+          "field_name": {
+            "type": "string"
+          }
+        }
+      },
+      "EnumParameter": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumParameterBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "enum_type",
+              "field_name",
+              "inheritable"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "enum_type": {
+                "type": "string"
+              },
+              "unit": {
+                "type": "string"
+              },
+              "inheritable": {
+                "type": "boolean"
+              }
+            }
+          }
+        ]
+      },
+      "EnumParameterCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumParameterBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "enum_type",
+              "field_name",
+              "inheritable"
+            ],
+            "properties": {
+              "enum_type": {
+                "type": "string"
+              },
+              "unit": {
+                "type": "string"
+              },
+              "inheritable": {
+                "type": "boolean"
+              }
+            }
+          }
+        ]
+      },
+      "EnumParameterUpdate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EnumParameterCreate"
+          }
+        ]
       }
     },
     "responses": {
@@ -4101,7 +4183,7 @@
         "name": "filter",
         "in": "query",
         "required": false,
-        "description": "Repeated filter in the form field:op:value. Use eq for exact product filtering.",
+        "description": "Repeated filter in the form field:op:value. Use eq for exact product filtering by saved numeric or enum values. A class parameter takes precedence over a standard product field with the same name.",
         "schema": {
           "type": "string"
         },
@@ -4116,7 +4198,7 @@
         "name": "filter",
         "in": "query",
         "required": false,
-        "description": "Repeated filter in the form field:op:value. Use gte/lte/in to filter class products by range ranges or allowed enum values.",
+        "description": "Repeated filter in the form field:op:value. Use gte/lte for saved numeric values and in for a comma-separated list of saved enum values. A class parameter takes precedence over a standard product field with the same name.",
         "schema": {
           "type": "string"
         },
@@ -4214,12 +4296,6 @@
           "inheritable": false
         }
       },
-      "EnumParameterUpdate": {
-        "value": {
-          "enum_class_id": 2,
-          "inheritable": false
-        }
-      },
       "RangeParameter": {
         "value": {
           "id": 10,
@@ -4232,7 +4308,17 @@
       "EnumParameter": {
         "value": {
           "id": 11,
-          "enum_class_id": 2,
+          "enum_type": "string",
+          "field_name": "city",
+          "unit": "",
+          "inheritable": false
+        }
+      },
+      "EnumParameterUpdate": {
+        "value": {
+          "enum_type": "string",
+          "field_name": "city",
+          "unit": "",
           "inheritable": false
         }
       }
