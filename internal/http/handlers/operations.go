@@ -4,6 +4,7 @@ import (
 	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
@@ -77,6 +78,7 @@ type operationResponse struct {
 	ID           int64                  `json:"id"`
 	Name         string                 `json:"name"`
 	Description  string                 `json:"description,omitempty"`
+	ClassID      int64                  `json:"operation_class_id"`
 	ProfessionID int64                  `json:"profession_id"`
 	StepNumber   int32                  `json:"step_number,omitempty"`
 	LaborCost    float64                `json:"labor_cost"`
@@ -106,6 +108,7 @@ type operationMaterialRequest struct {
 type operationCreateRequest struct {
 	Name         string                   `json:"name"`
 	Description  string                   `json:"description,omitempty"`
+	ClassID      int64                    `json:"operation_class_id"`
 	ProfessionID int64                    `json:"profession_id"`
 	Equipment    equipmentRequest         `json:"equipment"`
 	StepNumber   int32                    `json:"step_number,omitempty"`
@@ -119,6 +122,7 @@ func newOperationResponse(op entities.Operation) operationResponse {
 		ID:           op.ID,
 		Name:         op.Name,
 		Description:  op.Description,
+		ClassID:      op.ClassID,
 		ProfessionID: op.ProfessionID,
 		StepNumber:   op.StepNumber,
 		LaborCost:    op.LaborCost,
@@ -249,6 +253,7 @@ func (h *operationHandlers) CreateOperation(c *gin.Context) {
 	opEntity := entities.Operation{
 		Name:         req.Name,
 		Description:  req.Description,
+		ClassID:      req.ClassID,
 		ProfessionID: req.ProfessionID,
 		StepNumber:   req.StepNumber,
 		LaborCost:    req.LaborCost,
@@ -311,8 +316,15 @@ func (h *operationHandlers) UpdateOperation(c *gin.Context) {
 		return
 	}
 
-	updates, ok := bindUpdates(c)
-	if !ok {
+	var updates map[string]any
+	decoder := json.NewDecoder(c.Request.Body)
+	decoder.UseNumber()
+	if decodeErr := decoder.Decode(&updates); decodeErr != nil {
+		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidJSON, "Request body is not valid JSON")
+		return
+	}
+	if len(updates) == 0 {
+		writeError(c, http.StatusBadRequest, apperrors.CodeBadRequest, "Empty update payload")
 		return
 	}
 
