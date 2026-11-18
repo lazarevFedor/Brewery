@@ -10,13 +10,15 @@
       "description": "Флаг, указывающий, является ли изделие конечным готовым продуктом (true), а не базовым материалом или полуфабрикатом в переходном состоянии (false)",
       "example": true
     },
-    "Is_purchased": {
+    "is_purchased": {
       "type": "boolean",
-      "description": "Флаг, указывающий, является ли изделие конечным готовым продуктом (true), а не базовым материалом или полуфабрикатом в переходном состоянии (false)",
-      "example": true
+      "description": "Флаг покупного изделия",
+      "example": false
     },
     "price": {
-          "type": "integer"
+      "type": "integer",
+      "description": "Цена изделия",
+      "example": 100
     }
   }
 }

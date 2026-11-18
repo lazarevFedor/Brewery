@@ -15,17 +15,17 @@ type EquipmentService interface {
 	// CreateEquipment создает новую единицу оборудования.
 	CreateEquipment(ctx context.Context, eq entities.Equipment) (*entities.Equipment, error)
 
-	// GetEquipment возвращает список оборудования с учетом пагинации.
-	GetEquipment(ctx context.Context, limit, offset int32) ([]entities.Equipment, error)
+	// GetEquipment возвращает список оборудования с учетом пагинации и опциональной фильтрации.
+	GetEquipment(ctx context.Context, limit, offset int32, name, workCenter *string) ([]entities.Equipment, error)
 
-	// GetEquipmentByName возвращает оборудование по названию.
-	GetEquipmentByName(ctx context.Context, name string) (*entities.Equipment, error)
+	// GetEquipmentByKey возвращает оборудование по составному первичному ключу (name, work_center).
+	GetEquipmentByKey(ctx context.Context, name, workCenter string) (*entities.Equipment, error)
 
-	// UpdateEquipment обновляет поля оборудования по названию.
-	UpdateEquipment(ctx context.Context, name string, updates map[string]any) (*entities.Equipment, error)
+	// UpdateEquipment обновляет поля оборудования по составному первичному ключу (name, work_center).
+	UpdateEquipment(ctx context.Context, name, workCenter string, updates map[string]any) (*entities.Equipment, error)
 
-	// DeleteEquipment удаляет оборудование по названию.
-	DeleteEquipment(ctx context.Context, name string) error
+	// DeleteEquipment удаляет оборудование по составному первичному ключу (name, work_center).
+	DeleteEquipment(ctx context.Context, name, workCenter string) error
 }
 
 // EquipmentHandlers определяет HTTP-обработчики для оборудования.
@@ -36,13 +36,13 @@ type EquipmentHandlers interface {
 	// CreateEquipment обрабатывает POST /equipment.
 	CreateEquipment(c *gin.Context)
 
-	// GetEquipment обрабатывает GET /equipment/{name}.
+	// GetEquipment обрабатывает GET /equipment/{name}/{work_center}.
 	GetEquipment(c *gin.Context)
 
-	// UpdateEquipment обрабатывает PATCH /equipment/{name}.
+	// UpdateEquipment обрабатывает PATCH /equipment/{name}/{work_center}.
 	UpdateEquipment(c *gin.Context)
 
-	// DeleteEquipment обрабатывает DELETE /equipment/{name}.
+	// DeleteEquipment обрабатывает DELETE /equipment/{name}/{work_center}.
 	DeleteEquipment(c *gin.Context)
 }
 
@@ -80,6 +80,18 @@ func newEquipmentListResponse(list []entities.Equipment) []equipmentResponse {
 	return resp
 }
 
+func getEquipmentKeyParams(c *gin.Context) (name string, workCenter string, err error) {
+	name = c.Param("name")
+	workCenter = c.Param("work_center")
+	if workCenter == "" {
+		workCenter = c.Query("work_center")
+	}
+	if name == "" || workCenter == "" {
+		return "", "", errors.New("name and work_center are required")
+	}
+	return name, workCenter, nil
+}
+
 type equipmentHandlers struct {
 	uc EquipmentService
 }
@@ -102,7 +114,17 @@ func (h *equipmentHandlers) ListEquipment(c *gin.Context) {
 		return
 	}
 
-	items, err := h.uc.GetEquipment(c.Request.Context(), limit, offset)
+	var namePtr *string
+	if raw := c.Query("name"); raw != "" {
+		namePtr = &raw
+	}
+
+	var workCenterPtr *string
+	if raw := c.Query("work_center"); raw != "" {
+		workCenterPtr = &raw
+	}
+
+	items, err := h.uc.GetEquipment(c.Request.Context(), limit, offset, namePtr, workCenterPtr)
 	if err != nil {
 		handleError(c, log, "failed to list equipment", err)
 		return
@@ -137,20 +159,20 @@ func (h *equipmentHandlers) CreateEquipment(c *gin.Context) {
 	c.JSON(http.StatusCreated, newEquipmentResponse(*created))
 }
 
-// GetEquipment обрабатывает GET /equipment/{name}.
+// GetEquipment обрабатывает GET /equipment/{name}/{work_center}.
 func (h *equipmentHandlers) GetEquipment(c *gin.Context) {
 	log, ok := getLogger(c)
 	if !ok {
 		return
 	}
 
-	name := c.Param("name")
-	if name == "" {
-		badRequest(c, log, apperrors.CodeInvalidParameters, errors.New("name is required"))
+	name, workCenter, err := getEquipmentKeyParams(c)
+	if err != nil {
+		badRequest(c, log, apperrors.CodeInvalidParameters, err)
 		return
 	}
 
-	eq, err := h.uc.GetEquipmentByName(c.Request.Context(), name)
+	eq, err := h.uc.GetEquipmentByKey(c.Request.Context(), name, workCenter)
 	if err != nil {
 		handleError(c, log, "failed to get equipment", err)
 		return
@@ -159,16 +181,16 @@ func (h *equipmentHandlers) GetEquipment(c *gin.Context) {
 	c.JSON(http.StatusOK, newEquipmentResponse(*eq))
 }
 
-// UpdateEquipment обрабатывает PATCH /equipment/{name}.
+// UpdateEquipment обрабатывает PATCH /equipment/{name}/{work_center}.
 func (h *equipmentHandlers) UpdateEquipment(c *gin.Context) {
 	log, ok := getLogger(c)
 	if !ok {
 		return
 	}
 
-	name := c.Param("name")
-	if name == "" {
-		badRequest(c, log, apperrors.CodeInvalidParameters, errors.New("name is required"))
+	name, workCenter, err := getEquipmentKeyParams(c)
+	if err != nil {
+		badRequest(c, log, apperrors.CodeInvalidParameters, err)
 		return
 	}
 
@@ -177,7 +199,7 @@ func (h *equipmentHandlers) UpdateEquipment(c *gin.Context) {
 		return
 	}
 
-	updated, err := h.uc.UpdateEquipment(c.Request.Context(), name, updates)
+	updated, err := h.uc.UpdateEquipment(c.Request.Context(), name, workCenter, updates)
 	if err != nil {
 		handleError(c, log, "failed to update equipment", err)
 		return
@@ -186,20 +208,20 @@ func (h *equipmentHandlers) UpdateEquipment(c *gin.Context) {
 	c.JSON(http.StatusOK, newEquipmentResponse(*updated))
 }
 
-// DeleteEquipment обрабатывает DELETE /equipment/{name}.
+// DeleteEquipment обрабатывает DELETE /equipment/{name}/{work_center}.
 func (h *equipmentHandlers) DeleteEquipment(c *gin.Context) {
 	log, ok := getLogger(c)
 	if !ok {
 		return
 	}
 
-	name := c.Param("name")
-	if name == "" {
-		badRequest(c, log, apperrors.CodeInvalidParameters, errors.New("name is required"))
+	name, workCenter, err := getEquipmentKeyParams(c)
+	if err != nil {
+		badRequest(c, log, apperrors.CodeInvalidParameters, err)
 		return
 	}
 
-	if err := h.uc.DeleteEquipment(c.Request.Context(), name); err != nil {
+	if err := h.uc.DeleteEquipment(c.Request.Context(), name, workCenter); err != nil {
 		handleError(c, log, "failed to delete equipment", err)
 		return
 	}

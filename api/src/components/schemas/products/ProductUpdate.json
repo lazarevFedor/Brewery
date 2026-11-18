@@ -42,7 +42,17 @@
           }
         }
       },
-      "description": "Changing class_id revalidates retained parameters against the new class; remove incompatible fields with null in the same request."
+      "description": "Changing class_id revalidates retained parameters against the new class; remove incompatible fields with null in the same request.",
+      "example": {
+        "name": "Балтика 0 Экстра",
+        "price": 120,
+        "is_purchased": false,
+        "is_final_product": true,
+        "class_id": 1,
+        "base_id": null,
+        "amount": 100,
+        "units": "L"
+      }
     }
   ]
 }

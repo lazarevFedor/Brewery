@@ -26,7 +26,9 @@
           "type": "string"
         },
         "price": {
-          "type": "string"
+          "type": "integer",
+          "description": "Цена изделия",
+          "example": 100
         },
         "is_final_product": {
           "type": "boolean",
@@ -61,6 +63,8 @@
         "base_id": null,
         "amount": 100,
         "units": "L",
+        "price": 100,
+        "is_purchased": false,
         "is_final_product": true,
         "parameters": {
           "volume": 12.5,

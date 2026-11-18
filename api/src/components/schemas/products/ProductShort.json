@@ -21,7 +21,15 @@
       "example": false
     },
     "price": {
-          "type": "integer"
+      "type": "integer",
+      "description": "Цена изделия",
+      "example": 100
     }
+  },
+  "example": {
+    "id": 1,
+    "name": "Солодовое сусло",
+    "is_final_product": false,
+    "price": 100
   }
 }

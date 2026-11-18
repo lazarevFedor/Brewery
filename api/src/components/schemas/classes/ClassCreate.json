@@ -16,5 +16,9 @@
         }
       }
     }
-  ]
+  ],
+  "example": {
+    "name": "Пиво",
+    "parent_id": null
+  }
 }
