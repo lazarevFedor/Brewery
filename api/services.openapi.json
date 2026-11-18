@@ -3956,7 +3956,6 @@
               "id",
               "enum_type",
               "field_name",
-              "is_active",
               "inheritable"
             ],
             "properties": {
@@ -3968,9 +3967,6 @@
               },
               "unit": {
                 "type": "string"
-              },
-              "is_active": {
-                "type": "boolean"
               },
               "inheritable": {
                 "type": "boolean"
@@ -3989,7 +3985,6 @@
             "required": [
               "enum_type",
               "field_name",
-              "is_active",
               "inheritable"
             ],
             "properties": {
@@ -3998,9 +3993,6 @@
               },
               "unit": {
                 "type": "string"
-              },
-              "is_active": {
-                "type": "boolean"
               },
               "inheritable": {
                 "type": "boolean"
@@ -4308,7 +4300,6 @@
           "enum_type": "string",
           "field_name": "city",
           "unit": "",
-          "is_active": true,
           "inheritable": false
         }
       },
@@ -4317,7 +4308,6 @@
           "enum_type": "string",
           "field_name": "city",
           "unit": "",
-          "is_active": true,
           "inheritable": false
         }
       }

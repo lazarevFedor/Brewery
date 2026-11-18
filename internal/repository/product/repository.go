@@ -39,6 +39,10 @@ func (repo *Repository) InsertProduct(ctx context.Context, product entities.Prod
 	defer func() { _ = tx.Rollback(ctx) }()
 	qTx := repo.query.WithTx(tx)
 
+	if err := validateParameterAssignments(ctx, qTx, product.ProdClass.ID, values); err != nil {
+		return nil, err
+	}
+
 	params := queries.InsertProductParams{
 		Name:    product.Name,
 		Amount:  &product.Amount,
@@ -60,7 +64,7 @@ func (repo *Repository) InsertProduct(ctx context.Context, product entities.Prod
 			return nil, fmt.Errorf("CopyBaseMaterials: %w", err)
 		}
 	}
-	if err := saveParameters(ctx, qTx, productRow.ID, product.ProdClass.ID, values); err != nil {
+	if err := saveParameters(ctx, qTx, productRow.ID, values); err != nil {
 		return nil, err
 	}
 	created, err := repo.getProduct(ctx, qTx, productRow.ID)
@@ -149,10 +153,9 @@ func (repo *Repository) UpdateProduct(ctx context.Context, id int64, changes ent
 			params.Units = &units
 		}
 	}
-	if val, ok := updates["class_id"]; ok {
-		if classID, ok := val.(int64); ok {
-			params.ClassID = &classID
-		}
+	if newClassID, ok := updates["class_id"].(int64); ok {
+		classID = newClassID
+		params.ClassID = &newClassID
 	}
 	if val, ok := updates["base_id"]; ok {
 		if baseID, ok := val.(int64); ok {
@@ -160,8 +163,10 @@ func (repo *Repository) UpdateProduct(ctx context.Context, id int64, changes ent
 		}
 	}
 
-	dbProduct, err := qTx.UpdateProduct(ctx, params)
-	if err != nil {
+	if err := validateParameterAssignments(ctx, qTx, classID, changes.ParameterValues); err != nil {
+		return nil, err
+	}
+	if _, err := qTx.UpdateProduct(ctx, params); err != nil {
 		return nil, fmt.Errorf("UpdateProduct: %w", err)
 	}
 
@@ -187,7 +192,7 @@ func (repo *Repository) UpdateProduct(ctx context.Context, id int64, changes ent
 	if err != nil {
 		return nil, err
 	}
-	if err := saveParameters(ctx, qTx, id, dbProduct.ClassID, changes.ParameterValues); err != nil {
+	if err := saveParameters(ctx, qTx, id, changes.ParameterValues); err != nil {
 		return nil, err
 	}
 	updated, err := repo.getProduct(ctx, qTx, id)

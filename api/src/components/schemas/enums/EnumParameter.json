@@ -9,7 +9,6 @@
         "id",
         "enum_type",
         "field_name",
-        "is_active",
         "inheritable"
       ],
       "properties": {
@@ -21,9 +20,6 @@
         },
         "unit": {
           "type": "string"
-        },
-        "is_active": {
-          "type": "boolean"
         },
         "inheritable": {
           "type": "boolean"

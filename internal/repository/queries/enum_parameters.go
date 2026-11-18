@@ -8,7 +8,7 @@ import (
 
 const (
 	enumParametersTable = "enum_parameters"
-	enumParameterFields = "id, enum_type, field_name, unit, is_active, inheritable"
+	enumParameterFields = "id, enum_type, field_name, unit, inheritable"
 )
 
 // InsertEnumParameter возвращает запрос на вставку перечисляемого параметра.
@@ -16,7 +16,6 @@ func InsertEnumParameter(parameter entities.EnumClass) sq.InsertBuilder {
 	data := map[string]any{
 		"enum_type":   parameter.Type,
 		"field_name":  parameter.FieldName,
-		"is_active":   parameter.IsActive,
 		"inheritable": parameter.Inheritable,
 	}
 

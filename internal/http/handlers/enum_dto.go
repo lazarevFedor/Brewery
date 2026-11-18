@@ -8,7 +8,6 @@ type enumParameter struct {
 	EnumType    string `json:"enum_type"`
 	FieldName   string `json:"field_name"`
 	Unit        string `json:"unit,omitempty"`
-	IsActive    bool   `json:"is_active"`
 	Inheritable bool   `json:"inheritable"`
 }
 
@@ -18,7 +17,6 @@ func (p enumParameter) toEntity() entities.EnumClass {
 		Type:        p.EnumType,
 		FieldName:   p.FieldName,
 		Unit:        p.Unit,
-		IsActive:    p.IsActive,
 		Inheritable: p.Inheritable,
 	}
 }
@@ -29,7 +27,6 @@ func enumParameterFromEntity(p entities.EnumClass) enumParameter {
 		EnumType:    p.Type,
 		FieldName:   p.FieldName,
 		Unit:        p.Unit,
-		IsActive:    p.IsActive,
 		Inheritable: p.Inheritable,
 	}
 }

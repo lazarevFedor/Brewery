@@ -64,13 +64,14 @@ func (repo *Repository) loadParameters(ctx context.Context, q *queries.Queries, 
 	return nil
 }
 
-func saveParameters(ctx context.Context, q *queries.Queries, productID, classID int64, values []entities.ProductParameterValue) error {
+func validateParameterAssignments(ctx context.Context, q *queries.Queries, classID int64, values []entities.ProductParameterValue) error {
 	if len(values) == 0 {
 		return nil
 	}
-	class, err := q.GetClassByID(ctx, classID)
+	// Hold the class stable until the product and its parameter values have been saved.
+	class, err := q.LockClassParameterIDs(ctx, classID)
 	if err != nil {
-		return err
+		return fmt.Errorf("lock class parameters: %w", err)
 	}
 	for _, value := range values {
 		if value.RangeParameterID != nil {
@@ -80,10 +81,6 @@ func saveParameters(ctx context.Context, q *queries.Queries, productID, classID 
 			if !containsID(class.NumericParameterIds, *value.RangeParameterID) {
 				return apperrors.Conflict("class parameters changed; reload the product and retry", nil)
 			}
-			err = q.InsertProductRangeValue(ctx, queries.InsertProductRangeValueParams{
-				ProductID: productID, RangeParameterID: value.RangeParameterID,
-				NumericValueRaw: strconv.FormatFloat(*value.NumericValue, 'f', 3, 64),
-			})
 		} else {
 			if value.EnumParameterID == nil || value.EnumValueID == nil || value.NumericValue != nil {
 				return errors.New("invalid enum parameter assignment")
@@ -91,6 +88,20 @@ func saveParameters(ctx context.Context, q *queries.Queries, productID, classID 
 			if !containsID(class.EnumParameterIds, *value.EnumParameterID) {
 				return apperrors.Conflict("class parameters changed; reload the product and retry", nil)
 			}
+		}
+	}
+	return nil
+}
+
+func saveParameters(ctx context.Context, q *queries.Queries, productID int64, values []entities.ProductParameterValue) error {
+	for _, value := range values {
+		var err error
+		if value.RangeParameterID != nil {
+			err = q.InsertProductRangeValue(ctx, queries.InsertProductRangeValueParams{
+				ProductID: productID, RangeParameterID: value.RangeParameterID,
+				NumericValueRaw: strconv.FormatFloat(*value.NumericValue, 'f', 3, 64),
+			})
+		} else {
 			err = q.InsertProductEnumValue(ctx, queries.InsertProductEnumValueParams{
 				ProductID: productID, EnumParameterID: value.EnumParameterID, EnumValueID: value.EnumValueID,
 			})

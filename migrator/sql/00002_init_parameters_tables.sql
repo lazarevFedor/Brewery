@@ -7,7 +7,6 @@ CREATE TABLE IF NOT EXISTS enum_parameters (
     enum_type TEXT NOT NULL, 
     field_name TEXT NOT NULL,
     unit TEXT,
-    is_active BOOLEAN NOT NULL DEFAULT FALSE,
     inheritable BOOLEAN NOT NULL DEFAULT FALSE
 );
 

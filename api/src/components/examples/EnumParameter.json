@@ -4,7 +4,6 @@
     "enum_type": "string",
     "field_name": "city",
     "unit": "",
-    "is_active": true,
     "inheritable": false
   }
 }

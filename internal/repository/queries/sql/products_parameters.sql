@@ -31,3 +31,6 @@ WHERE pp.product_id = ANY(sqlc.arg(product_ids)::bigint[]);
 
 -- name: LockProductClass :one
 SELECT class_id FROM products WHERE id = $1 FOR UPDATE;
+
+-- name: LockClassParameterIDs :one
+SELECT numeric_parameter_ids, enum_parameter_ids FROM classes WHERE id = $1 FOR SHARE;

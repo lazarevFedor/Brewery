@@ -144,7 +144,7 @@ func scanEnumParameter(row pgx.Row) (*entities.EnumClass, error) {
 	var parameter entities.EnumClass
 	var unit pgtype.Text
 
-	err := row.Scan(&parameter.ID, &parameter.Type, &parameter.FieldName, &unit, &parameter.IsActive, &parameter.Inheritable)
+	err := row.Scan(&parameter.ID, &parameter.Type, &parameter.FieldName, &unit, &parameter.Inheritable)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", "Scan", err)
 	}

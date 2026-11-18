@@ -16,7 +16,6 @@ const (
 
 type EnumType string
 
-//easyjson:skip
 type ParameterValueRow struct {
 	ID          int
 	EnumClassID int

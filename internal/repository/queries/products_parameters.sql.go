@@ -114,6 +114,22 @@ func (q *Queries) InsertProductRangeValue(ctx context.Context, arg InsertProduct
 	return err
 }
 
+const lockClassParameterIDs = `-- name: LockClassParameterIDs :one
+SELECT numeric_parameter_ids, enum_parameter_ids FROM classes WHERE id = $1 FOR SHARE
+`
+
+type LockClassParameterIDsRow struct {
+	NumericParameterIds []int64
+	EnumParameterIds    []int64
+}
+
+func (q *Queries) LockClassParameterIDs(ctx context.Context, id int64) (LockClassParameterIDsRow, error) {
+	row := q.db.QueryRow(ctx, lockClassParameterIDs, id)
+	var i LockClassParameterIDsRow
+	err := row.Scan(&i.NumericParameterIds, &i.EnumParameterIds)
+	return i, err
+}
+
 const lockProductClass = `-- name: LockProductClass :one
 SELECT class_id FROM products WHERE id = $1 FOR UPDATE
 `
