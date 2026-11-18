@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
 	"Brewery/internal/repository/material"
 	"context"
@@ -122,7 +123,7 @@ func (s *MaterialService) GetMaterialsByProduct(ctx context.Context, productID i
 			return nil, fmt.Errorf("request cancelled: %w", err)
 		}
 		if ancestors[id] {
-			return nil, fmt.Errorf("material composition contains a cycle at product %d", id)
+			return nil, apperrors.Validation(fmt.Sprintf("material composition contains a cycle at product %d", id), nil)
 		}
 		ancestors[id] = true
 		defer delete(ancestors, id)
@@ -195,42 +196,37 @@ func (s *MaterialService) GetMaterialNorms(ctx context.Context, productID int64,
 	if err != nil {
 		return nil, fmt.Errorf("failed to get materials by product: %w", err)
 	}
+	return collectMaterialNorms(rows, quantity, false), nil
+}
 
+// collectMaterialNorms группирует нормы по материалу, сохраняя каждое вхождение в состав.
+func collectMaterialNorms(rows []entities.MaterialProduct, quantity float32, baseOnly bool) []entities.MaterialProduct {
 	grouped := make(map[int64]entities.MaterialProduct)
-	var walk func(node entities.MaterialProduct, ancestors map[int64]struct{})
-	walk = func(node entities.MaterialProduct, ancestors map[int64]struct{}) {
+	var walk func(node entities.MaterialProduct)
+	walk = func(node entities.MaterialProduct) {
 		if node.MaterialID == 0 {
 			return
 		}
-		if _, seen := ancestors[node.MaterialID]; seen {
-			return
+		if !baseOnly || node.Base {
+			// Нормы каждого вхождения масштабируются количеством конечных изделий.
+			amount := node.MaterialAmount * quantity
+			if existing, ok := grouped[node.MaterialID]; ok {
+				existing.MaterialAmount += amount
+				grouped[node.MaterialID] = existing
+			} else {
+				item := node
+				item.MaterialAmount = amount
+				item.Materials = nil
+				grouped[node.MaterialID] = item
+			}
 		}
-
-		// Нормы каждого вхождения масштабируются только количеством конечных изделий.
-		amount := node.MaterialAmount * quantity
-		if existing, ok := grouped[node.MaterialID]; ok {
-			existing.MaterialAmount += amount
-			grouped[node.MaterialID] = existing
-		} else {
-			item := node
-			item.MaterialAmount = amount
-			item.Materials = nil
-			grouped[node.MaterialID] = item
-		}
-
-		nextAncestors := make(map[int64]struct{}, len(ancestors)+1)
-		for id := range ancestors {
-			nextAncestors[id] = struct{}{}
-		}
-		nextAncestors[node.MaterialID] = struct{}{}
-
 		for _, child := range node.Materials {
-			walk(child, nextAncestors)
+			walk(child)
 		}
 	}
 
 	for _, row := range rows {
-		walk(row, map[int64]struct{}{})
+		walk(row)
 	}
 
 	result := make([]entities.MaterialProduct, 0, len(grouped))
@@ -238,5 +234,5 @@ func (s *MaterialService) GetMaterialNorms(ctx context.Context, productID int64,
 		result = append(result, item)
 	}
 
-	return result, nil
+	return result
 }
