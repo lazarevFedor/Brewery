@@ -16,9 +16,9 @@
       "example": "Оператор варочного цеха"
     },
     "hour_salary": {
-      "type": "number",
+      "type": "integer",
       "description": "часовая ставка",
-      "example": 100.0
+      "example": 100
     },
     "description": {
       "type": "string",
@@ -29,7 +29,7 @@
   "example": {
     "id": 1,
     "name": "Оператор варочного цеха",
-    "hour_salary": 100.0,
+    "hour_salary": 100,
     "description": "Ведение процесса затирания и варки охмеленного сусла"
   }
 }

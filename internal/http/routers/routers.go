@@ -108,12 +108,8 @@ func registerEquipmentRouters(api, admin *gin.RouterGroup, h handlers.Handlers) 
 		return
 	}
 	api.GET("/equipment", h.EquipmentHandler.ListEquipment)
-	api.GET("/equipment/:name/:work_center", h.EquipmentHandler.GetEquipment)
-	api.GET("/equipment/:name", h.EquipmentHandler.GetEquipment)
 
 	admin.POST("/equipment", h.EquipmentHandler.CreateEquipment)
-	admin.PATCH("/equipment/:name/:work_center", h.EquipmentHandler.UpdateEquipment)
-	admin.PATCH("/equipment/:name", h.EquipmentHandler.UpdateEquipment)
 	admin.DELETE("/equipment/:name/:work_center", h.EquipmentHandler.DeleteEquipment)
 	admin.DELETE("/equipment/:name", h.EquipmentHandler.DeleteEquipment)
 }

@@ -15,14 +15,11 @@ type EquipmentService interface {
 	// CreateEquipment создает новую единицу оборудования.
 	CreateEquipment(ctx context.Context, eq entities.Equipment) (*entities.Equipment, error)
 
-	// GetEquipment возвращает список оборудования с учетом пагинации и опциональной фильтрации.
-	GetEquipment(ctx context.Context, limit, offset int32, name, workCenter *string) ([]entities.Equipment, error)
+	// GetEquipment возвращает список оборудования с учетом пагинации.
+	GetEquipment(ctx context.Context, limit, offset int32) ([]entities.Equipment, error)
 
 	// GetEquipmentByKey возвращает оборудование по составному первичному ключу (name, work_center).
 	GetEquipmentByKey(ctx context.Context, name, workCenter string) (*entities.Equipment, error)
-
-	// UpdateEquipment обновляет поля оборудования по составному первичному ключу (name, work_center).
-	UpdateEquipment(ctx context.Context, name, workCenter string, updates map[string]any) (*entities.Equipment, error)
 
 	// DeleteEquipment удаляет оборудование по составному первичному ключу (name, work_center).
 	DeleteEquipment(ctx context.Context, name, workCenter string) error
@@ -38,9 +35,6 @@ type EquipmentHandlers interface {
 
 	// GetEquipment обрабатывает GET /equipment/{name}/{work_center}.
 	GetEquipment(c *gin.Context)
-
-	// UpdateEquipment обрабатывает PATCH /equipment/{name}/{work_center}.
-	UpdateEquipment(c *gin.Context)
 
 	// DeleteEquipment обрабатывает DELETE /equipment/{name}/{work_center}.
 	DeleteEquipment(c *gin.Context)
@@ -114,17 +108,7 @@ func (h *equipmentHandlers) ListEquipment(c *gin.Context) {
 		return
 	}
 
-	var namePtr *string
-	if raw := c.Query("name"); raw != "" {
-		namePtr = &raw
-	}
-
-	var workCenterPtr *string
-	if raw := c.Query("work_center"); raw != "" {
-		workCenterPtr = &raw
-	}
-
-	items, err := h.uc.GetEquipment(c.Request.Context(), limit, offset, namePtr, workCenterPtr)
+	items, err := h.uc.GetEquipment(c.Request.Context(), limit, offset)
 	if err != nil {
 		handleError(c, log, "failed to list equipment", err)
 		return
@@ -179,33 +163,6 @@ func (h *equipmentHandlers) GetEquipment(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, newEquipmentResponse(*eq))
-}
-
-// UpdateEquipment обрабатывает PATCH /equipment/{name}/{work_center}.
-func (h *equipmentHandlers) UpdateEquipment(c *gin.Context) {
-	log, ok := getLogger(c)
-	if !ok {
-		return
-	}
-
-	name, workCenter, err := getEquipmentKeyParams(c)
-	if err != nil {
-		badRequest(c, log, apperrors.CodeInvalidParameters, err)
-		return
-	}
-
-	updates, ok := bindUpdates(c)
-	if !ok {
-		return
-	}
-
-	updated, err := h.uc.UpdateEquipment(c.Request.Context(), name, workCenter, updates)
-	if err != nil {
-		handleError(c, log, "failed to update equipment", err)
-		return
-	}
-
-	c.JSON(http.StatusOK, newEquipmentResponse(*updated))
 }
 
 // DeleteEquipment обрабатывает DELETE /equipment/{name}/{work_center}.
