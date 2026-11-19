@@ -40,6 +40,8 @@ SELECT
     m.base,
     p.name,
     COALESCE(p.price, 0)::double precision AS price,
+    p.is_purchased,
+    p.is_final_product,
     p.units,
     p.class_id,
     p.base_id
@@ -53,6 +55,9 @@ SELECT
     m.material_amount,
     m.base,
     p.name,
+    COALESCE(p.price, 0)::double precision AS price,
+    p.is_purchased,
+    p.is_final_product,
     p.units,
     p.class_id,
     p.base_id,

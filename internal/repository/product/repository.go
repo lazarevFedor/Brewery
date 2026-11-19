@@ -12,6 +12,7 @@ import (
 
 	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -44,10 +45,13 @@ func (repo *Repository) InsertProduct(ctx context.Context, product entities.Prod
 	}
 
 	params := queries.InsertProductParams{
-		Name:    product.Name,
-		Amount:  &product.Amount,
-		Units:   &product.Unit,
-		ClassID: product.ProdClass.ID,
+		Name:           product.Name,
+		Amount:         &product.Amount,
+		Units:          &product.Unit,
+		ClassID:        product.ProdClass.ID,
+		Price:          &product.Price,
+		IsPurchased:    product.IsPurchased,
+		IsFinalProduct: product.IsFinalProduct,
 	}
 	if product.BaseID != 0 {
 		params.BaseID = &product.BaseID
@@ -162,6 +166,15 @@ func (repo *Repository) UpdateProduct(ctx context.Context, id int64, changes ent
 			params.BaseID = &baseID
 		}
 	}
+	if price, ok := updates["price"].(float64); ok {
+		params.Price = &price
+	}
+	if isPurchased, ok := updates["is_purchased"].(bool); ok {
+		params.IsPurchased = pgtype.Bool{Bool: isPurchased, Valid: true}
+	}
+	if isFinalProduct, ok := updates["is_final_product"].(bool); ok {
+		params.IsFinalProduct = pgtype.Bool{Bool: isFinalProduct, Valid: true}
+	}
 
 	if err := validateParameterAssignments(ctx, qTx, classID, changes.ParameterValues); err != nil {
 		return nil, err
@@ -251,6 +264,9 @@ func (repo *Repository) GetFilteredProducts(
 		"p.amount",
 		"p.units",
 		"p.base_id",
+		"COALESCE(p.price, 0)::double precision AS price",
+		"p.is_purchased",
+		"p.is_final_product",
 		"c.id AS class_id",
 		"c.name AS class_name",
 		"c.parent_id AS class_parent_id",
@@ -288,7 +304,7 @@ func (repo *Repository) GetFilteredProducts(
 	for rows.Next() {
 		var p queries.GetProductByIDRow
 		if err := rows.Scan(
-			&p.ID, &p.Name, &p.Amount, &p.Units, &p.BaseID,
+			&p.ID, &p.Name, &p.Amount, &p.Units, &p.BaseID, &p.Price, &p.IsPurchased, &p.IsFinalProduct,
 			&p.ClassID, &p.ClassName, &p.ClassParentID, &p.ClassNumParams, &p.ClassEnumParams,
 		); err != nil {
 			return nil, err

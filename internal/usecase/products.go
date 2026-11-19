@@ -342,6 +342,16 @@ func (ps *ProductService) ValidateUpdates(ctx context.Context, updates map[strin
 				return errors.New("invalid amount")
 			}
 			updates[key] = float32(amountValue)
+		case "price":
+			price, ok := toFloat64Value(updates[key])
+			if !ok || !validProductPrice(price) {
+				return apperrors.BadRequest("price must be between 0 and 9999999999.99 with at most two decimal places", nil)
+			}
+			updates[key] = price
+		case "is_purchased", "is_final_product":
+			if _, ok := updates[key].(bool); !ok {
+				return apperrors.BadRequest(fmt.Sprintf("%s must be a boolean", key), nil)
+			}
 		case "parameters":
 			if value, ok := updates[key].(map[string]any); !ok || value == nil {
 				return apperrors.BadRequest("parameters must be an object; use null for an individual value to remove it", nil)
@@ -468,6 +478,9 @@ func (ps *ProductService) ValidateProductCreation(ctx context.Context, p entitie
 	if p.Name == "" {
 		return p, errors.New("product name is required")
 	}
+	if !validProductPrice(p.Price) {
+		return p, apperrors.BadRequest("price must be between 0 and 9999999999.99 with at most two decimal places", nil)
+	}
 
 	var class *entities.Class
 	var err error
@@ -499,4 +512,8 @@ func (ps *ProductService) ValidateProductCreation(ctx context.Context, p entitie
 	}
 
 	return p, nil
+}
+
+func validProductPrice(price float64) bool {
+	return price >= 0 && price <= 9_999_999_999.99 && price == math.Round(price*100)/100
 }

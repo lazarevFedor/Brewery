@@ -7,6 +7,8 @@ package queries
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const deleteProduct = `-- name: DeleteProduct :exec
@@ -26,6 +28,9 @@ SELECT
     p.amount,
     p.units,
     p.base_id,
+    COALESCE(p.price, 0)::double precision AS price,
+    p.is_purchased,
+    p.is_final_product,
     c.id AS class_id,
     c.name AS class_name,
     c.parent_id AS class_parent_id,
@@ -50,6 +55,9 @@ type GetProductByClassIDRow struct {
 	Amount          *float32
 	Units           *string
 	BaseID          *int64
+	Price           float64
+	IsPurchased     bool
+	IsFinalProduct  bool
 	ClassID         int64
 	ClassName       string
 	ClassParentID   *int64
@@ -72,6 +80,9 @@ func (q *Queries) GetProductByClassID(ctx context.Context, arg GetProductByClass
 			&i.Amount,
 			&i.Units,
 			&i.BaseID,
+			&i.Price,
+			&i.IsPurchased,
+			&i.IsFinalProduct,
 			&i.ClassID,
 			&i.ClassName,
 			&i.ClassParentID,
@@ -95,6 +106,9 @@ SELECT
     p.amount,
     p.units,
     p.base_id,
+    COALESCE(p.price, 0)::double precision AS price,
+    p.is_purchased,
+    p.is_final_product,
     c.id AS class_id,   
     c.name AS class_name,
     c.parent_id AS class_parent_id,
@@ -111,6 +125,9 @@ type GetProductByIDRow struct {
 	Amount          *float32
 	Units           *string
 	BaseID          *int64
+	Price           float64
+	IsPurchased     bool
+	IsFinalProduct  bool
 	ClassID         int64
 	ClassName       string
 	ClassParentID   *int64
@@ -127,6 +144,9 @@ func (q *Queries) GetProductByID(ctx context.Context, id int64) (GetProductByIDR
 		&i.Amount,
 		&i.Units,
 		&i.BaseID,
+		&i.Price,
+		&i.IsPurchased,
+		&i.IsFinalProduct,
 		&i.ClassID,
 		&i.ClassName,
 		&i.ClassParentID,
@@ -143,6 +163,9 @@ SELECT
     p.amount,
     p.units,
     p.base_id,
+    COALESCE(p.price, 0)::double precision AS price,
+    p.is_purchased,
+    p.is_final_product,
     c.id AS class_id,
     c.name AS class_name,
     c.parent_id AS class_parent_id,
@@ -166,6 +189,9 @@ type GetProductsRow struct {
 	Amount          *float32
 	Units           *string
 	BaseID          *int64
+	Price           float64
+	IsPurchased     bool
+	IsFinalProduct  bool
 	ClassID         int64
 	ClassName       string
 	ClassParentID   *int64
@@ -188,6 +214,9 @@ func (q *Queries) GetProducts(ctx context.Context, arg GetProductsParams) ([]Get
 			&i.Amount,
 			&i.Units,
 			&i.BaseID,
+			&i.Price,
+			&i.IsPurchased,
+			&i.IsFinalProduct,
 			&i.ClassID,
 			&i.ClassName,
 			&i.ClassParentID,
@@ -210,13 +239,19 @@ INSERT INTO products(
     amount,
     units,
     class_id,
-    base_id
+    base_id,
+    price,
+    is_purchased,
+    is_final_product
 ) VALUES (
     $1,
     $2,
     $3,
     $4,
-    $5
+    $5,
+    $6,
+    $7,
+    $8
 ) RETURNING 
     id,
     name,
@@ -227,11 +262,14 @@ INSERT INTO products(
 `
 
 type InsertProductParams struct {
-	Name    string
-	Amount  *float32
-	Units   *string
-	ClassID int64
-	BaseID  *int64
+	Name           string
+	Amount         *float32
+	Units          *string
+	ClassID        int64
+	BaseID         *int64
+	Price          *float64
+	IsPurchased    bool
+	IsFinalProduct bool
 }
 
 type InsertProductRow struct {
@@ -250,6 +288,9 @@ func (q *Queries) InsertProduct(ctx context.Context, arg InsertProductParams) (I
 		arg.Units,
 		arg.ClassID,
 		arg.BaseID,
+		arg.Price,
+		arg.IsPurchased,
+		arg.IsFinalProduct,
 	)
 	var i InsertProductRow
 	err := row.Scan(
@@ -270,24 +311,33 @@ SET
     amount = COALESCE($2, amount),
     units = COALESCE($3, units),
     class_id = COALESCE($4, class_id),
-    base_id = COALESCE($5, base_id)
-WHERE id = $6
+    base_id = COALESCE($5, base_id),
+    price = COALESCE($6, price),
+    is_purchased = COALESCE($7, is_purchased),
+    is_final_product = COALESCE($8, is_final_product)
+WHERE id = $9
 RETURNING 
     id,
     name,
     amount,
     units,
     class_id,
-    base_id
+    base_id,
+    price,
+    is_purchased,
+    is_final_product
 `
 
 type UpdateProductParams struct {
-	Name    *string
-	Amount  *float32
-	Units   *string
-	ClassID *int64
-	BaseID  *int64
-	ID      int64
+	Name           *string
+	Amount         *float32
+	Units          *string
+	ClassID        *int64
+	BaseID         *int64
+	Price          *float64
+	IsPurchased    pgtype.Bool
+	IsFinalProduct pgtype.Bool
+	ID             int64
 }
 
 func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (Product, error) {
@@ -297,6 +347,9 @@ func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (P
 		arg.Units,
 		arg.ClassID,
 		arg.BaseID,
+		arg.Price,
+		arg.IsPurchased,
+		arg.IsFinalProduct,
 		arg.ID,
 	)
 	var i Product
@@ -307,6 +360,9 @@ func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (P
 		&i.Units,
 		&i.ClassID,
 		&i.BaseID,
+		&i.Price,
+		&i.IsPurchased,
+		&i.IsFinalProduct,
 	)
 	return i, err
 }

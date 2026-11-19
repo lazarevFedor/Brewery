@@ -10,6 +10,9 @@
         "name",
         "class_id",
         "base_id",
+        "price",
+        "is_purchased",
+        "is_final_product",
         "parameters"
       ],
       "properties": {
@@ -62,7 +65,7 @@
         },
         "class_id": 1,
         "base_id": null,
-        "price": 100,
+        "price": 100.5,
         "is_purchased": false,
         "is_final_product": true,
         "amount": 100,

@@ -68,6 +68,8 @@ SELECT
     m.base,
     p.name,
     COALESCE(p.price, 0)::double precision AS price,
+    p.is_purchased,
+    p.is_final_product,
     p.units,
     p.class_id,
     p.base_id
@@ -82,6 +84,8 @@ type GetMaterialsByProductIDRow struct {
 	Base           bool
 	Name           string
 	Price          float64
+	IsPurchased    bool
+	IsFinalProduct bool
 	Units          *string
 	ClassID        int64
 	BaseID         *int64
@@ -102,6 +106,8 @@ func (q *Queries) GetMaterialsByProductID(ctx context.Context, productID int64) 
 			&i.Base,
 			&i.Name,
 			&i.Price,
+			&i.IsPurchased,
+			&i.IsFinalProduct,
 			&i.Units,
 			&i.ClassID,
 			&i.BaseID,
@@ -122,6 +128,9 @@ SELECT
     m.material_amount,
     m.base,
     p.name,
+    COALESCE(p.price, 0)::double precision AS price,
+    p.is_purchased,
+    p.is_final_product,
     p.units,
     p.class_id,
     p.base_id,
@@ -137,6 +146,9 @@ type GetProductsByMaterialRow struct {
 	MaterialAmount float32
 	Base           bool
 	Name           string
+	Price          float64
+	IsPurchased    bool
+	IsFinalProduct bool
 	Units          *string
 	ClassID        int64
 	BaseID         *int64
@@ -157,6 +169,9 @@ func (q *Queries) GetProductsByMaterial(ctx context.Context, materialID int64) (
 			&i.MaterialAmount,
 			&i.Base,
 			&i.Name,
+			&i.Price,
+			&i.IsPurchased,
+			&i.IsFinalProduct,
 			&i.Units,
 			&i.ClassID,
 			&i.BaseID,

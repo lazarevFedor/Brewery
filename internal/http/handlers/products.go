@@ -51,15 +51,17 @@ type ProductHandlers interface {
 
 // productResponse - представление изделия в API (схема Product в swagger).
 type productResponse struct {
-	ID         int64          `json:"id"`
-	Name       string         `json:"name"`
-	Class      classBase      `json:"class"`
-	ClassID    int64          `json:"class_id"`
-	BaseID     *int64         `json:"base_id"`
-	Price      float64        `json:"price,omitempty"`
-	Parameters map[string]any `json:"parameters"`
-	Amount     float32        `json:"amount,omitempty"`
-	Units      string         `json:"units,omitempty"`
+	ID             int64          `json:"id"`
+	Name           string         `json:"name"`
+	Class          classBase      `json:"class"`
+	ClassID        int64          `json:"class_id"`
+	BaseID         *int64         `json:"base_id"`
+	Price          float64        `json:"price"`
+	IsPurchased    bool           `json:"is_purchased"`
+	IsFinalProduct bool           `json:"is_final_product"`
+	Parameters     map[string]any `json:"parameters"`
+	Amount         float32        `json:"amount,omitempty"`
+	Units          string         `json:"units,omitempty"`
 }
 
 // classBase - краткое представление класса изделия (схема ClassBase в swagger).
@@ -69,24 +71,28 @@ type classBase struct {
 
 // productCreateRequest - тело запроса на создание изделия (схема ProductCreate в swagger).
 type productCreateRequest struct {
-	Name       string         `json:"name"`
-	Class      *classBase     `json:"class"`
-	ClassID    int64          `json:"class_id"`
-	BaseID     *int64         `json:"base_id"`
-	Price      int32          `json:"price"`
-	Parameters map[string]any `json:"parameters"`
-	Amount     float32        `json:"amount"`
-	Units      string         `json:"units"`
+	Name           string         `json:"name"`
+	Class          *classBase     `json:"class"`
+	ClassID        int64          `json:"class_id"`
+	BaseID         *int64         `json:"base_id"`
+	Price          *float64       `json:"price"`
+	IsPurchased    bool           `json:"is_purchased"`
+	IsFinalProduct bool           `json:"is_final_product"`
+	Parameters     map[string]any `json:"parameters"`
+	Amount         float32        `json:"amount"`
+	Units          string         `json:"units"`
 }
 
 func (r productCreateRequest) toEntity() entities.Product {
 	product := entities.Product{
-		Name:       r.Name,
-		ProdClass:  entities.Class{ID: r.ClassID},
-		Price:      float64(r.Price),
-		Parameters: r.Parameters,
-		Amount:     r.Amount,
-		Unit:       r.Units,
+		Name:           r.Name,
+		ProdClass:      entities.Class{ID: r.ClassID},
+		Price:          *r.Price,
+		IsPurchased:    r.IsPurchased,
+		IsFinalProduct: r.IsFinalProduct,
+		Parameters:     r.Parameters,
+		Amount:         r.Amount,
+		Unit:           r.Units,
 	}
 
 	if r.Class != nil {
@@ -102,14 +108,16 @@ func (r productCreateRequest) toEntity() entities.Product {
 
 func newProductResponse(p entities.Product) productResponse {
 	resp := productResponse{
-		ID:         p.ID,
-		Name:       p.Name,
-		Class:      classBase{Name: p.ProdClass.Name},
-		ClassID:    p.ProdClass.ID,
-		Price:      p.Price,
-		Parameters: p.Parameters,
-		Amount:     p.Amount,
-		Units:      p.Unit,
+		ID:             p.ID,
+		Name:           p.Name,
+		Class:          classBase{Name: p.ProdClass.Name},
+		ClassID:        p.ProdClass.ID,
+		Price:          p.Price,
+		IsPurchased:    p.IsPurchased,
+		IsFinalProduct: p.IsFinalProduct,
+		Parameters:     p.Parameters,
+		Amount:         p.Amount,
+		Units:          p.Unit,
 	}
 
 	if resp.Parameters == nil {
@@ -187,6 +195,11 @@ func (h *productHandlers) CreateProduct(c *gin.Context) {
 
 	if req.ClassID == 0 && (req.Class == nil || req.Class.Name == "") {
 		writeError(c, http.StatusBadRequest, apperrors.CodeValidation, "Product class is required")
+		return
+	}
+
+	if req.Price == nil {
+		writeError(c, http.StatusBadRequest, apperrors.CodeValidation, "Product price is required")
 		return
 	}
 
