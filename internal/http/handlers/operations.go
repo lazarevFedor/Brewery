@@ -29,7 +29,7 @@ type OperationService interface {
 	// DeleteOperation удаляет операцию по идентификатору.
 	DeleteOperation(ctx context.Context, id int64) error
 
-	// GetProductTechCard возвращает технологическую карту продукта (операции, суммарные человеко-часы, нормы расхода).
+	// GetProductTechCard возвращает операции, нормы расхода и суммарную стоимость производства.
 	GetProductTechCard(ctx context.Context, productID int64, quantity float32) (*entities.ProductTechCard, error)
 }
 
