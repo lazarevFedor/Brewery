@@ -2,6 +2,7 @@
 package usecase
 
 import (
+	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
 	"Brewery/internal/repository"
 	"context"
@@ -23,7 +24,7 @@ type AggregateRepository interface {
 	ApplyAggregate(ctx context.Context, classID, id int64) (int, error)
 
 	// UpdateAggregate обновляет существующий агрегат с заданным ID и возвращает обновленный агрегат.
-	UpdateAggregate(ctx context.Context, id int64, updates map[string]any) (*entities.Aggregate, error)
+	UpdateAggregate(ctx context.Context, id int64, updates entities.AggregateUpdate) (*entities.Aggregate, error)
 
 	// DeleteAggregate удаляет агрегат с заданным ID из базы данных и возвращает удаленный агрегат.
 	DeleteAggregate(ctx context.Context, id int64) (*entities.Aggregate, error)
@@ -81,7 +82,7 @@ func (s *AggregateService) GetAggregates(ctx context.Context, name string) ([]en
 }
 
 // UpdateAggregate обновляет существующий агрегат по его ID.
-func (s *AggregateService) UpdateAggregate(ctx context.Context, id int64, updates map[string]any) (*entities.Aggregate, error) {
+func (s *AggregateService) UpdateAggregate(ctx context.Context, id int64, updates entities.AggregateUpdate) (*entities.Aggregate, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -90,8 +91,8 @@ func (s *AggregateService) UpdateAggregate(ctx context.Context, id int64, update
 		return nil, errors.New("invalid aggregate ID")
 	}
 
-	if len(updates) == 0 {
-		return nil, errors.New("no updates provided")
+	if updates.Name == nil && updates.Description == nil && updates.RangeParamIDs == nil && updates.EnumParamIDs == nil {
+		return nil, apperrors.BadRequest("Empty update payload", nil)
 	}
 
 	updated, err := s.AggregateRepo.UpdateAggregate(ctx, id, updates)

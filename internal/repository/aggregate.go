@@ -2,10 +2,10 @@
 package repository
 
 import (
+	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
 	"Brewery/internal/repository/queries"
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
@@ -87,6 +87,9 @@ func (a *AggregatePostgres) ApplyAggregate(ctx context.Context, categoryID int64
 		return 0, err
 	}
 	affected := int(cmd.RowsAffected())
+	if affected == 0 {
+		return 0, apperrors.NotFound("Class or aggregate not found", nil)
+	}
 
 	inheritQuery := queries.InheritParametersToChildren(categoryID)
 	sql, args, err = inheritQuery.ToSql()
@@ -107,11 +110,7 @@ func (a *AggregatePostgres) ApplyAggregate(ctx context.Context, categoryID int64
 }
 
 // UpdateAggregate обновляет существующий агрегат с заданным ID и возвращает обновленный агрегат.
-func (a *AggregatePostgres) UpdateAggregate(ctx context.Context, id int64, updates map[string]any) (*entities.Aggregate, error) {
-	if len(updates) == 0 {
-		return nil, errors.New("no updates provided")
-	}
-
+func (a *AggregatePostgres) UpdateAggregate(ctx context.Context, id int64, updates entities.AggregateUpdate) (*entities.Aggregate, error) {
 	query := queries.UpdateAggregate(id, updates)
 	sql, args, err := query.ToSql()
 	if err != nil {

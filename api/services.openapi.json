@@ -596,6 +596,7 @@
           "Aggregates"
         ],
         "summary": "Apply parameter aggregate to class",
+        "description": "Adds the aggregate's parameters to the class, preserving existing parameters and their values. Inheritable parameters are propagated to descendant classes.",
         "operationId": "applyParameterAggregate",
         "security": [
           {
