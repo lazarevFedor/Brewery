@@ -4182,11 +4182,22 @@
         ]
       },
       "EnumParameterUpdate": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/EnumParameterCreate"
+        "type": "object",
+        "description": "Тип перечисляемого параметра задаётся при создании.",
+        "additionalProperties": false,
+        "minProperties": 1,
+        "properties": {
+          "field_name": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string",
+            "nullable": true
+          },
+          "inheritable": {
+            "type": "boolean"
           }
-        ]
+        }
       }
     },
     "responses": {
@@ -4494,7 +4505,6 @@
       },
       "EnumParameterUpdate": {
         "value": {
-          "enum_type": "string",
           "field_name": "city",
           "unit": "",
           "inheritable": false

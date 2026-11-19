@@ -1,6 +1,5 @@
 {
   "value": {
-    "enum_type": "string",
     "field_name": "city",
     "unit": "",
     "inheritable": false

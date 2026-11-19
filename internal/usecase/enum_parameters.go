@@ -2,6 +2,7 @@
 package usecase
 
 import (
+	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
 	"Brewery/internal/repository"
 	"context"
@@ -87,6 +88,16 @@ func (s *EnumParametersService) UpdateEnumParameter(ctx context.Context, id uint
 
 	if len(updates) == 0 {
 		return fmt.Errorf("no updates provided")
+	}
+
+	for field := range updates {
+		switch field {
+		case "field_name", "unit", "inheritable":
+		case "enum_type":
+			return apperrors.BadRequest("enum_type cannot be changed after creation", nil)
+		default:
+			return apperrors.BadRequest(fmt.Sprintf("unknown enum parameter update field %q", field), nil)
+		}
 	}
 
 	err := s.repo.UpdateEnumParameter(ctx, id, updates)
