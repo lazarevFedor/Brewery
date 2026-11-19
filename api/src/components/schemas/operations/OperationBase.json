@@ -27,7 +27,7 @@
       "$ref": "#/components/schemas/Equipment"
     },
     "materials": {
-      "$ref": "#/components/schemas/Material"
+      "$ref": "#/components/schemas/OperationMaterial"
     },
     "step_number": {
       "type": "integer",

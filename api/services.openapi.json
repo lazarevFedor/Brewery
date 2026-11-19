@@ -1765,7 +1765,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Operation"
+                    "$ref": "#/components/schemas/OperationRead"
                   }
                 }
               }
@@ -1843,7 +1843,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Operation"
+                  "$ref": "#/components/schemas/OperationRead"
                 }
               }
             }
@@ -2130,6 +2130,9 @@
           "404": {
             "$ref": "#/components/responses/404_not_found"
           },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
           "500": {
             "$ref": "#/components/responses/500_internal_server_error"
           }
@@ -2165,6 +2168,9 @@
           "404": {
             "$ref": "#/components/responses/404_not_found"
           },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
           "500": {
             "$ref": "#/components/responses/500_internal_server_error"
           }
@@ -2177,7 +2183,7 @@
           "Operations"
         ],
         "summary": "Get product tech card (routing card)",
-        "description": "Возвращает технологическую карту продукта по его ID: цепочку операций, суммарные человеко-часы и нормы расходов всех базовых материалов (аналогично GET /products/{id}/materials/norms).",
+        "description": "Возвращает цепочку операций, нормы расхода базовых материалов и общую стоимость материалов и труда на указанное количество изделий.",
         "operationId": "getProductTechCard",
         "parameters": [
           {
@@ -3194,10 +3200,6 @@
               },
               "material": {
                 "$ref": "#/components/schemas/ProductBase"
-              },
-              "units": {
-                "type": "string",
-                "example": "kg"
               }
             }
           }
@@ -3207,7 +3209,6 @@
           "product_id": 1,
           "material_amount": 12.5,
           "base": true,
-          "units": "kg",
           "material": {
             "name": "Ячменный солод",
             "price": 100,
@@ -3287,10 +3288,6 @@
             "example": 37.5,
             "description": "Цена всех материалов"
           },
-          "units": {
-            "type": "string",
-            "example": "kg"
-          },
           "base": {
             "type": "boolean",
             "example": false,
@@ -3302,8 +3299,7 @@
           "name": "Хмель",
           "total_amount": 37.5,
           "total_cost": 37.5,
-          "base": false,
-          "units": "kg"
+          "base": false
         }
       },
       "MaterialTreeNode": {
@@ -3330,10 +3326,6 @@
             "example": 12.5,
             "description": "Количество материала на одну единицу родителя"
           },
-          "units": {
-            "type": "string",
-            "example": "L"
-          },
           "materials": {
             "type": "array",
             "description": "Состав этого материала (пустой, если материал не составной)",
@@ -3352,13 +3344,11 @@
           "material_id": 5,
           "name": "Сусло",
           "material_amount": 12.5,
-          "units": "L",
           "materials": [
             {
               "material_id": 7,
               "name": "Солод",
               "material_amount": 2,
-              "units": "kg",
               "materials": [],
               "base": false
             }
@@ -3501,7 +3491,7 @@
             "$ref": "#/components/schemas/Equipment"
           },
           "materials": {
-            "$ref": "#/components/schemas/Material"
+            "$ref": "#/components/schemas/OperationMaterial"
           },
           "step_number": {
             "type": "integer",
@@ -3538,6 +3528,26 @@
           }
         }
       },
+      "OperationMaterial": {
+        "type": "object",
+        "description": "Связь входного материала и выходного изделия",
+        "required": [
+          "material_id",
+          "product_id"
+        ],
+        "properties": {
+          "material_id": {
+            "type": "integer",
+            "description": "ID изделия, используемого как сырье/материал (входной продукт)",
+            "example": 10
+          },
+          "product_id": {
+            "type": "integer",
+            "description": "ID целевого изделия/продукта (выходной продукт)",
+            "example": 11
+          }
+        }
+      },
       "OperationCreate": {
         "allOf": [
           {
@@ -3556,36 +3566,6 @@
             "properties": {
               "equipment": {
                 "$ref": "#/components/schemas/Equipment"
-              },
-              "materials": {
-                "type": "object",
-                "description": "Связка входного материала и выходного продукта с расходом",
-                "required": [
-                  "material_id",
-                  "product_id"
-                ],
-                "properties": {
-                  "material_id": {
-                    "type": "integer",
-                    "description": "ID изделия, используемого как сырье/материал (входной продукт)",
-                    "example": 10
-                  },
-                  "product_id": {
-                    "type": "integer",
-                    "description": "ID целевого изделия/продукта (выходной продукт)",
-                    "example": 11
-                  },
-                  "material_amount": {
-                    "type": "number",
-                    "description": "Количество расходуемого материала на единицу продукта",
-                    "example": 100
-                  },
-                  "base": {
-                    "type": "boolean",
-                    "description": "Флаг базового материала",
-                    "example": false
-                  }
-                }
               }
             }
           }
@@ -3602,9 +3582,7 @@
           },
           "materials": {
             "material_id": 10,
-            "product_id": 11,
-            "material_amount": 100,
-            "base": false
+            "product_id": 11
           },
           "labor_cost": 2.5,
           "parameters": {
@@ -3655,7 +3633,7 @@
             "$ref": "#/components/schemas/EquipmentShort"
           },
           "materials": {
-            "$ref": "#/components/schemas/Material"
+            "$ref": "#/components/schemas/OperationMaterial"
           },
           "step_number": {
             "type": "integer",
@@ -3704,10 +3682,60 @@
           },
           "materials": {
             "material_id": 1,
+            "product_id": 2
+          },
+          "labor_cost": 2.5,
+          "parameters": {
+            "duration_minutes": 90,
+            "temperature_celsius": 100
+          }
+        }
+      },
+      "OperationRead": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Operation"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "materials": {
+                "type": "object",
+                "required": [
+                  "material_amount",
+                  "base"
+                ],
+                "properties": {
+                  "material_amount": {
+                    "type": "number",
+                    "format": "double",
+                    "description": "Количество материала на одно изделие"
+                  },
+                  "base": {
+                    "type": "boolean",
+                    "description": "Флаг базового материала"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "example": {
+          "id": 1,
+          "name": "Варка сусла",
+          "description": "Варка охмеленного сусла при температуре 100°C",
+          "operation_class_id": 3,
+          "profession_id": 1,
+          "step_number": 1,
+          "equipment": {
+            "name": "Сусловарочный котел ВК-500",
+            "work_center": "Холодный цех"
+          },
+          "materials": {
+            "material_id": 1,
             "product_id": 2,
             "material_amount": 100,
-            "base": false,
-            "units": "L"
+            "base": false
           },
           "labor_cost": 2.5,
           "parameters": {
@@ -3754,7 +3782,7 @@
           },
           "materials": {
             "type": "object",
-            "description": "Данные расхода сырья/материала (входной и выходной продукт)",
+            "description": "Идентификаторы входного материала и выходного изделия",
             "properties": {
               "material_id": {
                 "type": "integer",
@@ -3765,16 +3793,6 @@
                 "type": "integer",
                 "description": "ID выходного продукта",
                 "example": 2
-              },
-              "material_amount": {
-                "type": "number",
-                "description": "Количество расходуемого материала",
-                "example": 100
-              },
-              "base": {
-                "type": "boolean",
-                "description": "Флаг базового материала",
-                "example": false
               }
             }
           },
@@ -3817,9 +3835,7 @@
           },
           "materials": {
             "material_id": 1,
-            "product_id": 2,
-            "material_amount": 100,
-            "base": false
+            "product_id": 2
           },
           "labor_cost": 3.0,
           "parameters": {
@@ -4016,14 +4032,14 @@
           },
           "total_cost": {
             "type": "number",
-            "description": "Суммарная трудозатратность всех операций в деньгах",
-            "example": 1000
+            "description": "Стоимость базовых материалов по нормам расхода и труда по всем операциям на запрошенное количество изделий. Часовая ставка равна нижней границе числового параметра hour_salary класса профессии.",
+            "example": 3410
           },
           "operations": {
             "type": "array",
             "description": "Список всех технологических операций для производства продукта",
             "items": {
-              "$ref": "#/components/schemas/Operation"
+              "$ref": "#/components/schemas/OperationRead"
             }
           },
           "material_norms": {
@@ -4040,7 +4056,7 @@
             "id": 1,
             "name": "Балтика 0"
           },
-          "total_cost": 1000.0,
+          "total_cost": 3410.0,
           "operations": [
             {
               "id": 1,
@@ -4057,8 +4073,7 @@
                 "material_id": 10,
                 "product_id": 11,
                 "material_amount": 50,
-                "base": false,
-                "units": "kg"
+                "base": false
               },
               "labor_cost": 3.0,
               "parameters": {
@@ -4081,8 +4096,7 @@
                 "material_id": 11,
                 "product_id": 1,
                 "material_amount": 100,
-                "base": false,
-                "units": "L"
+                "base": false
               },
               "labor_cost": 5.5,
               "parameters": {
@@ -4097,7 +4111,6 @@
               "name": "Солод светлый ячменный",
               "total_amount": 50.0,
               "total_cost": 2500.0,
-              "units": "kg",
               "base": true
             },
             {
@@ -4105,7 +4118,6 @@
               "name": "Хмель гранулированный",
               "total_amount": 1.2,
               "total_cost": 60.0,
-              "units": "kg",
               "base": true
             }
           ]

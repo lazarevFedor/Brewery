@@ -260,11 +260,17 @@
       "OperationBase": {
         "$ref": "./components/schemas/operations/OperationBase.json"
       },
+      "OperationMaterial": {
+        "$ref": "./components/schemas/operations/OperationMaterial.json"
+      },
       "OperationCreate": {
         "$ref": "./components/schemas/operations/OperationCreate.json"
       },
       "Operation": {
         "$ref": "./components/schemas/operations/Operation.json"
+      },
+      "OperationRead": {
+        "$ref": "./components/schemas/operations/OperationRead.json"
       },
       "OperationUpdate": {
         "$ref": "./components/schemas/operations/OperationUpdate.json"

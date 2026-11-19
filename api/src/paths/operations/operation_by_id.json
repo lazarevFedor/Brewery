@@ -17,7 +17,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/Operation"
+              "$ref": "#/components/schemas/OperationRead"
             }
           }
         }

@@ -24,10 +24,6 @@
         },
         "material": {
           "$ref": "#/components/schemas/ProductBase"
-        },
-        "units": {
-          "type": "string",
-          "example": "kg"
         }
       }
     }
@@ -37,7 +33,6 @@
     "product_id": 1,
     "material_amount": 12.5,
     "base": true,
-    "units": "kg",
     "material": {
       "name": "Ячменный солод",
       "price": 100,

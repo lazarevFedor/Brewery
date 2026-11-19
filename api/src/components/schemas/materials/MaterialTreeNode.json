@@ -22,10 +22,6 @@
       "example": 12.5,
       "description": "Количество материала на одну единицу родителя"
     },
-    "units": {
-      "type": "string",
-      "example": "L"
-    },
     "materials": {
       "type": "array",
       "description": "Состав этого материала (пустой, если материал не составной)",
@@ -44,13 +40,11 @@
     "material_id": 5,
     "name": "Сусло",
     "material_amount": 12.5,
-    "units": "L",
     "materials": [
       {
         "material_id": 7,
         "name": "Солод",
         "material_amount": 2,
-        "units": "kg",
         "materials": [],
         "base": false
       }

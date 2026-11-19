@@ -17,14 +17,14 @@
     },
     "total_cost": {
       "type": "number",
-      "description": "Суммарная трудозатратность всех операций в деньгах",
-      "example": 1000
+      "description": "Стоимость базовых материалов по нормам расхода и труда по всем операциям на запрошенное количество изделий. Часовая ставка равна нижней границе числового параметра hour_salary класса профессии.",
+      "example": 3410
     },
     "operations": {
       "type": "array",
       "description": "Список всех технологических операций для производства продукта",
       "items": {
-        "$ref": "#/components/schemas/Operation"
+        "$ref": "#/components/schemas/OperationRead"
       }
     },
     "material_norms": {
@@ -41,7 +41,7 @@
       "id": 1,
       "name": "Балтика 0"
     },
-    "total_cost": 1000.0,
+    "total_cost": 3410.0,
     "operations": [
       {
         "id": 1,
@@ -58,8 +58,7 @@
           "material_id": 10,
           "product_id": 11,
           "material_amount": 50,
-          "base": false,
-          "units": "kg"
+          "base": false
         },
         "labor_cost": 3.0,
         "parameters": {
@@ -82,8 +81,7 @@
           "material_id": 11,
           "product_id": 1,
           "material_amount": 100,
-          "base": false,
-          "units": "L"
+          "base": false
         },
         "labor_cost": 5.5,
         "parameters": {
@@ -98,7 +96,6 @@
         "name": "Солод светлый ячменный",
         "total_amount": 50.0,
         "total_cost": 2500.0,
-        "units": "kg",
         "base": true
       },
       {
@@ -106,7 +103,6 @@
         "name": "Хмель гранулированный",
         "total_amount": 1.2,
         "total_cost": 60.0,
-        "units": "kg",
         "base": true
       }
     ]

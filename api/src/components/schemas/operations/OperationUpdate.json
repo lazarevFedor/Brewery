@@ -36,7 +36,7 @@
     },
     "materials": {
       "type": "object",
-      "description": "Данные расхода сырья/материала (входной и выходной продукт)",
+      "description": "Идентификаторы входного материала и выходного изделия",
       "properties": {
         "material_id": {
           "type": "integer",
@@ -47,16 +47,6 @@
           "type": "integer",
           "description": "ID выходного продукта",
           "example": 2
-        },
-        "material_amount": {
-          "type": "number",
-          "description": "Количество расходуемого материала",
-          "example": 100
-        },
-        "base": {
-          "type": "boolean",
-          "description": "Флаг базового материала",
-          "example": false
         }
       }
     },
@@ -99,9 +89,7 @@
     },
     "materials": {
       "material_id": 1,
-      "product_id": 2,
-      "material_amount": 100,
-      "base": false
+      "product_id": 2
     },
     "labor_cost": 3.0,
     "parameters": {

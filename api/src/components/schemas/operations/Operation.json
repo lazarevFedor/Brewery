@@ -40,7 +40,7 @@
       "$ref": "#/components/schemas/EquipmentShort"
     },
     "materials": {
-      "$ref": "#/components/schemas/Material"
+      "$ref": "#/components/schemas/OperationMaterial"
     },
     "step_number": {
       "type": "integer",
@@ -89,10 +89,7 @@
     },
     "materials": {
       "material_id": 1,
-      "product_id": 2,
-      "material_amount": 100,
-      "base": false,
-      "units": "L"
+      "product_id": 2
     },
     "labor_cost": 2.5,
     "parameters": {

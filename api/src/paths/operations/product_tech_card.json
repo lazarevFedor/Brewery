@@ -4,7 +4,7 @@
       "Operations"
     ],
     "summary": "Get product tech card (routing card)",
-    "description": "Возвращает технологическую карту продукта по его ID: цепочку операций, суммарные человеко-часы и нормы расходов всех базовых материалов (аналогично GET /products/{id}/materials/norms).",
+    "description": "Возвращает цепочку операций, нормы расхода базовых материалов и общую стоимость материалов и труда на указанное количество изделий.",
     "operationId": "getProductTechCard",
     "parameters": [
       {
