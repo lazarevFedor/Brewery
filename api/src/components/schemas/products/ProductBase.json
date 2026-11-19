@@ -1,0 +1,24 @@
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Название продукта"
+    },
+    "is_final_product": {
+      "type": "boolean",
+      "description": "Флаг, указывающий, является ли изделие конечным готовым продуктом (true), а не базовым материалом или полуфабрикатом в переходном состоянии (false)",
+      "example": true
+    },
+    "is_purchased": {
+      "type": "boolean",
+      "description": "Флаг покупного изделия",
+      "example": false
+    },
+    "price": {
+      "type": "integer",
+      "description": "Цена изделия",
+      "example": 100
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "allOf": [
+    {
+      "$ref": "#/components/schemas/ClassBase"
+    },
+    {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "parent_id"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "parent_id": {
+          "type": "integer",
+          "nullable": true
+        },
+        "range_param_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "default": []
+        },
+        "enum_param_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "default": []
+        }
+      }
+    }
+  ],
+  "example": {
+    "id": 1,
+    "name": "Пиво",
+    "parent_id": null,
+    "range_param_ids": [1, 2],
+    "enum_param_ids": [3]
+  }
+}

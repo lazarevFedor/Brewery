@@ -1,0 +1,14 @@
+{
+  "description": "Validation error",
+  "content": {
+    "application/json": {
+      "schema": {
+        "$ref": "#/components/schemas/ErrorResponse"
+      },
+      "example": {
+        "error": "VALIDATION_ERROR",
+        "message": "Invalid parameter payload"
+      }
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "get": {
+    "tags": [
+      "Products"
+    ],
+    "summary": "Filter products by exact parameter values",
+    "operationId": "searchProducts",
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/productFilter"
+      },
+      {
+        "$ref": "#/components/parameters/Offset"
+      },
+      {
+        "$ref": "#/components/parameters/Limit"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Products list",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/Product"
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  }
+}

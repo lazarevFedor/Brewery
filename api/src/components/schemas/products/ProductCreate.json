@@ -1,0 +1,88 @@
+{
+  "allOf": [
+    {
+      "$ref": "#/components/schemas/ProductBase"
+    },
+    {
+      "type": "object",
+      "required": [
+        "name",
+        "class",
+        "price"
+      ],
+      "properties": {
+        "class": {
+          "$ref": "#/components/schemas/ClassBase"
+        },
+        "base_id": {
+          "type": "integer",
+          "nullable": true,
+          "description": "ID базового изделия, на основе которого создано текущее"
+        },
+        "amount": {
+          "type": "integer"
+        },
+        "units": {
+          "type": "string"
+        },
+        "price": {
+          "type": "integer",
+          "description": "Цена изделия",
+          "example": 100
+        },
+        "is_final_product": {
+          "type": "boolean",
+          "default": false,
+          "description": "Флаг, указывающий, является ли создаваемый продукт конечным готовым изделием",
+          "example": true
+        },
+        "parameters": {
+          "type": "object",
+          "description": "Values keyed by field_name. Parameters must be allowed for the product class. Enum values must belong to the parameter; numeric values must fit its range and NUMERIC(8, 3).",
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          }
+        },
+        "class_id": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "example": {
+        "name": "Балтика 0",
+        "class": {
+          "name": "Светлое"
+        },
+        "base_id": null,
+        "amount": 100,
+        "units": "L",
+        "price": 100,
+        "is_purchased": false,
+        "is_final_product": true,
+        "parameters": {
+          "volume": 12.5,
+          "city": "Москва"
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "class_id"
+          ]
+        },
+        {
+          "required": [
+            "class"
+          ]
+        }
+      ]
+    }
+  ]
+}

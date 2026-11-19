@@ -21,11 +21,6 @@ type ProductService interface {
 	GetFilteredProducts(ctx context.Context, filters []entities.FilterParameter, classID *uint, limit, offset int32) ([]entities.Product, error)
 }
 
-// DerivedProductService возвращает изделия, созданные на основе базового (base_id = id).
-type DerivedProductService interface {
-	GetDerivedProducts(ctx context.Context, baseID int64, limit, offset int32) ([]entities.Product, error)
-}
-
 // ProductHandlers определяет HTTP-обработчики для изделий.
 type ProductHandlers interface {
 
@@ -52,9 +47,6 @@ type ProductHandlers interface {
 
 	// SearchProductsByClass обрабатывает GET /classes/{id}/products/search.
 	SearchProductsByClass(c *gin.Context)
-
-	// ListDerivedProducts обрабатывает GET /products/{id}/derived.
-	ListDerivedProducts(c *gin.Context)
 }
 
 // productResponse - представление изделия в API (схема Product в swagger).
@@ -64,7 +56,8 @@ type productResponse struct {
 	Class      classBase      `json:"class"`
 	ClassID    int64          `json:"class_id"`
 	BaseID     *int64         `json:"base_id"`
-	Parameters map[string]any `json:"parameters,omitempty"`
+	Price      float64        `json:"price,omitempty"`
+	Parameters map[string]any `json:"parameters"`
 	Amount     float32        `json:"amount,omitempty"`
 	Units      string         `json:"units,omitempty"`
 }
@@ -80,6 +73,7 @@ type productCreateRequest struct {
 	Class      *classBase     `json:"class"`
 	ClassID    int64          `json:"class_id"`
 	BaseID     *int64         `json:"base_id"`
+	Price      int32          `json:"price"`
 	Parameters map[string]any `json:"parameters"`
 	Amount     float32        `json:"amount"`
 	Units      string         `json:"units"`
@@ -89,6 +83,7 @@ func (r productCreateRequest) toEntity() entities.Product {
 	product := entities.Product{
 		Name:       r.Name,
 		ProdClass:  entities.Class{ID: r.ClassID},
+		Price:      float64(r.Price),
 		Parameters: r.Parameters,
 		Amount:     r.Amount,
 		Unit:       r.Units,
@@ -111,9 +106,14 @@ func newProductResponse(p entities.Product) productResponse {
 		Name:       p.Name,
 		Class:      classBase{Name: p.ProdClass.Name},
 		ClassID:    p.ProdClass.ID,
+		Price:      p.Price,
 		Parameters: p.Parameters,
 		Amount:     p.Amount,
 		Units:      p.Unit,
+	}
+
+	if resp.Parameters == nil {
+		resp.Parameters = make(map[string]any)
 	}
 
 	if p.BaseID != 0 {
@@ -138,13 +138,12 @@ var productUpdateIntFields = []string{"class_id", "base_id"}
 
 // productHandlers реализует ProductHandlers.
 type productHandlers struct {
-	uc      ProductService
-	derived DerivedProductService
+	uc ProductService
 }
 
-// NewProductHandlers создает обработчики изделий. derived может быть nil - тогда /products/{id}/derived отвечает 501.
-func NewProductHandlers(uc ProductService, derived DerivedProductService) ProductHandlers {
-	return &productHandlers{uc: uc, derived: derived}
+// NewProductHandlers создает обработчики изделий.
+func NewProductHandlers(uc ProductService) ProductHandlers {
+	return &productHandlers{uc: uc}
 }
 
 // ListProducts обрабатывает GET /products.
@@ -328,7 +327,7 @@ func (h *productHandlers) SearchProducts(c *gin.Context) {
 		return
 	}
 
-	filters, err := getFilters(c, []entities.Operation{entities.OpEqual})
+	filters, err := getFilters(c, []entities.FilterOperation{entities.OpEqual})
 	if err != nil {
 		badRequest(c, log, apperrors.CodeInvalidParameters, err)
 		return
@@ -375,39 +374,6 @@ func (h *productHandlers) search(c *gin.Context, filters []entities.FilterParame
 	products, err := h.uc.GetFilteredProducts(c.Request.Context(), filters, classID, limit, offset)
 	if err != nil {
 		handleError(c, log, "failed to search products", err)
-		return
-	}
-
-	c.JSON(http.StatusOK, newProductsResponse(products))
-}
-
-// ListDerivedProducts обрабатывает GET /products/{id}/derived.
-func (h *productHandlers) ListDerivedProducts(c *gin.Context) {
-	if h.derived == nil {
-		notImplemented(c)
-		return
-	}
-
-	log, ok := getLogger(c)
-	if !ok {
-		return
-	}
-
-	id, err := getIDParam(c, "id")
-	if err != nil {
-		badRequest(c, log, apperrors.CodeInvalidID, err)
-		return
-	}
-
-	offset, limit, err := getPaginationParams(c)
-	if err != nil {
-		badRequest(c, log, apperrors.CodeInvalidParameters, err)
-		return
-	}
-
-	products, err := h.derived.GetDerivedProducts(c.Request.Context(), id, limit, offset)
-	if err != nil {
-		handleError(c, log, "failed to list derived products", err)
 		return
 	}
 

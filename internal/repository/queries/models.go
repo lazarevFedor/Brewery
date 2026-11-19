@@ -66,10 +66,12 @@ type Product struct {
 }
 
 type ProductsParameter struct {
-	ID             int64
-	ProductID      *int64
-	EnumValueID    *int64
-	RangeParameter *int64
+	ID              int64
+	ProductID       int64
+	EnumValueID     *int64
+	RangeParameter  *int64
+	NumericValue    *float32
+	EnumParameterID *int64
 }
 
 type RangeParameter struct {

@@ -393,7 +393,55 @@ EXECUTE FUNCTION cleanup_enum_parameter_from_categories();
 -- +goose StatementEnd
 
 
+-- +goose StatementBegin
+CREATE FUNCTION cleanup_unassigned_product_parameters()
+RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+    -- Preserve the foreign-key restrictions when deleting a parameter definition.
+    IF pg_trigger_depth() > 1 THEN
+        RETURN NEW;
+    END IF;
+
+    DELETE FROM products_parameters pp
+    USING products p
+    WHERE pp.product_id = p.id AND p.class_id = NEW.id
+      AND (
+          (pp.range_parameter IS NOT NULL
+              AND NOT COALESCE(pp.range_parameter = ANY(NEW.numeric_parameter_ids), FALSE))
+          OR (pp.enum_value_id IS NOT NULL AND NOT EXISTS (
+              SELECT 1 FROM parameter_values pv
+              WHERE pv.id = pp.enum_value_id
+                AND pv.enum_parameter_id = ANY(NEW.enum_parameter_ids)
+          ))
+      );
+    RETURN NEW;
+END;
+$$;
+-- +goose StatementEnd
+
+CREATE TRIGGER trg_cleanup_unassigned_product_parameters
+AFTER UPDATE OF numeric_parameter_ids, enum_parameter_ids ON classes
+FOR EACH ROW
+WHEN (OLD.numeric_parameter_ids IS DISTINCT FROM NEW.numeric_parameter_ids
+   OR OLD.enum_parameter_ids IS DISTINCT FROM NEW.enum_parameter_ids)
+EXECUTE FUNCTION cleanup_unassigned_product_parameters();
+
+DELETE FROM products_parameters pp
+USING products p JOIN classes c ON c.id = p.class_id
+WHERE pp.product_id = p.id
+  AND (
+      (pp.range_parameter IS NOT NULL
+          AND NOT COALESCE(pp.range_parameter = ANY(c.numeric_parameter_ids), FALSE))
+      OR (pp.enum_value_id IS NOT NULL AND NOT EXISTS (
+          SELECT 1 FROM parameter_values pv
+          WHERE pv.id = pp.enum_value_id
+            AND pv.enum_parameter_id = ANY(c.enum_parameter_ids)
+      ))
+  );
+
 -- +goose Down
+DROP TRIGGER trg_cleanup_unassigned_product_parameters ON classes;
+DROP FUNCTION cleanup_unassigned_product_parameters();
 DROP TRIGGER IF EXISTS trg_before_delete_enum_parameter ON enum_parameters;
 DROP TRIGGER IF EXISTS trg_before_delete_numeric_parameter ON range_parameters;
 DROP FUNCTION IF EXISTS cleanup_enum_parameter_from_categories();

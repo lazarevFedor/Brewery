@@ -1,0 +1,35 @@
+{
+  "type": "object",
+  "required": [
+    "id",
+    "name"
+  ],
+  "properties": {
+    "id": {
+      "type": "integer",
+      "description": "Идентификатор продукта",
+      "example": 1
+    },
+    "name": {
+      "type": "string",
+      "description": "Название продукта",
+      "example": "Солодовое сусло"
+    },
+    "is_final_product": {
+      "type": "boolean",
+      "description": "Флаг конечного готового продукта",
+      "example": false
+    },
+    "price": {
+      "type": "integer",
+      "description": "Цена изделия",
+      "example": 100
+    }
+  },
+  "example": {
+    "id": 1,
+    "name": "Солодовое сусло",
+    "is_final_product": false,
+    "price": 100
+  }
+}

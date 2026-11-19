@@ -34,7 +34,15 @@ SELECT
 FROM products p
 JOIN classes c ON p.class_id = c.id
 WHERE p.class_id = $1
+ORDER BY p.id
+LIMIT $3 OFFSET $2
 `
+
+type GetProductByClassIDParams struct {
+	ClassID     int64
+	OffsetCount int32
+	LimitCount  int32
+}
 
 type GetProductByClassIDRow struct {
 	ID              int64
@@ -49,8 +57,8 @@ type GetProductByClassIDRow struct {
 	ClassEnumParams []int64
 }
 
-func (q *Queries) GetProductByClassID(ctx context.Context, classID int64) ([]GetProductByClassIDRow, error) {
-	rows, err := q.db.Query(ctx, getProductByClassID, classID)
+func (q *Queries) GetProductByClassID(ctx context.Context, arg GetProductByClassIDParams) ([]GetProductByClassIDRow, error) {
+	rows, err := q.db.Query(ctx, getProductByClassID, arg.ClassID, arg.OffsetCount, arg.LimitCount)
 	if err != nil {
 		return nil, err
 	}
@@ -142,6 +150,7 @@ SELECT
     c.enum_parameter_ids AS class_enum_params
 FROM products p
 JOIN classes c ON p.class_id = c.id
+ORDER BY p.id
 LIMIT $1
 OFFSET $2
 `

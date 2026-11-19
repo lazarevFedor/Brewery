@@ -6,6 +6,5 @@ type EnumClass struct {
 	Type        string `json:"enum_type,omitempty" info:"Тип класса перечисления"`
 	FieldName   string `json:"field_name,omitempty" info:"Имя поля у сущности, к которому относится класс перечисления"`
 	Unit        string `json:"unit,omitempty" info:"Единица измерений"`
-	IsActive    bool   `json:"is_active,omitempty" info:"Активен ли класс перечисления"`
 	Inheritable bool   `json:"inheritable,omitempty" info:"Наследуется ли класс перечисления"`
 }

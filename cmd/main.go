@@ -48,26 +48,29 @@ func main() {
 	if err != nil {
 		panic(fmt.Errorf("failed to create postgres pool: %w", err))
 	}
+	defer pool.Close()
 
 	if err = migrator.Up(pool); err != nil {
 		panic(fmt.Errorf("failed to migrate: %w", err))
 	}
-	defer migrator.Down(pool)
 
 	classRepo := classrepo.NewRepository(pool)
 	productRepo := usecase.NewProductRepository(pool)
 	materialRepo := usecase.NewMaterialRepository(pool)
 	historyRepo := usecase.NewHistoryRecordRepository(pool)
-	enumRepo := usecase.NewEnumRepository(pool)
-	parameterRepo := usecase.NewParameterRepository(pool)
+	enumParametersRepo := usecase.NewEnumParametersRepository(pool)
+	enumValuesRepo := usecase.NewEnumValuesRepository(pool)
+	rangeParametersRepo := usecase.NewRangeParametersRepository(pool)
+	classParametersRepo := usecase.NewClassParametersRepository(pool)
 	aggregateRepo := usecase.NewAggregateRepository(pool)
 
-	classService := usecase.NewClassService(classRepo)
-	productService := usecase.NewProductService(productRepo, enumRepo, parameterRepo, classRepo, materialRepo)
+	classService := usecase.NewClassService(classRepo, classParametersRepo)
+	productService := usecase.NewProductService(productRepo, enumValuesRepo, classParametersRepo, classRepo, materialRepo)
 	materialService := usecase.NewMaterialService(materialRepo, productRepo)
 	historyService := usecase.NewHistoryService(historyRepo)
-	enumService := usecase.NewEnumService(enumRepo)
-	parameterService := usecase.NewParametersService(parameterRepo, enumRepo)
+	enumParametersService := usecase.NewEnumParametersService(enumParametersRepo)
+	enumValuesService := usecase.NewEnumValuesService(enumValuesRepo)
+	rangeParametersService := usecase.NewRangeParametersService(rangeParametersRepo)
 	aggregateService := usecase.NewAggregateService(aggregateRepo)
 
 	engine := gin.New()
@@ -98,14 +101,15 @@ func main() {
 	defer router.Close()
 
 	h := handlers.Handlers{
-		ClassHandler:      handlers.NewClassHandlers(classService),
-		ProductHandler:    handlers.NewProductHandlers(productService, nil),
-		MaterialHandler:   handlers.NewMaterialHandlers(materialService),
-		HistoryHandler:    handlers.NewHistoryHandlers(historyService),
-		EnumHandler:       handlers.NewEnumHandlers(enumService),
-		ParametersHandler: handlers.NewParametersHandlers(parameterService),
-		AggregatesHandler: handlers.NewAggregateHandlers(aggregateService),
-		AuthHandler:       handlers.NewAuthHandlers(),
+		ClassHandler:           handlers.NewClassHandlers(classService),
+		ProductHandler:         handlers.NewProductHandlers(productService),
+		MaterialHandler:        handlers.NewMaterialHandlers(materialService),
+		HistoryHandler:         handlers.NewHistoryHandlers(historyService),
+		EnumParametersHandler:  handlers.NewEnumParametersHandlers(enumParametersService),
+		EnumValuesHandler:      handlers.NewEnumValuesHandlers(enumValuesService),
+		RangeParametersHandler: handlers.NewRangeParametersHandlers(rangeParametersService),
+		AggregatesHandler:      handlers.NewAggregateHandlers(aggregateService),
+		AuthHandler:            handlers.NewAuthHandlers(),
 	}
 
 	routers.RegisterRouters(router.Engine, h)

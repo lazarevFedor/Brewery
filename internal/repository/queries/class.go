@@ -62,7 +62,7 @@ func DeleteClass(id int64) sq.DeleteBuilder {
 	return psql.Delete(tableClasses).Where(sq.Eq{classIDCol: id})
 }
 
-// SelectChildrenCategories возвращает запрос для получения всех дочерних категорий по ID родительской категории
+// SelectChildrenClasses возвращает запрос для получения всех дочерних категорий по ID родительской категории
 func SelectChildrenClasses(id int64) sq.SelectBuilder {
 	return psql.Select(classIDCol).
 		From(tableClasses).

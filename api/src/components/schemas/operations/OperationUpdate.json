@@ -1,0 +1,100 @@
+{
+  "type": "object",
+  "description": "Схема обновления технологической операции (все поля опциональны)",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Название операции",
+      "example": "Варка сусла"
+    },
+    "description": {
+      "type": "string",
+      "description": "Описание технологической операции",
+      "example": "Варка охмеленного сусла при температуре 102°C"
+    },
+    "operation_class_id": {
+      "type": "integer",
+      "format": "int64",
+      "minimum": 1,
+      "description": "ID класса технологической операции",
+      "example": 3
+    },
+    "profession_id": {
+      "type": "integer",
+      "description": "Идентификатор профессии работника",
+      "example": 2
+    },
+    "equipment": {
+      "$ref": "#/components/schemas/EquipmentUpdate"
+    },
+    "step_number": {
+      "type": "integer",
+      "format": "int32",
+      "minimum": 1,
+      "description": "Номер операции в последовательности техкарты",
+      "example": 1
+    },
+    "materials": {
+      "type": "object",
+      "description": "Идентификаторы входного материала и выходного изделия",
+      "properties": {
+        "material_id": {
+          "type": "integer",
+          "description": "ID входного продукта (сырья)",
+          "example": 1
+        },
+        "product_id": {
+          "type": "integer",
+          "description": "ID выходного продукта",
+          "example": 2
+        }
+      }
+    },
+    "labor_cost": {
+      "type": "number",
+      "description": "Трудозатратность операции (человеко-часы)",
+      "example": 3.0
+    },
+    "parameters": {
+      "type": "object",
+      "description": "Новый набор технологических параметров. Пустой объект удаляет все значения",
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "boolean"
+          }
+        ]
+      },
+      "example": {
+        "duration_minutes": 100,
+        "temperature_celsius": 102
+      }
+    }
+  },
+  "example": {
+    "name": "Варка сусла (модифицированная)",
+    "description": "Варка охмеленного сусла при температуре 102°C",
+    "operation_class_id": 3,
+    "profession_id": 2,
+    "step_number": 1,
+    "equipment": {
+      "name": "Сусловарочный котел ВК-500 (модернизированный)",
+      "work_center": "Холодный цех"
+    },
+    "materials": {
+      "material_id": 1,
+      "product_id": 2
+    },
+    "labor_cost": 3.0,
+    "parameters": {
+      "duration_minutes": 100,
+      "temperature_celsius": 102
+    }
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "allOf": [
+    {
+      "$ref": "#/components/schemas/ProductBase"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "class_id": {
+          "type": "integer"
+        },
+        "base_id": {
+          "type": "integer",
+          "nullable": true,
+          "description": "ID базового изделия, на основе которого создано текущее"
+        },
+        "amount": {
+          "type": "integer"
+        },
+        "units": {
+          "type": "string"
+        },
+        "is_final_product": {
+          "type": "boolean",
+          "description": "Флаг, указывающий, является ли продукт конечным готовым изделием",
+          "example": true
+        },
+        "parameters": {
+          "type": "object",
+          "description": "Updates only the supplied parameter fields; null removes an individual value. An empty object leaves parameters unchanged.",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string",
+                "nullable": true
+              },
+              {
+                "type": "number",
+                "nullable": true
+              }
+            ]
+          }
+        }
+      },
+      "description": "Changing class_id revalidates retained parameters against the new class; remove incompatible fields with null in the same request.",
+      "example": {
+        "name": "Балтика 0 Экстра",
+        "price": 120,
+        "is_purchased": false,
+        "is_final_product": true,
+        "class_id": 1,
+        "base_id": null,
+        "amount": 100,
+        "units": "L"
+      }
+    }
+  ]
+}

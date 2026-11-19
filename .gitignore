@@ -5,3 +5,4 @@ deployments/pgdata
 .DS_Store
 coverage.out
 hook/
+/AGENTS.md

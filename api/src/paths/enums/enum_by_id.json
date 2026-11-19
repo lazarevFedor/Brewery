@@ -1,0 +1,81 @@
+{
+  "patch": {
+    "tags": [
+      "EnumParameters"
+    ],
+    "summary": "Update enum parameter",
+    "operationId": "updateEnumParameter",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/Id"
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/EnumParameterUpdate"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Updated enum parameter",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/EnumParameter"
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  },
+  "delete": {
+    "tags": [
+      "EnumParameters"
+    ],
+    "summary": "Delete enum parameter",
+    "operationId": "deleteEnumParameter",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/Id"
+      }
+    ],
+    "responses": {
+      "204": {
+        "description": "Successfully deleted"
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  }
+}

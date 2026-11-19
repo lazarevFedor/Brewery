@@ -1,0 +1,103 @@
+{
+  "patch": {
+    "tags": [
+      "Aggregates"
+    ],
+    "summary": "Update parameter aggregate",
+    "operationId": "updateParameterAggregate",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/Id"
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/ParameterAggregateUpdate"
+          },
+          "examples": {
+            "update-name-description": {
+              "summary": "Update name and description",
+              "value": {
+                "name": "Lager Profile v2",
+                "description": "Updated standard parameters for Lager"
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Parameter aggregate updated",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ParameterAggregate"
+            },
+            "examples": {
+              "updated": {
+                "summary": "Updated aggregate",
+                "value": {
+                  "id": 1,
+                  "name": "Lager Profile v2",
+                  "description": "Updated standard parameters for Lager",
+                  "range_param_ids": [
+                    10
+                  ],
+                  "enum_param_ids": [
+                    11
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  },
+  "delete": {
+    "tags": [
+      "Aggregates"
+    ],
+    "summary": "Delete parameter aggregate",
+    "operationId": "deleteParameterAggregate",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/Id"
+      }
+    ],
+    "responses": {
+      "204": {
+        "description": "Parameter aggregate deleted"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  }
+}

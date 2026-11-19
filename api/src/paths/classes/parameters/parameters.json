@@ -1,0 +1,48 @@
+{
+  "get": {
+    "tags": [
+      "Classes"
+    ],
+    "summary": "Get all parameters with optional filtering by class and type",
+    "operationId": "ListClassParameters",
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/classIdFilter"
+      },
+      {
+        "$ref": "#/components/parameters/ParamType"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Filtered list of parameters",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/RangeParameter"
+                  },
+                  {
+                    "$ref": "#/components/schemas/EnumParameter"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  }
+}

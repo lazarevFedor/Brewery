@@ -1,0 +1,43 @@
+{
+  "allOf": [
+    {
+      "$ref": "#/components/schemas/OperationBase"
+    },
+    {
+      "type": "object",
+      "required": [
+        "name",
+        "operation_class_id",
+        "profession_id",
+        "equipment",
+        "step_number",
+        "materials"
+      ],
+      "properties": {
+        "equipment": {
+          "$ref": "#/components/schemas/Equipment"
+        }
+      }
+    }
+  ],
+  "example": {
+    "name": "Варка сусла с охмелением",
+    "description": "Варка сусла при температуре 100°C с добавлением хмеля",
+    "operation_class_id": 3,
+    "profession_id": 1,
+    "step_number": 1,
+    "equipment": {
+      "name": "Сусловарочный котел ВК-500",
+      "work_center": "Холодный цех"
+    },
+    "materials": {
+      "material_id": 10,
+      "product_id": 11
+    },
+    "labor_cost": 2.5,
+    "parameters": {
+      "duration_minutes": 90,
+      "temperature_celsius": 100
+    }
+  }
+}

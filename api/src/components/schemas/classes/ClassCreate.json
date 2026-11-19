@@ -1,0 +1,24 @@
+{
+  "allOf": [
+    {
+      "$ref": "#/components/schemas/ClassBase"
+    },
+    {
+      "type": "object",
+      "required": [
+        "name",
+        "parent_id"
+      ],
+      "properties": {
+        "parent_id": {
+          "type": "integer",
+          "nullable": true
+        }
+      }
+    }
+  ],
+  "example": {
+    "name": "Пиво",
+    "parent_id": null
+  }
+}
