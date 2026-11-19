@@ -39,6 +39,7 @@ SELECT
     m.material_amount,
     m.base,
     p.name,
+    COALESCE(p.price, 0)::double precision AS price,
     p.units,
     p.class_id,
     p.base_id

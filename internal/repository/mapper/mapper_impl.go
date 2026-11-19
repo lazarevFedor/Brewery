@@ -147,6 +147,7 @@ func (c *MaterialMapperImpl) ProductFromProductRow(source queries.GetMaterialsBy
 	var entitiesProduct entities.Product
 	entitiesProduct.ID = source.ID
 	entitiesProduct.Name = source.Name
+	entitiesProduct.Price = source.Price
 	entitiesProduct.ProdClass = ClassFromID(source.ClassID)
 	if source.BaseID != nil {
 		entitiesProduct.BaseID = *source.BaseID
