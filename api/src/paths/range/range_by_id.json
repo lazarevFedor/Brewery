@@ -94,6 +94,9 @@
       "404": {
         "$ref": "#/components/responses/404_not_found"
       },
+      "409": {
+        "$ref": "#/components/responses/409_conflict"
+      },
       "500": {
         "$ref": "#/components/responses/500_internal_server_error"
       }

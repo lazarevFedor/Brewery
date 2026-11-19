@@ -42,7 +42,7 @@ RETURNING
     numeric_parameter_ids,
     enum_parameter_ids;
 
--- name: DeleteClass :exec
+-- name: DeleteClass :execrows
 DELETE FROM classes
 WHERE id = $1;
 

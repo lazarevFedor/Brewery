@@ -2,6 +2,7 @@
 package repository
 
 import (
+	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
 	"Brewery/internal/repository/queries"
 	"context"
@@ -9,6 +10,7 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -29,8 +31,8 @@ func (e *EnumValuesPostgres) InsertEnumValue(ctx context.Context, enumValue enti
 	var valID uint
 
 	enumValueRow, err := enumValue.ToRow()
-	if err != nil || enumValueRow == nil {
-		return 0, fmt.Errorf("%s: %w", "ToRow", err)
+	if err != nil {
+		return 0, apperrors.BadRequest("invalid enum value for the supplied type", err)
 	}
 
 	psql := queries.InsertEnumValue(*enumValueRow)
@@ -42,7 +44,7 @@ func (e *EnumValuesPostgres) InsertEnumValue(ctx context.Context, enumValue enti
 
 	err = e.Pool.QueryRow(ctx, query, args...).Scan(&valID)
 	if err != nil {
-		return 0, fmt.Errorf("%s: %w", "QueryRow", err)
+		return 0, enumValueWriteError(err)
 	}
 
 	if valID == 0 {
@@ -74,9 +76,12 @@ func (e *EnumValuesPostgres) UpdateEnumValue(ctx context.Context, id uint, updat
 		return fmt.Errorf("%s: %w", "ToSql", err)
 	}
 
-	_, err = e.Pool.Exec(ctx, query, args...)
+	result, err := e.Pool.Exec(ctx, query, args...)
 	if err != nil {
-		return fmt.Errorf("%s: %w", "Exec", err)
+		return enumValueWriteError(err)
+	}
+	if result.RowsAffected() == 0 {
+		return apperrors.NotFound("Enum value not found", nil)
 	}
 
 	return nil
@@ -95,11 +100,26 @@ func (e *EnumValuesPostgres) DeleteEnumValueByID(ctx context.Context, id uint) e
 		return fmt.Errorf("%s: %w", "ToSql", err)
 	}
 
-	_, err = e.Pool.Exec(ctx, query, args...)
+	result, err := e.Pool.Exec(ctx, query, args...)
 	if err != nil {
-		return fmt.Errorf("%s: %w", "Exec", err)
+		return parameterDeleteError(err, "Enum value")
+	}
+	if result.RowsAffected() == 0 {
+		return apperrors.NotFound("Enum value not found", nil)
 	}
 	return nil
+}
+
+func enumValueWriteError(err error) error {
+	if pgErr, ok := errors.AsType[*pgconn.PgError](err); ok {
+		switch {
+		case pgErr.Code == "23503" && pgErr.ConstraintName == "parameter_values_enum_parameter_id_fkey":
+			return apperrors.BadRequest("enum parameter not found", err)
+		case pgErr.Code == "22001":
+			return apperrors.BadRequest("enum value exceeds the allowed length", err)
+		}
+	}
+	return fmt.Errorf("write enum value: %w", err)
 }
 
 // GetEnumValues получает значения перечисления по имени поля и типу значения.

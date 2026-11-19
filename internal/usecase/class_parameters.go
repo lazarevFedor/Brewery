@@ -1,10 +1,10 @@
 package usecase
 
 import (
+	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
 	"Brewery/internal/repository"
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -34,7 +34,7 @@ func (c *ClassService) ListParameters(ctx context.Context, classID int64, parame
 	}
 
 	if classID < 0 {
-		return nil, nil, errors.New("invalid class ID")
+		return nil, nil, apperrors.BadRequest("invalid class ID", nil)
 	}
 
 	rangeParameters, enumParameters, err := c.parametersRepo.GetParameters(ctx, classID, parameterType)
@@ -51,12 +51,12 @@ func (c *ClassService) ApplyParametersToClass(ctx context.Context, classID int64
 		return 0, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	if classID == 0 {
-		return 0, errors.New("invalid class ID")
+	if classID <= 0 {
+		return 0, apperrors.BadRequest("invalid class ID", nil)
 	}
 
 	if len(rangeIDs) == 0 && len(enumIDs) == 0 {
-		return 0, errors.New("no parameters to apply")
+		return 0, apperrors.BadRequest("no parameters to apply", nil)
 	}
 
 	added, err := c.parametersRepo.ApplyParameters(ctx, classID, rangeIDs, enumIDs)
@@ -73,12 +73,12 @@ func (c *ClassService) ExcludeParametersFromClass(ctx context.Context, classID i
 		return 0, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	if classID == 0 {
-		return 0, errors.New("invalid class ID")
+	if classID <= 0 {
+		return 0, apperrors.BadRequest("invalid class ID", nil)
 	}
 
 	if len(rangeIDs) == 0 && len(enumIDs) == 0 {
-		return 0, errors.New("no parameters to exclude")
+		return 0, apperrors.BadRequest("no parameters to exclude", nil)
 	}
 
 	excluded, err := c.parametersRepo.ExcludeParameters(ctx, classID, rangeIDs, enumIDs)

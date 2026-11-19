@@ -1,6 +1,7 @@
 package class
 
 import (
+	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
 	mpr "Brewery/internal/repository/mapper"
 	"Brewery/internal/repository/queries"
@@ -9,6 +10,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )
@@ -49,6 +52,16 @@ func (repo *Repository) InsertClass(ctx context.Context, class entities.Class) (
 	}
 	dbClass, err := repo.query.InsertClass(ctx, insertParams)
 	if err != nil {
+		if pgErr, ok := errors.AsType[*pgconn.PgError](err); ok {
+			switch {
+			case pgErr.Code == "23505" && pgErr.ConstraintName == "idx_classes_single_root":
+				return nil, apperrors.Conflict("root class already exists", err)
+			case pgErr.Code == "23505" && pgErr.ConstraintName == "classes_name_key":
+				return nil, apperrors.Conflict("class name already exists", err)
+			case pgErr.Code == "23503" && pgErr.ConstraintName == "classes_parent_id_fkey":
+				return nil, apperrors.BadRequest("parent class not found", err)
+			}
+		}
 		return nil, fmt.Errorf("InsertClass: %w", err)
 	}
 	class = mapper.FromInsert(dbClass)
@@ -83,7 +96,18 @@ func (repo *Repository) UpdateClass(ctx context.Context, id int64, updates entit
 	}
 
 	dbClass, err := repo.query.UpdateClass(ctx, updateParams)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, apperrors.NotFound("Class not found", err)
+	}
 	if err != nil {
+		if pgErr, ok := errors.AsType[*pgconn.PgError](err); ok {
+			switch {
+			case pgErr.Code == "23505" && pgErr.ConstraintName == "classes_name_key":
+				return nil, apperrors.Conflict("class name already exists", err)
+			case pgErr.Code == "23503" && pgErr.ConstraintName == "classes_parent_id_fkey":
+				return nil, apperrors.NotFound("Parent class not found", err)
+			}
+		}
 		return nil, fmt.Errorf("UpdateClass: %w", err)
 	}
 
@@ -96,8 +120,15 @@ func (repo *Repository) DeleteClass(ctx context.Context, id int64) error {
 		return errors.New("db pool is empty")
 	}
 
-	if err := repo.query.DeleteClass(ctx, id); err != nil {
+	deleted, err := repo.query.DeleteClass(ctx, id)
+	if err != nil {
+		if pgErr, ok := errors.AsType[*pgconn.PgError](err); ok && (pgErr.Code == "23503" || pgErr.Code == "23001") {
+			return apperrors.Conflict("class is referenced by another record", err)
+		}
 		return fmt.Errorf("DeleteClass: %w", err)
+	}
+	if deleted == 0 {
+		return apperrors.NotFound("Class not found", nil)
 	}
 	return nil
 }

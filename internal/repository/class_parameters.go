@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
 	"Brewery/internal/repository/queries"
 	"context"
@@ -36,10 +37,10 @@ func (p *ClassParametersPostgres) GetParameters(
 		return nil, nil, errors.New("pool is nil")
 	}
 	if classID < 0 {
-		return nil, nil, errors.New("invalid class ID")
+		return nil, nil, apperrors.BadRequest("invalid class ID", nil)
 	}
 	if parameterType != entities.MissingType && parameterType != entities.RangeParameterType && parameterType != entities.EnumParameterType {
-		return nil, nil, errors.New("invalid parameter type")
+		return nil, nil, apperrors.BadRequest("invalid parameter type", nil)
 	}
 	var rangeIDs []int64
 	var enumIDs []int64
@@ -59,6 +60,9 @@ func (p *ClassParametersPostgres) GetParameters(
 			err = p.Pool.QueryRow(ctx, sql, args...).Scan(&rangeIDs)
 		case entities.EnumParameterType:
 			err = p.Pool.QueryRow(ctx, sql, args...).Scan(&enumIDs)
+		}
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil, apperrors.NotFound("Class not found", err)
 		}
 		if err != nil {
 			return nil, nil, err
@@ -225,6 +229,9 @@ func lockClassParameterIDs(ctx context.Context, tx pgx.Tx, classID int64) ([]int
 	}
 	var rangeIDs, enumIDs []int64
 	if err := tx.QueryRow(ctx, sql, args...).Scan(&rangeIDs, &enumIDs); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil, apperrors.NotFound("Class not found", err)
+		}
 		return nil, nil, fmt.Errorf("lock parameters of class %d: %w", classID, err)
 	}
 	return rangeIDs, enumIDs, nil

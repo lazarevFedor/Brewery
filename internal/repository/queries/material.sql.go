@@ -35,7 +35,7 @@ func (q *Queries) CopyBaseMaterials(ctx context.Context, arg CopyBaseMaterialsPa
 	return err
 }
 
-const deleteMaterial = `-- name: DeleteMaterial :exec
+const deleteMaterial = `-- name: DeleteMaterial :execrows
 DELETE FROM materials
 WHERE material_id = $1
 AND product_id = $2
@@ -46,9 +46,12 @@ type DeleteMaterialParams struct {
 	ProductID  int64
 }
 
-func (q *Queries) DeleteMaterial(ctx context.Context, arg DeleteMaterialParams) error {
-	_, err := q.db.Exec(ctx, deleteMaterial, arg.MaterialID, arg.ProductID)
-	return err
+func (q *Queries) DeleteMaterial(ctx context.Context, arg DeleteMaterialParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteMaterial, arg.MaterialID, arg.ProductID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const deleteProductsMaterials = `-- name: DeleteProductsMaterials :exec

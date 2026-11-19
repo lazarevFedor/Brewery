@@ -28,7 +28,7 @@ RETURNING
     base;
 
 
--- name: DeleteMaterial :exec
+-- name: DeleteMaterial :execrows
 DELETE FROM materials
 WHERE material_id = $1
 AND product_id = $2;

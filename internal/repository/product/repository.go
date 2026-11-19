@@ -12,6 +12,7 @@ import (
 
 	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -58,7 +59,7 @@ func (repo *Repository) InsertProduct(ctx context.Context, product entities.Prod
 	}
 	productRow, err := qTx.InsertProduct(ctx, params)
 	if err != nil {
-		return nil, fmt.Errorf("InsertProduct: %w", err)
+		return nil, fmt.Errorf("InsertProduct: %w", productWriteError(err))
 	}
 	if product.BaseID != 0 {
 		if err := qTx.CopyBaseMaterials(ctx, queries.CopyBaseMaterialsParams{
@@ -180,12 +181,15 @@ func (repo *Repository) UpdateProduct(ctx context.Context, id int64, changes ent
 		return nil, err
 	}
 	if _, err := qTx.UpdateProduct(ctx, params); err != nil {
-		return nil, fmt.Errorf("UpdateProduct: %w", err)
+		return nil, fmt.Errorf("UpdateProduct: %w", productWriteError(err))
 	}
 
 	// При обновлении base_id необходимо поменять все необходимые материалы со старого изделия на новое
 	if params.BaseID != nil {
 		if err := qTx.DeleteProductsMaterials(ctx, id); err != nil {
+			if pgErr, ok := errors.AsType[*pgconn.PgError](err); ok && pgErr.ConstraintName == "fk_operations_material" {
+				return nil, apperrors.Conflict("product composition is referenced by an operation", err)
+			}
 			return nil, fmt.Errorf("DeleteProductsMaterials: %w", err)
 		}
 		copyParams := queries.CopyBaseMaterialsParams{
@@ -220,13 +224,46 @@ func (repo *Repository) UpdateProduct(ctx context.Context, id int64, changes ent
 	return updated, nil
 }
 
+func productWriteError(err error) error {
+	pgErr, ok := errors.AsType[*pgconn.PgError](err)
+	if !ok {
+		return err
+	}
+
+	switch pgErr.ConstraintName {
+	case "products_class_id_fkey":
+		return apperrors.BadRequest("product class does not exist", err)
+	case "products_base_id_fkey":
+		return apperrors.BadRequest("base product does not exist", err)
+	case "chk_product_isnot_its_base":
+		return apperrors.BadRequest("product cannot be its own base", err)
+	case "check_product_amount_positive":
+		return apperrors.BadRequest("invalid amount", err)
+	case "chk_product_price_positive":
+		return apperrors.BadRequest("invalid price", err)
+	}
+	if pgErr.Code == "22003" {
+		return apperrors.BadRequest("product number is out of range", err)
+	}
+	return err
+}
+
 func (repo *Repository) DeleteProduct(ctx context.Context, id int64) error {
 	if repo.Pool == nil {
 		return errors.New("db pool is empty")
 	}
-	err := repo.query.DeleteProduct(ctx, id)
+	count, err := repo.query.DeleteProduct(ctx, id)
 	if err != nil {
+		if pgErr, ok := errors.AsType[*pgconn.PgError](err); ok {
+			switch pgErr.ConstraintName {
+			case "operations_input_product_id_fkey", "operations_output_product_id_fkey", "fk_operations_material":
+				return apperrors.Conflict("product is referenced by an operation", err)
+			}
+		}
 		return fmt.Errorf("DeleteProduct: %w", err)
+	}
+	if count == 0 {
+		return apperrors.NotFound("product not found", nil)
 	}
 	return nil
 }

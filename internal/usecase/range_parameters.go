@@ -1,11 +1,12 @@
 package usecase
 
 import (
+	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
 	"Brewery/internal/repository"
 	"context"
-	"errors"
 	"fmt"
+	"math"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -40,14 +41,6 @@ func NewRangeParametersService(repo RangeParametersRepository) *RangeParametersS
 	return &RangeParametersService{repo: repo}
 }
 
-// allowedRangeParameterUpdates содержит список полей, которые можно обновлять в числовом параметре.
-var allowedRangeParameterUpdates = map[string]struct{}{
-	"min_val":     {},
-	"max_val":     {},
-	"inheritable": {},
-	"unit":        {},
-}
-
 // CreateRangeParameter создает числовой параметр.
 func (s *RangeParametersService) CreateRangeParameter(ctx context.Context, param *entities.RangeParameter) (*entities.RangeParameter, error) {
 	if err := ctx.Err(); err != nil {
@@ -55,17 +48,17 @@ func (s *RangeParametersService) CreateRangeParameter(ctx context.Context, param
 	}
 
 	if param == nil {
-		return nil, errors.New("parameter is nil")
+		return nil, apperrors.BadRequest("parameter is nil", nil)
 	}
 
 	if param.FieldName == "" {
-		return nil, errors.New("field_name is required")
+		return nil, apperrors.BadRequest("field_name is required", nil)
 	}
 	if param.MinValue > param.MaxValue {
-		return nil, errors.New("min_val must be less than or equal to max_val")
+		return nil, apperrors.BadRequest("min_val must be less than or equal to max_val", nil)
 	}
 	if param.MinValue < 0 {
-		return nil, errors.New("min_val must be greater or equal to zero")
+		return nil, apperrors.BadRequest("min_val must be greater or equal to zero", nil)
 	}
 
 	created, err := s.repo.InsertRangeParameter(ctx, param)
@@ -96,17 +89,31 @@ func (s *RangeParametersService) UpdateRangeParameter(ctx context.Context, id in
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	if id == 0 {
-		return nil, errors.New("invalid parameter ID")
+	if id <= 0 {
+		return nil, apperrors.BadRequest("invalid parameter ID", nil)
 	}
 
 	if len(updates) == 0 {
-		return nil, errors.New("no updates provided")
+		return nil, apperrors.BadRequest("no updates provided", nil)
 	}
 
-	for k := range updates {
-		if _, ok := allowedRangeParameterUpdates[k]; !ok {
-			return nil, fmt.Errorf("unknown parameter: %s", k)
+	for field, value := range updates {
+		switch field {
+		case "min_val", "max_val":
+			number, ok := toFloat64Value(value)
+			if !ok || math.IsInf(number, 0) || math.Trunc(number) != number {
+				return nil, apperrors.BadRequest(field+" must be an integer", nil)
+			}
+		case "inheritable":
+			if _, ok := value.(bool); !ok {
+				return nil, apperrors.BadRequest("inheritable must be a boolean", nil)
+			}
+		case "unit":
+			if _, ok := value.(string); !ok {
+				return nil, apperrors.BadRequest("unit must be a string", nil)
+			}
+		default:
+			return nil, apperrors.BadRequest(fmt.Sprintf("unknown parameter: %s", field), nil)
 		}
 	}
 
@@ -124,8 +131,8 @@ func (s *RangeParametersService) DeleteRangeParameter(ctx context.Context, id in
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	if id == 0 {
-		return nil, errors.New("invalid parameter ID")
+	if id <= 0 {
+		return nil, apperrors.BadRequest("invalid parameter ID", nil)
 	}
 
 	deleted, err := s.repo.DeleteRangeParameter(ctx, id)

@@ -65,7 +65,7 @@ func (s *EnumParametersService) ListEnumParameters(ctx context.Context, fieldNam
 	}
 
 	if fieldName == "" {
-		return nil, fmt.Errorf("field name cannot be empty")
+		return nil, apperrors.BadRequest("field name cannot be empty", nil)
 	}
 
 	parameters, err := s.repo.GetEnumParameters(ctx, fieldName)
@@ -83,16 +83,27 @@ func (s *EnumParametersService) UpdateEnumParameter(ctx context.Context, id uint
 	}
 
 	if id == 0 {
-		return fmt.Errorf("invalid enum parameter ID")
+		return apperrors.BadRequest("invalid enum parameter ID", nil)
 	}
 
 	if len(updates) == 0 {
-		return fmt.Errorf("no updates provided")
+		return apperrors.BadRequest("no updates provided", nil)
 	}
 
-	for field := range updates {
+	for field, value := range updates {
 		switch field {
-		case "field_name", "unit", "inheritable":
+		case "field_name":
+			if name, ok := value.(string); !ok || name == "" {
+				return apperrors.BadRequest("field_name must be a non-empty string", nil)
+			}
+		case "unit":
+			if _, ok := value.(string); !ok && value != nil {
+				return apperrors.BadRequest("unit must be a string or null", nil)
+			}
+		case "inheritable":
+			if _, ok := value.(bool); !ok {
+				return apperrors.BadRequest("inheritable must be a boolean", nil)
+			}
 		case "enum_type":
 			return apperrors.BadRequest("enum_type cannot be changed after creation", nil)
 		default:
@@ -116,7 +127,7 @@ func (s *EnumParametersService) DeleteEnumParameter(ctx context.Context, id uint
 	}
 
 	if id == 0 {
-		return fmt.Errorf("invalid enum parameter ID")
+		return apperrors.BadRequest("invalid enum parameter ID", nil)
 	}
 
 	err := s.repo.DeleteEnumParameterByID(ctx, id)

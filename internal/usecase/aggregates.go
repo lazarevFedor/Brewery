@@ -6,7 +6,6 @@ import (
 	"Brewery/internal/entities"
 	"Brewery/internal/repository"
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -52,11 +51,11 @@ func (s *AggregateService) CreateAggregate(ctx context.Context, aggregate *entit
 	}
 
 	if aggregate == nil {
-		return nil, errors.New("aggregate is nil")
+		return nil, apperrors.BadRequest("aggregate is required", nil)
 	}
 
 	if aggregate.Name == "" {
-		return nil, errors.New("aggregate name is required")
+		return nil, apperrors.BadRequest("aggregate name is required", nil)
 	}
 
 	created, err := s.AggregateRepo.InsertAggregate(ctx, aggregate)
@@ -87,12 +86,15 @@ func (s *AggregateService) UpdateAggregate(ctx context.Context, id int64, update
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	if id == 0 {
-		return nil, errors.New("invalid aggregate ID")
+	if id <= 0 {
+		return nil, apperrors.BadRequest("invalid aggregate ID", nil)
 	}
 
 	if updates.Name == nil && updates.Description == nil && updates.RangeParamIDs == nil && updates.EnumParamIDs == nil {
 		return nil, apperrors.BadRequest("Empty update payload", nil)
+	}
+	if updates.Name != nil && *updates.Name == "" {
+		return nil, apperrors.BadRequest("aggregate name is required", nil)
 	}
 
 	updated, err := s.AggregateRepo.UpdateAggregate(ctx, id, updates)
@@ -109,8 +111,8 @@ func (s *AggregateService) DeleteAggregate(ctx context.Context, id int64) (*enti
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	if id == 0 {
-		return nil, errors.New("invalid aggregate ID")
+	if id <= 0 {
+		return nil, apperrors.BadRequest("invalid aggregate ID", nil)
 	}
 
 	deleted, err := s.AggregateRepo.DeleteAggregate(ctx, id)
@@ -127,8 +129,8 @@ func (s *AggregateService) ApplyAggregateToClass(ctx context.Context, classID, a
 		return 0, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	if classID == 0 || aggregateID == 0 {
-		return 0, errors.New("invalid class ID or aggregate ID")
+	if classID <= 0 || aggregateID <= 0 {
+		return 0, apperrors.BadRequest("invalid class ID or aggregate ID", nil)
 	}
 
 	added, err := s.AggregateRepo.ApplyAggregate(ctx, classID, aggregateID)

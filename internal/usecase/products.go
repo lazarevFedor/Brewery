@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"maps"
 	"math"
+	"net/http"
 	"slices"
 
 	"github.com/jackc/pgx/v5"
@@ -129,11 +130,14 @@ func (ps *ProductService) UpdateProduct(ctx context.Context, id int64, updates m
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	if id == 0 {
-		return nil, errors.New("invalid product id")
+	if id <= 0 {
+		return nil, apperrors.BadRequest("invalid product id", nil)
 	}
 
 	current, err := ps.repo.GetProductByID(ctx, id)
+	if productResourceNotFound(err) || (err == nil && current == nil) {
+		return nil, apperrors.NotFound("product not found", err)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to get product: %w", err)
 	}
@@ -152,7 +156,7 @@ func (ps *ProductService) UpdateProduct(ctx context.Context, id int64, updates m
 	}
 	if classID, ok := updates["class_id"].(int64); ok && classID != current.ProdClass.ID {
 		class, err := ps.classRepo.GetClassByID(ctx, classID)
-		if errors.Is(err, pgx.ErrNoRows) {
+		if productResourceNotFound(err) {
 			return nil, apperrors.BadRequest("class does not exist", err)
 		}
 		if err != nil {
@@ -165,9 +169,9 @@ func (ps *ProductService) UpdateProduct(ctx context.Context, id int64, updates m
 		changes.ReplaceParameters = true
 		changes.ExpectedParameters = maps.Clone(current.Parameters)
 	}
-	patch, hasParameters := updates["parameters"]
+	patch, hasParameters := updates["parameters"].(map[string]any)
 	if hasParameters {
-		for field, value := range patch.(map[string]any) {
+		for field, value := range patch {
 			changes.ParameterFields = append(changes.ParameterFields, field)
 			if value == nil {
 				delete(candidate.Parameters, field)
@@ -195,7 +199,7 @@ func (ps *ProductService) UpdateProduct(ctx context.Context, id int64, updates m
 
 	if baseID, ok := updates["base_id"].(int64); ok {
 		if baseID == id {
-			return nil, errors.New("product cannot be its own base")
+			return nil, apperrors.BadRequest("product cannot be its own base", nil)
 		}
 		if ps.materialRepo == nil {
 			return nil, errors.New("material repository is nil")
@@ -213,6 +217,9 @@ func (ps *ProductService) UpdateProduct(ctx context.Context, id int64, updates m
 			materialIDs = append(materialIDs, materialID)
 		}
 		if err := validateMaterialComposition(ctx, ps.materialRepo, id, materialIDs); err != nil {
+			if appErr, isAppError := errors.AsType[*apperrors.AppError](err); isAppError && appErr.HTTPStatus == http.StatusUnprocessableEntity {
+				return nil, apperrors.BadRequest(appErr.APIErr.Message, err)
+			}
 			return nil, fmt.Errorf("failed to validate base product composition: %w", err)
 		}
 	}
@@ -233,8 +240,8 @@ func (ps *ProductService) DeleteProduct(ctx context.Context, id int64) error {
 		return fmt.Errorf("request cancelled: %w", err)
 	}
 
-	if id == 0 {
-		return errors.New("invalid product id")
+	if id <= 0 {
+		return apperrors.BadRequest("invalid product id", nil)
 	}
 
 	err := ps.repo.DeleteProduct(ctx, id)
@@ -253,8 +260,11 @@ func (ps *ProductService) GetProductsByClass(ctx context.Context, classID int64,
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	if classID == 0 {
-		return nil, errors.New("invalid class id")
+	if classID <= 0 {
+		return nil, apperrors.BadRequest("invalid class id", nil)
+	}
+	if err := ps.requireProductsClass(ctx, classID); err != nil {
+		return nil, err
 	}
 
 	products, err := ps.repo.GetProductsByClass(ctx, classID, limit, offset)
@@ -271,6 +281,14 @@ func (ps *ProductService) GetFilteredProducts(ctx context.Context, filters []ent
 	}
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
+	}
+	if classID != nil {
+		if *classID == 0 || uint64(*classID) > math.MaxInt64 {
+			return nil, apperrors.BadRequest("invalid class id", nil)
+		}
+		if err := ps.requireProductsClass(ctx, int64(*classID)); err != nil {
+			return nil, err
+		}
 	}
 
 	products, err := ps.repo.GetFilteredProducts(ctx, filters, classID, limit, offset)
@@ -289,11 +307,14 @@ func (ps *ProductService) GetProductByID(ctx context.Context, id int64) (*entiti
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	if id == 0 {
-		return nil, errors.New("invalid product id")
+	if id <= 0 {
+		return nil, apperrors.BadRequest("invalid product id", nil)
 	}
 
 	p, err := ps.repo.GetProductByID(ctx, id)
+	if productResourceNotFound(err) || (err == nil && p == nil) {
+		return nil, apperrors.NotFound("product not found", err)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to get product: %w", err)
 	}
@@ -301,9 +322,27 @@ func (ps *ProductService) GetProductByID(ctx context.Context, id int64) (*entiti
 	return p, nil
 }
 
+func (ps *ProductService) requireProductsClass(ctx context.Context, id int64) error {
+	class, err := ps.classRepo.GetClassByID(ctx, id)
+	if productResourceNotFound(err) || (err == nil && class == nil) {
+		return apperrors.NotFound("product class not found", err)
+	}
+	if err != nil {
+		return fmt.Errorf("get product class: %w", err)
+	}
+	return nil
+}
+
+func productResourceNotFound(err error) bool {
+	if appErr, ok := errors.AsType[*apperrors.AppError](err); ok {
+		return appErr.HTTPStatus == http.StatusNotFound
+	}
+	return errors.Is(err, pgx.ErrNoRows)
+}
+
 func (ps *ProductService) ValidateUpdates(ctx context.Context, updates map[string]any) error {
 	if len(updates) == 0 {
-		return errors.New("no fields to update")
+		return apperrors.BadRequest("no fields to update", nil)
 	}
 
 	for key := range updates {
@@ -311,7 +350,7 @@ func (ps *ProductService) ValidateUpdates(ctx context.Context, updates map[strin
 		case "name":
 			name, _ := updates[key]
 			if nameStr, ok := name.(string); !ok || nameStr == "" {
-				return errors.New("invalid product name")
+				return apperrors.BadRequest("invalid product name", nil)
 			}
 		case "class_id":
 			classID, _ := updates[key]
@@ -322,24 +361,23 @@ func (ps *ProductService) ValidateUpdates(ctx context.Context, updates map[strin
 				}
 				updates[key] = toInt64(v)
 			default:
-				return errors.New("invalid class id")
+				return apperrors.BadRequest("invalid class id", nil)
 			}
 		case "base_id":
 			baseID, _ := updates[key]
 			baseIDInt, ok := toInt64Value(baseID)
 			if !ok || baseIDInt <= 0 {
-				return errors.New("invalid base id")
+				return apperrors.BadRequest("invalid base id", nil)
 			}
-			_, err := ps.repo.GetProductByID(ctx, baseIDInt)
-			if err != nil {
-				return fmt.Errorf("base product with id %d does not exist: %w", baseIDInt, err)
+			if err := ps.requireProductBase(ctx, baseIDInt); err != nil {
+				return err
 			}
 			updates[key] = baseIDInt
 		case "amount":
 			amount, _ := updates[key]
 			amountValue, ok := toFloat64Value(amount)
-			if !ok {
-				return errors.New("invalid amount")
+			if !ok || amountValue < 0 || !validProductAmount(float32(amountValue)) {
+				return apperrors.BadRequest("invalid amount", nil)
 			}
 			updates[key] = float32(amountValue)
 		case "price":
@@ -359,10 +397,10 @@ func (ps *ProductService) ValidateUpdates(ctx context.Context, updates map[strin
 		case "units":
 			units, _ := updates[key]
 			if unitsStr, ok := units.(string); !ok || unitsStr == "" {
-				return errors.New("invalid units")
+				return apperrors.BadRequest("invalid units", nil)
 			}
 		default:
-			return fmt.Errorf("invalid update field: %s", key)
+			return apperrors.BadRequest(fmt.Sprintf("invalid update field: %s", key), nil)
 		}
 	}
 
@@ -476,7 +514,10 @@ func (ps *ProductService) ValidateProductWithParameters(ctx context.Context, pro
 
 func (ps *ProductService) ValidateProductCreation(ctx context.Context, p entities.Product) (entities.Product, error) {
 	if p.Name == "" {
-		return p, errors.New("product name is required")
+		return p, apperrors.BadRequest("product name is required", nil)
+	}
+	if !validProductAmount(p.Amount) {
+		return p, apperrors.BadRequest("invalid amount", nil)
 	}
 	if !validProductPrice(p.Price) {
 		return p, apperrors.BadRequest("price must be between 0 and 9999999999.99 with at most two decimal places", nil)
@@ -489,7 +530,7 @@ func (ps *ProductService) ValidateProductCreation(ctx context.Context, p entitie
 	} else {
 		class, err = ps.classRepo.GetClassByName(ctx, p.ProdClass.Name)
 	}
-	if errors.Is(err, pgx.ErrNoRows) {
+	if productResourceNotFound(err) {
 		return p, apperrors.BadRequest("product class does not exist", err)
 	}
 	if err != nil {
@@ -505,13 +546,27 @@ func (ps *ProductService) ValidateProductCreation(ctx context.Context, p entitie
 	p.ProdClass = *class
 
 	if p.BaseID != 0 {
-		_, err = ps.repo.GetProductByID(ctx, p.BaseID)
-		if err != nil {
-			return p, fmt.Errorf("base product with id %d does not exist: %w", p.BaseID, err)
+		if baseErr := ps.requireProductBase(ctx, p.BaseID); baseErr != nil {
+			return p, baseErr
 		}
 	}
 
 	return p, nil
+}
+
+func (ps *ProductService) requireProductBase(ctx context.Context, id int64) error {
+	product, err := ps.repo.GetProductByID(ctx, id)
+	if productResourceNotFound(err) || (err == nil && product == nil) {
+		return apperrors.BadRequest(fmt.Sprintf("base product with id %d does not exist", id), err)
+	}
+	if err != nil {
+		return fmt.Errorf("get base product: %w", err)
+	}
+	return nil
+}
+
+func validProductAmount(amount float32) bool {
+	return amount >= 0 && amount < 10_000_000
 }
 
 func validProductPrice(price float64) bool {

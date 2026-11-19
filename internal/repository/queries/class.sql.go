@@ -9,14 +9,17 @@ import (
 	"context"
 )
 
-const deleteClass = `-- name: DeleteClass :exec
+const deleteClass = `-- name: DeleteClass :execrows
 DELETE FROM classes
 WHERE id = $1
 `
 
-func (q *Queries) DeleteClass(ctx context.Context, id int64) error {
-	_, err := q.db.Exec(ctx, deleteClass, id)
-	return err
+func (q *Queries) DeleteClass(ctx context.Context, id int64) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteClass, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const getClassByID = `-- name: GetClassByID :one

@@ -55,7 +55,8 @@ func UpdateAggregate(id int64, updates entities.AggregateUpdate) sq.UpdateBuilde
 func DeleteAggregate(id int64) sq.DeleteBuilder {
 	return psql.
 		Delete(aggregatesTable).
-		Where(sq.Eq{"id": id})
+		Where(sq.Eq{"id": id}).
+		Suffix("RETURNING " + aggregateReturningFields)
 }
 
 // GetAggregates возвращает запрос для получения всех агрегатов,

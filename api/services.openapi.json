@@ -249,6 +249,9 @@
           "404": {
             "$ref": "#/components/responses/404_not_found"
           },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
           "500": {
             "$ref": "#/components/responses/500_internal_server_error"
           }
@@ -279,6 +282,9 @@
           },
           "404": {
             "$ref": "#/components/responses/404_not_found"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
           },
           "500": {
             "$ref": "#/components/responses/500_internal_server_error"
@@ -581,6 +587,9 @@
           "204": {
             "description": "Parameter aggregate deleted"
           },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
           "404": {
             "$ref": "#/components/responses/404_not_found"
           },
@@ -806,6 +815,9 @@
           "404": {
             "$ref": "#/components/responses/404_not_found"
           },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
           "500": {
             "$ref": "#/components/responses/500_internal_server_error"
           }
@@ -836,6 +848,9 @@
           },
           "404": {
             "$ref": "#/components/responses/404_not_found"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
           },
           "500": {
             "$ref": "#/components/responses/500_internal_server_error"
@@ -1204,6 +1219,9 @@
           "404": {
             "$ref": "#/components/responses/404_not_found"
           },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
           "500": {
             "$ref": "#/components/responses/500_internal_server_error"
           }
@@ -1548,6 +1566,9 @@
           "404": {
             "$ref": "#/components/responses/404_not_found"
           },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
           "500": {
             "$ref": "#/components/responses/500_internal_server_error"
           }
@@ -1669,6 +1690,9 @@
           },
           "404": {
             "$ref": "#/components/responses/404_not_found"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
           },
           "500": {
             "$ref": "#/components/responses/500_internal_server_error"
@@ -2543,6 +2567,9 @@
           "404": {
             "$ref": "#/components/responses/404_not_found"
           },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
           "500": {
             "$ref": "#/components/responses/500_internal_server_error"
           }
@@ -2666,7 +2693,8 @@
             "properties": {
               "parent_id": {
                 "type": "integer",
-                "nullable": true
+                "nullable": true,
+                "description": "ID of the parent class. Pass null to create the root class. If a root already exists, the request returns 409."
               }
             }
           }

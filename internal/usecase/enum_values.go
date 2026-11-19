@@ -2,11 +2,12 @@
 package usecase
 
 import (
+	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
 	"Brewery/internal/repository"
 	"context"
 	"fmt"
-	"maps"
+	"math"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -50,16 +51,16 @@ func (s *EnumValuesService) CreateEnumValue(ctx context.Context, value entities.
 		return 0, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	if value.EnumClassID == 0 {
-		return 0, fmt.Errorf("enum parameter ID cannot be zero")
+	if value.EnumClassID <= 0 {
+		return 0, apperrors.BadRequest("invalid enum parameter ID", nil)
 	}
 
 	if value.Value == nil {
-		return 0, fmt.Errorf("enum value cannot be nil")
+		return 0, apperrors.BadRequest("enum value cannot be nil", nil)
 	}
 
 	if value.ValueType == "" {
-		return 0, fmt.Errorf("enum value type cannot be empty")
+		return 0, apperrors.BadRequest("enum value type cannot be empty", nil)
 	}
 
 	id, err := s.repo.InsertEnumValue(ctx, value)
@@ -77,11 +78,11 @@ func (s *EnumValuesService) ListEnumValues(ctx context.Context, fieldName string
 	}
 
 	if fieldName == "" {
-		return nil, fmt.Errorf("field name cannot be empty")
+		return nil, apperrors.BadRequest("field name cannot be empty", nil)
 	}
 
 	if valueType == "" {
-		return nil, fmt.Errorf("value type cannot be empty")
+		return nil, apperrors.BadRequest("value type cannot be empty", nil)
 	}
 
 	values, err := s.repo.GetEnumValues(ctx, fieldName, valueType)
@@ -99,18 +100,33 @@ func (s *EnumValuesService) UpdateEnumValue(ctx context.Context, id uint, update
 	}
 
 	if id == 0 {
-		return fmt.Errorf("invalid enum value ID")
+		return apperrors.BadRequest("invalid enum value ID", nil)
 	}
 
 	if len(updates) == 0 {
-		return fmt.Errorf("no updates provided")
+		return apperrors.BadRequest("no updates provided", nil)
 	}
 
-	repositoryUpdates := maps.Clone(updates)
-	val, ok := repositoryUpdates["value"]
-	if ok {
-		delete(repositoryUpdates, "value")
-		repositoryUpdates["value_raw"] = val
+	repositoryUpdates := make(map[string]any, len(updates))
+	for field, value := range updates {
+		switch field {
+		case "value":
+			if _, isString := value.(string); !isString {
+				number, isNumber := toFloat64Value(value)
+				if !isNumber || math.IsNaN(number) || math.IsInf(number, 0) {
+					return apperrors.BadRequest("value must be a string or finite number", nil)
+				}
+			}
+			repositoryUpdates["value_raw"] = value
+		case "position":
+			position, ok := toFloat64Value(value)
+			if !ok || position != math.Trunc(position) || position < math.MinInt32 || position > math.MaxInt32 {
+				return apperrors.BadRequest("position must be a 32-bit integer", nil)
+			}
+			repositoryUpdates["position"] = int32(position)
+		default:
+			return apperrors.BadRequest(fmt.Sprintf("unknown enum value update field %q", field), nil)
+		}
 	}
 
 	err := s.repo.UpdateEnumValue(ctx, id, repositoryUpdates)
@@ -129,7 +145,7 @@ func (s *EnumValuesService) DeleteEnumValue(ctx context.Context, id uint) error 
 	}
 
 	if id == 0 {
-		return fmt.Errorf("invalid enum value ID")
+		return apperrors.BadRequest("invalid enum value ID", nil)
 	}
 
 	err := s.repo.DeleteEnumValueByID(ctx, id)

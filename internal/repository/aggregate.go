@@ -6,6 +6,7 @@ import (
 	"Brewery/internal/entities"
 	"Brewery/internal/repository/queries"
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
@@ -143,6 +144,9 @@ func (a *AggregatePostgres) DeleteAggregate(ctx context.Context, id int64) (*ent
 func scanAggregate(row pgx.Row) (*entities.Aggregate, error) {
 	var agg entities.Aggregate
 	if err := row.Scan(&agg.ID, &agg.Name, &agg.Description, &agg.NumericParameters, &agg.EnumParameters); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, apperrors.NotFound("Aggregate not found", err)
+		}
 		return nil, fmt.Errorf("scan: %w", err)
 	}
 	return &agg, nil

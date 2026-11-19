@@ -90,7 +90,7 @@ RETURNING
     is_purchased,
     is_final_product;
  
--- name: DeleteProduct :exec
+-- name: DeleteProduct :execrows
 DELETE FROM products
 WHERE id = $1;
 

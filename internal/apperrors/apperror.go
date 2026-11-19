@@ -54,6 +54,6 @@ func (e *AppError) Error() string {
 	return e.APIErr.Message
 }
 
-func (e *AppError) UnWrap() error {
+func (e *AppError) Unwrap() error {
 	return e.Err
 }
