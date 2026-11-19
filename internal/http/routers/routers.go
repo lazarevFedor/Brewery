@@ -50,7 +50,6 @@ func registerProductRouters(api, admin *gin.RouterGroup, h handlers.Handlers) {
 	api.GET("/products", h.ProductHandler.ListProducts)
 	api.GET("/products/search", h.ProductHandler.SearchProducts)
 	api.GET("/products/:id", h.ProductHandler.GetProduct)
-	api.GET("/products/:id/derived", h.ProductHandler.ListDerivedProducts)
 	api.GET("/classes/products/:class_id", h.ProductHandler.ListProductsByClass)
 	api.GET("/classes/:id/products/search", h.ProductHandler.SearchProductsByClass)
 

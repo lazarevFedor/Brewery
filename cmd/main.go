@@ -102,7 +102,7 @@ func main() {
 
 	h := handlers.Handlers{
 		ClassHandler:           handlers.NewClassHandlers(classService),
-		ProductHandler:         handlers.NewProductHandlers(productService, nil),
+		ProductHandler:         handlers.NewProductHandlers(productService),
 		MaterialHandler:        handlers.NewMaterialHandlers(materialService),
 		HistoryHandler:         handlers.NewHistoryHandlers(historyService),
 		EnumParametersHandler:  handlers.NewEnumParametersHandlers(enumParametersService),
