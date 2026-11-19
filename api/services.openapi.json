@@ -3282,12 +3282,6 @@
             "example": 37.5,
             "description": "Сколько всего материала требуется для изготовления изделия"
           },
-          "total_cost": {
-            "type": "number",
-            "format": "double",
-            "example": 37.5,
-            "description": "Цена всех материалов"
-          },
           "base": {
             "type": "boolean",
             "example": false,
@@ -3298,7 +3292,6 @@
           "material_id": 5,
           "name": "Хмель",
           "total_amount": 37.5,
-          "total_cost": 37.5,
           "base": false
         }
       },
@@ -4110,14 +4103,12 @@
               "material_id": 5,
               "name": "Солод светлый ячменный",
               "total_amount": 50.0,
-              "total_cost": 2500.0,
               "base": true
             },
             {
               "material_id": 6,
               "name": "Хмель гранулированный",
               "total_amount": 1.2,
-              "total_cost": 60.0,
               "base": true
             }
           ]
