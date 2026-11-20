@@ -295,7 +295,7 @@ func (s *OperationService) fillOperationMaterial(ctx context.Context, op *entiti
 	return nil
 }
 
-// GetProductTechCard собирает операции, нормы базовых материалов и стоимость производства.
+// GetProductTechCard собирает операции, нормы расхода материалов и стоимость производства.
 func (s *OperationService) GetProductTechCard(ctx context.Context, productID int64, quantity float32) (*entities.ProductTechCard, error) {
 	if productID <= 0 {
 		return nil, apperrors.BadRequest("invalid product id", nil)
@@ -322,7 +322,7 @@ func (s *OperationService) GetProductTechCard(ctx context.Context, productID int
 	if err != nil {
 		return nil, err
 	}
-	norms, err := collectMaterialNorms(tree, quantity, techCardBaseMaterials)
+	norms, err := collectMaterialNorms(tree, quantity, scaleByParentQuantity)
 	if err != nil {
 		return nil, err
 	}

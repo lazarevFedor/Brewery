@@ -209,7 +209,7 @@ func (s *MaterialService) GetMaterialNorms(ctx context.Context, productID int64,
 	if err != nil {
 		return nil, fmt.Errorf("failed to get materials by product: %w", err)
 	}
-	return collectMaterialNorms(rows, quantity, allMaterialOccurrences)
+	return collectMaterialNorms(rows, quantity, scaleByFinalProductQuantity)
 }
 
 func (s *MaterialService) requireProduct(ctx context.Context, id int64) error {
@@ -233,8 +233,8 @@ func validMaterialAmount(amount float32) bool {
 type materialNormMode uint8
 
 const (
-	allMaterialOccurrences materialNormMode = iota
-	techCardBaseMaterials
+	scaleByFinalProductQuantity materialNormMode = iota
+	scaleByParentQuantity
 )
 
 // collectMaterialNorms группирует нормы по материалу, сохраняя каждое вхождение в состав.
@@ -250,21 +250,20 @@ func collectMaterialNorms(rows []entities.MaterialProduct, quantity float32, mod
 			return
 		}
 		amount := parentQuantity * float64(node.MaterialAmount)
-		if mode == allMaterialOccurrences || node.Base {
-			item, exists := grouped[node.MaterialID]
-			if !exists {
-				item.material = node
-				item.material.Materials = nil
-			}
-			item.amount += amount
-			grouped[node.MaterialID] = item
+		item, exists := grouped[node.MaterialID]
+		if !exists {
+			item.material = node
+			item.material.Materials = nil
 		}
-		childParentQuantity := float64(quantity)
-		if mode == techCardBaseMaterials {
-			childParentQuantity = amount
+		item.amount += amount
+		grouped[node.MaterialID] = item
+
+		quantityForChildren := float64(quantity)
+		if mode == scaleByParentQuantity {
+			quantityForChildren = amount
 		}
 		for _, child := range node.Materials {
-			walk(child, childParentQuantity)
+			walk(child, quantityForChildren)
 		}
 	}
 
