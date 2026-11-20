@@ -165,7 +165,6 @@ func newProductTechCardResponse(tc entities.ProductTechCard) productTechCardResp
 			MaterialID:  m.MaterialID,
 			Name:        m.Name,
 			TotalAmount: m.MaterialAmount,
-			Units:       m.Unit,
 			Base:        m.Base,
 		})
 	}
