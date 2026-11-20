@@ -9,6 +9,11 @@ sql:
         out: "internal/repository/queries"
         sql_package: "pgx/v5"
         overrides:
+          - column: products.price
+            go_type:
+              type: float64
+              pointer: true
+
           - db_type: pg_catalog.int8
             nullable: true
             go_type:

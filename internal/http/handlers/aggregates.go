@@ -20,7 +20,7 @@ type AggregateService interface {
 	GetAggregates(ctx context.Context, name string) ([]entities.Aggregate, error)
 
 	// UpdateAggregate обновляет существующий агрегат по его ID.
-	UpdateAggregate(ctx context.Context, id int64, updates map[string]any) (*entities.Aggregate, error)
+	UpdateAggregate(ctx context.Context, id int64, updates entities.AggregateUpdate) (*entities.Aggregate, error)
 
 	// DeleteAggregate удаляет агрегат по его ID.
 	DeleteAggregate(ctx context.Context, id int64) (*entities.Aggregate, error)
@@ -114,8 +114,8 @@ func (h *aggregateHandlers) UpdateAggregate(c *gin.Context) {
 		return
 	}
 
-	updates, ok := bindUpdates(c)
-	if !ok {
+	var updates entities.AggregateUpdate
+	if !bindJSON(c, &updates) {
 		return
 	}
 

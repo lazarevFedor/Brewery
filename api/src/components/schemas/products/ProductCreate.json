@@ -25,10 +25,10 @@
         "units": {
           "type": "string"
         },
-        "price": {
-          "type": "integer",
-          "description": "Цена изделия",
-          "example": 100
+        "is_purchased": {
+          "type": "boolean",
+          "default": false,
+          "description": "Флаг покупного изделия"
         },
         "is_final_product": {
           "type": "boolean",
@@ -63,7 +63,7 @@
         "base_id": null,
         "amount": 100,
         "units": "L",
-        "price": 100,
+        "price": 100.5,
         "is_purchased": false,
         "is_final_product": true,
         "parameters": {

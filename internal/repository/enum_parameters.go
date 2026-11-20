@@ -2,6 +2,7 @@
 package repository
 
 import (
+	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
 	"Brewery/internal/repository/queries"
 	"context"
@@ -9,6 +10,7 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -58,12 +60,18 @@ func (e *EnumParametersPostgres) UpdateEnumParameter(ctx context.Context, id uin
 		return err
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
+	if lockErr := LockParameterDefinitions(ctx, tx); lockErr != nil {
+		return lockErr
+	}
 
 	query, args, err := queries.SelectEnumParameterByID(id).Suffix("FOR UPDATE").ToSql()
 	if err != nil {
 		return err
 	}
 	oldParameter, err := scanEnumParameter(tx.QueryRow(ctx, query, args...))
+	if errors.Is(err, pgx.ErrNoRows) {
+		return apperrors.NotFound("Enum parameter not found", err)
+	}
 	if err != nil {
 		return err
 	}
@@ -74,12 +82,12 @@ func (e *EnumParametersPostgres) UpdateEnumParameter(ctx context.Context, id uin
 	}
 	var inheritable bool
 	if err := tx.QueryRow(ctx, query, args...).Scan(&inheritable); err != nil {
-		return err
+		return ParameterFieldNameError(err)
 	}
 	if err := toggleParameterInheritance(ctx, tx, true, int64(id), oldParameter.Inheritable, inheritable); err != nil {
-		return err
+		return ParameterFieldNameError(err)
 	}
-	return tx.Commit(ctx)
+	return ParameterFieldNameError(tx.Commit(ctx))
 }
 
 // DeleteEnumParameterByID удаляет перечисляемый параметр из хранилища.
@@ -95,12 +103,22 @@ func (e *EnumParametersPostgres) DeleteEnumParameterByID(ctx context.Context, id
 		return fmt.Errorf("%s: %w", "ToSql", err)
 	}
 
-	_, err = e.Pool.Exec(ctx, query, args...)
+	result, err := e.Pool.Exec(ctx, query, args...)
 	if err != nil {
-		return fmt.Errorf("%s: %w", "Exec", err)
+		return parameterDeleteError(err, "Enum parameter")
+	}
+	if result.RowsAffected() == 0 {
+		return apperrors.NotFound("Enum parameter not found", nil)
 	}
 
 	return nil
+}
+
+func parameterDeleteError(err error, resource string) error {
+	if pgErr, ok := errors.AsType[*pgconn.PgError](err); ok && (pgErr.Code == "23503" || pgErr.Code == "23001") {
+		return apperrors.Conflict(resource+" is referenced by another record", err)
+	}
+	return fmt.Errorf("delete %s: %w", resource, err)
 }
 
 // GetEnumParameters получает перечисляемые параметры по имени поля.

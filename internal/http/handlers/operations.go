@@ -82,7 +82,7 @@ type operationResponse struct {
 	ProfessionID int64                  `json:"profession_id"`
 	StepNumber   int32                  `json:"step_number,omitempty"`
 	LaborCost    float64                `json:"labor_cost"`
-	Parameters   map[string]any         `json:"parameters,omitempty"`
+	Parameters   map[string]any         `json:"parameters"`
 	Equipment    equipmentShortResponse `json:"equipment"`
 	Materials    materialResponse       `json:"materials"`
 }
@@ -139,6 +139,9 @@ func newOperationResponse(op entities.Operation) operationResponse {
 		},
 	}
 
+	if resp.Parameters == nil {
+		resp.Parameters = make(map[string]any)
+	}
 	return resp
 }
 
@@ -236,7 +239,7 @@ func (h *operationHandlers) CreateOperation(c *gin.Context) {
 	}
 
 	var req operationCreateRequest
-	if !bindJSON(c, &req) {
+	if !bindOperationJSON(c, &req) {
 		return
 	}
 
@@ -317,10 +320,7 @@ func (h *operationHandlers) UpdateOperation(c *gin.Context) {
 	}
 
 	var updates map[string]any
-	decoder := json.NewDecoder(c.Request.Body)
-	decoder.UseNumber()
-	if decodeErr := decoder.Decode(&updates); decodeErr != nil {
-		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidJSON, "Request body is not valid JSON")
+	if !bindOperationJSON(c, &updates) {
 		return
 	}
 	if len(updates) == 0 {
@@ -335,6 +335,16 @@ func (h *operationHandlers) UpdateOperation(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, newOperationResponse(*updated))
+}
+
+func bindOperationJSON(c *gin.Context, dst any) bool {
+	decoder := json.NewDecoder(c.Request.Body)
+	decoder.UseNumber()
+	if err := decoder.Decode(dst); err != nil {
+		writeError(c, http.StatusBadRequest, apperrors.CodeInvalidJSON, "Request body is not valid JSON")
+		return false
+	}
+	return true
 }
 
 // DeleteOperation обрабатывает DELETE /operations/{id}.

@@ -92,6 +92,9 @@
       "204": {
         "description": "Parameter aggregate deleted"
       },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
       "404": {
         "$ref": "#/components/responses/404_not_found"
       },

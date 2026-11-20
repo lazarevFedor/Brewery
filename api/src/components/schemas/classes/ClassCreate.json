@@ -12,7 +12,8 @@
       "properties": {
         "parent_id": {
           "type": "integer",
-          "nullable": true
+          "nullable": true,
+          "description": "ID of the parent class. A child receives the parent's inheritable parameters. Pass null to create the root class. If a root already exists, the request returns 409."
         }
       }
     }

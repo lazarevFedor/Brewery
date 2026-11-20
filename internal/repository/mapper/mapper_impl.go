@@ -138,23 +138,28 @@ func (c *MaterialMapperImpl) ProductFromMaterialRow(source queries.GetProductsBy
 	if source.BaseID != nil {
 		entitiesProduct.BaseID = *source.BaseID
 	}
+	entitiesProduct.Price = source.Price
 	if source.Units != nil {
 		entitiesProduct.Unit = *source.Units
 	}
+	entitiesProduct.IsPurchased = source.IsPurchased
+	entitiesProduct.IsFinalProduct = source.IsFinalProduct
 	return entitiesProduct
 }
 func (c *MaterialMapperImpl) ProductFromProductRow(source queries.GetMaterialsByProductIDRow) entities.Product {
 	var entitiesProduct entities.Product
 	entitiesProduct.ID = source.ID
 	entitiesProduct.Name = source.Name
-	entitiesProduct.Price = source.Price
 	entitiesProduct.ProdClass = ClassFromID(source.ClassID)
 	if source.BaseID != nil {
 		entitiesProduct.BaseID = *source.BaseID
 	}
+	entitiesProduct.Price = source.Price
 	if source.Units != nil {
 		entitiesProduct.Unit = *source.Units
 	}
+	entitiesProduct.IsPurchased = source.IsPurchased
+	entitiesProduct.IsFinalProduct = source.IsFinalProduct
 	return entitiesProduct
 }
 
@@ -168,9 +173,12 @@ func (c *ProductMapperImpl) FromDBFullProduct(source queries.GetProductByIDRow) 
 	if source.BaseID != nil {
 		entitiesProduct.BaseID = *source.BaseID
 	}
+	entitiesProduct.Price = source.Price
 	if source.Amount != nil {
 		entitiesProduct.Amount = *source.Amount
 	}
+	entitiesProduct.IsPurchased = source.IsPurchased
+	entitiesProduct.IsFinalProduct = source.IsFinalProduct
 	return entitiesProduct
 }
 func (c *ProductMapperImpl) FromDBProduct(source queries.Product) entities.Product {
@@ -181,9 +189,14 @@ func (c *ProductMapperImpl) FromDBProduct(source queries.Product) entities.Produ
 	if source.BaseID != nil {
 		entitiesProduct.BaseID = *source.BaseID
 	}
+	if source.Price != nil {
+		entitiesProduct.Price = *source.Price
+	}
 	if source.Amount != nil {
 		entitiesProduct.Amount = *source.Amount
 	}
+	entitiesProduct.IsPurchased = source.IsPurchased
+	entitiesProduct.IsFinalProduct = source.IsFinalProduct
 	return entitiesProduct
 }
 func (c *ProductMapperImpl) FromDBProducts(source []queries.Product) []entities.Product {
@@ -208,7 +221,4 @@ func (c *ProductMapperImpl) FromInsert(source queries.InsertProductRow) entities
 		entitiesProduct.Amount = *source.Amount
 	}
 	return entitiesProduct
-}
-func (c *ProductMapperImpl) FromUpdate(source queries.Product) entities.Product {
-	return c.FromDBProduct(source)
 }

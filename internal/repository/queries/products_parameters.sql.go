@@ -130,13 +130,37 @@ func (q *Queries) LockClassParameterIDs(ctx context.Context, id int64) (LockClas
 	return i, err
 }
 
-const lockProductClass = `-- name: LockProductClass :one
-SELECT class_id FROM products WHERE id = $1 FOR UPDATE
+const lockProductForUpdate = `-- name: LockProductForUpdate :one
+SELECT class_id, base_id FROM products WHERE id = $1 FOR UPDATE
 `
 
-func (q *Queries) LockProductClass(ctx context.Context, id int64) (int64, error) {
-	row := q.db.QueryRow(ctx, lockProductClass, id)
-	var class_id int64
-	err := row.Scan(&class_id)
-	return class_id, err
+type LockProductForUpdateRow struct {
+	ClassID int64
+	BaseID  *int64
+}
+
+func (q *Queries) LockProductForUpdate(ctx context.Context, id int64) (LockProductForUpdateRow, error) {
+	row := q.db.QueryRow(ctx, lockProductForUpdate, id)
+	var i LockProductForUpdateRow
+	err := row.Scan(&i.ClassID, &i.BaseID)
+	return i, err
+}
+
+const lockRangeParameterWithValue = `-- name: LockRangeParameterWithValue :one
+SELECT id FROM range_parameters
+WHERE id = $1
+  AND $2::text::numeric BETWEEN min_val AND max_val
+FOR SHARE
+`
+
+type LockRangeParameterWithValueParams struct {
+	RangeParameterID int64
+	NumericValueRaw  string
+}
+
+func (q *Queries) LockRangeParameterWithValue(ctx context.Context, arg LockRangeParameterWithValueParams) (int64, error) {
+	row := q.db.QueryRow(ctx, lockRangeParameterWithValue, arg.RangeParameterID, arg.NumericValueRaw)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
 }

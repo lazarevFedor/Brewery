@@ -16,6 +16,11 @@ const (
 
 type EnumType string
 
+// Valid reports whether the catalog supports the enum type.
+func (t EnumType) Valid() bool {
+	return t == EnumValueTypeString || t == EnumValueTypeInt || t == EnumValueTypeFloat
+}
+
 type ParameterValueRow struct {
 	ID          int
 	EnumClassID int
@@ -95,7 +100,7 @@ func enumValueToRaw(valueType EnumType, value any) (string, error) {
 		case int64:
 			return strconv.FormatInt(v, 10), nil
 		case uint:
-			return strconv.FormatUint(uint64(v), 10), nil
+			return enumValueToRaw(valueType, uint64(v))
 		case uint8:
 			return strconv.FormatUint(uint64(v), 10), nil
 		case uint16:
@@ -103,14 +108,16 @@ func enumValueToRaw(valueType EnumType, value any) (string, error) {
 		case uint32:
 			return strconv.FormatUint(uint64(v), 10), nil
 		case uint64:
+			if v > math.MaxInt64 {
+				return "", fmt.Errorf("invalid enum value type %s: integer out of range", valueType)
+			}
 			return strconv.FormatUint(v, 10), nil
 		case float32:
-			if float32(int64(v)) != v {
-				return "", fmt.Errorf("invalid enum value type %s: expected integer, got non-integer float32", valueType)
-			}
-
-			return strconv.FormatInt(int64(v), 10), nil
+			return enumValueToRaw(valueType, float64(v))
 		case float64:
+			if v < -1<<63 || v >= 1<<63 {
+				return "", fmt.Errorf("invalid enum value type %s: integer out of range", valueType)
+			}
 			if math.Trunc(v) != v {
 				return "", fmt.Errorf("invalid enum value type %s: expected integer, got non-integer float64", valueType)
 			}
@@ -129,9 +136,9 @@ func enumValueToRaw(valueType EnumType, value any) (string, error) {
 	case EnumValueTypeFloat:
 		switch v := value.(type) {
 		case float32:
-			return strconv.FormatFloat(float64(v), 'f', -1, 32), nil
+			return formatEnumFloat(float64(v), 32)
 		case float64:
-			return strconv.FormatFloat(v, 'f', -1, 64), nil
+			return formatEnumFloat(v, 64)
 		case int:
 			return strconv.FormatFloat(float64(v), 'f', -1, 64), nil
 		case int8:
@@ -158,13 +165,20 @@ func enumValueToRaw(valueType EnumType, value any) (string, error) {
 				return "", fmt.Errorf("invalid enum value type %s: expected float string, got %q", valueType, v)
 			}
 
-			return strconv.FormatFloat(parsed, 'f', -1, 64), nil
+			return formatEnumFloat(parsed, 64)
 		default:
 			return "", fmt.Errorf("invalid enum value type %s: expected float, got %T", valueType, value)
 		}
 	default:
 		return "", fmt.Errorf("invalid enum value type: %s", valueType)
 	}
+}
+
+func formatEnumFloat(value float64, bitSize int) (string, error) {
+	if math.IsNaN(value) || math.IsInf(value, 0) {
+		return "", errors.New("enum value must be a finite number")
+	}
+	return strconv.FormatFloat(value, 'f', -1, bitSize), nil
 }
 
 func enumValueFromRaw(valueType EnumType, valueRaw string) (any, error) {
@@ -182,6 +196,9 @@ func enumValueFromRaw(valueType EnumType, valueRaw string) (any, error) {
 		value, err := strconv.ParseFloat(valueRaw, 64)
 		if err != nil {
 			return nil, fmt.Errorf("parse float value %s: %w", valueRaw, err)
+		}
+		if math.IsNaN(value) || math.IsInf(value, 0) {
+			return nil, errors.New("stored enum value must be a finite number")
 		}
 
 		return value, nil

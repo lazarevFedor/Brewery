@@ -143,7 +143,6 @@ func (h *classHandlers) UpdateClass(c *gin.Context) {
 
 	updates, ok := bindUpdates(c)
 	if !ok {
-		handleError(c, log, "no updates", err)
 		return
 	}
 

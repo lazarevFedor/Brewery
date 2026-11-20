@@ -4,6 +4,7 @@
       "RangeParameters"
     ],
     "summary": "Update range parameter",
+    "description": "Narrowing a range is rejected if a saved product or operation value falls outside the proposed bounds.",
     "operationId": "updateRangeParameter",
     "security": [
       {
@@ -60,6 +61,9 @@
       "404": {
         "$ref": "#/components/responses/404_not_found"
       },
+      "409": {
+        "$ref": "#/components/responses/409_conflict"
+      },
       "422": {
         "$ref": "#/components/responses/422_validation_error"
       },
@@ -93,6 +97,9 @@
       },
       "404": {
         "$ref": "#/components/responses/404_not_found"
+      },
+      "409": {
+        "$ref": "#/components/responses/409_conflict"
       },
       "500": {
         "$ref": "#/components/responses/500_internal_server_error"

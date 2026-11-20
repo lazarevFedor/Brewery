@@ -11,5 +11,6 @@ type Product struct {
 	Parameters     map[string]any `json:"parameters,omitempty" info:"Список параметров изделия"`
 	Unit           string         `json:"unit,omitempty" info:"Единица измерений"`
 	Amount         float32        `json:"amount,omitempty" info:"Количество изделия"`
+	IsPurchased    bool           `json:"is_purchased" info:"Флаг покупного изделия"`
 	IsFinalProduct bool           `json:"is_final_product,omitempty" info:"Флаг конечного готового продукта"`
 }

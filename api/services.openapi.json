@@ -249,6 +249,9 @@
           "404": {
             "$ref": "#/components/responses/404_not_found"
           },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
           "500": {
             "$ref": "#/components/responses/500_internal_server_error"
           }
@@ -279,6 +282,9 @@
           },
           "404": {
             "$ref": "#/components/responses/404_not_found"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
           },
           "500": {
             "$ref": "#/components/responses/500_internal_server_error"
@@ -581,6 +587,9 @@
           "204": {
             "description": "Parameter aggregate deleted"
           },
+          "400": {
+            "$ref": "#/components/responses/400_bad_request"
+          },
           "404": {
             "$ref": "#/components/responses/404_not_found"
           },
@@ -596,6 +605,7 @@
           "Aggregates"
         ],
         "summary": "Apply parameter aggregate to class",
+        "description": "Adds the aggregate's parameters to the class, preserving existing parameters and their values. Inheritable parameters are propagated to descendant classes.",
         "operationId": "applyParameterAggregate",
         "security": [
           {
@@ -619,7 +629,9 @@
                   "type": "object",
                   "properties": {
                     "params_added": {
-                      "type": "integer"
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Number of parameter assignments added to the target class and its descendants by this request. Each new parameter-to-class assignment counts once. Reapplying an unchanged aggregate returns zero if all assignments are already present."
                     }
                   }
                 }
@@ -631,6 +643,9 @@
           },
           "404": {
             "$ref": "#/components/responses/404_not_found"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
           },
           "500": {
             "$ref": "#/components/responses/500_internal_server_error"
@@ -805,6 +820,9 @@
           "404": {
             "$ref": "#/components/responses/404_not_found"
           },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
           "500": {
             "$ref": "#/components/responses/500_internal_server_error"
           }
@@ -835,6 +853,9 @@
           },
           "404": {
             "$ref": "#/components/responses/404_not_found"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
           },
           "500": {
             "$ref": "#/components/responses/500_internal_server_error"
@@ -1073,7 +1094,7 @@
           "Materials"
         ],
         "summary": "Calculate total material consumption norms for product",
-        "description": "Сводные нормы расхода для всего изделия с учётом всей глубины состава. Количества всех вхождений одного материала суммируются и умножаются на quantity, без дополнительного умножения на количества родительских материалов.",
+        "description": "Сводные нормы расхода для всего изделия с учётом всей глубины состава. Количества всех вхождений одного материала суммируются и умножаются на quantity, без дополнительного умножения на количества родительских материалов. Если итоговая норма выходит за пределы формата float, возвращается 422.",
         "operationId": "calculateMaterialNorms",
         "parameters": [
           {
@@ -1090,7 +1111,7 @@
               "minimum": 0,
               "exclusiveMinimum": true
             },
-            "description": "Количество изделий, на которое считается расход"
+            "description": "Конечное положительное количество изделий, на которое считается расход"
           }
         ],
         "responses": {
@@ -1202,6 +1223,9 @@
           },
           "404": {
             "$ref": "#/components/responses/404_not_found"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
           },
           "500": {
             "$ref": "#/components/responses/500_internal_server_error"
@@ -1516,6 +1540,9 @@
           "404": {
             "$ref": "#/components/responses/404_not_found"
           },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
           "500": {
             "$ref": "#/components/responses/500_internal_server_error"
           }
@@ -1546,6 +1573,9 @@
           },
           "404": {
             "$ref": "#/components/responses/404_not_found"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
           },
           "500": {
             "$ref": "#/components/responses/500_internal_server_error"
@@ -1668,6 +1698,9 @@
           },
           "404": {
             "$ref": "#/components/responses/404_not_found"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
           },
           "500": {
             "$ref": "#/components/responses/500_internal_server_error"
@@ -2382,6 +2415,9 @@
           "404": {
             "$ref": "#/components/responses/404_not_found"
           },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
           "500": {
             "$ref": "#/components/responses/500_internal_server_error"
           }
@@ -2452,6 +2488,7 @@
           "RangeParameters"
         ],
         "summary": "Update range parameter",
+        "description": "Narrowing a range is rejected if a saved product or operation value falls outside the proposed bounds.",
         "operationId": "updateRangeParameter",
         "security": [
           {
@@ -2508,6 +2545,9 @@
           "404": {
             "$ref": "#/components/responses/404_not_found"
           },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
           "422": {
             "$ref": "#/components/responses/422_validation_error"
           },
@@ -2541,6 +2581,9 @@
           },
           "404": {
             "$ref": "#/components/responses/404_not_found"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
           },
           "500": {
             "$ref": "#/components/responses/500_internal_server_error"
@@ -2665,7 +2708,8 @@
             "properties": {
               "parent_id": {
                 "type": "integer",
-                "nullable": true
+                "nullable": true,
+                "description": "ID of the parent class. A child receives the parent's inheritable parameters. Pass null to create the root class. If a root already exists, the request returns 409."
               }
             }
           }
@@ -2676,44 +2720,22 @@
         }
       },
       "ClassUpdate": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ClassBase"
+        "type": "object",
+        "additionalProperties": false,
+        "minProperties": 1,
+        "description": "Use the class parameter apply and exclude endpoints to change parameter assignments.",
+        "properties": {
+          "name": {
+            "type": "string"
           },
-          {
-            "type": "object",
-            "properties": {
-              "parent_id": {
-                "type": "integer",
-                "nullable": true
-              },
-              "range_param_ids": {
-                "type": "array",
-                "items": {
-                  "type": "integer"
-                },
-                "default": []
-              },
-              "enum_param_ids": {
-                "type": "array",
-                "items": {
-                  "type": "integer"
-                },
-                "default": []
-              }
-            }
+          "parent_id": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Moving the class adds inheritable parameters from the new parent to the moved class and its descendants. Existing parameters are preserved. A conflicting parameter name returns 409."
           }
-        ],
+        },
         "example": {
-          "name": "Светлое пиво",
-          "parent_id": 1,
-          "range_param_ids": [
-            1,
-            2
-          ],
-          "enum_param_ids": [
-            3
-          ]
+          "parent_id": 1
         }
       },
       "RangeParameterBase": {
@@ -2926,9 +2948,13 @@
             "example": false
           },
           "price": {
-            "type": "integer",
+            "type": "number",
+            "format": "double",
+            "minimum": 0,
+            "maximum": 9999999999.99,
+            "multipleOf": 0.01,
             "description": "Цена изделия",
-            "example": 100
+            "example": 100.5
           }
         }
       },
@@ -2944,6 +2970,9 @@
               "name",
               "class_id",
               "base_id",
+              "price",
+              "is_purchased",
+              "is_final_product",
               "parameters"
             ],
             "properties": {
@@ -2996,7 +3025,7 @@
               },
               "class_id": 1,
               "base_id": null,
-              "price": 100,
+              "price": 100.5,
               "is_purchased": false,
               "is_final_product": true,
               "amount": 100,
@@ -3036,10 +3065,10 @@
               "units": {
                 "type": "string"
               },
-              "price": {
-                "type": "integer",
-                "description": "Цена изделия",
-                "example": 100
+              "is_purchased": {
+                "type": "boolean",
+                "default": false,
+                "description": "Флаг покупного изделия"
               },
               "is_final_product": {
                 "type": "boolean",
@@ -3074,7 +3103,7 @@
               "base_id": null,
               "amount": 100,
               "units": "L",
-              "price": 100,
+              "price": 100.5,
               "is_purchased": false,
               "is_final_product": true,
               "parameters": {
@@ -3111,7 +3140,7 @@
               "base_id": {
                 "type": "integer",
                 "nullable": true,
-                "description": "ID базового изделия, на основе которого создано текущее"
+                "description": "Пропущенное поле или текущий ID сохраняет связь с базовым изделием и состав. Значение null снимает связь и сохраняет состав. При смене базы состав изделия приводится к составу новой базы."
               },
               "amount": {
                 "type": "integer"
@@ -3141,10 +3170,10 @@
                 }
               }
             },
-            "description": "Changing class_id revalidates retained parameters against the new class; remove incompatible fields with null in the same request.",
+            "description": "Changing class_id revalidates retained parameters against the new class. Remove incompatible fields with null in the same request. Omitting price, is_purchased, or is_final_product preserves the current value.",
             "example": {
               "name": "Балтика 0 Экстра",
-              "price": 120,
+              "price": 120.5,
               "is_purchased": false,
               "is_final_product": true,
               "class_id": 1,
@@ -3396,7 +3425,15 @@
         "type": "object",
         "properties": {
           "value": {
-            "type": "string"
+            "description": "Value validated against the type of the owning enum parameter.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              }
+            ]
           },
           "position": {
             "type": "integer"
@@ -3446,7 +3483,13 @@
             ],
             "properties": {
               "enum_type": {
-                "type": "string"
+                "type": "string",
+                "enum": [
+                  "string",
+                  "int",
+                  "float"
+                ],
+                "description": "Must match the type of the enum parameter identified by parameter_id."
               },
               "parameter_id": {
                 "type": "integer"
@@ -3500,7 +3543,7 @@
           },
           "parameters": {
             "type": "object",
-            "description": "Технологические параметры операции (например, температура, длительность и др.)",
+            "description": "Значения параметров по field_name из класса операции. Значение перечисления должно принадлежать параметру. Числовое значение должно входить в диапазон параметра и помещаться в NUMERIC(8, 3).",
             "additionalProperties": {
               "oneOf": [
                 {
@@ -3508,9 +3551,6 @@
                 },
                 {
                   "type": "number"
-                },
-                {
-                  "type": "boolean"
                 }
               ]
             },
@@ -3592,7 +3632,8 @@
           "operation_class_id",
           "profession_id",
           "equipment",
-          "materials"
+          "materials",
+          "parameters"
         ],
         "properties": {
           "id": {
@@ -3642,7 +3683,7 @@
           },
           "parameters": {
             "type": "object",
-            "description": "Технологические параметры операции (температура, время и т.д.)",
+            "description": "Значения параметров по field_name из класса операции. Значение перечисления должно принадлежать параметру. Числовое значение должно входить в диапазон параметра и помещаться в NUMERIC(8, 3).",
             "additionalProperties": {
               "oneOf": [
                 {
@@ -3650,9 +3691,6 @@
                 },
                 {
                   "type": "number"
-                },
-                {
-                  "type": "boolean"
                 }
               ]
             },
@@ -3739,7 +3777,7 @@
       },
       "OperationUpdate": {
         "type": "object",
-        "description": "Схема обновления технологической операции (все поля опциональны)",
+        "description": "Все поля опциональны. При смене operation_class_id сохраняемые параметры проверяются по новому классу. Несовместимые значения можно удалить в том же запросе, указав null для соответствующих ключей.",
         "properties": {
           "name": {
             "type": "string",
@@ -3796,17 +3834,16 @@
           },
           "parameters": {
             "type": "object",
-            "description": "Новый набор технологических параметров. Пустой объект удаляет все значения",
+            "description": "Обновляет переданные ключи field_name. Значение null удаляет отдельный параметр. Если поле parameters пропущено или передан пустой объект, набор параметров сохраняется.",
             "additionalProperties": {
-              "oneOf": [
+              "anyOf": [
                 {
-                  "type": "string"
+                  "type": "string",
+                  "nullable": true
                 },
                 {
-                  "type": "number"
-                },
-                {
-                  "type": "boolean"
+                  "type": "number",
+                  "nullable": true
                 }
               ]
             },
@@ -3994,9 +4031,13 @@
             "example": false
           },
           "price": {
-            "type": "integer",
+            "type": "number",
+            "format": "double",
+            "minimum": 0,
+            "maximum": 9999999999.99,
+            "multipleOf": 0.01,
             "description": "Цена изделия",
-            "example": 100
+            "example": 100.5
           }
         },
         "example": {
@@ -4025,7 +4066,7 @@
           },
           "total_cost": {
             "type": "number",
-            "description": "Стоимость базовых материалов по нормам расхода и труда по всем операциям на запрошенное количество изделий. Часовая ставка равна нижней границе числового параметра hour_salary класса профессии.",
+            "description": "Стоимость базовых материалов по нормам расхода и труда по всем операциям на запрошенное количество изделий. Трудозатраты каждой операции умножаются на требуемое количество её выходного изделия с учётом всех путей в составе. Часовая ставка равна нижней границе числового параметра hour_salary класса профессии.",
             "example": 3410
           },
           "operations": {
@@ -4169,7 +4210,12 @@
             ],
             "properties": {
               "enum_type": {
-                "type": "string"
+                "type": "string",
+                "enum": [
+                  "string",
+                  "int",
+                  "float"
+                ]
               },
               "unit": {
                 "type": "string"

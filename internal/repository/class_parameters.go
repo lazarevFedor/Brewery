@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
 	"Brewery/internal/repository/queries"
 	"context"
@@ -9,6 +10,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -36,10 +38,10 @@ func (p *ClassParametersPostgres) GetParameters(
 		return nil, nil, errors.New("pool is nil")
 	}
 	if classID < 0 {
-		return nil, nil, errors.New("invalid class ID")
+		return nil, nil, apperrors.BadRequest("invalid class ID", nil)
 	}
 	if parameterType != entities.MissingType && parameterType != entities.RangeParameterType && parameterType != entities.EnumParameterType {
-		return nil, nil, errors.New("invalid parameter type")
+		return nil, nil, apperrors.BadRequest("invalid parameter type", nil)
 	}
 	var rangeIDs []int64
 	var enumIDs []int64
@@ -59,6 +61,9 @@ func (p *ClassParametersPostgres) GetParameters(
 			err = p.Pool.QueryRow(ctx, sql, args...).Scan(&rangeIDs)
 		case entities.EnumParameterType:
 			err = p.Pool.QueryRow(ctx, sql, args...).Scan(&enumIDs)
+		}
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil, apperrors.NotFound("Class not found", err)
 		}
 		if err != nil {
 			return nil, nil, err
@@ -140,6 +145,9 @@ func (p *ClassParametersPostgres) ApplyParameters(ctx context.Context, classID i
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 
+	if lockErr := LockParameterDefinitions(ctx, tx); lockErr != nil {
+		return 0, lockErr
+	}
 	if _, _, err := lockClassParameterIDs(ctx, tx, classID); err != nil {
 		return 0, err
 	}
@@ -156,7 +164,7 @@ func (p *ClassParametersPostgres) ApplyParameters(ctx context.Context, classID i
 		}
 		var count int
 		if err := tx.QueryRow(ctx, sql, args...).Scan(&count); err != nil {
-			return 0, err
+			return 0, ParameterFieldNameError(err)
 		}
 		affected += count
 	}
@@ -164,6 +172,21 @@ func (p *ClassParametersPostgres) ApplyParameters(ctx context.Context, classID i
 		return 0, err
 	}
 	return affected, nil
+}
+
+// LockParameterDefinitions serializes assignments and definition changes before taking row locks.
+func LockParameterDefinitions(ctx context.Context, tx pgx.Tx) error {
+	const parameterDefinitionsLock int64 = 2_840_601
+	_, err := tx.Exec(ctx, "SELECT pg_advisory_xact_lock($1::bigint)", parameterDefinitionsLock)
+	return err
+}
+
+// ParameterFieldNameError maps a class parameter name conflict to HTTP 409.
+func ParameterFieldNameError(err error) error {
+	if pgErr, ok := errors.AsType[*pgconn.PgError](err); ok && pgErr.ConstraintName == "class_parameter_field_name_unique" {
+		return apperrors.Conflict(pgErr.Message, err)
+	}
+	return err
 }
 
 // ExcludeParameters исключает параметры из класса и убирает их наследуемые связи у потомков.
@@ -182,6 +205,9 @@ func (p *ClassParametersPostgres) ExcludeParameters(ctx context.Context, classID
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 
+	if lockErr := LockParameterDefinitions(ctx, tx); lockErr != nil {
+		return 0, lockErr
+	}
 	linkedRangeIDs, linkedEnumIDs, err := lockClassParameterIDs(ctx, tx, classID)
 	if err != nil {
 		return 0, err
@@ -225,6 +251,9 @@ func lockClassParameterIDs(ctx context.Context, tx pgx.Tx, classID int64) ([]int
 	}
 	var rangeIDs, enumIDs []int64
 	if err := tx.QueryRow(ctx, sql, args...).Scan(&rangeIDs, &enumIDs); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil, apperrors.NotFound("Class not found", err)
+		}
 		return nil, nil, fmt.Errorf("lock parameters of class %d: %w", classID, err)
 	}
 	return rangeIDs, enumIDs, nil

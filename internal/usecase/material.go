@@ -5,8 +5,8 @@ import (
 	"Brewery/internal/entities"
 	"Brewery/internal/repository/material"
 	"context"
-	"errors"
 	"fmt"
+	"math"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -50,7 +50,13 @@ func (s *MaterialService) CreateMaterial(ctx context.Context, material entities.
 	}
 
 	if material.ProductID <= 0 || material.MaterialID <= 0 {
-		return nil, errors.New("invalid product id or material id")
+		return nil, apperrors.BadRequest("invalid product id or material id", nil)
+	}
+	if material.ProductID == material.MaterialID {
+		return nil, apperrors.BadRequest("product cannot be a material of itself", nil)
+	}
+	if !validMaterialAmount(material.MaterialAmount) {
+		return nil, apperrors.BadRequest("material_amount must be a positive finite number", nil)
 	}
 	if err := validateMaterialComposition(ctx, s.repo, material.ProductID, []int64{material.MaterialID}); err != nil {
 		return nil, fmt.Errorf("failed to validate material composition: %w", err)
@@ -73,12 +79,12 @@ func (s *MaterialService) UpdateMaterial(ctx context.Context, material entities.
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	if material.ProductID == 0 || material.MaterialID == 0 {
-		return nil, errors.New("invalid product id or material id")
+	if material.ProductID <= 0 || material.MaterialID <= 0 {
+		return nil, apperrors.BadRequest("invalid product id or material id", nil)
 	}
 
-	if material.MaterialAmount < 0 {
-		return nil, errors.New("invalid material amount")
+	if !validMaterialAmount(material.MaterialAmount) {
+		return nil, apperrors.BadRequest("material_amount must be a positive finite number", nil)
 	}
 
 	m, err := s.repo.UpdateMaterial(ctx, material)
@@ -94,8 +100,8 @@ func (s *MaterialService) DeleteMaterial(ctx context.Context, productID, materia
 		return fmt.Errorf("request cancelled: %w", err)
 	}
 
-	if productID == 0 || materialID == 0 {
-		return errors.New("invalid product id or material id")
+	if productID <= 0 || materialID <= 0 {
+		return apperrors.BadRequest("invalid product id or material id", nil)
 	}
 
 	err := s.repo.DeleteMaterial(ctx, productID, materialID)
@@ -111,8 +117,8 @@ func (s *MaterialService) GetMaterialsByProduct(ctx context.Context, productID i
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	if productID == 0 {
-		return nil, errors.New("invalid product id")
+	if productID <= 0 {
+		return nil, apperrors.BadRequest("invalid product id", nil)
 	}
 
 	ancestors := make(map[int64]bool)
@@ -154,7 +160,16 @@ func (s *MaterialService) GetMaterialsByProduct(ctx context.Context, productID i
 		return materials, nil
 	}
 
-	return buildTree(productID)
+	tree, err := buildTree(productID)
+	if err != nil {
+		return nil, err
+	}
+	if len(tree) == 0 {
+		if err := s.requireProduct(ctx, productID); err != nil {
+			return nil, err
+		}
+	}
+	return tree, nil
 }
 
 func (s *MaterialService) GetProductsByMaterial(ctx context.Context, materialID int64, limit, offset int32) ([]entities.MaterialProduct, error) {
@@ -162,8 +177,8 @@ func (s *MaterialService) GetProductsByMaterial(ctx context.Context, materialID 
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	if materialID == 0 {
-		return nil, errors.New("invalid material id")
+	if materialID <= 0 {
+		return nil, apperrors.BadRequest("invalid material id", nil)
 	}
 
 	products, err := s.repo.GetProductsByMaterial(ctx, materialID, limit, offset)
@@ -172,7 +187,9 @@ func (s *MaterialService) GetProductsByMaterial(ctx context.Context, materialID 
 	}
 
 	if len(products) == 0 {
-		return nil, errors.New("no products found for the given material")
+		if err := s.requireProduct(ctx, materialID); err != nil {
+			return nil, err
+		}
 	}
 
 	return products, nil
@@ -184,24 +201,42 @@ func (s *MaterialService) GetMaterialNorms(ctx context.Context, productID int64,
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	if productID == 0 {
-		return nil, errors.New("invalid product id")
-	}
-
-	if quantity <= 0 {
-		return nil, errors.New("quantity must be greater than 0")
+	if !validMaterialAmount(quantity) {
+		return nil, apperrors.BadRequest("quantity must be a finite positive number", nil)
 	}
 
 	rows, err := s.GetMaterialsByProduct(ctx, productID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get materials by product: %w", err)
 	}
-	return collectMaterialNorms(rows, quantity, false), nil
+	return collectMaterialNorms(rows, quantity, false)
+}
+
+func (s *MaterialService) requireProduct(ctx context.Context, id int64) error {
+	if s.productRepo == nil {
+		return fmt.Errorf("product repository is nil")
+	}
+	product, err := s.productRepo.GetProductByID(ctx, id)
+	if err != nil {
+		return fmt.Errorf("failed to get product %d: %w", id, err)
+	}
+	if product == nil {
+		return apperrors.NotFound("product not found", nil)
+	}
+	return nil
+}
+
+func validMaterialAmount(amount float32) bool {
+	return amount > 0 && !math.IsInf(float64(amount), 0)
 }
 
 // collectMaterialNorms группирует нормы по материалу, сохраняя каждое вхождение в состав.
-func collectMaterialNorms(rows []entities.MaterialProduct, quantity float32, baseOnly bool) []entities.MaterialProduct {
-	grouped := make(map[int64]entities.MaterialProduct)
+func collectMaterialNorms(rows []entities.MaterialProduct, quantity float32, baseOnly bool) ([]entities.MaterialProduct, error) {
+	type norm struct {
+		material entities.MaterialProduct
+		amount   float64
+	}
+	grouped := make(map[int64]norm)
 	var walk func(node entities.MaterialProduct)
 	walk = func(node entities.MaterialProduct) {
 		if node.MaterialID == 0 {
@@ -209,16 +244,13 @@ func collectMaterialNorms(rows []entities.MaterialProduct, quantity float32, bas
 		}
 		if !baseOnly || node.Base {
 			// Нормы каждого вхождения масштабируются количеством конечных изделий.
-			amount := node.MaterialAmount * quantity
-			if existing, ok := grouped[node.MaterialID]; ok {
-				existing.MaterialAmount += amount
-				grouped[node.MaterialID] = existing
-			} else {
-				item := node
-				item.MaterialAmount = amount
-				item.Materials = nil
-				grouped[node.MaterialID] = item
+			item, exists := grouped[node.MaterialID]
+			if !exists {
+				item.material = node
+				item.material.Materials = nil
 			}
+			item.amount += float64(node.MaterialAmount) * float64(quantity)
+			grouped[node.MaterialID] = item
 		}
 		for _, child := range node.Materials {
 			walk(child)
@@ -231,8 +263,12 @@ func collectMaterialNorms(rows []entities.MaterialProduct, quantity float32, bas
 
 	result := make([]entities.MaterialProduct, 0, len(grouped))
 	for _, item := range grouped {
-		result = append(result, item)
+		if math.IsNaN(item.amount) || math.Abs(item.amount) > math.MaxFloat32 {
+			return nil, apperrors.Validation("calculated material norm is out of range", nil)
+		}
+		item.material.MaterialAmount = float32(item.amount)
+		result = append(result, item.material)
 	}
 
-	return result
+	return result, nil
 }

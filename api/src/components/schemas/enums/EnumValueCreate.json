@@ -13,7 +13,9 @@
       ],
       "properties": {
         "enum_type": {
-          "type": "string"
+          "type": "string",
+          "enum": ["string", "int", "float"],
+          "description": "Must match the type of the enum parameter identified by parameter_id."
         },
         "parameter_id": {
           "type": "integer"

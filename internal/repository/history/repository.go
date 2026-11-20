@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -94,6 +95,15 @@ func (repo *Repository) GetHistoryByProduct(
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("read product history: %w", err)
+	}
+	if len(dbHistory) == 0 {
+		_, err := repo.query.GetProductByID(ctx, productID)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, apperrors.NotFound(fmt.Sprintf("Product with id %d not found", productID), err)
+		}
+		if err != nil {
+			return nil, fmt.Errorf("get product for history: %w", err)
+		}
 	}
 	return repo.mapper.FromDBChangeHistory(dbHistory), nil
 }

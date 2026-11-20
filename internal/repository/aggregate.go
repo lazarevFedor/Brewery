@@ -2,6 +2,7 @@
 package repository
 
 import (
+	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
 	"Brewery/internal/repository/queries"
 	"context"
@@ -68,50 +69,37 @@ func (a *AggregatePostgres) GetAggregates(ctx context.Context, name string) ([]e
 	return res, nil
 }
 
-// ApplyAggregate применяет агрегат к категории и возвращает результат применения.
-func (a *AggregatePostgres) ApplyAggregate(ctx context.Context, categoryID int64, id int64) (int, error) {
+// ApplyAggregate добавляет параметры агрегата к классу и считает новые связи.
+func (a *AggregatePostgres) ApplyAggregate(ctx context.Context, classID int64, id int64) (int, error) {
 	tx, err := a.Pool.Begin(ctx)
 	if err != nil {
 		return 0, err
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 
-	applyQuery := queries.ApplyAggregate(categoryID, id)
-	sql, args, err := applyQuery.ToSql()
-	if err != nil {
-		return 0, err
+	if lockErr := LockParameterDefinitions(ctx, tx); lockErr != nil {
+		return 0, lockErr
 	}
-
-	cmd, err := tx.Exec(ctx, sql, args...)
-	if err != nil {
-		return 0, err
+	added, err := queries.New(tx).ApplyParameterAggregate(ctx, queries.ApplyParameterAggregateParams{
+		ClassID:     classID,
+		AggregateID: id,
+	})
+	if errors.Is(err, pgx.ErrNoRows) {
+		return 0, apperrors.NotFound("Class or aggregate not found", err)
 	}
-	affected := int(cmd.RowsAffected())
-
-	inheritQuery := queries.InheritParametersToChildren(categoryID)
-	sql, args, err = inheritQuery.ToSql()
 	if err != nil {
-		return 0, err
-	}
-
-	var inheritAffected int
-	if err = tx.QueryRow(ctx, sql, args...).Scan(&inheritAffected); err != nil {
-		return 0, err
+		return 0, ParameterFieldNameError(err)
 	}
 
 	if err = tx.Commit(ctx); err != nil {
 		return 0, err
 	}
 
-	return affected + inheritAffected, nil
+	return int(added), nil
 }
 
 // UpdateAggregate обновляет существующий агрегат с заданным ID и возвращает обновленный агрегат.
-func (a *AggregatePostgres) UpdateAggregate(ctx context.Context, id int64, updates map[string]any) (*entities.Aggregate, error) {
-	if len(updates) == 0 {
-		return nil, errors.New("no updates provided")
-	}
-
+func (a *AggregatePostgres) UpdateAggregate(ctx context.Context, id int64, updates entities.AggregateUpdate) (*entities.Aggregate, error) {
 	query := queries.UpdateAggregate(id, updates)
 	sql, args, err := query.ToSql()
 	if err != nil {
@@ -144,6 +132,9 @@ func (a *AggregatePostgres) DeleteAggregate(ctx context.Context, id int64) (*ent
 func scanAggregate(row pgx.Row) (*entities.Aggregate, error) {
 	var agg entities.Aggregate
 	if err := row.Scan(&agg.ID, &agg.Name, &agg.Description, &agg.NumericParameters, &agg.EnumParameters); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, apperrors.NotFound("Aggregate not found", err)
+		}
 		return nil, fmt.Errorf("scan: %w", err)
 	}
 	return &agg, nil

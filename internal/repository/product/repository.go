@@ -3,6 +3,7 @@ package product
 import (
 	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
+	"Brewery/internal/repository"
 	mpr "Brewery/internal/repository/mapper"
 	"Brewery/internal/repository/queries"
 	"context"
@@ -12,6 +13,8 @@ import (
 
 	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -28,7 +31,7 @@ func NewRepository(pool *pgxpool.Pool) *Repository {
 	}
 }
 
-func (repo *Repository) InsertProduct(ctx context.Context, product entities.Product, values []entities.ProductParameterValue) (*entities.Product, error) {
+func (repo *Repository) InsertProduct(ctx context.Context, product entities.Product, values []entities.ParameterValue) (*entities.Product, error) {
 	if repo.Pool == nil {
 		return nil, errors.New("db pool is empty")
 	}
@@ -39,22 +42,25 @@ func (repo *Repository) InsertProduct(ctx context.Context, product entities.Prod
 	defer func() { _ = tx.Rollback(ctx) }()
 	qTx := repo.query.WithTx(tx)
 
-	if err := validateParameterAssignments(ctx, qTx, product.ProdClass.ID, values); err != nil {
+	if err := repository.ValidateParameterAssignments(ctx, qTx, product.ProdClass.ID, values); err != nil {
 		return nil, err
 	}
 
 	params := queries.InsertProductParams{
-		Name:    product.Name,
-		Amount:  &product.Amount,
-		Units:   &product.Unit,
-		ClassID: product.ProdClass.ID,
+		Name:           product.Name,
+		Amount:         &product.Amount,
+		Units:          &product.Unit,
+		ClassID:        product.ProdClass.ID,
+		Price:          &product.Price,
+		IsPurchased:    product.IsPurchased,
+		IsFinalProduct: product.IsFinalProduct,
 	}
 	if product.BaseID != 0 {
 		params.BaseID = &product.BaseID
 	}
 	productRow, err := qTx.InsertProduct(ctx, params)
 	if err != nil {
-		return nil, fmt.Errorf("InsertProduct: %w", err)
+		return nil, fmt.Errorf("InsertProduct: %w", productWriteError(err))
 	}
 	if product.BaseID != 0 {
 		if err := qTx.CopyBaseMaterials(ctx, queries.CopyBaseMaterialsParams{
@@ -117,13 +123,14 @@ func (repo *Repository) UpdateProduct(ctx context.Context, id int64, changes ent
 	defer func() { _ = tx.Rollback(ctx) }()
 	qTx := repo.query.WithTx(tx)
 
-	classID, err := qTx.LockProductClass(ctx, id)
+	locked, err := qTx.LockProductForUpdate(ctx, id)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, apperrors.NotFound("product not found", err)
 	}
 	if err != nil {
 		return nil, err
 	}
+	classID := locked.ClassID
 	if classID != changes.ExpectedClassID {
 		return nil, apperrors.Conflict("product class changed; reload the product and retry", nil)
 	}
@@ -157,31 +164,45 @@ func (repo *Repository) UpdateProduct(ctx context.Context, id int64, changes ent
 		classID = newClassID
 		params.ClassID = &newClassID
 	}
-	if val, ok := updates["base_id"]; ok {
-		if baseID, ok := val.(int64); ok {
-			params.BaseID = &baseID
+	if value, present := updates["base_id"]; present {
+		baseID, _ := value.(int64)
+		currentBaseID := int64(0)
+		if locked.BaseID != nil {
+			currentBaseID = *locked.BaseID
+		}
+		if baseID != currentBaseID {
+			if currentBaseID != changes.ExpectedBaseID {
+				return nil, apperrors.Conflict("product base changed; reload the product and retry", nil)
+			}
+			params.SetBaseID = true
+			if baseID != 0 {
+				params.BaseID = &baseID
+			}
 		}
 	}
+	if price, ok := updates["price"].(float64); ok {
+		params.Price = &price
+	}
+	if isPurchased, ok := updates["is_purchased"].(bool); ok {
+		params.IsPurchased = pgtype.Bool{Bool: isPurchased, Valid: true}
+	}
+	if isFinalProduct, ok := updates["is_final_product"].(bool); ok {
+		params.IsFinalProduct = pgtype.Bool{Bool: isFinalProduct, Valid: true}
+	}
 
-	if err := validateParameterAssignments(ctx, qTx, classID, changes.ParameterValues); err != nil {
+	if err := repository.ValidateParameterAssignments(ctx, qTx, classID, changes.ParameterValues); err != nil {
 		return nil, err
 	}
 	if _, err := qTx.UpdateProduct(ctx, params); err != nil {
-		return nil, fmt.Errorf("UpdateProduct: %w", err)
+		return nil, fmt.Errorf("UpdateProduct: %w", productWriteError(err))
 	}
 
-	// При обновлении base_id необходимо поменять все необходимые материалы со старого изделия на новое
-	if params.BaseID != nil {
-		if err := qTx.DeleteProductsMaterials(ctx, id); err != nil {
-			return nil, fmt.Errorf("DeleteProductsMaterials: %w", err)
-		}
-		copyParams := queries.CopyBaseMaterialsParams{
-			ProductID: id,
-			BaseID:    *params.BaseID,
-		}
-		err := qTx.CopyBaseMaterials(ctx, copyParams)
-		if err != nil {
-			return nil, fmt.Errorf("CopyBaseMaterials: %w", err)
+	if params.SetBaseID && params.BaseID != nil {
+		if err := qTx.SyncBaseMaterials(ctx, queries.SyncBaseMaterialsParams{ProductID: id, BaseID: *params.BaseID}); err != nil {
+			if pgErr, ok := errors.AsType[*pgconn.PgError](err); ok && pgErr.ConstraintName == "fk_operations_material" {
+				return nil, apperrors.Conflict("product composition is referenced by an operation", err)
+			}
+			return nil, fmt.Errorf("SyncBaseMaterials: %w", err)
 		}
 	}
 	if changes.ReplaceParameters {
@@ -207,13 +228,46 @@ func (repo *Repository) UpdateProduct(ctx context.Context, id int64, changes ent
 	return updated, nil
 }
 
+func productWriteError(err error) error {
+	pgErr, ok := errors.AsType[*pgconn.PgError](err)
+	if !ok {
+		return err
+	}
+
+	switch pgErr.ConstraintName {
+	case "products_class_id_fkey":
+		return apperrors.BadRequest("product class does not exist", err)
+	case "products_base_id_fkey":
+		return apperrors.BadRequest("base product does not exist", err)
+	case "chk_product_isnot_its_base":
+		return apperrors.BadRequest("product cannot be its own base", err)
+	case "check_product_amount_positive":
+		return apperrors.BadRequest("invalid amount", err)
+	case "chk_product_price_positive":
+		return apperrors.BadRequest("invalid price", err)
+	}
+	if pgErr.Code == "22003" {
+		return apperrors.BadRequest("product number is out of range", err)
+	}
+	return err
+}
+
 func (repo *Repository) DeleteProduct(ctx context.Context, id int64) error {
 	if repo.Pool == nil {
 		return errors.New("db pool is empty")
 	}
-	err := repo.query.DeleteProduct(ctx, id)
+	count, err := repo.query.DeleteProduct(ctx, id)
 	if err != nil {
+		if pgErr, ok := errors.AsType[*pgconn.PgError](err); ok {
+			switch pgErr.ConstraintName {
+			case "operations_input_product_id_fkey", "operations_output_product_id_fkey", "fk_operations_material":
+				return apperrors.Conflict("product is referenced by an operation", err)
+			}
+		}
 		return fmt.Errorf("DeleteProduct: %w", err)
+	}
+	if count == 0 {
+		return apperrors.NotFound("product not found", nil)
 	}
 	return nil
 }
@@ -251,6 +305,9 @@ func (repo *Repository) GetFilteredProducts(
 		"p.amount",
 		"p.units",
 		"p.base_id",
+		"COALESCE(p.price, 0)::double precision AS price",
+		"p.is_purchased",
+		"p.is_final_product",
 		"c.id AS class_id",
 		"c.name AS class_name",
 		"c.parent_id AS class_parent_id",
@@ -288,7 +345,7 @@ func (repo *Repository) GetFilteredProducts(
 	for rows.Next() {
 		var p queries.GetProductByIDRow
 		if err := rows.Scan(
-			&p.ID, &p.Name, &p.Amount, &p.Units, &p.BaseID,
+			&p.ID, &p.Name, &p.Amount, &p.Units, &p.BaseID, &p.Price, &p.IsPurchased, &p.IsFinalProduct,
 			&p.ClassID, &p.ClassName, &p.ClassParentID, &p.ClassNumParams, &p.ClassEnumParams,
 		); err != nil {
 			return nil, err

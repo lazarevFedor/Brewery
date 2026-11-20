@@ -69,3 +69,14 @@ func SelectRangeParametersByField(fieldName string) sq.SelectBuilder {
 	}
 	return query
 }
+
+// RangeParameterHasValuesOutsideBounds проверяет сохранённые значения изделий и операций.
+func RangeParameterHasValuesOutsideBounds(id int64) sq.SelectBuilder {
+	return psql.Select(`EXISTS (
+		SELECT 1 FROM products_parameters
+		WHERE range_parameter = rp.id AND numeric_value NOT BETWEEN rp.min_val AND rp.max_val
+		UNION ALL
+		SELECT 1 FROM operations_parameters
+		WHERE range_parameter = rp.id AND numeric_value NOT BETWEEN rp.min_val AND rp.max_val
+	)`).From(rangeParametersTable + " rp").Where(sq.Eq{"rp.id": id})
+}
