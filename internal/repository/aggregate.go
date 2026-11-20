@@ -69,8 +69,8 @@ func (a *AggregatePostgres) GetAggregates(ctx context.Context, name string) ([]e
 	return res, nil
 }
 
-// ApplyAggregate применяет агрегат к категории и возвращает результат применения.
-func (a *AggregatePostgres) ApplyAggregate(ctx context.Context, categoryID int64, id int64) (int, error) {
+// ApplyAggregate добавляет параметры агрегата к классу и считает новые связи.
+func (a *AggregatePostgres) ApplyAggregate(ctx context.Context, classID int64, id int64) (int, error) {
 	tx, err := a.Pool.Begin(ctx)
 	if err != nil {
 		return 0, err
@@ -80,29 +80,14 @@ func (a *AggregatePostgres) ApplyAggregate(ctx context.Context, categoryID int64
 	if lockErr := LockParameterDefinitions(ctx, tx); lockErr != nil {
 		return 0, lockErr
 	}
-	applyQuery := queries.ApplyAggregate(categoryID, id)
-	sql, args, err := applyQuery.ToSql()
+	added, err := queries.New(tx).ApplyParameterAggregate(ctx, queries.ApplyParameterAggregateParams{
+		ClassID:     classID,
+		AggregateID: id,
+	})
+	if errors.Is(err, pgx.ErrNoRows) {
+		return 0, apperrors.NotFound("Class or aggregate not found", err)
+	}
 	if err != nil {
-		return 0, err
-	}
-
-	cmd, err := tx.Exec(ctx, sql, args...)
-	if err != nil {
-		return 0, ParameterFieldNameError(err)
-	}
-	affected := int(cmd.RowsAffected())
-	if affected == 0 {
-		return 0, apperrors.NotFound("Class or aggregate not found", nil)
-	}
-
-	inheritQuery := queries.InheritParametersToChildren(categoryID)
-	sql, args, err = inheritQuery.ToSql()
-	if err != nil {
-		return 0, err
-	}
-
-	var inheritAffected int
-	if err = tx.QueryRow(ctx, sql, args...).Scan(&inheritAffected); err != nil {
 		return 0, ParameterFieldNameError(err)
 	}
 
@@ -110,7 +95,7 @@ func (a *AggregatePostgres) ApplyAggregate(ctx context.Context, categoryID int64
 		return 0, err
 	}
 
-	return affected + inheritAffected, nil
+	return int(added), nil
 }
 
 // UpdateAggregate обновляет существующий агрегат с заданным ID и возвращает обновленный агрегат.

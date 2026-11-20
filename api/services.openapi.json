@@ -629,7 +629,9 @@
                   "type": "object",
                   "properties": {
                     "params_added": {
-                      "type": "integer"
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Number of parameter assignments added to the target class and its descendants by this request. Each new parameter-to-class assignment counts once. Reapplying an unchanged aggregate returns zero if all assignments are already present."
                     }
                   }
                 }

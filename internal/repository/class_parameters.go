@@ -205,6 +205,9 @@ func (p *ClassParametersPostgres) ExcludeParameters(ctx context.Context, classID
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 
+	if lockErr := LockParameterDefinitions(ctx, tx); lockErr != nil {
+		return 0, lockErr
+	}
 	linkedRangeIDs, linkedEnumIDs, err := lockClassParameterIDs(ctx, tx, classID)
 	if err != nil {
 		return 0, err

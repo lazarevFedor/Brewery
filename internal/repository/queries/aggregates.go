@@ -72,21 +72,3 @@ func GetAggregates(name string) sq.SelectBuilder {
 
 	return query
 }
-
-// ApplyAggregate дополняет параметры класса параметрами агрегата.
-func ApplyAggregate(classID int64, id int64) sq.UpdateBuilder {
-	return psql.
-		Update(tableClasses).
-		Set("numeric_parameter_ids", sq.Expr(`CASE WHEN cardinality(a.numeric_parameter_ids) > 0 THEN ARRAY(
-			SELECT unnest(classes.numeric_parameter_ids)
-			UNION SELECT unnest(a.numeric_parameter_ids)
-			ORDER BY 1
-		) ELSE classes.numeric_parameter_ids END`)).
-		Set("enum_parameter_ids", sq.Expr(`CASE WHEN cardinality(a.enum_parameter_ids) > 0 THEN ARRAY(
-			SELECT unnest(classes.enum_parameter_ids)
-			UNION SELECT unnest(a.enum_parameter_ids)
-			ORDER BY 1
-		) ELSE classes.enum_parameter_ids END`)).
-		From(aggregatesTable + " a").
-		Where(sq.Eq{"classes.id": classID, "a.id": id})
-}
