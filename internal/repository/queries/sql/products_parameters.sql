@@ -34,3 +34,9 @@ SELECT class_id, base_id FROM products WHERE id = $1 FOR UPDATE;
 
 -- name: LockClassParameterIDs :one
 SELECT numeric_parameter_ids, enum_parameter_ids FROM classes WHERE id = $1 FOR SHARE;
+
+-- name: LockRangeParameterWithValue :one
+SELECT id FROM range_parameters
+WHERE id = sqlc.arg(range_parameter_id)
+  AND sqlc.arg(numeric_value_raw)::text::numeric BETWEEN min_val AND max_val
+FOR SHARE;

@@ -642,6 +642,9 @@
           "404": {
             "$ref": "#/components/responses/404_not_found"
           },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
           "500": {
             "$ref": "#/components/responses/500_internal_server_error"
           }
@@ -1535,6 +1538,9 @@
           "404": {
             "$ref": "#/components/responses/404_not_found"
           },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
           "500": {
             "$ref": "#/components/responses/500_internal_server_error"
           }
@@ -2407,6 +2413,9 @@
           "404": {
             "$ref": "#/components/responses/404_not_found"
           },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
+          },
           "500": {
             "$ref": "#/components/responses/500_internal_server_error"
           }
@@ -2477,6 +2486,7 @@
           "RangeParameters"
         ],
         "summary": "Update range parameter",
+        "description": "Narrowing a range is rejected if a saved product or operation value falls outside the proposed bounds.",
         "operationId": "updateRangeParameter",
         "security": [
           {
@@ -2532,6 +2542,9 @@
           },
           "404": {
             "$ref": "#/components/responses/404_not_found"
+          },
+          "409": {
+            "$ref": "#/components/responses/409_conflict"
           },
           "422": {
             "$ref": "#/components/responses/422_validation_error"
@@ -3432,7 +3445,15 @@
         "type": "object",
         "properties": {
           "value": {
-            "type": "string"
+            "description": "Value validated against the type of the owning enum parameter.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              }
+            ]
           },
           "position": {
             "type": "integer"
@@ -3482,7 +3503,13 @@
             ],
             "properties": {
               "enum_type": {
-                "type": "string"
+                "type": "string",
+                "enum": [
+                  "string",
+                  "int",
+                  "float"
+                ],
+                "description": "Must match the type of the enum parameter identified by parameter_id."
               },
               "parameter_id": {
                 "type": "integer"
@@ -4209,7 +4236,12 @@
             ],
             "properties": {
               "enum_type": {
-                "type": "string"
+                "type": "string",
+                "enum": [
+                  "string",
+                  "int",
+                  "float"
+                ]
               },
               "unit": {
                 "type": "string"

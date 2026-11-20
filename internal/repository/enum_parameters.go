@@ -60,6 +60,9 @@ func (e *EnumParametersPostgres) UpdateEnumParameter(ctx context.Context, id uin
 		return err
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
+	if lockErr := lockParameterDefinitions(ctx, tx); lockErr != nil {
+		return lockErr
+	}
 
 	query, args, err := queries.SelectEnumParameterByID(id).Suffix("FOR UPDATE").ToSql()
 	if err != nil {
@@ -79,12 +82,12 @@ func (e *EnumParametersPostgres) UpdateEnumParameter(ctx context.Context, id uin
 	}
 	var inheritable bool
 	if err := tx.QueryRow(ctx, query, args...).Scan(&inheritable); err != nil {
-		return err
+		return parameterFieldNameError(err)
 	}
 	if err := toggleParameterInheritance(ctx, tx, true, int64(id), oldParameter.Inheritable, inheritable); err != nil {
-		return err
+		return parameterFieldNameError(err)
 	}
-	return tx.Commit(ctx)
+	return parameterFieldNameError(tx.Commit(ctx))
 }
 
 // DeleteEnumParameterByID удаляет перечисляемый параметр из хранилища.

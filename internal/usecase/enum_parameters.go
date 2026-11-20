@@ -49,6 +49,9 @@ func (s *EnumParametersService) CreateEnumParameter(ctx context.Context, paramet
 	if err := ctx.Err(); err != nil {
 		return 0, fmt.Errorf("request cancelled: %w", err)
 	}
+	if !entities.EnumType(parameter.Type).Valid() {
+		return 0, apperrors.BadRequest("enum_type must be string, int, or float", nil)
+	}
 
 	id, err := s.repo.InsertEnumParameter(ctx, parameter)
 	if err != nil {

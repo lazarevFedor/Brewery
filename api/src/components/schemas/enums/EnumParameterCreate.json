@@ -12,7 +12,8 @@
       ],
       "properties": {
         "enum_type": {
-          "type": "string"
+          "type": "string",
+          "enum": ["string", "int", "float"]
         },
         "unit": {
           "type": "string"

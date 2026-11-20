@@ -59,8 +59,8 @@ func (s *EnumValuesService) CreateEnumValue(ctx context.Context, value entities.
 		return 0, apperrors.BadRequest("enum value cannot be nil", nil)
 	}
 
-	if value.ValueType == "" {
-		return 0, apperrors.BadRequest("enum value type cannot be empty", nil)
+	if !value.ValueType.Valid() {
+		return 0, apperrors.BadRequest("enum_type must be string, int, or float", nil)
 	}
 
 	id, err := s.repo.InsertEnumValue(ctx, value)
@@ -81,8 +81,8 @@ func (s *EnumValuesService) ListEnumValues(ctx context.Context, fieldName string
 		return nil, apperrors.BadRequest("field name cannot be empty", nil)
 	}
 
-	if valueType == "" {
-		return nil, apperrors.BadRequest("value type cannot be empty", nil)
+	if !valueType.Valid() {
+		return nil, apperrors.BadRequest("enum_type must be string, int, or float", nil)
 	}
 
 	values, err := s.repo.GetEnumValues(ctx, fieldName, valueType)

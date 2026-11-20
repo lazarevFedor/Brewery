@@ -77,6 +77,9 @@ func (a *AggregatePostgres) ApplyAggregate(ctx context.Context, categoryID int64
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 
+	if lockErr := lockParameterDefinitions(ctx, tx); lockErr != nil {
+		return 0, lockErr
+	}
 	applyQuery := queries.ApplyAggregate(categoryID, id)
 	sql, args, err := applyQuery.ToSql()
 	if err != nil {
@@ -85,7 +88,7 @@ func (a *AggregatePostgres) ApplyAggregate(ctx context.Context, categoryID int64
 
 	cmd, err := tx.Exec(ctx, sql, args...)
 	if err != nil {
-		return 0, err
+		return 0, parameterFieldNameError(err)
 	}
 	affected := int(cmd.RowsAffected())
 	if affected == 0 {
@@ -100,7 +103,7 @@ func (a *AggregatePostgres) ApplyAggregate(ctx context.Context, categoryID int64
 
 	var inheritAffected int
 	if err = tx.QueryRow(ctx, sql, args...).Scan(&inheritAffected); err != nil {
-		return 0, err
+		return 0, parameterFieldNameError(err)
 	}
 
 	if err = tx.Commit(ctx); err != nil {

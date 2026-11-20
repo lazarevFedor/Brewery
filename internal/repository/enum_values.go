@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -28,11 +29,27 @@ func (e *EnumValuesPostgres) InsertEnumValue(ctx context.Context, enumValue enti
 		return 0, errors.New("pool is nil")
 	}
 
-	var valID uint
+	tx, err := e.Pool.Begin(ctx)
+	if err != nil {
+		return 0, err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+
+	var valueType entities.EnumType
+	err = tx.QueryRow(ctx, "SELECT enum_type FROM enum_parameters WHERE id = $1 FOR NO KEY UPDATE", enumValue.EnumClassID).Scan(&valueType)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return 0, apperrors.BadRequest("enum parameter not found", err)
+	}
+	if err != nil {
+		return 0, err
+	}
+	if enumValue.ValueType != valueType {
+		return 0, apperrors.BadRequest("enum_type must match the parameter definition", nil)
+	}
 
 	enumValueRow, err := enumValue.ToRow()
 	if err != nil {
-		return 0, apperrors.BadRequest("invalid enum value for the supplied type", err)
+		return 0, apperrors.BadRequest("invalid enum value for the parameter type", err)
 	}
 
 	psql := queries.InsertEnumValue(*enumValueRow)
@@ -42,13 +59,17 @@ func (e *EnumValuesPostgres) InsertEnumValue(ctx context.Context, enumValue enti
 		return 0, fmt.Errorf("%s: %w", "ToSql", err)
 	}
 
-	err = e.Pool.QueryRow(ctx, query, args...).Scan(&valID)
+	var valID uint
+	err = tx.QueryRow(ctx, query, args...).Scan(&valID)
 	if err != nil {
 		return 0, enumValueWriteError(err)
 	}
 
 	if valID == 0 {
 		return 0, errors.New("failed to insert enum value")
+	}
+	if commitErr := tx.Commit(ctx); commitErr != nil {
+		return 0, commitErr
 	}
 
 	return valID, nil
@@ -60,13 +81,23 @@ func (e *EnumValuesPostgres) UpdateEnumValue(ctx context.Context, id uint, updat
 		return errors.New("pool is nil")
 	}
 
+	tx, err := e.Pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	valueType, err := lockEnumValueType(ctx, tx, id)
+	if err != nil {
+		return err
+	}
 	if value, ok := updates["value_raw"]; ok {
-		if value == nil {
-			delete(updates, "value_raw")
-		} else {
-			valueStr := fmt.Sprintf("%v", value)
-			updates["value_raw"] = valueStr
+		enumValue := entities.EnumValue{Value: value, ValueType: valueType}
+		row, encodeErr := enumValue.ToRow()
+		if encodeErr != nil {
+			return apperrors.BadRequest("invalid enum value for the parameter type", encodeErr)
 		}
+		updates = maps.Clone(updates)
+		updates["value_raw"] = row.ValueRaw
 	}
 
 	psql := queries.UpdateEnumValue(id, updates)
@@ -76,7 +107,7 @@ func (e *EnumValuesPostgres) UpdateEnumValue(ctx context.Context, id uint, updat
 		return fmt.Errorf("%s: %w", "ToSql", err)
 	}
 
-	result, err := e.Pool.Exec(ctx, query, args...)
+	result, err := tx.Exec(ctx, query, args...)
 	if err != nil {
 		return enumValueWriteError(err)
 	}
@@ -84,7 +115,7 @@ func (e *EnumValuesPostgres) UpdateEnumValue(ctx context.Context, id uint, updat
 		return apperrors.NotFound("Enum value not found", nil)
 	}
 
-	return nil
+	return tx.Commit(ctx)
 }
 
 // DeleteEnumValueByID удаляет сущность EnumValue из хранилища.
@@ -93,21 +124,43 @@ func (e *EnumValuesPostgres) DeleteEnumValueByID(ctx context.Context, id uint) e
 		return errors.New("pool is nil")
 	}
 
-	psql := queries.DeleteEnumValue(id)
+	tx, err := e.Pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	if _, lockErr := lockEnumValueType(ctx, tx, id); lockErr != nil {
+		return lockErr
+	}
 
+	psql := queries.DeleteEnumValue(id)
 	query, args, err := psql.ToSql()
 	if err != nil {
 		return fmt.Errorf("%s: %w", "ToSql", err)
 	}
 
-	result, err := e.Pool.Exec(ctx, query, args...)
+	result, err := tx.Exec(ctx, query, args...)
 	if err != nil {
 		return parameterDeleteError(err, "Enum value")
 	}
 	if result.RowsAffected() == 0 {
 		return apperrors.NotFound("Enum value not found", nil)
 	}
-	return nil
+	return tx.Commit(ctx)
+}
+
+// Keep the definition stable during the write and serialize changes to the value order.
+func lockEnumValueType(ctx context.Context, tx pgx.Tx, id uint) (entities.EnumType, error) {
+	const query = `SELECT p.enum_type
+FROM enum_parameters p JOIN parameter_values v ON v.enum_parameter_id = p.id
+WHERE v.id = $1
+FOR NO KEY UPDATE OF p`
+	var valueType entities.EnumType
+	err := tx.QueryRow(ctx, query, id).Scan(&valueType)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return "", apperrors.NotFound("Enum value not found", err)
+	}
+	return valueType, err
 }
 
 func enumValueWriteError(err error) error {

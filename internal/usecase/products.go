@@ -153,11 +153,7 @@ func (ps *ProductService) UpdateProduct(ctx context.Context, id int64, updates m
 		ExpectedBaseID:  current.BaseID,
 	}
 	delete(changes.Fields, "parameters")
-	candidate := *current
-	candidate.Parameters = maps.Clone(current.Parameters)
-	if candidate.Parameters == nil {
-		candidate.Parameters = make(map[string]any)
-	}
+	candidate := entities.Product{ProdClass: current.ProdClass}
 	if classID, ok := updates["class_id"].(int64); ok && classID != current.ProdClass.ID {
 		class, err := ps.classRepo.GetClassByID(ctx, classID)
 		if productResourceNotFound(err) {
@@ -172,34 +168,26 @@ func (ps *ProductService) UpdateProduct(ctx context.Context, id int64, updates m
 		candidate.ProdClass = *class
 		changes.ReplaceParameters = true
 		changes.ExpectedParameters = maps.Clone(current.Parameters)
+		candidate.Parameters = maps.Clone(current.Parameters)
 	}
-	patch, hasParameters := updates["parameters"].(map[string]any)
-	if hasParameters {
-		for field, value := range patch {
-			changes.ParameterFields = append(changes.ParameterFields, field)
-			if value == nil {
-				delete(candidate.Parameters, field)
-			} else {
-				candidate.Parameters[field] = value
-			}
-		}
-		slices.Sort(changes.ParameterFields)
+	patch, _ := updates["parameters"].(map[string]any)
+	if candidate.Parameters == nil {
+		candidate.Parameters = make(map[string]any, len(patch))
 	}
-	if hasParameters || changes.ReplaceParameters {
-		values, _, err := ps.resolveProductParameters(ctx, candidate)
-		if err != nil {
-			return nil, err
-		}
-		if changes.ReplaceParameters {
-			changes.ParameterValues = values
+	for field, value := range patch {
+		changes.ParameterFields = append(changes.ParameterFields, field)
+		if value == nil {
+			delete(candidate.Parameters, field)
 		} else {
-			for _, value := range values {
-				if slices.Contains(changes.ParameterFields, value.FieldName) {
-					changes.ParameterValues = append(changes.ParameterValues, value)
-				}
-			}
+			candidate.Parameters[field] = value
 		}
 	}
+	slices.Sort(changes.ParameterFields)
+	values, _, err := ps.resolveProductParameters(ctx, candidate)
+	if err != nil {
+		return nil, err
+	}
+	changes.ParameterValues = values
 
 	if baseID, ok := updates["base_id"].(int64); ok && baseID != current.BaseID {
 		if baseID == id {

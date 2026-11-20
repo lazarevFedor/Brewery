@@ -145,3 +145,22 @@ func (q *Queries) LockProductForUpdate(ctx context.Context, id int64) (LockProdu
 	err := row.Scan(&i.ClassID, &i.BaseID)
 	return i, err
 }
+
+const lockRangeParameterWithValue = `-- name: LockRangeParameterWithValue :one
+SELECT id FROM range_parameters
+WHERE id = $1
+  AND $2::text::numeric BETWEEN min_val AND max_val
+FOR SHARE
+`
+
+type LockRangeParameterWithValueParams struct {
+	RangeParameterID int64
+	NumericValueRaw  string
+}
+
+func (q *Queries) LockRangeParameterWithValue(ctx context.Context, arg LockRangeParameterWithValueParams) (int64, error) {
+	row := q.db.QueryRow(ctx, lockRangeParameterWithValue, arg.RangeParameterID, arg.NumericValueRaw)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
