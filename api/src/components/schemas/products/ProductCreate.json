@@ -6,10 +6,9 @@
     {
       "type": "object",
       "required": [
-        "name",
-        "class",
-        "price"
+        "name"
       ],
+      "description": "Цена обязательна при is_purchased = true. При is_purchased = false или пропущенном флаге можно опустить price. В этом случае цена равна 0.",
       "properties": {
         "class": {
           "$ref": "#/components/schemas/ClassBase"
@@ -63,7 +62,6 @@
         "base_id": null,
         "amount": 100,
         "units": "L",
-        "price": 100.5,
         "is_purchased": false,
         "is_final_product": true,
         "parameters": {
@@ -81,6 +79,18 @@
           "required": [
             "class"
           ]
+        }
+      ]
+    },
+    {
+      "anyOf": [
+        {
+          "required": ["price"]
+        },
+        {
+          "properties": {
+            "is_purchased": { "enum": [false] }
+          }
         }
       ]
     }

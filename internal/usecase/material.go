@@ -209,7 +209,7 @@ func (s *MaterialService) GetMaterialNorms(ctx context.Context, productID int64,
 	if err != nil {
 		return nil, fmt.Errorf("failed to get materials by product: %w", err)
 	}
-	return collectMaterialNorms(rows, quantity, false)
+	return collectMaterialNorms(rows, quantity, allMaterialOccurrences)
 }
 
 func (s *MaterialService) requireProduct(ctx context.Context, id int64) error {
@@ -230,35 +230,46 @@ func validMaterialAmount(amount float32) bool {
 	return amount > 0 && !math.IsInf(float64(amount), 0)
 }
 
+type materialNormMode uint8
+
+const (
+	allMaterialOccurrences materialNormMode = iota
+	techCardBaseMaterials
+)
+
 // collectMaterialNorms группирует нормы по материалу, сохраняя каждое вхождение в состав.
-func collectMaterialNorms(rows []entities.MaterialProduct, quantity float32, baseOnly bool) ([]entities.MaterialProduct, error) {
+func collectMaterialNorms(rows []entities.MaterialProduct, quantity float32, mode materialNormMode) ([]entities.MaterialProduct, error) {
 	type norm struct {
 		material entities.MaterialProduct
 		amount   float64
 	}
 	grouped := make(map[int64]norm)
-	var walk func(node entities.MaterialProduct)
-	walk = func(node entities.MaterialProduct) {
+	var walk func(node entities.MaterialProduct, parentQuantity float64)
+	walk = func(node entities.MaterialProduct, parentQuantity float64) {
 		if node.MaterialID == 0 {
 			return
 		}
-		if !baseOnly || node.Base {
-			// Нормы каждого вхождения масштабируются количеством конечных изделий.
+		amount := parentQuantity * float64(node.MaterialAmount)
+		if mode == allMaterialOccurrences || node.Base {
 			item, exists := grouped[node.MaterialID]
 			if !exists {
 				item.material = node
 				item.material.Materials = nil
 			}
-			item.amount += float64(node.MaterialAmount) * float64(quantity)
+			item.amount += amount
 			grouped[node.MaterialID] = item
 		}
+		childParentQuantity := float64(quantity)
+		if mode == techCardBaseMaterials {
+			childParentQuantity = amount
+		}
 		for _, child := range node.Materials {
-			walk(child)
+			walk(child, childParentQuantity)
 		}
 	}
 
 	for _, row := range rows {
-		walk(row)
+		walk(row, float64(quantity))
 	}
 
 	result := make([]entities.MaterialProduct, 0, len(grouped))

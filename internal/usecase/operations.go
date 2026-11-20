@@ -322,14 +322,16 @@ func (s *OperationService) GetProductTechCard(ctx context.Context, productID int
 	if err != nil {
 		return nil, err
 	}
-	norms, err := collectMaterialNorms(tree, quantity, true)
+	norms, err := collectMaterialNorms(tree, quantity, techCardBaseMaterials)
 	if err != nil {
 		return nil, err
 	}
 	slices.SortFunc(norms, func(a, b entities.MaterialProduct) int { return cmp.Compare(a.MaterialID, b.MaterialID) })
 	var materialCost float64
 	for _, norm := range norms {
-		materialCost += float64(norm.MaterialAmount) * norm.Price
+		if norm.IsPurchased {
+			materialCost += float64(norm.MaterialAmount) * norm.Price
+		}
 	}
 
 	rates := make(map[int64]float64)

@@ -87,7 +87,6 @@ func (r productCreateRequest) toEntity() entities.Product {
 	product := entities.Product{
 		Name:           r.Name,
 		ProdClass:      entities.Class{ID: r.ClassID},
-		Price:          *r.Price,
 		IsPurchased:    r.IsPurchased,
 		IsFinalProduct: r.IsFinalProduct,
 		Parameters:     r.Parameters,
@@ -101,6 +100,10 @@ func (r productCreateRequest) toEntity() entities.Product {
 
 	if r.BaseID != nil {
 		product.BaseID = *r.BaseID
+	}
+
+	if r.Price != nil {
+		product.Price = *r.Price
 	}
 
 	return product
@@ -198,7 +201,7 @@ func (h *productHandlers) CreateProduct(c *gin.Context) {
 		return
 	}
 
-	if req.Price == nil {
+	if req.IsPurchased && req.Price == nil {
 		writeError(c, http.StatusBadRequest, apperrors.CodeValidation, "Product price is required")
 		return
 	}
