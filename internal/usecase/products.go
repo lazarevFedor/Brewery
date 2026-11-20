@@ -147,7 +147,11 @@ func (ps *ProductService) UpdateProduct(ctx context.Context, id int64, updates m
 		return nil, fmt.Errorf("failed to validate updates: %w", err)
 	}
 
-	changes := entities.ProductUpdate{Fields: maps.Clone(updates), ExpectedClassID: current.ProdClass.ID}
+	changes := entities.ProductUpdate{
+		Fields:          maps.Clone(updates),
+		ExpectedClassID: current.ProdClass.ID,
+		ExpectedBaseID:  current.BaseID,
+	}
 	delete(changes.Fields, "parameters")
 	candidate := *current
 	candidate.Parameters = maps.Clone(current.Parameters)
@@ -197,7 +201,7 @@ func (ps *ProductService) UpdateProduct(ctx context.Context, id int64, updates m
 		}
 	}
 
-	if baseID, ok := updates["base_id"].(int64); ok {
+	if baseID, ok := updates["base_id"].(int64); ok && baseID != current.BaseID {
 		if baseID == id {
 			return nil, apperrors.BadRequest("product cannot be its own base", nil)
 		}
@@ -364,7 +368,10 @@ func (ps *ProductService) ValidateUpdates(ctx context.Context, updates map[strin
 				return apperrors.BadRequest("invalid class id", nil)
 			}
 		case "base_id":
-			baseID, _ := updates[key]
+			baseID := updates[key]
+			if baseID == nil {
+				continue
+			}
 			baseIDInt, ok := toInt64Value(baseID)
 			if !ok || baseIDInt <= 0 {
 				return apperrors.BadRequest("invalid base id", nil)

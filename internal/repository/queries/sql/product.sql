@@ -74,7 +74,7 @@ SET
     amount = COALESCE(sqlc.narg(amount), amount),
     units = COALESCE(sqlc.narg(units), units),
     class_id = COALESCE(sqlc.narg(class_id), class_id),
-    base_id = COALESCE(sqlc.narg(base_id), base_id),
+    base_id = CASE WHEN sqlc.arg(set_base_id)::boolean THEN sqlc.narg(base_id) ELSE base_id END,
     price = COALESCE(sqlc.narg(price), price),
     is_purchased = COALESCE(sqlc.narg(is_purchased), is_purchased),
     is_final_product = COALESCE(sqlc.narg(is_final_product), is_final_product)

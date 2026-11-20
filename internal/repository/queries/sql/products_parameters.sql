@@ -29,8 +29,8 @@ JOIN enum_parameters ep ON ep.id = pp.enum_parameter_id
 JOIN parameter_values pv ON pv.id = pp.enum_value_id AND pv.enum_parameter_id = pp.enum_parameter_id
 WHERE pp.product_id = ANY(sqlc.arg(product_ids)::bigint[]);
 
--- name: LockProductClass :one
-SELECT class_id FROM products WHERE id = $1 FOR UPDATE;
+-- name: LockProductForUpdate :one
+SELECT class_id, base_id FROM products WHERE id = $1 FOR UPDATE;
 
 -- name: LockClassParameterIDs :one
 SELECT numeric_parameter_ids, enum_parameter_ids FROM classes WHERE id = $1 FOR SHARE;

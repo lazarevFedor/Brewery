@@ -83,6 +83,17 @@ FROM materials
 WHERE materials.product_id = sqlc.arg(base_id)
 ON CONFLICT (material_id, product_id) DO NOTHING;
 
--- name: DeleteProductsMaterials :exec
-DELETE FROM materials
-WHERE product_id = $1;
+-- name: SyncBaseMaterials :exec
+WITH source AS (
+    SELECT m.material_id, m.material_amount, m.base
+    FROM materials AS m
+    WHERE m.product_id = sqlc.arg(base_id)
+), removed AS (
+    DELETE FROM materials AS current
+    WHERE current.product_id = sqlc.arg(product_id)
+      AND NOT EXISTS (SELECT 1 FROM source WHERE source.material_id = current.material_id)
+)
+INSERT INTO materials (product_id, material_id, material_amount, base)
+SELECT sqlc.arg(product_id), material_id, material_amount, base FROM source
+ON CONFLICT (material_id, product_id) DO UPDATE
+SET material_amount = EXCLUDED.material_amount, base = EXCLUDED.base;

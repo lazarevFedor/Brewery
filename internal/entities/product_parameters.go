@@ -16,5 +16,6 @@ type ProductUpdate struct {
 	ParameterValues    []ProductParameterValue
 	ReplaceParameters  bool
 	ExpectedClassID    int64
+	ExpectedBaseID     int64
 	ExpectedParameters map[string]any
 }

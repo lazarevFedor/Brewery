@@ -54,16 +54,6 @@ func (q *Queries) DeleteMaterial(ctx context.Context, arg DeleteMaterialParams) 
 	return result.RowsAffected(), nil
 }
 
-const deleteProductsMaterials = `-- name: DeleteProductsMaterials :exec
-DELETE FROM materials
-WHERE product_id = $1
-`
-
-func (q *Queries) DeleteProductsMaterials(ctx context.Context, productID int64) error {
-	_, err := q.db.Exec(ctx, deleteProductsMaterials, productID)
-	return err
-}
-
 const getMaterialsByProductID = `-- name: GetMaterialsByProductID :many
 SELECT 
     m.material_id AS id,
@@ -230,6 +220,32 @@ func (q *Queries) InsertMaterial(ctx context.Context, arg InsertMaterialParams) 
 		&i.Base,
 	)
 	return i, err
+}
+
+const syncBaseMaterials = `-- name: SyncBaseMaterials :exec
+WITH source AS (
+    SELECT m.material_id, m.material_amount, m.base
+    FROM materials AS m
+    WHERE m.product_id = $2
+), removed AS (
+    DELETE FROM materials AS current
+    WHERE current.product_id = $1
+      AND NOT EXISTS (SELECT 1 FROM source WHERE source.material_id = current.material_id)
+)
+INSERT INTO materials (product_id, material_id, material_amount, base)
+SELECT $1, material_id, material_amount, base FROM source
+ON CONFLICT (material_id, product_id) DO UPDATE
+SET material_amount = EXCLUDED.material_amount, base = EXCLUDED.base
+`
+
+type SyncBaseMaterialsParams struct {
+	ProductID int64
+	BaseID    int64
+}
+
+func (q *Queries) SyncBaseMaterials(ctx context.Context, arg SyncBaseMaterialsParams) error {
+	_, err := q.db.Exec(ctx, syncBaseMaterials, arg.ProductID, arg.BaseID)
+	return err
 }
 
 const updateMaterial = `-- name: UpdateMaterial :one

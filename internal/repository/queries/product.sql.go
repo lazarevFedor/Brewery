@@ -314,11 +314,11 @@ SET
     amount = COALESCE($2, amount),
     units = COALESCE($3, units),
     class_id = COALESCE($4, class_id),
-    base_id = COALESCE($5, base_id),
-    price = COALESCE($6, price),
-    is_purchased = COALESCE($7, is_purchased),
-    is_final_product = COALESCE($8, is_final_product)
-WHERE id = $9
+    base_id = CASE WHEN $5::boolean THEN $6 ELSE base_id END,
+    price = COALESCE($7, price),
+    is_purchased = COALESCE($8, is_purchased),
+    is_final_product = COALESCE($9, is_final_product)
+WHERE id = $10
 RETURNING 
     id,
     name,
@@ -336,6 +336,7 @@ type UpdateProductParams struct {
 	Amount         *float32
 	Units          *string
 	ClassID        *int64
+	SetBaseID      bool
 	BaseID         *int64
 	Price          *float64
 	IsPurchased    pgtype.Bool
@@ -349,6 +350,7 @@ func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (P
 		arg.Amount,
 		arg.Units,
 		arg.ClassID,
+		arg.SetBaseID,
 		arg.BaseID,
 		arg.Price,
 		arg.IsPurchased,

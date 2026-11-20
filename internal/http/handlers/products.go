@@ -260,7 +260,7 @@ func (h *productHandlers) UpdateProduct(c *gin.Context) {
 
 	for _, field := range productUpdateIntFields {
 		raw, exists := updates[field]
-		if !exists {
+		if !exists || (field == "base_id" && raw == nil) {
 			continue
 		}
 

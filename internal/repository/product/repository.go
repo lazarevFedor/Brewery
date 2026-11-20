@@ -122,13 +122,14 @@ func (repo *Repository) UpdateProduct(ctx context.Context, id int64, changes ent
 	defer func() { _ = tx.Rollback(ctx) }()
 	qTx := repo.query.WithTx(tx)
 
-	classID, err := qTx.LockProductClass(ctx, id)
+	locked, err := qTx.LockProductForUpdate(ctx, id)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, apperrors.NotFound("product not found", err)
 	}
 	if err != nil {
 		return nil, err
 	}
+	classID := locked.ClassID
 	if classID != changes.ExpectedClassID {
 		return nil, apperrors.Conflict("product class changed; reload the product and retry", nil)
 	}
@@ -162,9 +163,20 @@ func (repo *Repository) UpdateProduct(ctx context.Context, id int64, changes ent
 		classID = newClassID
 		params.ClassID = &newClassID
 	}
-	if val, ok := updates["base_id"]; ok {
-		if baseID, ok := val.(int64); ok {
-			params.BaseID = &baseID
+	if value, present := updates["base_id"]; present {
+		baseID, _ := value.(int64)
+		currentBaseID := int64(0)
+		if locked.BaseID != nil {
+			currentBaseID = *locked.BaseID
+		}
+		if baseID != currentBaseID {
+			if currentBaseID != changes.ExpectedBaseID {
+				return nil, apperrors.Conflict("product base changed; reload the product and retry", nil)
+			}
+			params.SetBaseID = true
+			if baseID != 0 {
+				params.BaseID = &baseID
+			}
 		}
 	}
 	if price, ok := updates["price"].(float64); ok {
@@ -184,21 +196,12 @@ func (repo *Repository) UpdateProduct(ctx context.Context, id int64, changes ent
 		return nil, fmt.Errorf("UpdateProduct: %w", productWriteError(err))
 	}
 
-	// При обновлении base_id необходимо поменять все необходимые материалы со старого изделия на новое
-	if params.BaseID != nil {
-		if err := qTx.DeleteProductsMaterials(ctx, id); err != nil {
+	if params.SetBaseID && params.BaseID != nil {
+		if err := qTx.SyncBaseMaterials(ctx, queries.SyncBaseMaterialsParams{ProductID: id, BaseID: *params.BaseID}); err != nil {
 			if pgErr, ok := errors.AsType[*pgconn.PgError](err); ok && pgErr.ConstraintName == "fk_operations_material" {
 				return nil, apperrors.Conflict("product composition is referenced by an operation", err)
 			}
-			return nil, fmt.Errorf("DeleteProductsMaterials: %w", err)
-		}
-		copyParams := queries.CopyBaseMaterialsParams{
-			ProductID: id,
-			BaseID:    *params.BaseID,
-		}
-		err := qTx.CopyBaseMaterials(ctx, copyParams)
-		if err != nil {
-			return nil, fmt.Errorf("CopyBaseMaterials: %w", err)
+			return nil, fmt.Errorf("SyncBaseMaterials: %w", err)
 		}
 	}
 	if changes.ReplaceParameters {
