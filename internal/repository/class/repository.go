@@ -3,6 +3,7 @@ package class
 import (
 	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
+	"Brewery/internal/repository"
 	mpr "Brewery/internal/repository/mapper"
 	"Brewery/internal/repository/queries"
 	"Brewery/pkg/logger"
@@ -46,11 +47,22 @@ func (repo *Repository) InsertClass(ctx context.Context, class entities.Class) (
 	if repo.Pool == nil {
 		return nil, errors.New("db pool is empty")
 	}
+	tx, err := repo.Pool.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	if class.ParentID != nil {
+		if lockErr := repository.LockParameterDefinitions(ctx, tx); lockErr != nil {
+			return nil, lockErr
+		}
+	}
+	txQueries := repo.query.WithTx(tx)
 	insertParams := queries.InsertClassParams{
 		Name:     class.Name,
 		ParentID: class.ParentID,
 	}
-	dbClass, err := repo.query.InsertClass(ctx, insertParams)
+	dbClass, err := txQueries.InsertClass(ctx, insertParams)
 	if err != nil {
 		if pgErr, ok := errors.AsType[*pgconn.PgError](err); ok {
 			switch {
@@ -65,6 +77,15 @@ func (repo *Repository) InsertClass(ctx context.Context, class entities.Class) (
 		return nil, fmt.Errorf("InsertClass: %w", err)
 	}
 	class = mapper.FromInsert(dbClass)
+	if class.ParentID != nil {
+		class, err = inheritClassParameters(ctx, txQueries, class.ID, *class.ParentID)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if err = tx.Commit(ctx); err != nil {
+		return nil, err
+	}
 	return &class, nil
 }
 func (repo *Repository) GetClassByID(ctx context.Context, id int64) (*entities.Class, error) {
@@ -86,16 +107,43 @@ func (repo *Repository) UpdateClass(ctx context.Context, id int64, updates entit
 	if repo.Pool == nil {
 		return nil, errors.New("db pool is empty")
 	}
+	tx, err := repo.Pool.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	txQueries := repo.query.WithTx(tx)
 	updateParams := queries.UpdateClassParams{ID: id}
 
 	if updates.ParentID != nil {
-		updateParams.ParentID = updates.ParentID
+		if lockErr := repository.LockParameterDefinitions(ctx, tx); lockErr != nil {
+			return nil, lockErr
+		}
+		previous, readErr := txQueries.GetClassByID(ctx, id)
+		if errors.Is(readErr, pgx.ErrNoRows) {
+			return nil, apperrors.NotFound("Class not found", readErr)
+		}
+		if readErr != nil {
+			return nil, readErr
+		}
+		if previous.ParentID == nil || *previous.ParentID != *updates.ParentID {
+			cycle, ancestorErr := txQueries.ClassMoveCreatesCycle(ctx, queries.ClassMoveCreatesCycleParams{
+				ClassID: *updates.ParentID, AncestorID: id,
+			})
+			if ancestorErr != nil {
+				return nil, ancestorErr
+			}
+			if cycle {
+				return nil, apperrors.BadRequest("class parent creates a cycle", nil)
+			}
+			updateParams.ParentID = updates.ParentID
+		}
 	}
 	if updates.Name != "" {
 		updateParams.Name = &updates.Name
 	}
 
-	dbClass, err := repo.query.UpdateClass(ctx, updateParams)
+	dbClass, err := txQueries.UpdateClass(ctx, updateParams)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, apperrors.NotFound("Class not found", err)
 	}
@@ -112,7 +160,28 @@ func (repo *Repository) UpdateClass(ctx context.Context, id int64, updates entit
 	}
 
 	class := mapper.FromDBClass(dbClass)
+	if updateParams.ParentID != nil {
+		class, err = inheritClassParameters(ctx, txQueries, class.ID, *updateParams.ParentID)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if err = tx.Commit(ctx); err != nil {
+		return nil, err
+	}
 	return &class, nil
+}
+
+func inheritClassParameters(ctx context.Context, txQueries *queries.Queries, classID, parentID int64) (entities.Class, error) {
+	err := txQueries.InheritClassBranchParameters(ctx, queries.InheritClassBranchParametersParams{ClassID: classID, ParentID: parentID})
+	if err != nil {
+		return entities.Class{}, fmt.Errorf("inherit class parameters: %w", repository.ParameterFieldNameError(err))
+	}
+	row, err := txQueries.GetClassByID(ctx, classID)
+	if err != nil {
+		return entities.Class{}, err
+	}
+	return mapper.FromDBClass(row), nil
 }
 
 func (repo *Repository) DeleteClass(ctx context.Context, id int64) error {

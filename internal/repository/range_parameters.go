@@ -87,7 +87,7 @@ func (p *RangeParametersPostgres) UpdateRangeParameter(ctx context.Context, id i
 		return nil, err
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
-	if lockErr := lockParameterDefinitions(ctx, tx); lockErr != nil {
+	if lockErr := LockParameterDefinitions(ctx, tx); lockErr != nil {
 		return nil, lockErr
 	}
 
@@ -122,7 +122,7 @@ func (p *RangeParametersPostgres) UpdateRangeParameter(ctx context.Context, id i
 		}
 	}
 	if err := toggleParameterInheritance(ctx, tx, false, id, oldParam.Inheritable, param.Inheritable); err != nil {
-		return nil, parameterFieldNameError(err)
+		return nil, ParameterFieldNameError(err)
 	}
 	if err := tx.Commit(ctx); err != nil {
 		return nil, err

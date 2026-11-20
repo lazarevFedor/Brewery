@@ -233,54 +233,23 @@ func (c *ClassService) GetChildClasses(ctx context.Context, id int64) ([]entitie
 	return children, nil
 }
 
-func (c *ClassService) ensureClassParentIsNotDescendant(ctx context.Context, classID, parentID int64) error {
-	visited := make(map[int64]struct{})
-	currentID := parentID
-
-	for currentID != 0 {
-		if _, seen := visited[currentID]; seen {
-			return errors.New("class hierarchy contains a cycle")
-		}
-		visited[currentID] = struct{}{}
-
-		class, err := c.repo.GetClassByID(ctx, currentID)
-		if errors.Is(err, pgx.ErrNoRows) || (err == nil && class == nil) {
-			return apperrors.NotFound("Parent class not found", err)
-		}
-		if err != nil {
-			return fmt.Errorf("failed to get parent class: %w", err)
-		}
-
-		if class.ID == classID {
-			return apperrors.BadRequest("class parent creates a cycle", nil)
-		}
-
-		if class.ParentID == nil {
-			break
-		}
-		currentID = *class.ParentID
-	}
-
-	return nil
-}
-
 func (c *ClassService) ValidateClassUpdates(ctx context.Context, id int64, updates map[string]any) (*entities.Class, error) {
-	var ok bool
-	class, err := c.GetClassByID(ctx, id)
-	if err != nil {
+	if _, err := c.GetClassByID(ctx, id); err != nil {
 		return nil, fmt.Errorf("failed to get class: %w", err)
 	}
 
+	class := &entities.Class{ID: id}
 	for key, value := range updates {
 		switch key {
 		case "name":
-			class.Name, ok = value.(string)
+			name, ok := value.(string)
 			if !ok {
 				return nil, apperrors.BadRequest("name must be a string", nil)
 			}
-			if class.Name == "" {
+			if name == "" {
 				return nil, apperrors.BadRequest("class name is required", nil)
 			}
+			class.Name = name
 
 		case "parent_id":
 			parentID, ok := value.(int64)
@@ -288,24 +257,10 @@ func (c *ClassService) ValidateClassUpdates(ctx context.Context, id int64, updat
 				return nil, apperrors.BadRequest("parent_id must be a positive int64", nil)
 			}
 
-			if err := c.ensureClassParentIsNotDescendant(ctx, id, parentID); err != nil {
-				return nil, fmt.Errorf("failed to update parent class: %w", err)
-			}
 			class.ParentID = &parentID
 
-		case "range_param_ids":
-			rangeParamIDs, ok := value.([]int64)
-			if !ok {
-				return nil, apperrors.BadRequest("range_param_ids must be a slice of int64", nil)
-			}
-			class.RangeParamIDs = rangeParamIDs
-
-		case "enum_param_ids":
-			enumParamIDs, ok := value.([]int64)
-			if !ok {
-				return nil, apperrors.BadRequest("enum_param_ids must be a slice of int64", nil)
-			}
-			class.EnumParamIDs = enumParamIDs
+		case "range_param_ids", "enum_param_ids":
+			return nil, apperrors.BadRequest("use the apply or exclude endpoint to change class parameters", nil)
 		default:
 			return nil, apperrors.BadRequest(fmt.Sprintf("unknown field: %s", key), nil)
 		}

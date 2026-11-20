@@ -1,36 +1,19 @@
 {
-  "allOf": [
-    {
-      "$ref": "#/components/schemas/ClassBase"
+  "type": "object",
+  "additionalProperties": false,
+  "minProperties": 1,
+  "description": "Use the class parameter apply and exclude endpoints to change parameter assignments.",
+  "properties": {
+    "name": {
+      "type": "string"
     },
-    {
-      "type": "object",
-      "properties": {
-        "parent_id": {
-          "type": "integer",
-          "nullable": true
-        },
-        "range_param_ids": {
-          "type": "array",
-          "items": {
-            "type": "integer"
-          },
-          "default": []
-        },
-        "enum_param_ids": {
-          "type": "array",
-          "items": {
-            "type": "integer"
-          },
-          "default": []
-        }
-      }
+    "parent_id": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Moving the class adds inheritable parameters from the new parent to the moved class and its descendants. Existing parameters are preserved. A conflicting parameter name returns 409."
     }
-  ],
+  },
   "example": {
-    "name": "Светлое пиво",
-    "parent_id": 1,
-    "range_param_ids": [1, 2],
-    "enum_param_ids": [3]
+    "parent_id": 1
   }
 }

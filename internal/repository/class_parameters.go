@@ -145,7 +145,7 @@ func (p *ClassParametersPostgres) ApplyParameters(ctx context.Context, classID i
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 
-	if lockErr := lockParameterDefinitions(ctx, tx); lockErr != nil {
+	if lockErr := LockParameterDefinitions(ctx, tx); lockErr != nil {
 		return 0, lockErr
 	}
 	if _, _, err := lockClassParameterIDs(ctx, tx, classID); err != nil {
@@ -164,7 +164,7 @@ func (p *ClassParametersPostgres) ApplyParameters(ctx context.Context, classID i
 		}
 		var count int
 		if err := tx.QueryRow(ctx, sql, args...).Scan(&count); err != nil {
-			return 0, parameterFieldNameError(err)
+			return 0, ParameterFieldNameError(err)
 		}
 		affected += count
 	}
@@ -174,14 +174,15 @@ func (p *ClassParametersPostgres) ApplyParameters(ctx context.Context, classID i
 	return affected, nil
 }
 
-// lockParameterDefinitions serializes assignments and definition changes before taking row locks.
-func lockParameterDefinitions(ctx context.Context, tx pgx.Tx) error {
+// LockParameterDefinitions serializes assignments and definition changes before taking row locks.
+func LockParameterDefinitions(ctx context.Context, tx pgx.Tx) error {
 	const parameterDefinitionsLock int64 = 2_840_601
 	_, err := tx.Exec(ctx, "SELECT pg_advisory_xact_lock($1::bigint)", parameterDefinitionsLock)
 	return err
 }
 
-func parameterFieldNameError(err error) error {
+// ParameterFieldNameError maps a class parameter name conflict to HTTP 409.
+func ParameterFieldNameError(err error) error {
 	if pgErr, ok := errors.AsType[*pgconn.PgError](err); ok && pgErr.ConstraintName == "class_parameter_field_name_unique" {
 		return apperrors.Conflict(pgErr.Message, err)
 	}
