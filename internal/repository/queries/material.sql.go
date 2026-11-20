@@ -132,7 +132,15 @@ FROM materials m
 JOIN products p ON p.id = m.product_id
 JOIN classes c ON p.class_id = c.id
 WHERE m.material_id = $1
+ORDER BY m.product_id
+LIMIT $3 OFFSET $2
 `
+
+type GetProductsByMaterialParams struct {
+	MaterialID  int64
+	OffsetCount int32
+	LimitCount  int32
+}
 
 type GetProductsByMaterialRow struct {
 	ID             int64
@@ -148,8 +156,8 @@ type GetProductsByMaterialRow struct {
 	ClassName      string
 }
 
-func (q *Queries) GetProductsByMaterial(ctx context.Context, materialID int64) ([]GetProductsByMaterialRow, error) {
-	rows, err := q.db.Query(ctx, getProductsByMaterial, materialID)
+func (q *Queries) GetProductsByMaterial(ctx context.Context, arg GetProductsByMaterialParams) ([]GetProductsByMaterialRow, error) {
+	rows, err := q.db.Query(ctx, getProductsByMaterial, arg.MaterialID, arg.OffsetCount, arg.LimitCount)
 	if err != nil {
 		return nil, err
 	}

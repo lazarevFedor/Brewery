@@ -1,6 +1,6 @@
 {
   "type": "object",
-  "description": "Схема обновления технологической операции (все поля опциональны)",
+  "description": "Все поля опциональны. При смене operation_class_id сохраняемые параметры проверяются по новому классу. Несовместимые значения можно удалить в том же запросе, указав null для соответствующих ключей.",
   "properties": {
     "name": {
       "type": "string",
@@ -57,17 +57,16 @@
     },
     "parameters": {
       "type": "object",
-      "description": "Новый набор технологических параметров. Пустой объект удаляет все значения",
+      "description": "Обновляет переданные ключи field_name. Значение null удаляет отдельный параметр. Если поле parameters пропущено или передан пустой объект, набор параметров сохраняется.",
       "additionalProperties": {
-        "oneOf": [
+        "anyOf": [
           {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           {
-            "type": "number"
-          },
-          {
-            "type": "boolean"
+            "type": "number",
+            "nullable": true
           }
         ]
       },

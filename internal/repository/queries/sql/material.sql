@@ -65,7 +65,9 @@ SELECT
 FROM materials m
 JOIN products p ON p.id = m.product_id
 JOIN classes c ON p.class_id = c.id
-WHERE m.material_id = $1;
+WHERE m.material_id = sqlc.arg(material_id)
+ORDER BY m.product_id
+LIMIT sqlc.arg(limit_count) OFFSET sqlc.arg(offset_count);
 
 
 -- name: CopyBaseMaterials :exec

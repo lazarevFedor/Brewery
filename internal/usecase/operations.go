@@ -23,7 +23,7 @@ const professionHourlyRateField = "hour_salary"
 // хранилище заполняет идентификаторы материала и изделия, а расход и Base заполняет сервис.
 type OperationRepository interface {
 	// InsertOperation сохраняет операцию и ее параметры, используя существующую связь в составе изделия.
-	InsertOperation(ctx context.Context, op *entities.Operation) (*entities.Operation, error)
+	InsertOperation(ctx context.Context, op *entities.Operation, values []entities.ParameterValue) (*entities.Operation, error)
 
 	// GetOperations возвращает операции с пагинацией и необязательными фильтрами по материалу и продукту.
 	GetOperations(ctx context.Context, limit, offset int32, materialID, productID *int64) ([]entities.Operation, error)
@@ -33,8 +33,7 @@ type OperationRepository interface {
 
 	// UpdateOperation применяет изменения атомарно и возвращает сохраненную операцию.
 	// Поля equipment и materials передаются вложенными map[string]any с указанными подполями.
-	// Поле parameters, если передано, заменяет все значения параметров операции.
-	UpdateOperation(ctx context.Context, id int64, updates map[string]any) (*entities.Operation, error)
+	UpdateOperation(ctx context.Context, id int64, updates map[string]any, changes entities.ParameterChanges) (*entities.Operation, error)
 
 	// DeleteOperation удаляет операцию по ID. Если запись отсутствует, возвращает ошибку.
 	DeleteOperation(ctx context.Context, id int64) error
@@ -50,6 +49,7 @@ type OperationService struct {
 	ProductRepo         ProductRepository
 	ClassRepo           ClassRepository
 	ClassParametersRepo ClassParametersRepository
+	EnumValuesRepo      EnumValuesRepository
 }
 
 // CreateOperation проверяет данные и сохраняет операцию.
@@ -74,15 +74,14 @@ func (s *OperationService) CreateOperation(ctx context.Context, op entities.Oper
 	case !validOperationDecimal(float64(op.Materials.MaterialAmount)):
 		return nil, apperrors.BadRequest("invalid materials.material_amount", nil)
 	}
-	parameters, err := normalizeOperationParameters(op.Parameters)
-	if err != nil {
-		return nil, err
-	}
-	op.Parameters = parameters
-
 	if err := s.validateOperationClasses(ctx, op.ClassID, op.ProfessionID); err != nil {
 		return nil, err
 	}
+	values, canonical, err := resolveClassParameters(ctx, s.ClassParametersRepo, s.EnumValuesRepo, op.ClassID, op.Parameters)
+	if err != nil {
+		return nil, err
+	}
+	op.Parameters = canonical
 
 	materials, err := s.loadOperationMaterials(ctx, op.Materials.ProductID)
 	if err != nil {
@@ -93,7 +92,7 @@ func (s *OperationService) CreateOperation(ctx context.Context, op entities.Oper
 		return nil, apperrors.BadRequest("material is not part of the output product", nil)
 	}
 
-	created, err := s.Repo.InsertOperation(ctx, &op)
+	created, err := s.Repo.InsertOperation(ctx, &op, values)
 	if err != nil {
 		return nil, operationWriteError(err)
 	}
@@ -212,14 +211,6 @@ func (s *OperationService) UpdateOperation(ctx context.Context, id int64, update
 	if err != nil {
 		return nil, err
 	}
-	if material, ok := normalized["materials"].(map[string]any); ok {
-		materialID, hasMaterial := material["material_id"].(int64)
-		productID, hasProduct := material["product_id"].(int64)
-		if hasMaterial && hasProduct && materialID == productID {
-			return nil, apperrors.BadRequest("input and output products must be different", nil)
-		}
-	}
-
 	current, err := s.getOperation(ctx, id)
 	if err != nil {
 		return nil, err
@@ -235,7 +226,15 @@ func (s *OperationService) UpdateOperation(ctx context.Context, id int64, update
 		return nil, err
 	}
 
-	op, err := s.Repo.UpdateOperation(ctx, id, normalized)
+	patch, _ := normalized["parameters"].(map[string]any)
+	delete(normalized, "parameters")
+	changes, candidate := prepareParameterPatch(current.ClassID, classID, current.Parameters, patch)
+	changes.Values, _, err = resolveClassParameters(ctx, s.ClassParametersRepo, s.EnumValuesRepo, classID, candidate)
+	if err != nil {
+		return nil, err
+	}
+
+	op, err := s.Repo.UpdateOperation(ctx, id, normalized, changes)
 	if err != nil {
 		return nil, operationWriteError(err)
 	}
@@ -305,17 +304,17 @@ func (s *OperationService) GetProductTechCard(ctx context.Context, productID int
 		return nil, err
 	}
 
-	operations, err := s.collectTechCardOperations(ctx, productID, tree)
+	operations, requiredQuantities, err := s.collectTechCardOperations(ctx, productID, float64(quantity), tree)
 	if err != nil {
 		return nil, err
 	}
-	norms := collectMaterialNorms(tree, quantity, true)
+	norms, err := collectMaterialNorms(tree, quantity, true)
+	if err != nil {
+		return nil, err
+	}
 	slices.SortFunc(norms, func(a, b entities.MaterialProduct) int { return cmp.Compare(a.MaterialID, b.MaterialID) })
 	var materialCost float64
 	for _, norm := range norms {
-		if math.IsInf(float64(norm.MaterialAmount), 0) || math.IsNaN(float64(norm.MaterialAmount)) {
-			return nil, apperrors.Validation("calculated material norm is out of range", nil)
-		}
 		materialCost += float64(norm.MaterialAmount) * norm.Price
 	}
 
@@ -330,9 +329,9 @@ func (s *OperationService) GetProductTechCard(ctx context.Context, productID int
 			}
 			rates[operation.ProfessionID] = rate
 		}
-		laborCost += rate * operation.LaborCost
+		laborCost += rate * operation.LaborCost * requiredQuantities[operation.Materials.ProductID]
 	}
-	total := materialCost + laborCost*float64(quantity)
+	total := materialCost + laborCost
 	if math.IsNaN(total) || math.IsInf(total, 0) {
 		return nil, apperrors.Validation("calculated production cost is out of range", nil)
 	}
@@ -374,25 +373,28 @@ func (s *OperationService) professionHourlyRate(ctx context.Context, professionI
 	return rate, nil
 }
 
-func (s *OperationService) collectTechCardOperations(ctx context.Context, productID int64, tree []entities.MaterialProduct) ([]entities.Operation, error) {
+func (s *OperationService) collectTechCardOperations(ctx context.Context, productID int64, quantity float64, tree []entities.MaterialProduct) ([]entities.Operation, map[int64]float64, error) {
 	result := make([]entities.Operation, 0)
-	visited := make(map[int64]bool)
+	materialsByProduct := make(map[int64][]entities.MaterialProduct)
+	productionOrder := make([]int64, 0)
 	var collect func(id int64, materials []entities.MaterialProduct) error
 	collect = func(id int64, materials []entities.MaterialProduct) error {
-		if visited[id] {
+		if _, visited := materialsByProduct[id]; visited {
 			return nil
 		}
-		visited[id] = true
+		materialsByProduct[id] = materials
 
 		slices.SortFunc(materials, func(a, b entities.MaterialProduct) int { return cmp.Compare(a.MaterialID, b.MaterialID) })
+		materialsByID := make(map[int64]entities.Material, len(materials))
 		for _, material := range materials {
-			// Без входных материалов у изделия нет операций производства.
-			if len(material.Materials) == 0 {
-				continue
-			}
 			materialID := material.MaterialID
 			if materialID == 0 {
 				materialID = material.ID
+			}
+			materialsByID[materialID] = material.Material
+			// Без входных материалов у изделия нет операций производства.
+			if len(material.Materials) == 0 {
+				continue
 			}
 			if err := collect(materialID, material.Materials); err != nil {
 				return err
@@ -405,42 +407,42 @@ func (s *OperationService) collectTechCardOperations(ctx context.Context, produc
 		}
 		operations = slices.Clone(operations)
 		slices.SortFunc(operations, func(a, b entities.Operation) int { return cmp.Compare(a.StepNumber, b.StepNumber) })
+		for i := range operations {
+			operation := &operations[i]
+			material, ok := materialsByID[operation.Materials.MaterialID]
+			if !ok {
+				return fmt.Errorf("material %d for operation %d is missing from product %d", operation.Materials.MaterialID, operation.ID, id)
+			}
+			operation.Materials.MaterialAmount = material.MaterialAmount
+			operation.Materials.Base = material.Base
+		}
 		result = append(result, operations...)
+		productionOrder = append(productionOrder, id)
 		return nil
 	}
 	if err := collect(productID, tree); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return result, nil
-}
 
-func normalizeOperationParameters(parameters map[string]any) (map[string]any, error) {
-	if parameters == nil {
-		return nil, nil
-	}
-	normalized := make(map[string]any, len(parameters))
-	for field, value := range parameters {
-		if strings.TrimSpace(field) == "" {
-			return nil, apperrors.BadRequest("operation parameter names must not be empty", nil)
+	// Обратный порядок учитывает потребность всех родителей до расчёта количества полуфабриката.
+	required := map[int64]float64{productID: quantity}
+	for _, id := range slices.Backward(productionOrder) {
+		productQuantity := required[id]
+		if math.IsNaN(productQuantity) || math.IsInf(productQuantity, 0) {
+			return nil, nil, apperrors.Validation("calculated production quantity is out of range", nil)
 		}
-		switch value.(type) {
-		case string, bool:
-			normalized[field] = value
-			continue
-		}
-		number, ok := operationNumber(value)
-		if !ok {
-			return nil, apperrors.BadRequest(fmt.Sprintf("parameter %q must be a string, boolean, or finite number", field), nil)
-		}
-		if raw, isJSONNumber := value.(json.Number); isJSONNumber {
-			value = number
-			if integer, err := raw.Int64(); err == nil {
-				value = integer
+		for _, material := range materialsByProduct[id] {
+			if len(material.Materials) == 0 {
+				continue
 			}
+			materialID := material.MaterialID
+			if materialID == 0 {
+				materialID = material.ID
+			}
+			required[materialID] += productQuantity * float64(material.MaterialAmount)
 		}
-		normalized[field] = value
 	}
-	return normalized, nil
+	return result, required, nil
 }
 
 func normalizeOperationUpdates(updates map[string]any) (map[string]any, error) {
@@ -486,7 +488,7 @@ func normalizeOperationUpdate(field string, value any) (any, error) {
 		}
 	case "parameters":
 		if parameters, ok := value.(map[string]any); ok && parameters != nil {
-			return normalizeOperationParameters(parameters)
+			return parameters, nil
 		}
 	case "equipment", "materials":
 		if fields, ok := value.(map[string]any); ok && len(fields) > 0 {
@@ -508,14 +510,6 @@ func normalizeOperationUpdate(field string, value any) (any, error) {
 	case "materials.material_id", "materials.product_id":
 		if id, ok := operationPositiveInt(value); ok {
 			return id, nil
-		}
-	case "materials.material_amount":
-		if amount, ok := operationNumber(value); ok && validOperationDecimal(amount) {
-			return amount, nil
-		}
-	case "materials.base":
-		if base, ok := value.(bool); ok {
-			return base, nil
 		}
 	default:
 		return nil, apperrors.BadRequest(fmt.Sprintf("unknown operation update field %q", field), nil)

@@ -6,6 +6,7 @@ import (
 	"Brewery/internal/entities"
 	"Brewery/pkg/logger"
 	"errors"
+	"math"
 	"net/http"
 	"os"
 	"slices"
@@ -176,8 +177,8 @@ func getPositiveFloatQuery(c *gin.Context, name string, def float32) (float32, e
 	}
 
 	val, err := strconv.ParseFloat(raw, 32)
-	if err != nil || val <= 0 {
-		return 0, errors.New(name + " must be a positive number")
+	if err != nil || val <= 0 || math.IsNaN(val) || math.IsInf(val, 0) {
+		return 0, errors.New(name + " must be a finite positive number")
 	}
 
 	return float32(val), nil

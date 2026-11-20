@@ -3,6 +3,7 @@ package product
 import (
 	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
+	"Brewery/internal/repository"
 	mpr "Brewery/internal/repository/mapper"
 	"Brewery/internal/repository/queries"
 	"context"
@@ -30,7 +31,7 @@ func NewRepository(pool *pgxpool.Pool) *Repository {
 	}
 }
 
-func (repo *Repository) InsertProduct(ctx context.Context, product entities.Product, values []entities.ProductParameterValue) (*entities.Product, error) {
+func (repo *Repository) InsertProduct(ctx context.Context, product entities.Product, values []entities.ParameterValue) (*entities.Product, error) {
 	if repo.Pool == nil {
 		return nil, errors.New("db pool is empty")
 	}
@@ -41,7 +42,7 @@ func (repo *Repository) InsertProduct(ctx context.Context, product entities.Prod
 	defer func() { _ = tx.Rollback(ctx) }()
 	qTx := repo.query.WithTx(tx)
 
-	if err := validateParameterAssignments(ctx, qTx, product.ProdClass.ID, values); err != nil {
+	if err := repository.ValidateParameterAssignments(ctx, qTx, product.ProdClass.ID, values); err != nil {
 		return nil, err
 	}
 
@@ -189,7 +190,7 @@ func (repo *Repository) UpdateProduct(ctx context.Context, id int64, changes ent
 		params.IsFinalProduct = pgtype.Bool{Bool: isFinalProduct, Valid: true}
 	}
 
-	if err := validateParameterAssignments(ctx, qTx, classID, changes.ParameterValues); err != nil {
+	if err := repository.ValidateParameterAssignments(ctx, qTx, classID, changes.ParameterValues); err != nil {
 		return nil, err
 	}
 	if _, err := qTx.UpdateProduct(ctx, params); err != nil {

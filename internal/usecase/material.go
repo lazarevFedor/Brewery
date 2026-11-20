@@ -201,15 +201,15 @@ func (s *MaterialService) GetMaterialNorms(ctx context.Context, productID int64,
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	if quantity <= 0 {
-		return nil, apperrors.BadRequest("quantity must be greater than 0", nil)
+	if !validMaterialAmount(quantity) {
+		return nil, apperrors.BadRequest("quantity must be a finite positive number", nil)
 	}
 
 	rows, err := s.GetMaterialsByProduct(ctx, productID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get materials by product: %w", err)
 	}
-	return collectMaterialNorms(rows, quantity, false), nil
+	return collectMaterialNorms(rows, quantity, false)
 }
 
 func (s *MaterialService) requireProduct(ctx context.Context, id int64) error {
@@ -231,8 +231,12 @@ func validMaterialAmount(amount float32) bool {
 }
 
 // collectMaterialNorms группирует нормы по материалу, сохраняя каждое вхождение в состав.
-func collectMaterialNorms(rows []entities.MaterialProduct, quantity float32, baseOnly bool) []entities.MaterialProduct {
-	grouped := make(map[int64]entities.MaterialProduct)
+func collectMaterialNorms(rows []entities.MaterialProduct, quantity float32, baseOnly bool) ([]entities.MaterialProduct, error) {
+	type norm struct {
+		material entities.MaterialProduct
+		amount   float64
+	}
+	grouped := make(map[int64]norm)
 	var walk func(node entities.MaterialProduct)
 	walk = func(node entities.MaterialProduct) {
 		if node.MaterialID == 0 {
@@ -240,16 +244,13 @@ func collectMaterialNorms(rows []entities.MaterialProduct, quantity float32, bas
 		}
 		if !baseOnly || node.Base {
 			// Нормы каждого вхождения масштабируются количеством конечных изделий.
-			amount := node.MaterialAmount * quantity
-			if existing, ok := grouped[node.MaterialID]; ok {
-				existing.MaterialAmount += amount
-				grouped[node.MaterialID] = existing
-			} else {
-				item := node
-				item.MaterialAmount = amount
-				item.Materials = nil
-				grouped[node.MaterialID] = item
+			item, exists := grouped[node.MaterialID]
+			if !exists {
+				item.material = node
+				item.material.Materials = nil
 			}
+			item.amount += float64(node.MaterialAmount) * float64(quantity)
+			grouped[node.MaterialID] = item
 		}
 		for _, child := range node.Materials {
 			walk(child)
@@ -262,8 +263,12 @@ func collectMaterialNorms(rows []entities.MaterialProduct, quantity float32, bas
 
 	result := make([]entities.MaterialProduct, 0, len(grouped))
 	for _, item := range grouped {
-		result = append(result, item)
+		if math.IsNaN(item.amount) || math.Abs(item.amount) > math.MaxFloat32 {
+			return nil, apperrors.Validation("calculated material norm is out of range", nil)
+		}
+		item.material.MaterialAmount = float32(item.amount)
+		result = append(result, item.material)
 	}
 
-	return result
+	return result, nil
 }

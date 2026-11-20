@@ -7,6 +7,7 @@ import (
 	"Brewery/internal/http/middleware"
 	"Brewery/internal/http/routers"
 	classrepo "Brewery/internal/repository/class"
+	operationrepo "Brewery/internal/repository/operation"
 	"Brewery/internal/usecase"
 	"Brewery/migrator"
 	"Brewery/pkg/logger"
@@ -72,6 +73,14 @@ func main() {
 	enumValuesService := usecase.NewEnumValuesService(enumValuesRepo)
 	rangeParametersService := usecase.NewRangeParametersService(rangeParametersRepo)
 	aggregateService := usecase.NewAggregateService(aggregateRepo)
+	operationService := &usecase.OperationService{
+		Repo:                operationrepo.NewRepository(pool),
+		MaterialRepo:        materialRepo,
+		ProductRepo:         productRepo,
+		ClassRepo:           classRepo,
+		ClassParametersRepo: classParametersRepo,
+		EnumValuesRepo:      enumValuesRepo,
+	}
 
 	engine := gin.New()
 	engine.Use(gin.Recovery())
@@ -109,6 +118,7 @@ func main() {
 		EnumValuesHandler:      handlers.NewEnumValuesHandlers(enumValuesService),
 		RangeParametersHandler: handlers.NewRangeParametersHandlers(rangeParametersService),
 		AggregatesHandler:      handlers.NewAggregateHandlers(aggregateService),
+		OperationHandler:       handlers.NewOperationHandlers(operationService),
 		AuthHandler:            handlers.NewAuthHandlers(),
 	}
 

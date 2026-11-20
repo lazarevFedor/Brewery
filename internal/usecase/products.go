@@ -10,14 +10,13 @@ import (
 	"maps"
 	"math"
 	"net/http"
-	"slices"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type ProductRepository interface {
-	InsertProduct(ctx context.Context, product entities.Product, values []entities.ProductParameterValue) (*entities.Product, error)
+	InsertProduct(ctx context.Context, product entities.Product, values []entities.ParameterValue) (*entities.Product, error)
 	GetProducts(ctx context.Context, limit, offset int32) ([]entities.Product, error)
 	GetProductByID(ctx context.Context, id int64) (*entities.Product, error)
 	UpdateProduct(ctx context.Context, id int64, updates entities.ProductUpdate) (*entities.Product, error)
@@ -88,7 +87,7 @@ func (ps *ProductService) CreateProduct(ctx context.Context, p entities.Product)
 		return nil, fmt.Errorf("failed to validate product creation: %w", err)
 	}
 
-	values, canonical, err := ps.resolveProductParameters(ctx, p)
+	values, canonical, err := resolveClassParameters(ctx, ps.classParametersRepo, ps.enumValuesRepo, p.ProdClass.ID, p.Parameters)
 	if err != nil {
 		return nil, err
 	}
@@ -153,41 +152,27 @@ func (ps *ProductService) UpdateProduct(ctx context.Context, id int64, updates m
 		ExpectedBaseID:  current.BaseID,
 	}
 	delete(changes.Fields, "parameters")
-	candidate := entities.Product{ProdClass: current.ProdClass}
-	if classID, ok := updates["class_id"].(int64); ok && classID != current.ProdClass.ID {
-		class, err := ps.classRepo.GetClassByID(ctx, classID)
-		if productResourceNotFound(err) {
+	classID := current.ProdClass.ID
+	if newClassID, ok := updates["class_id"].(int64); ok && newClassID != classID {
+		class, err := ps.classRepo.GetClassByID(ctx, newClassID)
+		if productResourceNotFound(err) || (err == nil && class == nil) {
 			return nil, apperrors.BadRequest("class does not exist", err)
 		}
 		if err != nil {
 			return nil, fmt.Errorf("get new product class: %w", err)
 		}
-		if class == nil {
-			return nil, apperrors.BadRequest("class does not exist", nil)
-		}
-		candidate.ProdClass = *class
-		changes.ReplaceParameters = true
-		changes.ExpectedParameters = maps.Clone(current.Parameters)
-		candidate.Parameters = maps.Clone(current.Parameters)
+		classID = class.ID
 	}
 	patch, _ := updates["parameters"].(map[string]any)
-	if candidate.Parameters == nil {
-		candidate.Parameters = make(map[string]any, len(patch))
-	}
-	for field, value := range patch {
-		changes.ParameterFields = append(changes.ParameterFields, field)
-		if value == nil {
-			delete(candidate.Parameters, field)
-		} else {
-			candidate.Parameters[field] = value
-		}
-	}
-	slices.Sort(changes.ParameterFields)
-	values, _, err := ps.resolveProductParameters(ctx, candidate)
+	parameterChanges, candidate := prepareParameterPatch(current.ProdClass.ID, classID, current.Parameters, patch)
+	values, _, err := resolveClassParameters(ctx, ps.classParametersRepo, ps.enumValuesRepo, classID, candidate)
 	if err != nil {
 		return nil, err
 	}
 	changes.ParameterValues = values
+	changes.ParameterFields = parameterChanges.Fields
+	changes.ReplaceParameters = parameterChanges.Replace
+	changes.ExpectedParameters = parameterChanges.ExpectedParameters
 
 	if baseID, ok := updates["base_id"].(int64); ok && baseID != current.BaseID {
 		if baseID == id {
@@ -503,7 +488,7 @@ func toInt64(v any) int64 {
 
 // ValidateProductWithParameters проверяет значения параметров по классу изделия.
 func (ps *ProductService) ValidateProductWithParameters(ctx context.Context, product entities.Product) error {
-	_, _, err := ps.resolveProductParameters(ctx, product)
+	_, _, err := resolveClassParameters(ctx, ps.classParametersRepo, ps.enumValuesRepo, product.ProdClass.ID, product.Parameters)
 	return err
 }
 

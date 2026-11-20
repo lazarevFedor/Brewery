@@ -126,7 +126,11 @@ func (repo *Repository) GetProductsByMaterial(ctx context.Context, materialID in
 	if repo.Pool == nil {
 		return nil, errors.New("db pool is empty")
 	}
-	dbMatProducts, err := repo.query.GetProductsByMaterial(ctx, materialID)
+	dbMatProducts, err := repo.query.GetProductsByMaterial(ctx, queries.GetProductsByMaterialParams{
+		MaterialID:  materialID,
+		LimitCount:  limit,
+		OffsetCount: offset,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("GetProductsByMaterial: %w", err)
 	}

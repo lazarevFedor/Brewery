@@ -4,9 +4,12 @@ package operation
 import (
 	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
+	"Brewery/internal/repository"
+	"Brewery/internal/repository/queries"
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/Masterminds/squirrel"
@@ -43,6 +46,13 @@ var updatableColumns = map[string]func(any) (any, error){
 	"step_number":        toInt64,
 	"equipment_name":     toText,
 	"work_center_name":   toText,
+	"input_product_id":   toInt64,
+	"output_product_id":  toInt64,
+}
+
+var nestedUpdateColumns = map[string]map[string]string{
+	"equipment": {"name": "equipment_name", "work_center": "work_center_name"},
+	"materials": {"material_id": "input_product_id", "product_id": "output_product_id"},
 }
 
 var psql = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
@@ -58,8 +68,8 @@ func NewRepository(pool *pgxpool.Pool) *Repository {
 }
 
 // InsertOperation сохраняет операцию и ее параметры в одной транзакции.
-// Возвращает переданную операцию с присвоенным ID.
-func (repo *Repository) InsertOperation(ctx context.Context, op *entities.Operation) (*entities.Operation, error) {
+// Возвращает операцию с присвоенным ID и сохранёнными значениями параметров.
+func (repo *Repository) InsertOperation(ctx context.Context, op *entities.Operation, values []entities.ParameterValue) (*entities.Operation, error) {
 	if repo.Pool == nil {
 		return nil, errors.New("db pool is empty")
 	}
@@ -72,6 +82,10 @@ func (repo *Repository) InsertOperation(ctx context.Context, op *entities.Operat
 		return nil, fmt.Errorf("InsertOperation: begin tx: %w", err)
 	}
 	defer tx.Rollback(ctx) //nolint:errcheck // после Commit откат ничего не делает
+	qTx := queries.New(tx)
+	if validationErr := repository.ValidateParameterAssignments(ctx, qTx, op.ClassID, values); validationErr != nil {
+		return nil, validationErr
+	}
 
 	sql, args, err := psql.Insert(operationsTable).
 		Columns(
@@ -109,16 +123,21 @@ func (repo *Repository) InsertOperation(ctx context.Context, op *entities.Operat
 		return nil, wrapDBError("InsertOperation", err)
 	}
 
-	if err = insertParameters(ctx, tx, id, op.Parameters); err != nil {
+	if err = saveParameters(ctx, qTx, id, values); err != nil {
 		return nil, err
 	}
 
+	parameters, err := loadParameters(ctx, qTx, []int64{id})
+	if err != nil {
+		return nil, err
+	}
 	if err = tx.Commit(ctx); err != nil {
 		return nil, fmt.Errorf("InsertOperation: commit: %w", err)
 	}
 
 	result := *op
 	result.ID = id
+	result.Parameters = parameters[id]
 	return &result, nil
 }
 
@@ -158,15 +177,31 @@ func (repo *Repository) GetOperationByID(ctx context.Context, id int64) (*entiti
 		return nil, errors.New("db pool is empty")
 	}
 
-	sql, args, err := psql.Select(operationColumns...).
+	op, err := getOperationByID(ctx, repo.Pool, id, false)
+	if err != nil {
+		return nil, err
+	}
+	parameters, err := loadParameters(ctx, queries.New(repo.Pool), []int64{id})
+	if err != nil {
+		return nil, err
+	}
+	op.Parameters = parameters[id]
+	return op, nil
+}
+
+func getOperationByID(ctx context.Context, db queries.DBTX, id int64, lock bool) (*entities.Operation, error) {
+	builder := psql.Select(operationColumns...).
 		From(operationsTable).
-		Where(squirrel.Eq{"id": id}).
-		ToSql()
+		Where(squirrel.Eq{"id": id})
+	if lock {
+		builder = builder.Suffix("FOR UPDATE")
+	}
+	sql, args, err := builder.ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("GetOperationByID: build query: %w", err)
 	}
 
-	op, err := scanOperation(repo.Pool.QueryRow(ctx, sql, args...))
+	op, err := scanOperation(db.QueryRow(ctx, sql, args...))
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, apperrors.NotFound(fmt.Sprintf("Operation with id %d not found", id), err)
 	}
@@ -177,34 +212,15 @@ func (repo *Repository) GetOperationByID(ctx context.Context, id int64) (*entiti
 }
 
 // UpdateOperation обновляет поля таблицы operations из updates и возвращает обновленную операцию.
-// Ключи updates - имена столбцов из updatableColumns; ключ "parameters" обновляет параметры операции.
-func (repo *Repository) UpdateOperation(ctx context.Context, id int64, updates map[string]any) (*entities.Operation, error) {
+// Параметры операции применяются в той же транзакции.
+func (repo *Repository) UpdateOperation(ctx context.Context, id int64, updates map[string]any, changes entities.ParameterChanges) (*entities.Operation, error) {
 	if repo.Pool == nil {
 		return nil, errors.New("db pool is empty")
 	}
 
-	builder := psql.Update(operationsTable).Where(squirrel.Eq{"id": id})
-	hasColumns := false
-	var parameters map[string]any
-	for key, value := range updates {
-		if key == "parameters" {
-			params, ok := value.(map[string]any)
-			if !ok {
-				return nil, fmt.Errorf("UpdateOperation: parameters must be map[string]any, got %T", value)
-			}
-			parameters = params
-			continue
-		}
-		convert, ok := updatableColumns[key]
-		if !ok {
-			return nil, fmt.Errorf("UpdateOperation: field %q cannot be updated", key)
-		}
-		converted, err := convert(value)
-		if err != nil {
-			return nil, fmt.Errorf("UpdateOperation: field %q: %w", key, err)
-		}
-		builder = builder.Set(key, converted)
-		hasColumns = true
+	fields, err := operationUpdateFields(updates)
+	if err != nil {
+		return nil, err
 	}
 
 	tx, err := repo.Pool.Begin(ctx)
@@ -212,9 +228,45 @@ func (repo *Repository) UpdateOperation(ctx context.Context, id int64, updates m
 		return nil, fmt.Errorf("UpdateOperation: begin tx: %w", err)
 	}
 	defer tx.Rollback(ctx) //nolint:errcheck // после Commit откат ничего не делает
+	qTx := queries.New(tx)
 
-	var op *entities.Operation
-	if hasColumns {
+	op, err := getOperationByID(ctx, tx, id, true)
+	if err != nil {
+		return nil, err
+	}
+	if op.ClassID != changes.ExpectedClassID {
+		return nil, apperrors.Conflict("operation class changed; reload and retry", nil)
+	}
+	inputID, outputID := op.Materials.MaterialID, op.Materials.ProductID
+	if updatedID, ok := fields["input_product_id"].(int64); ok {
+		inputID = updatedID
+	}
+	if updatedID, ok := fields["output_product_id"].(int64); ok {
+		outputID = updatedID
+	}
+	if inputID == outputID {
+		return nil, apperrors.BadRequest("input and output products must be different", nil)
+	}
+	if changes.Replace {
+		current, loadErr := loadParameters(ctx, qTx, []int64{id})
+		if loadErr != nil {
+			return nil, loadErr
+		}
+		if !reflect.DeepEqual(current[id], changes.ExpectedParameters) {
+			return nil, apperrors.Conflict("operation parameters changed; reload and retry", nil)
+		}
+	}
+
+	targetClassID := op.ClassID
+	if classID, ok := fields["operation_class_id"].(int64); ok {
+		targetClassID = classID
+	}
+	if err = repository.ValidateParameterAssignments(ctx, qTx, targetClassID, changes.Values); err != nil {
+		return nil, err
+	}
+
+	if len(fields) > 0 {
+		builder := psql.Update(operationsTable).Where(squirrel.Eq{"id": id}).SetMap(fields)
 		sql, args, buildErr := builder.Suffix("RETURNING " + strings.Join(operationColumns, ", ")).ToSql()
 		if buildErr != nil {
 			return nil, fmt.Errorf("UpdateOperation: build query: %w", buildErr)
@@ -228,36 +280,62 @@ func (repo *Repository) UpdateOperation(ctx context.Context, id int64, updates m
 		}
 	}
 
-	if parameters != nil {
-		if err = replaceParameters(ctx, tx, id, parameters); err != nil {
-			return nil, err
-		}
+	if changes.Replace {
+		err = qTx.DeleteAllOperationParameters(ctx, id)
+	} else if len(changes.Fields) > 0 {
+		err = qTx.DeleteOperationParameterFields(ctx, queries.DeleteOperationParameterFieldsParams{OperationID: id, FieldNames: changes.Fields})
 	}
-
-	if op == nil {
-		sql, args, buildErr := psql.Select(operationColumns...).
-			From(operationsTable).
-			Where(squirrel.Eq{"id": id}).
-			ToSql()
-		if buildErr != nil {
-			return nil, fmt.Errorf("UpdateOperation: build query: %w", buildErr)
-		}
-		op, err = scanOperation(tx.QueryRow(ctx, sql, args...))
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, apperrors.NotFound(fmt.Sprintf("Operation with id %d not found", id), err)
-		}
-		if err != nil {
-			return nil, fmt.Errorf("UpdateOperation: %w", err)
-		}
+	if err != nil {
+		return nil, fmt.Errorf("delete operation parameters: %w", err)
 	}
+	if err = saveParameters(ctx, qTx, id, changes.Values); err != nil {
+		return nil, err
+	}
+	parameters, err := loadParameters(ctx, qTx, []int64{id})
+	if err != nil {
+		return nil, err
+	}
+	op.Parameters = parameters[id]
 
 	if err = tx.Commit(ctx); err != nil {
 		return nil, fmt.Errorf("UpdateOperation: commit: %w", err)
 	}
-	if parameters != nil {
-		op.Parameters = parameters
-	}
 	return op, nil
+}
+
+func operationUpdateFields(updates map[string]any) (map[string]any, error) {
+	fields := make(map[string]any, len(updates))
+	for key, value := range updates {
+		columns, grouped := nestedUpdateColumns[key]
+		if !grouped {
+			fields[key] = value
+			continue
+		}
+		nested, ok := value.(map[string]any)
+		if !ok {
+			return nil, apperrors.BadRequest(fmt.Sprintf("invalid operation update field %q", key), nil)
+		}
+		for nestedKey, nestedValue := range nested {
+			column, ok := columns[nestedKey]
+			if !ok {
+				return nil, apperrors.BadRequest(fmt.Sprintf("unknown operation update field %q", key+"."+nestedKey), nil)
+			}
+			fields[column] = nestedValue
+		}
+	}
+
+	for column, value := range fields {
+		convert, ok := updatableColumns[column]
+		if !ok {
+			return nil, apperrors.BadRequest(fmt.Sprintf("operation field %q cannot be updated", column), nil)
+		}
+		converted, err := convert(value)
+		if err != nil {
+			return nil, apperrors.BadRequest(fmt.Sprintf("invalid operation update field %q", column), err)
+		}
+		fields[column] = converted
+	}
+	return fields, nil
 }
 
 // DeleteOperation удаляет операцию по ID. Параметры операции удаляются каскадно.
@@ -295,20 +373,6 @@ func (repo *Repository) GetProductOperations(ctx context.Context, productID int6
 	return repo.queryOperations(ctx, "GetProductOperations", builder)
 }
 
-// insertParameters сохраняет параметры операции.
-func insertParameters(_ context.Context, _ pgx.Tx, _ int64, params map[string]any) error {
-	if len(params) == 0 {
-		return nil
-	}
-	return apperrors.Validation("operation parameters are not supported yet", nil)
-}
-
-// replaceParameters заменяет параметры операции новыми.
-// TODO: реализовать вместе с insertParameters, когда будет согласован формат параметров.
-func replaceParameters(ctx context.Context, tx pgx.Tx, operationID int64, params map[string]any) error {
-	return insertParameters(ctx, tx, operationID, params)
-}
-
 func (repo *Repository) queryOperations(ctx context.Context, op string, builder squirrel.SelectBuilder) ([]entities.Operation, error) {
 	sql, args, err := builder.ToSql()
 	if err != nil {
@@ -331,6 +395,18 @@ func (repo *Repository) queryOperations(ctx context.Context, op string, builder 
 	}
 	if err = rows.Err(); err != nil {
 		return nil, fmt.Errorf("%s: rows: %w", op, err)
+	}
+	rows.Close()
+	ids := make([]int64, len(operations))
+	for i, operation := range operations {
+		ids[i] = operation.ID
+	}
+	parameters, err := loadParameters(ctx, queries.New(repo.Pool), ids)
+	if err != nil {
+		return nil, err
+	}
+	for i := range operations {
+		operations[i].Parameters = parameters[operations[i].ID]
 	}
 	return operations, nil
 }
