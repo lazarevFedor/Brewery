@@ -3,6 +3,8 @@ package usecase
 import (
 	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
+	"Brewery/internal/repository/equipment"
+	"Brewery/internal/repository/queries"
 	"context"
 	"errors"
 	"fmt"
@@ -10,6 +12,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // EquipmentRepository определяет доступ к хранилищу оборудования.
@@ -30,9 +33,21 @@ type EquipmentRepository interface {
 	DeleteEquipment(ctx context.Context, name, workCenter string) error
 }
 
+// NewEquipmentRepository подключает справочник к пулу PostgreSQL.
+func NewEquipmentRepository(pool *pgxpool.Pool) *equipment.Repository {
+	return &equipment.Repository{Query: queries.New(pool)}
+}
+
 // EquipmentService реализует бизнес-логику работы с оборудованием.
 type EquipmentService struct {
 	Repo EquipmentRepository
+}
+
+// NewEquipmentService creates equipment service.
+func NewEquipmentService(repo EquipmentRepository) *EquipmentService {
+	return &EquipmentService{
+		Repo: repo,
+	}
 }
 
 // CreateEquipment проверяет данные и сохраняет оборудование.

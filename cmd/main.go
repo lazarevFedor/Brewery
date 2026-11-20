@@ -6,8 +6,8 @@ import (
 	"Brewery/internal/http/handlers"
 	"Brewery/internal/http/middleware"
 	"Brewery/internal/http/routers"
-	classrepo "Brewery/internal/repository/class"
-	operationrepo "Brewery/internal/repository/operation"
+	"Brewery/internal/repository/class"
+	"Brewery/internal/repository/operation"
 	"Brewery/internal/usecase"
 	"Brewery/migrator"
 	"Brewery/pkg/logger"
@@ -55,7 +55,7 @@ func main() {
 		panic(fmt.Errorf("failed to migrate: %w", err))
 	}
 
-	classRepo := classrepo.NewRepository(pool)
+	classRepo := class.NewClassRepository(pool)
 	productRepo := usecase.NewProductRepository(pool)
 	materialRepo := usecase.NewMaterialRepository(pool)
 	historyRepo := usecase.NewHistoryRecordRepository(pool)
@@ -64,6 +64,8 @@ func main() {
 	rangeParametersRepo := usecase.NewRangeParametersRepository(pool)
 	classParametersRepo := usecase.NewClassParametersRepository(pool)
 	aggregateRepo := usecase.NewAggregateRepository(pool)
+	equipmentRepo := usecase.NewEquipmentRepository(pool)
+	operationRepo := operation.NewRepository(pool)
 
 	classService := usecase.NewClassService(classRepo, classParametersRepo)
 	productService := usecase.NewProductService(productRepo, enumValuesRepo, classParametersRepo, classRepo, materialRepo)
@@ -73,14 +75,8 @@ func main() {
 	enumValuesService := usecase.NewEnumValuesService(enumValuesRepo)
 	rangeParametersService := usecase.NewRangeParametersService(rangeParametersRepo)
 	aggregateService := usecase.NewAggregateService(aggregateRepo)
-	operationService := &usecase.OperationService{
-		Repo:                operationrepo.NewRepository(pool),
-		MaterialRepo:        materialRepo,
-		ProductRepo:         productRepo,
-		ClassRepo:           classRepo,
-		ClassParametersRepo: classParametersRepo,
-		EnumValuesRepo:      enumValuesRepo,
-	}
+	equipmentService := usecase.NewEquipmentService(equipmentRepo)
+	operationService := usecase.NewOperationService(operationRepo, materialRepo, productRepo, classRepo, classParametersRepo, enumValuesRepo)
 
 	engine := gin.New()
 	engine.Use(gin.Recovery())
@@ -118,6 +114,7 @@ func main() {
 		EnumValuesHandler:      handlers.NewEnumValuesHandlers(enumValuesService),
 		RangeParametersHandler: handlers.NewRangeParametersHandlers(rangeParametersService),
 		AggregatesHandler:      handlers.NewAggregateHandlers(aggregateService),
+		EquipmentHandler:       handlers.NewEquipmentHandlers(equipmentService),
 		OperationHandler:       handlers.NewOperationHandlers(operationService),
 		AuthHandler:            handlers.NewAuthHandlers(),
 	}

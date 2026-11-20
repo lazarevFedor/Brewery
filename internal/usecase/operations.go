@@ -52,6 +52,20 @@ type OperationService struct {
 	EnumValuesRepo      EnumValuesRepository
 }
 
+// NewOperationService creates operation service.
+func NewOperationService(repo OperationRepository, materialRepo MaterialRepository,
+	productsRepo ProductRepository, classRepo ClassRepository,
+	classParamsRepo ClassParametersRepository, enumValuesRepo EnumValuesRepository) *OperationService {
+	return &OperationService{
+		Repo:                repo,
+		ProductRepo:         productsRepo,
+		MaterialRepo:        materialRepo,
+		ClassRepo:           classRepo,
+		ClassParametersRepo: classParamsRepo,
+		EnumValuesRepo:      enumValuesRepo,
+	}
+}
+
 // CreateOperation проверяет данные и сохраняет операцию.
 func (s *OperationService) CreateOperation(ctx context.Context, op entities.Operation) (*entities.Operation, error) {
 	switch {

@@ -25,7 +25,7 @@ type Repository struct {
 	query *queries.Queries
 }
 
-func NewRepository(pool *pgxpool.Pool) *Repository {
+func NewClassRepository(pool *pgxpool.Pool) *Repository {
 	return &Repository{
 		Pool:  pool,
 		query: queries.New(pool),

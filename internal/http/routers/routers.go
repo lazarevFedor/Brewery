@@ -108,9 +108,6 @@ func registerAggregateRouters(admin *gin.RouterGroup, h handlers.Handlers) {
 }
 
 func registerEquipmentRouters(api, admin *gin.RouterGroup, h handlers.Handlers) {
-	if h.EquipmentHandler == nil {
-		return
-	}
 	api.GET("/equipment", h.EquipmentHandler.ListEquipment)
 	api.GET("/equipment/:name/:work_center", h.EquipmentHandler.GetEquipment)
 	api.GET("/equipment/:name", h.EquipmentHandler.GetEquipment)
