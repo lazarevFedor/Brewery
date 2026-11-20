@@ -24,7 +24,7 @@ func resolveClassParameters(ctx context.Context, classRepo ClassParametersReposi
 		return nil, nil, fmt.Errorf("get class parameters: %w", err)
 	}
 	rangeByField := make(map[string]entities.RangeParameter)
-	enumByField := make(map[string]entities.EnumClass)
+	enumByField := make(map[string]entities.EnumParameter)
 	counts := make(map[string]int)
 	for _, parameter := range ranges {
 		rangeByField[parameter.FieldName] = parameter

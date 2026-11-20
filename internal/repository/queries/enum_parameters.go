@@ -12,7 +12,7 @@ const (
 )
 
 // InsertEnumParameter возвращает запрос на вставку перечисляемого параметра.
-func InsertEnumParameter(parameter entities.EnumClass) sq.InsertBuilder {
+func InsertEnumParameter(parameter entities.EnumParameter) sq.InsertBuilder {
 	data := map[string]any{
 		"enum_type":   parameter.Type,
 		"field_name":  parameter.FieldName,

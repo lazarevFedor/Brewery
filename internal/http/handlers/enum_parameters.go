@@ -14,10 +14,10 @@ import (
 // EnumParametersService определяет операции с перечисляемыми параметрами.
 type EnumParametersService interface {
 	// CreateEnumParameter создает новый перечисляемый параметр и возвращает его ID.
-	CreateEnumParameter(ctx context.Context, parameter entities.EnumClass) (uint, error)
+	CreateEnumParameter(ctx context.Context, parameter entities.EnumParameter) (uint, error)
 
 	// ListEnumParameters получает перечисляемые параметры для заданного поля.
-	ListEnumParameters(ctx context.Context, fieldName string) ([]entities.EnumClass, error)
+	ListEnumParameters(ctx context.Context, fieldName string) ([]entities.EnumParameter, error)
 
 	// UpdateEnumParameter обновляет перечисляемый параметр по его ID.
 	UpdateEnumParameter(ctx context.Context, id uint, updates map[string]any) error

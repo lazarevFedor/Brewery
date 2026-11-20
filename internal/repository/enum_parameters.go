@@ -24,7 +24,7 @@ func NewEnumParametersPostgres(pool *pgxpool.Pool) *EnumParametersPostgres {
 }
 
 // InsertEnumParameter сохраняет новый перечисляемый параметр в хранилище.
-func (e *EnumParametersPostgres) InsertEnumParameter(ctx context.Context, parameter entities.EnumClass) (uint, error) {
+func (e *EnumParametersPostgres) InsertEnumParameter(ctx context.Context, parameter entities.EnumParameter) (uint, error) {
 	if e.Pool == nil {
 		return 0, errors.New("pool is nil")
 	}
@@ -122,7 +122,7 @@ func parameterDeleteError(err error, resource string) error {
 }
 
 // GetEnumParameters получает перечисляемые параметры по имени поля.
-func (e *EnumParametersPostgres) GetEnumParameters(ctx context.Context, field string) ([]entities.EnumClass, error) {
+func (e *EnumParametersPostgres) GetEnumParameters(ctx context.Context, field string) ([]entities.EnumParameter, error) {
 	if e.Pool == nil {
 		return nil, errors.New("pool is nil")
 	}
@@ -140,7 +140,7 @@ func (e *EnumParametersPostgres) GetEnumParameters(ctx context.Context, field st
 	}
 	defer rows.Close()
 
-	parameters := make([]entities.EnumClass, 0)
+	parameters := make([]entities.EnumParameter, 0)
 
 	for rows.Next() {
 		parameter, err := scanEnumParameter(rows)
@@ -158,8 +158,8 @@ func (e *EnumParametersPostgres) GetEnumParameters(ctx context.Context, field st
 }
 
 // scanEnumParameter сканирует строку результата запроса и преобразует ее в перечисляемый параметр.
-func scanEnumParameter(row pgx.Row) (*entities.EnumClass, error) {
-	var parameter entities.EnumClass
+func scanEnumParameter(row pgx.Row) (*entities.EnumParameter, error) {
+	var parameter entities.EnumParameter
 	var unit pgtype.Text
 
 	err := row.Scan(&parameter.ID, &parameter.Type, &parameter.FieldName, &unit, &parameter.Inheritable)
@@ -177,7 +177,7 @@ func scanEnumParameter(row pgx.Row) (*entities.EnumClass, error) {
 }
 
 // GetEnumParameterByID получает перечисляемый параметр по ID.
-func (e *EnumParametersPostgres) GetEnumParameterByID(ctx context.Context, id uint) (*entities.EnumClass, error) {
+func (e *EnumParametersPostgres) GetEnumParameterByID(ctx context.Context, id uint) (*entities.EnumParameter, error) {
 	if e.Pool == nil {
 		return nil, errors.New("pool is nil")
 	}

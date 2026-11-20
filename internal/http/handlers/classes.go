@@ -21,7 +21,7 @@ type ClassService interface {
 	GetChildClasses(ctx context.Context, id int64) ([]entities.Class, error)
 
 	// ListParameters возвращает параметры; classID = 0 отключает фильтрацию по классу.
-	ListParameters(ctx context.Context, classID int64, parameterType int) ([]entities.RangeParameter, []entities.EnumClass, error)
+	ListParameters(ctx context.Context, classID int64, parameterType int) ([]entities.RangeParameter, []entities.EnumParameter, error)
 
 	// ApplyParametersToClass применяет указанные параметры к классу.
 	ApplyParametersToClass(ctx context.Context, classID int64, rangeIDs, enumIDs []int64) (int, error)

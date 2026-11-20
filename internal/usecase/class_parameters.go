@@ -13,7 +13,7 @@ import (
 // ClassParametersRepository определяет операции с параметрами классов изделий.
 type ClassParametersRepository interface {
 	// GetParameters извлекает все числовые и перечисляемые параметры из базы данных и возвращает их.
-	GetParameters(ctx context.Context, classID int64, parameterType int) ([]entities.RangeParameter, []entities.EnumClass, error)
+	GetParameters(ctx context.Context, classID int64, parameterType int) ([]entities.RangeParameter, []entities.EnumParameter, error)
 
 	// ApplyParameters применяет числовые и перечисляемые параметры к классу и возвращает результат применения.
 	ApplyParameters(ctx context.Context, classID int64, rangeParameters, enumParameters []int64) (int, error)
@@ -28,7 +28,7 @@ func NewClassParametersRepository(pool *pgxpool.Pool) ClassParametersRepository 
 }
 
 // ListParameters возвращает параметры класса; classID = 0 отключает фильтрацию по классу.
-func (c *ClassService) ListParameters(ctx context.Context, classID int64, parameterType int) ([]entities.RangeParameter, []entities.EnumClass, error) {
+func (c *ClassService) ListParameters(ctx context.Context, classID int64, parameterType int) ([]entities.RangeParameter, []entities.EnumParameter, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, nil, fmt.Errorf("request cancelled: %w", err)
 	}

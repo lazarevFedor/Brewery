@@ -31,7 +31,7 @@ func (p *ClassParametersPostgres) GetParameters(
 	parameterType int,
 ) (
 	[]entities.RangeParameter,
-	[]entities.EnumClass,
+	[]entities.EnumParameter,
 	error,
 ) {
 	if p.Pool == nil {
@@ -71,7 +71,7 @@ func (p *ClassParametersPostgres) GetParameters(
 	}
 
 	var rangeParams []entities.RangeParameter
-	var enumParams []entities.EnumClass
+	var enumParams []entities.EnumParameter
 
 	if ((parameterType == entities.MissingType ||
 		parameterType == entities.RangeParameterType) && classID == 0) || len(rangeIDs) > 0 {
@@ -115,7 +115,7 @@ func (p *ClassParametersPostgres) GetParameters(
 		defer rows.Close()
 
 		for rows.Next() {
-			var param *entities.EnumClass
+			var param *entities.EnumParameter
 			param, err = scanEnumParameter(rows)
 			if err != nil {
 				return nil, nil, err

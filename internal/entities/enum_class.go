@@ -1,7 +1,7 @@
 // Package entities содержит слой сущностей
 package entities
 
-type EnumClass struct {
+type EnumParameter struct {
 	ID          int    `json:"id,omitempty" info:"ID класса перечисления"`
 	Type        string `json:"enum_type,omitempty" info:"Тип класса перечисления"`
 	FieldName   string `json:"field_name,omitempty" info:"Имя поля у сущности, к которому относится класс перечисления"`

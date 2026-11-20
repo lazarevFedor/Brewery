@@ -11,8 +11,8 @@ type enumParameter struct {
 	Inheritable bool   `json:"inheritable"`
 }
 
-func (p enumParameter) toEntity() entities.EnumClass {
-	return entities.EnumClass{
+func (p enumParameter) toEntity() entities.EnumParameter {
+	return entities.EnumParameter{
 		ID:          p.ID,
 		Type:        p.EnumType,
 		FieldName:   p.FieldName,
@@ -21,7 +21,7 @@ func (p enumParameter) toEntity() entities.EnumClass {
 	}
 }
 
-func enumParameterFromEntity(p entities.EnumClass) enumParameter {
+func enumParameterFromEntity(p entities.EnumParameter) enumParameter {
 	return enumParameter{
 		ID:          p.ID,
 		EnumType:    p.Type,

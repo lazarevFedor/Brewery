@@ -14,7 +14,7 @@ import (
 // EnumParametersRepository определяет операции хранения перечисляемых параметров.
 type EnumParametersRepository interface {
 	// InsertEnumParameter сохраняет новый перечисляемый параметр в хранилище.
-	InsertEnumParameter(ctx context.Context, parameter entities.EnumClass) (uint, error)
+	InsertEnumParameter(ctx context.Context, parameter entities.EnumParameter) (uint, error)
 
 	// UpdateEnumParameter обновляет перечисляемый параметр в хранилище.
 	UpdateEnumParameter(ctx context.Context, id uint, updates map[string]any) error
@@ -23,10 +23,10 @@ type EnumParametersRepository interface {
 	DeleteEnumParameterByID(ctx context.Context, id uint) error
 
 	// GetEnumParameters получает перечисляемые параметры по имени поля.
-	GetEnumParameters(ctx context.Context, field string) ([]entities.EnumClass, error)
+	GetEnumParameters(ctx context.Context, field string) ([]entities.EnumParameter, error)
 
 	// GetEnumParameterByID получает перечисляемый параметр по ID.
-	GetEnumParameterByID(ctx context.Context, id uint) (*entities.EnumClass, error)
+	GetEnumParameterByID(ctx context.Context, id uint) (*entities.EnumParameter, error)
 }
 
 // NewEnumParametersRepository создает репозиторий перечисляемых параметров.
@@ -45,7 +45,7 @@ func NewEnumParametersService(repo EnumParametersRepository) *EnumParametersServ
 }
 
 // CreateEnumParameter создает новый перечисляемый параметр и возвращает его ID.
-func (s *EnumParametersService) CreateEnumParameter(ctx context.Context, parameter entities.EnumClass) (uint, error) {
+func (s *EnumParametersService) CreateEnumParameter(ctx context.Context, parameter entities.EnumParameter) (uint, error) {
 	if err := ctx.Err(); err != nil {
 		return 0, fmt.Errorf("request cancelled: %w", err)
 	}
@@ -62,7 +62,7 @@ func (s *EnumParametersService) CreateEnumParameter(ctx context.Context, paramet
 }
 
 // ListEnumParameters получает перечисляемые параметры для заданного поля.
-func (s *EnumParametersService) ListEnumParameters(ctx context.Context, fieldName string) ([]entities.EnumClass, error) {
+func (s *EnumParametersService) ListEnumParameters(ctx context.Context, fieldName string) ([]entities.EnumParameter, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
