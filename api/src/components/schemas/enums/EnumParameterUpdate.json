@@ -1,0 +1,18 @@
+{
+  "type": "object",
+  "description": "Тип перечисляемого параметра задаётся при создании.",
+  "additionalProperties": false,
+  "minProperties": 1,
+  "properties": {
+    "field_name": {
+      "type": "string"
+    },
+    "unit": {
+      "type": "string",
+      "nullable": true
+    },
+    "inheritable": {
+      "type": "boolean"
+    }
+  }
+}

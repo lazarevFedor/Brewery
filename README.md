@@ -77,7 +77,7 @@ curl -X POST http://localhost:80/api/categories \
   -d '{"name":"Pilsner","parent_id":null}'
 ```
 
-For full API details, see [`api/gened.swagger.json`](api/gened.swagger.json).
+For full API details, see [`api/services.openapi.json`](api/services.openapi.json).
 
 **Note:** For local development without Docker, use `http://localhost:$SERVER_PORT` instead of `http://localhost:80`.
 
@@ -121,7 +121,7 @@ make genmock
 
 ## API documentation
 
-- OpenAPI spec: [`api/gened.swagger.json`](api/gened.swagger.json)
+- OpenAPI spec: [`api/services.openapi.json`](api/services.openapi.json)
 - If you regenerate the spec, use:
 
 ```bash

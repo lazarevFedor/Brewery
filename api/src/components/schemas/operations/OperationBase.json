@@ -1,0 +1,63 @@
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Название операции",
+      "example": "Варка сусла"
+    },
+    "description": {
+      "type": "string",
+      "description": "Описание технологической операции",
+      "example": "Варка охмеленного сусла при температуре 100°C"
+    },
+    "operation_class_id": {
+      "type": "integer",
+      "format": "int64",
+      "minimum": 1,
+      "description": "ID класса технологической операции",
+      "example": 3
+    },
+    "profession_id": {
+      "type": "integer",
+      "description": "Идентификатор профессии работника, имеющего права для выполнения операции",
+      "example": 1
+    },
+    "equipment": {
+      "$ref": "#/components/schemas/Equipment"
+    },
+    "materials": {
+      "$ref": "#/components/schemas/OperationMaterial"
+    },
+    "step_number": {
+      "type": "integer",
+      "format": "int32",
+      "minimum": 1,
+      "description": "Номер операции в последовательности техкарты",
+      "example": 1
+    },
+    "labor_cost": {
+      "type": "number",
+      "description": "Трудозатратность операции (человеко-часы)",
+      "example": 2.5
+    },
+    "parameters": {
+      "type": "object",
+      "description": "Значения параметров по field_name из класса операции. Значение перечисления должно принадлежать параметру. Числовое значение должно входить в диапазон параметра и помещаться в NUMERIC(8, 3).",
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "number"
+          }
+        ]
+      },
+      "example": {
+        "duration_minutes": 90,
+        "temperature_celsius": 100
+      }
+    }
+  }
+}

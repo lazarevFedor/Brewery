@@ -1,0 +1,101 @@
+{
+  "post": {
+    "tags": [
+      "RangeParameters"
+    ],
+    "summary": "Create range parameter",
+    "operationId": "createRangeParameter",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/RangeParameterCreate"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Range parameter created",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/RangeParameter"
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "409": {
+        "$ref": "#/components/responses/409_conflict"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  },
+  "get": {
+    "tags": [
+      "RangeParameters"
+    ],
+    "summary": "Get range parameters",
+    "description": "Returns all range parameters. When field_name is provided, returns only exact matches. Returns an empty array if no parameters match.",
+    "operationId": "listRangeParameters",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "parameters": [
+      {
+        "name": "field_name",
+        "in": "query",
+        "required": false,
+        "description": "Optional exact field name filter",
+        "schema": {
+          "type": "string"
+        },
+        "example": "amount"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Range parameter list",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/RangeParameter"
+              }
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Authentication required",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  }
+}

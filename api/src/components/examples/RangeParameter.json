@@ -1,0 +1,9 @@
+{
+  "value": {
+    "id": 10,
+    "field_name": "amount",
+    "min_val": 150,
+    "max_val": 300,
+    "inheritable": false
+  }
+}

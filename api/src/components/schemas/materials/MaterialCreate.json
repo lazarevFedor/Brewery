@@ -1,0 +1,25 @@
+{
+  "allOf": [
+    {
+      "$ref": "#/components/schemas/MaterialBase"
+    },
+    {
+      "type": "object",
+      "required": [
+        "material_id",
+        "material_amount"
+      ],
+      "properties": {
+        "material_id": {
+          "type": "integer",
+          "example": 5
+        }
+      }
+    }
+  ],
+  "example": {
+    "material_id": 5,
+    "material_amount": 12.5,
+    "base": true
+  }
+}

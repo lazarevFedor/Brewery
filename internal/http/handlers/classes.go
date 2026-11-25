@@ -19,6 +19,15 @@ type ClassService interface {
 	DeleteClassByID(ctx context.Context, id int64) error
 	GetParentClass(ctx context.Context, id int64) (*entities.Class, error)
 	GetChildClasses(ctx context.Context, id int64) ([]entities.Class, error)
+
+	// ListParameters возвращает параметры; classID = 0 отключает фильтрацию по классу.
+	ListParameters(ctx context.Context, classID int64, parameterType int) ([]entities.RangeParameter, []entities.EnumParameter, error)
+
+	// ApplyParametersToClass применяет указанные параметры к классу.
+	ApplyParametersToClass(ctx context.Context, classID int64, rangeIDs, enumIDs []int64) (int, error)
+
+	// ExcludeParametersFromClass исключает указанные параметры из класса.
+	ExcludeParametersFromClass(ctx context.Context, classID int64, rangeIDs, enumIDs []int64) (int, error)
 }
 
 // ClassHandlers определяет HTTP-обработчики для классов изделий.
@@ -44,6 +53,15 @@ type ClassHandlers interface {
 
 	// ListClassChildren обрабатывает GET /classes/children/{id}.
 	ListClassChildren(c *gin.Context)
+
+	// ListParameters обрабатывает GET /classes/parameters.
+	ListParameters(c *gin.Context)
+
+	// ApplyParametersToClass обрабатывает PATCH /classes/parameters/apply/{id}.
+	ApplyParametersToClass(c *gin.Context)
+
+	// ExcludeParametersFromClass обрабатывает PATCH /classes/parameters/exclude/{id}.
+	ExcludeParametersFromClass(c *gin.Context)
 }
 
 // classHandlers реализует ClassHandlers поверх ClassService.
@@ -125,7 +143,6 @@ func (h *classHandlers) UpdateClass(c *gin.Context) {
 
 	updates, ok := bindUpdates(c)
 	if !ok {
-		handleError(c, log, "no updates", err)
 		return
 	}
 

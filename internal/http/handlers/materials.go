@@ -81,7 +81,6 @@ type materialTreeNodeResponse struct {
 	Name           string                     `json:"name"`
 	MaterialAmount float32                    `json:"material_amount"`
 	Base           bool                       `json:"base"`
-	Units          string                     `json:"units,omitempty"`
 	Materials      []materialTreeNodeResponse `json:"materials"`
 }
 
@@ -93,7 +92,6 @@ func newMaterialTreeResponse(items []entities.MaterialProduct) []materialTreeNod
 			Name:           m.Name,
 			MaterialAmount: m.MaterialAmount,
 			Base:           m.Base,
-			Units:          m.Unit,
 			Materials:      newMaterialTreeResponse(m.Materials),
 		})
 	}
@@ -117,7 +115,6 @@ type materialNormResponse struct {
 	Name        string  `json:"name"`
 	TotalAmount float32 `json:"total_amount"`
 	Base        bool    `json:"base"`
-	Units       string  `json:"units,omitempty"`
 }
 
 // materialCreateRequest - тело POST /products/{id}/materials (схема MaterialCreate).
@@ -331,7 +328,6 @@ func (h *materialHandlers) CalculateMaterialNorms(c *gin.Context) {
 			Name:        n.Name,
 			TotalAmount: n.MaterialAmount,
 			Base:        n.Base,
-			Units:       n.Unit,
 		})
 	}
 

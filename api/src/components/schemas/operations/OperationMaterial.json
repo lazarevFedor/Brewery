@@ -1,0 +1,20 @@
+{
+  "type": "object",
+  "description": "Связь входного материала и выходного изделия",
+  "required": [
+    "material_id",
+    "product_id"
+  ],
+  "properties": {
+    "material_id": {
+      "type": "integer",
+      "description": "ID изделия, используемого как сырье/материал (входной продукт)",
+      "example": 10
+    },
+    "product_id": {
+      "type": "integer",
+      "description": "ID целевого изделия/продукта (выходной продукт)",
+      "example": 11
+    }
+  }
+}

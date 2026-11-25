@@ -1,0 +1,15 @@
+{
+  "type": "object",
+  "properties": {
+    "value": {
+      "description": "Value validated against the type of the owning enum parameter.",
+      "oneOf": [
+        { "type": "string" },
+        { "type": "number" }
+      ]
+    },
+    "position": {
+      "type": "integer"
+    }
+  }
+}

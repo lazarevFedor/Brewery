@@ -1,0 +1,19 @@
+{
+  "name": "filter",
+  "in": "query",
+  "required": false,
+  "description": "Repeated filter in the form field:op:value. Use gte/lte for saved numeric values and in for a comma-separated list of saved enum values. A class parameter takes precedence over a standard product field with the same name.",
+  "schema": {
+    "type": "string"
+  },
+  "examples": {
+    "range_range": {
+      "summary": "Range range filter",
+      "value": "amount:gte:100"
+    },
+    "enum_values": {
+      "summary": "Enum allowed values filter",
+      "value": "city:in:Москва,Самара"
+    }
+  }
+}

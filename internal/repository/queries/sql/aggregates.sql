@@ -1,0 +1,43 @@
+-- name: ApplyParameterAggregate :one
+WITH RECURSIVE branch(id) AS (
+    SELECT c.id FROM classes c JOIN aggregates a ON a.id = sqlc.arg(aggregate_id)::bigint
+    WHERE c.id = sqlc.arg(class_id)::bigint
+    UNION
+    SELECT c.id FROM classes c JOIN branch b ON c.parent_id = b.id
+), locked AS MATERIALIZED (
+    SELECT c.id, c.numeric_parameter_ids, c.enum_parameter_ids
+    FROM classes c JOIN branch b ON c.id = b.id
+    ORDER BY c.id
+    FOR UPDATE OF c
+), root AS (
+    SELECT c.id, a.numeric_parameter_ids AS range_ids, a.enum_parameter_ids AS enum_ids,
+           ARRAY(SELECT rp.id FROM range_parameters rp
+                 WHERE rp.inheritable AND (rp.id = ANY(c.numeric_parameter_ids)
+                                           OR rp.id = ANY(a.numeric_parameter_ids))) AS inherited_range_ids,
+           ARRAY(SELECT ep.id FROM enum_parameters ep
+                 WHERE ep.inheritable AND (ep.id = ANY(c.enum_parameter_ids)
+                                           OR ep.id = ANY(a.enum_parameter_ids))) AS inherited_enum_ids
+    FROM locked c JOIN aggregates a ON a.id = sqlc.arg(aggregate_id)::bigint
+    WHERE c.id = sqlc.arg(class_id)::bigint
+), additions AS (
+    SELECT c.id,
+           ARRAY(SELECT unnest(CASE WHEN c.id = r.id THEN r.range_ids ELSE r.inherited_range_ids END)
+                 EXCEPT SELECT unnest(c.numeric_parameter_ids) ORDER BY 1) AS range_ids,
+           ARRAY(SELECT unnest(CASE WHEN c.id = r.id THEN r.enum_ids ELSE r.inherited_enum_ids END)
+                 EXCEPT SELECT unnest(c.enum_parameter_ids) ORDER BY 1) AS enum_ids
+    FROM locked c CROSS JOIN root r
+), updated AS (
+    UPDATE classes c
+    SET numeric_parameter_ids = CASE WHEN cardinality(a.range_ids) > 0
+            THEN ARRAY(SELECT unnest(c.numeric_parameter_ids) UNION SELECT unnest(a.range_ids) ORDER BY 1)
+            ELSE c.numeric_parameter_ids END,
+        enum_parameter_ids = CASE WHEN cardinality(a.enum_ids) > 0
+            THEN ARRAY(SELECT unnest(c.enum_parameter_ids) UNION SELECT unnest(a.enum_ids) ORDER BY 1)
+            ELSE c.enum_parameter_ids END
+    FROM additions a
+    WHERE c.id = a.id AND (cardinality(a.range_ids) > 0 OR cardinality(a.enum_ids) > 0)
+    RETURNING cardinality(a.range_ids)::bigint + cardinality(a.enum_ids) AS added
+)
+SELECT COALESCE(sum(u.added), 0)::bigint AS params_added
+FROM root r LEFT JOIN updated u ON true
+GROUP BY r.id;

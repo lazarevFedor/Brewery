@@ -1,0 +1,109 @@
+{
+  "patch": {
+    "tags": [
+      "RangeParameters"
+    ],
+    "summary": "Update range parameter",
+    "description": "Narrowing a range is rejected if a saved product or operation value falls outside the proposed bounds.",
+    "operationId": "updateRangeParameter",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/Id"
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RangeParameterUpdate"
+              }
+            ]
+          },
+          "examples": {
+            "range": {
+              "$ref": "#/components/examples/RangeParameterUpdate"
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Range parameter updated",
+        "content": {
+          "application/json": {
+            "schema": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/RangeParameter"
+                }
+              ]
+            },
+            "examples": {
+              "range": {
+                "$ref": "#/components/examples/RangeParameter"
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "409": {
+        "$ref": "#/components/responses/409_conflict"
+      },
+      "422": {
+        "$ref": "#/components/responses/422_validation_error"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  },
+  "delete": {
+    "tags": [
+      "RangeParameters"
+    ],
+    "summary": "Delete range parameter",
+    "operationId": "deleteRangeParameter",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/Id"
+      }
+    ],
+    "responses": {
+      "204": {
+        "description": "Range parameter deleted"
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "409": {
+        "$ref": "#/components/responses/409_conflict"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  }
+}

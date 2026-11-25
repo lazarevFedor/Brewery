@@ -38,7 +38,6 @@ type EnumParameter struct {
 	EnumType    string
 	FieldName   string
 	Unit        *string
-	IsActive    bool
 	Inheritable bool
 }
 
@@ -49,6 +48,29 @@ type Material struct {
 	Base           bool
 }
 
+type Operation struct {
+	ID               int64
+	Description      *string
+	Name             string
+	EquipmentName    string
+	WorkCenterName   string
+	StepNumber       int32
+	LaborCost        float32
+	OperationClassID int64
+	ProfessionID     int64
+	InputProductID   int64
+	OutputProductID  int64
+}
+
+type OperationsParameter struct {
+	ID              int64
+	OperationID     int64
+	EnumValueID     *int64
+	RangeParameter  *int64
+	NumericValue    *float32
+	EnumParameterID *int64
+}
+
 type ParameterValue struct {
 	ID              int64
 	EnumParameterID *int64
@@ -57,19 +79,24 @@ type ParameterValue struct {
 }
 
 type Product struct {
-	ID      int64
-	Name    string
-	Amount  *float32
-	Units   *string
-	ClassID int64
-	BaseID  *int64
+	ID             int64
+	Name           string
+	Amount         *float32
+	Units          *string
+	ClassID        int64
+	BaseID         *int64
+	Price          *float64
+	IsPurchased    bool
+	IsFinalProduct bool
 }
 
 type ProductsParameter struct {
-	ID             int64
-	ProductID      *int64
-	EnumValueID    *int64
-	RangeParameter *int64
+	ID              int64
+	ProductID       int64
+	EnumValueID     *int64
+	RangeParameter  *int64
+	NumericValue    *float32
+	EnumParameterID *int64
 }
 
 type RangeParameter struct {
@@ -79,4 +106,9 @@ type RangeParameter struct {
 	Unit        string
 	FieldName   string
 	Inheritable bool
+}
+
+type WorkCenter struct {
+	EquipmentName  string
+	WorkCenterName string
 }

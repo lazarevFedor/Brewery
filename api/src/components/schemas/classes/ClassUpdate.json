@@ -1,0 +1,19 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "minProperties": 1,
+  "description": "Use the class parameter apply and exclude endpoints to change parameter assignments.",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "parent_id": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Moving the class adds inheritable parameters from the new parent to the moved class and its descendants. Existing parameters are preserved. A conflicting parameter name returns 409."
+    }
+  },
+  "example": {
+    "parent_id": 1
+  }
+}

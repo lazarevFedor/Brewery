@@ -35,7 +35,7 @@ func (q *Queries) CopyBaseMaterials(ctx context.Context, arg CopyBaseMaterialsPa
 	return err
 }
 
-const deleteMaterial = `-- name: DeleteMaterial :exec
+const deleteMaterial = `-- name: DeleteMaterial :execrows
 DELETE FROM materials
 WHERE material_id = $1
 AND product_id = $2
@@ -46,19 +46,12 @@ type DeleteMaterialParams struct {
 	ProductID  int64
 }
 
-func (q *Queries) DeleteMaterial(ctx context.Context, arg DeleteMaterialParams) error {
-	_, err := q.db.Exec(ctx, deleteMaterial, arg.MaterialID, arg.ProductID)
-	return err
-}
-
-const deleteProductsMaterials = `-- name: DeleteProductsMaterials :exec
-DELETE FROM materials
-WHERE product_id = $1
-`
-
-func (q *Queries) DeleteProductsMaterials(ctx context.Context, productID int64) error {
-	_, err := q.db.Exec(ctx, deleteProductsMaterials, productID)
-	return err
+func (q *Queries) DeleteMaterial(ctx context.Context, arg DeleteMaterialParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteMaterial, arg.MaterialID, arg.ProductID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const getMaterialsByProductID = `-- name: GetMaterialsByProductID :many
@@ -67,6 +60,9 @@ SELECT
     m.material_amount,
     m.base,
     p.name,
+    COALESCE(p.price, 0)::double precision AS price,
+    p.is_purchased,
+    p.is_final_product,
     p.units,
     p.class_id,
     p.base_id
@@ -80,6 +76,9 @@ type GetMaterialsByProductIDRow struct {
 	MaterialAmount float32
 	Base           bool
 	Name           string
+	Price          float64
+	IsPurchased    bool
+	IsFinalProduct bool
 	Units          *string
 	ClassID        int64
 	BaseID         *int64
@@ -99,6 +98,9 @@ func (q *Queries) GetMaterialsByProductID(ctx context.Context, productID int64) 
 			&i.MaterialAmount,
 			&i.Base,
 			&i.Name,
+			&i.Price,
+			&i.IsPurchased,
+			&i.IsFinalProduct,
 			&i.Units,
 			&i.ClassID,
 			&i.BaseID,
@@ -119,6 +121,9 @@ SELECT
     m.material_amount,
     m.base,
     p.name,
+    COALESCE(p.price, 0)::double precision AS price,
+    p.is_purchased,
+    p.is_final_product,
     p.units,
     p.class_id,
     p.base_id,
@@ -127,21 +132,32 @@ FROM materials m
 JOIN products p ON p.id = m.product_id
 JOIN classes c ON p.class_id = c.id
 WHERE m.material_id = $1
+ORDER BY m.product_id
+LIMIT $3 OFFSET $2
 `
+
+type GetProductsByMaterialParams struct {
+	MaterialID  int64
+	OffsetCount int32
+	LimitCount  int32
+}
 
 type GetProductsByMaterialRow struct {
 	ID             int64
 	MaterialAmount float32
 	Base           bool
 	Name           string
+	Price          float64
+	IsPurchased    bool
+	IsFinalProduct bool
 	Units          *string
 	ClassID        int64
 	BaseID         *int64
 	ClassName      string
 }
 
-func (q *Queries) GetProductsByMaterial(ctx context.Context, materialID int64) ([]GetProductsByMaterialRow, error) {
-	rows, err := q.db.Query(ctx, getProductsByMaterial, materialID)
+func (q *Queries) GetProductsByMaterial(ctx context.Context, arg GetProductsByMaterialParams) ([]GetProductsByMaterialRow, error) {
+	rows, err := q.db.Query(ctx, getProductsByMaterial, arg.MaterialID, arg.OffsetCount, arg.LimitCount)
 	if err != nil {
 		return nil, err
 	}
@@ -154,6 +170,9 @@ func (q *Queries) GetProductsByMaterial(ctx context.Context, materialID int64) (
 			&i.MaterialAmount,
 			&i.Base,
 			&i.Name,
+			&i.Price,
+			&i.IsPurchased,
+			&i.IsFinalProduct,
 			&i.Units,
 			&i.ClassID,
 			&i.BaseID,
@@ -209,6 +228,32 @@ func (q *Queries) InsertMaterial(ctx context.Context, arg InsertMaterialParams) 
 		&i.Base,
 	)
 	return i, err
+}
+
+const syncBaseMaterials = `-- name: SyncBaseMaterials :exec
+WITH source AS (
+    SELECT m.material_id, m.material_amount, m.base
+    FROM materials AS m
+    WHERE m.product_id = $2
+), removed AS (
+    DELETE FROM materials AS current
+    WHERE current.product_id = $1
+      AND NOT EXISTS (SELECT 1 FROM source WHERE source.material_id = current.material_id)
+)
+INSERT INTO materials (product_id, material_id, material_amount, base)
+SELECT $1, material_id, material_amount, base FROM source
+ON CONFLICT (material_id, product_id) DO UPDATE
+SET material_amount = EXCLUDED.material_amount, base = EXCLUDED.base
+`
+
+type SyncBaseMaterialsParams struct {
+	ProductID int64
+	BaseID    int64
+}
+
+func (q *Queries) SyncBaseMaterials(ctx context.Context, arg SyncBaseMaterialsParams) error {
+	_, err := q.db.Exec(ctx, syncBaseMaterials, arg.ProductID, arg.BaseID)
+	return err
 }
 
 const updateMaterial = `-- name: UpdateMaterial :one

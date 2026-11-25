@@ -1,0 +1,14 @@
+{
+  "description": "Not Found",
+  "content": {
+    "application/json": {
+      "schema": {
+        "$ref": "#/components/schemas/ErrorResponse"
+      },
+      "example": {
+        "error": "NOT_FOUND",
+        "message": "Resource with id=1 not found"
+      }
+    }
+  }
+}

@@ -1,0 +1,132 @@
+{
+  "get": {
+    "tags": [
+      "Equipment"
+    ],
+    "summary": "Get equipment by key",
+    "description": "Возвращает информацию об оборудовании по его составному первичному ключу (name, work_center)",
+    "operationId": "getEquipment",
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/EquipmentName"
+      },
+      {
+        "$ref": "#/components/parameters/WorkCenter"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Информация об оборудовании",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Equipment"
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  },
+  "patch": {
+    "tags": [
+      "Equipment"
+    ],
+    "summary": "Update equipment",
+    "description": "Обновляет параметры единицы оборудования по ее составному первичному ключу (name, work_center)",
+    "operationId": "updateEquipment",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/EquipmentName"
+      },
+      {
+        "$ref": "#/components/parameters/WorkCenter"
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/EquipmentUpdate"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Обновленное оборудование",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Equipment"
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "409": {
+        "$ref": "#/components/responses/409_conflict"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  },
+  "delete": {
+    "tags": [
+      "Equipment"
+    ],
+    "summary": "Delete equipment",
+    "description": "Удаляет единицу оборудования по ее составному первичному ключу (name, work_center)",
+    "operationId": "deleteEquipment",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "parameters": [
+      {
+        "$ref": "#/components/parameters/EquipmentName"
+      },
+      {
+        "$ref": "#/components/parameters/WorkCenter"
+      }
+    ],
+    "responses": {
+      "204": {
+        "description": "Оборудование успешно удалено"
+      },
+      "400": {
+        "$ref": "#/components/responses/400_bad_request"
+      },
+      "404": {
+        "$ref": "#/components/responses/404_not_found"
+      },
+      "409": {
+        "$ref": "#/components/responses/409_conflict"
+      },
+      "500": {
+        "$ref": "#/components/responses/500_internal_server_error"
+      }
+    }
+  }
+}

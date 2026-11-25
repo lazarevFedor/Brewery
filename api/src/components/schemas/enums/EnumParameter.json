@@ -1,0 +1,30 @@
+{
+  "allOf": [
+    {
+      "$ref": "#/components/schemas/EnumParameterBase"
+    },
+    {
+      "type": "object",
+      "required": [
+        "id",
+        "enum_type",
+        "field_name",
+        "inheritable"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "enum_type": {
+          "type": "string"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "inheritable": {
+          "type": "boolean"
+        }
+      }
+    }
+  ]
+}

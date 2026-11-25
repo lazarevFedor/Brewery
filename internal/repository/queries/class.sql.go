@@ -9,14 +9,40 @@ import (
 	"context"
 )
 
-const deleteClass = `-- name: DeleteClass :exec
+const classMoveCreatesCycle = `-- name: ClassMoveCreatesCycle :one
+WITH RECURSIVE ancestors(id, parent_id) AS (
+    SELECT c.id, c.parent_id FROM classes c WHERE c.id = $2
+    UNION
+    SELECT c.id, c.parent_id FROM classes c JOIN ancestors a ON c.id = a.parent_id
+)
+SELECT (COALESCE(bool_or(id = $1::bigint), false)
+        OR (count(*) > 0 AND count(*) FILTER (WHERE parent_id IS NULL) = 0))::boolean
+FROM ancestors
+`
+
+type ClassMoveCreatesCycleParams struct {
+	AncestorID int64
+	ClassID    int64
+}
+
+func (q *Queries) ClassMoveCreatesCycle(ctx context.Context, arg ClassMoveCreatesCycleParams) (bool, error) {
+	row := q.db.QueryRow(ctx, classMoveCreatesCycle, arg.AncestorID, arg.ClassID)
+	var column_1 bool
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const deleteClass = `-- name: DeleteClass :execrows
 DELETE FROM classes
 WHERE id = $1
 `
 
-func (q *Queries) DeleteClass(ctx context.Context, id int64) error {
-	_, err := q.db.Exec(ctx, deleteClass, id)
-	return err
+func (q *Queries) DeleteClass(ctx context.Context, id int64) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteClass, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const getClassByID = `-- name: GetClassByID :one
@@ -101,6 +127,47 @@ func (q *Queries) GetClasses(ctx context.Context) ([]Class, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const inheritClassBranchParameters = `-- name: InheritClassBranchParameters :exec
+WITH RECURSIVE branch(id) AS (
+    SELECT child.id FROM classes child WHERE child.id = $1
+    UNION
+    SELECT child.id FROM classes child JOIN branch b ON child.parent_id = b.id
+), incoming AS (
+    SELECT ARRAY(
+        SELECT rp.id FROM range_parameters rp
+        WHERE rp.id = ANY(parent.numeric_parameter_ids) AND rp.inheritable
+    ) AS range_ids, ARRAY(
+        SELECT ep.id FROM enum_parameters ep
+        WHERE ep.id = ANY(parent.enum_parameter_ids) AND ep.inheritable
+    ) AS enum_ids
+    FROM classes parent
+    WHERE parent.id = $2::bigint
+)
+UPDATE classes AS target
+SET numeric_parameter_ids = CASE
+        WHEN incoming.range_ids <@ COALESCE(target.numeric_parameter_ids, '{}') THEN target.numeric_parameter_ids
+        ELSE ARRAY(SELECT unnest(target.numeric_parameter_ids) UNION SELECT unnest(incoming.range_ids) ORDER BY 1)
+    END,
+    enum_parameter_ids = CASE
+        WHEN incoming.enum_ids <@ COALESCE(target.enum_parameter_ids, '{}') THEN target.enum_parameter_ids
+        ELSE ARRAY(SELECT unnest(target.enum_parameter_ids) UNION SELECT unnest(incoming.enum_ids) ORDER BY 1)
+    END
+FROM branch, incoming
+WHERE target.id = branch.id
+  AND (NOT incoming.range_ids <@ COALESCE(target.numeric_parameter_ids, '{}')
+       OR NOT incoming.enum_ids <@ COALESCE(target.enum_parameter_ids, '{}'))
+`
+
+type InheritClassBranchParametersParams struct {
+	ClassID  int64
+	ParentID int64
+}
+
+func (q *Queries) InheritClassBranchParameters(ctx context.Context, arg InheritClassBranchParametersParams) error {
+	_, err := q.db.Exec(ctx, inheritClassBranchParameters, arg.ClassID, arg.ParentID)
+	return err
 }
 
 const insertClass = `-- name: InsertClass :one

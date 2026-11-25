@@ -1,0 +1,25 @@
+{
+  "allOf": [
+    {
+      "$ref": "#/components/schemas/ClassBase"
+    },
+    {
+      "type": "object",
+      "required": [
+        "name",
+        "parent_id"
+      ],
+      "properties": {
+        "parent_id": {
+          "type": "integer",
+          "nullable": true,
+          "description": "ID of the parent class. A child receives the parent's inheritable parameters. Pass null to create the root class. If a root already exists, the request returns 409."
+        }
+      }
+    }
+  ],
+  "example": {
+    "name": "Пиво",
+    "parent_id": null
+  }
+}

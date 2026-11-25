@@ -6,7 +6,8 @@ import (
 	"Brewery/internal/http/handlers"
 	"Brewery/internal/http/middleware"
 	"Brewery/internal/http/routers"
-	classrepo "Brewery/internal/repository/class"
+	"Brewery/internal/repository/class"
+	"Brewery/internal/repository/operation"
 	"Brewery/internal/usecase"
 	"Brewery/migrator"
 	"Brewery/pkg/logger"
@@ -48,27 +49,34 @@ func main() {
 	if err != nil {
 		panic(fmt.Errorf("failed to create postgres pool: %w", err))
 	}
+	defer pool.Close()
 
 	if err = migrator.Up(pool); err != nil {
 		panic(fmt.Errorf("failed to migrate: %w", err))
 	}
-	defer migrator.Down(pool)
 
-	classRepo := classrepo.NewRepository(pool)
+	classRepo := class.NewClassRepository(pool)
 	productRepo := usecase.NewProductRepository(pool)
 	materialRepo := usecase.NewMaterialRepository(pool)
 	historyRepo := usecase.NewHistoryRecordRepository(pool)
-	enumRepo := usecase.NewEnumRepository(pool)
-	parameterRepo := usecase.NewParameterRepository(pool)
+	enumParametersRepo := usecase.NewEnumParametersRepository(pool)
+	enumValuesRepo := usecase.NewEnumValuesRepository(pool)
+	rangeParametersRepo := usecase.NewRangeParametersRepository(pool)
+	classParametersRepo := usecase.NewClassParametersRepository(pool)
 	aggregateRepo := usecase.NewAggregateRepository(pool)
+	equipmentRepo := usecase.NewEquipmentRepository(pool)
+	operationRepo := operation.NewRepository(pool)
 
-	classService := usecase.NewClassService(classRepo)
-	productService := usecase.NewProductService(productRepo, enumRepo, parameterRepo, classRepo, materialRepo)
+	classService := usecase.NewClassService(classRepo, classParametersRepo)
+	productService := usecase.NewProductService(productRepo, enumValuesRepo, classParametersRepo, classRepo, materialRepo)
 	materialService := usecase.NewMaterialService(materialRepo, productRepo)
 	historyService := usecase.NewHistoryService(historyRepo)
-	enumService := usecase.NewEnumService(enumRepo)
-	parameterService := usecase.NewParametersService(parameterRepo, enumRepo)
+	enumParametersService := usecase.NewEnumParametersService(enumParametersRepo)
+	enumValuesService := usecase.NewEnumValuesService(enumValuesRepo)
+	rangeParametersService := usecase.NewRangeParametersService(rangeParametersRepo)
 	aggregateService := usecase.NewAggregateService(aggregateRepo)
+	equipmentService := usecase.NewEquipmentService(equipmentRepo)
+	operationService := usecase.NewOperationService(operationRepo, materialRepo, productRepo, classRepo, classParametersRepo, enumValuesRepo)
 
 	engine := gin.New()
 	engine.Use(gin.Recovery())
@@ -98,14 +106,17 @@ func main() {
 	defer router.Close()
 
 	h := handlers.Handlers{
-		ClassHandler:      handlers.NewClassHandlers(classService),
-		ProductHandler:    handlers.NewProductHandlers(productService, nil),
-		MaterialHandler:   handlers.NewMaterialHandlers(materialService),
-		HistoryHandler:    handlers.NewHistoryHandlers(historyService),
-		EnumHandler:       handlers.NewEnumHandlers(enumService),
-		ParametersHandler: handlers.NewParametersHandlers(parameterService),
-		AggregatesHandler: handlers.NewAggregateHandlers(aggregateService),
-		AuthHandler:       handlers.NewAuthHandlers(),
+		ClassHandler:           handlers.NewClassHandlers(classService),
+		ProductHandler:         handlers.NewProductHandlers(productService),
+		MaterialHandler:        handlers.NewMaterialHandlers(materialService),
+		HistoryHandler:         handlers.NewHistoryHandlers(historyService),
+		EnumParametersHandler:  handlers.NewEnumParametersHandlers(enumParametersService),
+		EnumValuesHandler:      handlers.NewEnumValuesHandlers(enumValuesService),
+		RangeParametersHandler: handlers.NewRangeParametersHandlers(rangeParametersService),
+		AggregatesHandler:      handlers.NewAggregateHandlers(aggregateService),
+		EquipmentHandler:       handlers.NewEquipmentHandlers(equipmentService),
+		OperationHandler:       handlers.NewOperationHandlers(operationService),
+		AuthHandler:            handlers.NewAuthHandlers(),
 	}
 
 	routers.RegisterRouters(router.Engine, h)

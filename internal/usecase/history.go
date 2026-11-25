@@ -1,11 +1,12 @@
 package usecase
 
 import (
+	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
 	"Brewery/internal/repository/history"
 	"context"
-	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -42,7 +43,13 @@ func (hs *HistoryService) CreateChangeRecord(ctx context.Context, record *entiti
 	}
 
 	if record == nil {
-		return nil, errors.New("record cannot be nil")
+		return nil, apperrors.BadRequest("record cannot be nil", nil)
+	}
+	if record.ProductID <= 0 {
+		return nil, apperrors.BadRequest("invalid product id", nil)
+	}
+	if strings.TrimSpace(record.Changes) == "" {
+		return nil, apperrors.BadRequest("changes is required", nil)
 	}
 
 	record.CreatedAt = time.Now()
@@ -64,8 +71,14 @@ func (hs *HistoryService) GetHistoryByProduct(
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
+	if productID <= 0 {
+		return nil, apperrors.BadRequest("invalid product id", nil)
+	}
+	if limit < 0 || offset < 0 {
+		return nil, apperrors.BadRequest("invalid pagination", nil)
+	}
 	if !start.IsZero() && !end.IsZero() && start.After(end) {
-		return nil, errors.New("start date cannot be after end date")
+		return nil, apperrors.BadRequest("start date cannot be after end date", nil)
 	}
 
 	records, err := hs.repo.GetHistoryByProduct(ctx, productID, start, end, limit, offset)
@@ -79,6 +92,10 @@ func (hs *HistoryService) GetHistoryByProduct(
 func (hs *HistoryService) GetHistoryRecordByID(ctx context.Context, id int64) ([]entities.HistoryRecord, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("request cancelled: %w", err)
+	}
+
+	if id <= 0 {
+		return nil, apperrors.BadRequest("invalid history record id", nil)
 	}
 
 	historyRecords, err := hs.repo.GetHistoryRecordByID(ctx, id)

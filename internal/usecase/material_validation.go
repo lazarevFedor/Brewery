@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"Brewery/internal/apperrors"
 	"context"
 	"errors"
 	"fmt"
@@ -22,7 +23,7 @@ func validateMaterialComposition(ctx context.Context, repo MaterialRepository, p
 			return fmt.Errorf("request cancelled: %w", err)
 		}
 		if id == productID || active[id] {
-			return fmt.Errorf("material composition contains a cycle at product %d", id)
+			return apperrors.Validation(fmt.Sprintf("material composition contains a cycle at product %d", id), nil)
 		}
 		if visited[id] {
 			return nil

@@ -1,10 +1,13 @@
 package usecase
 
 import (
+	"Brewery/internal/apperrors"
 	"Brewery/internal/entities"
 	"context"
 	"errors"
 	"fmt"
+
+	"github.com/jackc/pgx/v5"
 )
 
 type ClassRepository interface {
@@ -28,12 +31,13 @@ type ClassRepository interface {
 }
 
 type ClassService struct {
-	repo ClassRepository
+	repo           ClassRepository
+	parametersRepo ClassParametersRepository
 }
 
-// NewClassService creates class service.
-func NewClassService(repo ClassRepository) *ClassService {
-	return &ClassService{repo: repo}
+// NewClassService создает сервис классов изделий и их параметров.
+func NewClassService(repo ClassRepository, parametersRepo ClassParametersRepository) *ClassService {
+	return &ClassService{repo: repo, parametersRepo: parametersRepo}
 }
 
 func (c *ClassService) ensureRepo() error {
@@ -71,34 +75,24 @@ func (c *ClassService) CreateClass(ctx context.Context, class *entities.Class) (
 	}
 
 	if class == nil {
-		return nil, errors.New("class is nil")
+		return nil, apperrors.BadRequest("class is nil", nil)
 	}
 
 	if class.Name == "" {
-		return nil, errors.New("class name is required")
+		return nil, apperrors.BadRequest("class name is required", nil)
 	}
 
-	if *class.ParentID == 0 {
+	if class.ParentID != nil && *class.ParentID == 0 {
 		class.ParentID = nil
 	}
 
-	if class.ParentID == nil {
-		classes, err := c.repo.GetClasses(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("failed to check existing classes: %w", err)
-		}
-		for _, c := range classes {
-			if c.ParentID == nil {
-				return nil, errors.New("root class already exists")
-			}
-		}
-	} else {
+	if class.ParentID != nil {
 		parent, err := c.repo.GetClassByID(ctx, *class.ParentID)
+		if errors.Is(err, pgx.ErrNoRows) || (err == nil && parent == nil) {
+			return nil, apperrors.BadRequest("parent class not found", err)
+		}
 		if err != nil {
 			return nil, fmt.Errorf("failed to get parent class: %w", err)
-		}
-		if parent == nil {
-			return nil, errors.New("parent class not found")
 		}
 	}
 
@@ -118,11 +112,14 @@ func (c *ClassService) GetClassByID(ctx context.Context, id int64) (*entities.Cl
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	if id == 0 {
-		return nil, errors.New("invalid class id")
+	if id <= 0 {
+		return nil, apperrors.BadRequest("invalid class id", nil)
 	}
 
 	class, err := c.repo.GetClassByID(ctx, id)
+	if errors.Is(err, pgx.ErrNoRows) || (err == nil && class == nil) {
+		return nil, apperrors.NotFound("Class not found", err)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to get class: %w", err)
 	}
@@ -138,12 +135,12 @@ func (c *ClassService) UpdateClass(ctx context.Context, id int64, updates map[st
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	if id == 0 {
-		return nil, errors.New("invalid class id")
+	if id <= 0 {
+		return nil, apperrors.BadRequest("invalid class id", nil)
 	}
 
 	if len(updates) == 0 {
-		return nil, errors.New("no fields to update")
+		return nil, apperrors.BadRequest("no fields to update", nil)
 	}
 
 	class, err := c.ValidateClassUpdates(ctx, id, updates)
@@ -167,8 +164,8 @@ func (c *ClassService) DeleteClassByID(ctx context.Context, id int64) error {
 		return fmt.Errorf("request cancelled: %w", err)
 	}
 
-	if id == 0 {
-		return errors.New("invalid class id")
+	if id <= 0 {
+		return apperrors.BadRequest("invalid class id", nil)
 	}
 
 	err := c.repo.DeleteClass(ctx, id)
@@ -187,24 +184,16 @@ func (c *ClassService) GetParentClass(ctx context.Context, id int64) (*entities.
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	if id == 0 {
-		return nil, errors.New("invalid class id")
-	}
-
-	class, err := c.repo.GetClassByID(ctx, id)
+	class, err := c.GetClassByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get class: %w", err)
-	}
-
-	if class == nil {
-		return nil, errors.New("class not found")
 	}
 
 	if class.ParentID == nil {
 		return nil, nil
 	}
 
-	parent, err := c.repo.GetClassByID(ctx, *class.ParentID)
+	parent, err := c.GetClassByID(ctx, *class.ParentID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get parent class: %w", err)
 	}
@@ -220,8 +209,8 @@ func (c *ClassService) GetChildClasses(ctx context.Context, id int64) ([]entitie
 		return nil, fmt.Errorf("request cancelled: %w", err)
 	}
 
-	if id == 0 {
-		return nil, errors.New("invalid class id")
+	if id <= 0 {
+		return nil, apperrors.BadRequest("invalid class id", nil)
 	}
 
 	classes, err := c.repo.GetClasses(ctx)
@@ -229,90 +218,51 @@ func (c *ClassService) GetChildClasses(ctx context.Context, id int64) ([]entitie
 		return nil, fmt.Errorf("failed to get classes: %w", err)
 	}
 	children := make([]entities.Class, 0)
-	for _, c := range classes {
-		if c.ParentID != nil && *c.ParentID == id {
-			children = append(children, c)
+	parentExists := false
+	for _, class := range classes {
+		if class.ID == id {
+			parentExists = true
 		}
+		if class.ParentID != nil && *class.ParentID == id {
+			children = append(children, class)
+		}
+	}
+	if !parentExists {
+		return nil, apperrors.NotFound("Class not found", nil)
 	}
 	return children, nil
 }
 
-func (c *ClassService) ensureClassParentIsNotDescendant(ctx context.Context, classID, parentID int64) error {
-	visited := make(map[int64]struct{})
-	currentID := parentID
-
-	for currentID != 0 {
-		if _, seen := visited[currentID]; seen {
-			return errors.New("class hierarchy contains a cycle")
-		}
-		visited[currentID] = struct{}{}
-
-		class, err := c.repo.GetClassByID(ctx, currentID)
-		if err != nil {
-			return fmt.Errorf("failed to get parent class: %w", err)
-		}
-		if class == nil {
-			return errors.New("parent class not found")
-		}
-
-		if class.ID == classID {
-			return errors.New("class parent creates a cycle")
-		}
-
-		if class.ParentID == nil {
-			break
-		}
-		currentID = *class.ParentID
-	}
-
-	return nil
-}
-
 func (c *ClassService) ValidateClassUpdates(ctx context.Context, id int64, updates map[string]any) (*entities.Class, error) {
-	var ok bool
-	class, err := c.repo.GetClassByID(ctx, id)
-	if err != nil {
+	if _, err := c.GetClassByID(ctx, id); err != nil {
 		return nil, fmt.Errorf("failed to get class: %w", err)
 	}
 
-	if class == nil {
-		return nil, errors.New("class not found")
-	}
-
+	class := &entities.Class{ID: id}
 	for key, value := range updates {
 		switch key {
 		case "name":
-			class.Name, ok = value.(string)
+			name, ok := value.(string)
 			if !ok {
-				return nil, errors.New("name must be a string")
+				return nil, apperrors.BadRequest("name must be a string", nil)
 			}
+			if name == "" {
+				return nil, apperrors.BadRequest("class name is required", nil)
+			}
+			class.Name = name
 
 		case "parent_id":
 			parentID, ok := value.(int64)
 			if !ok || parentID <= 0 {
-				return nil, errors.New("parent_id must be a positive int64")
+				return nil, apperrors.BadRequest("parent_id must be a positive int64", nil)
 			}
 
-			if err := c.ensureClassParentIsNotDescendant(ctx, id, parentID); err != nil {
-				return nil, fmt.Errorf("failed to update parent class: %w", err)
-			}
 			class.ParentID = &parentID
 
-		case "range_param_ids":
-			rangeParamIDs, ok := value.([]int64)
-			if !ok {
-				return nil, errors.New("range_param_ids must be a slice of int64")
-			}
-			class.RangeParamIDs = rangeParamIDs
-
-		case "enum_param_ids":
-			enumParamIDs, ok := value.([]int64)
-			if !ok {
-				return nil, errors.New("enum_param_ids must be a slice of int64")
-			}
-			class.EnumParamIDs = enumParamIDs
+		case "range_param_ids", "enum_param_ids":
+			return nil, apperrors.BadRequest("use the apply or exclude endpoint to change class parameters", nil)
 		default:
-			return nil, fmt.Errorf("unknown field: %s", key)
+			return nil, apperrors.BadRequest(fmt.Sprintf("unknown field: %s", key), nil)
 		}
 	}
 
