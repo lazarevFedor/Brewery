@@ -32,6 +32,32 @@ func (q *Queries) ClassMoveCreatesCycle(ctx context.Context, arg ClassMoveCreate
 	return column_1, err
 }
 
+const classMoveCrossesBranches = `-- name: ClassMoveCrossesBranches :one
+WITH RECURSIVE branch_roots AS (
+    SELECT id FROM classes WHERE name IN ('product', 'operation', 'profession')
+), ancestors(id, parent_id) AS (
+    SELECT c.id, c.parent_id FROM classes c WHERE c.id IN ($1, $2)
+    UNION
+    SELECT p.id, p.parent_id FROM classes p JOIN ancestors a ON p.id = a.parent_id
+    WHERE a.id NOT IN (SELECT b.id FROM branch_roots b)
+)
+SELECT (count(*) > 1)::boolean AS crosses_branches
+FROM ancestors JOIN branch_roots USING (id)
+`
+
+type ClassMoveCrossesBranchesParams struct {
+	ClassID  int64
+	ParentID int64
+}
+
+// Walk both paths up to their nearest named branch. UNION merges shared ancestors.
+func (q *Queries) ClassMoveCrossesBranches(ctx context.Context, arg ClassMoveCrossesBranchesParams) (bool, error) {
+	row := q.db.QueryRow(ctx, classMoveCrossesBranches, arg.ClassID, arg.ParentID)
+	var crosses_branches bool
+	err := row.Scan(&crosses_branches)
+	return crosses_branches, err
+}
+
 const deleteClass = `-- name: DeleteClass :execrows
 DELETE FROM classes
 WHERE id = $1

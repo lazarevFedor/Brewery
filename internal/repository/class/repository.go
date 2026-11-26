@@ -115,10 +115,11 @@ func (repo *Repository) UpdateClass(ctx context.Context, id int64, updates entit
 	txQueries := repo.query.WithTx(tx)
 	updateParams := queries.UpdateClassParams{ID: id}
 
+	// A rename can change which ancestor identifies a branch during a move.
+	if lockErr := repository.LockParameterDefinitions(ctx, tx); lockErr != nil {
+		return nil, lockErr
+	}
 	if updates.ParentID != nil {
-		if lockErr := repository.LockParameterDefinitions(ctx, tx); lockErr != nil {
-			return nil, lockErr
-		}
 		previous, readErr := txQueries.GetClassByID(ctx, id)
 		if errors.Is(readErr, pgx.ErrNoRows) {
 			return nil, apperrors.NotFound("Class not found", readErr)
@@ -127,14 +128,8 @@ func (repo *Repository) UpdateClass(ctx context.Context, id int64, updates entit
 			return nil, readErr
 		}
 		if previous.ParentID == nil || *previous.ParentID != *updates.ParentID {
-			cycle, ancestorErr := txQueries.ClassMoveCreatesCycle(ctx, queries.ClassMoveCreatesCycleParams{
-				ClassID: *updates.ParentID, AncestorID: id,
-			})
-			if ancestorErr != nil {
-				return nil, ancestorErr
-			}
-			if cycle {
-				return nil, apperrors.BadRequest("class parent creates a cycle", nil)
+			if moveErr := validateClassMove(ctx, txQueries, id, *updates.ParentID); moveErr != nil {
+				return nil, moveErr
 			}
 			updateParams.ParentID = updates.ParentID
 		}
@@ -170,6 +165,28 @@ func (repo *Repository) UpdateClass(ctx context.Context, id int64, updates entit
 		return nil, err
 	}
 	return &class, nil
+}
+
+func validateClassMove(ctx context.Context, q *queries.Queries, classID, parentID int64) error {
+	cycle, err := q.ClassMoveCreatesCycle(ctx, queries.ClassMoveCreatesCycleParams{
+		ClassID: parentID, AncestorID: classID,
+	})
+	if err != nil {
+		return err
+	}
+	if cycle {
+		return apperrors.BadRequest("class parent creates a cycle", nil)
+	}
+	crossesBranches, err := q.ClassMoveCrossesBranches(ctx, queries.ClassMoveCrossesBranchesParams{
+		ClassID: classID, ParentID: parentID,
+	})
+	if err != nil {
+		return err
+	}
+	if crossesBranches {
+		return apperrors.BadRequest("cannot move a class between the product, operation and profession branches", nil)
+	}
+	return nil
 }
 
 func inheritClassParameters(ctx context.Context, txQueries *queries.Queries, classID, parentID int64) (entities.Class, error) {

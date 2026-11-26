@@ -28,10 +28,6 @@ CREATE TABLE IF NOT EXISTS operations (
         FOREIGN KEY (equipment_name, work_center_name)
         REFERENCES work_centers (equipment_name, work_center_name)
         ON UPDATE CASCADE ON DELETE RESTRICT,
-    CONSTRAINT fk_operations_material
-        FOREIGN KEY (input_product_id, output_product_id)
-        REFERENCES materials (material_id, product_id)
-        ON DELETE RESTRICT,
     CONSTRAINT chk_operation_name_not_empty CHECK (btrim(name) <> ''),
     CONSTRAINT chk_operation_step_number_positive CHECK (step_number > 0),
     CONSTRAINT chk_operation_labor_cost_positive CHECK (labor_cost >= 0)

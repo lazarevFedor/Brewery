@@ -10,7 +10,7 @@
     "parent_id": {
       "type": "integer",
       "minimum": 1,
-      "description": "Moving the class adds inheritable parameters from the new parent to the moved class and its descendants. Existing parameters are preserved. A conflicting parameter name returns 409."
+      "description": "Moving a class directly between the product, operation and profession branches returns 400. Branch membership follows the nearest ancestor with one of these names, including the class itself. A class can move within its branch or via the common root. Moving the class adds inheritable parameters from the new parent to the moved class and its descendants. Existing parameters are preserved. A conflicting parameter name returns 409."
     }
   },
   "example": {
