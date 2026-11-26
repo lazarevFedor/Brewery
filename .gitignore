@@ -6,3 +6,5 @@ deployments/pgdata
 coverage.out
 hook/
 /AGENTS.md
+/GEMINI.md
+/ARCHITECTURE.md

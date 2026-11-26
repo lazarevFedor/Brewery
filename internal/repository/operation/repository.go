@@ -368,7 +368,7 @@ func (repo *Repository) GetProductOperations(ctx context.Context, productID int6
 	builder := psql.Select(operationColumns...).
 		From(operationsTable).
 		Where(squirrel.Eq{"output_product_id": productID}).
-		OrderBy("step_number", "id")
+		OrderBy("step_number")
 
 	return repo.queryOperations(ctx, "GetProductOperations", builder)
 }

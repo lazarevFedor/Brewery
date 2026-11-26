@@ -3227,8 +3227,6 @@
           {
             "type": "object",
             "required": [
-              "material_id",
-              "product_id",
               "material_amount",
               "base"
             ],
